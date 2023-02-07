@@ -1,0 +1,101 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: kabal-behandling-creator
+  namespace: klage
+  labels:
+    team: klage
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100M"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
+spec:
+  image: {{ image }}
+  azure:
+    application:
+      enabled: true
+      tenant: {{tenant}}
+      claims:
+        groups:
+        {{#each adRoles}}
+          - id: {{value}}
+        {{/each}}
+        extra:
+          - NAVident
+  port: 7083
+  startup:
+    failureThreshold: 20
+    initialDelay: 30
+    path: /internal/health
+    periodSeconds: 10
+    timeout: 2
+  liveness:
+    path: /internal/health
+    initialDelay: 20
+    timeout: 1
+    periodSeconds: 5
+    failureThreshold: 10
+  readiness:
+    path: /internal/health
+    initialDelay: 20
+    timeout: 1
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 5000Mi
+    requests:
+      cpu: 2000m
+      memory: 5000Mi
+  ingresses:
+  {{#each ingresses as |ingress|}}
+    - {{ingress}}
+  {{/each}}
+  replicas:
+    min: 2
+    max: 2
+    cpuThresholdPercentage: 80
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  secureLogs:
+    enabled: true
+  accessPolicy:
+    inbound:
+      rules:
+      {{#each inboundApplications as |inbound|}}
+        - application: {{inbound.application}}
+#        {{#if inbound.namespace}}
+          namespace: {{inbound.namespace}}
+#        {{/if}}
+#        {{#if inbound.cluster}}
+          cluster: {{inbound.cluster}}
+#        {{/if}}
+      {{/each}}
+    outbound:
+      rules:
+        - application: kabal-api
+      external:
+      {{#each externalHosts}}
+        - host: {{host}}
+          {{#if ports}}
+          ports:
+            {{#each ports}}
+            - name: {{name}}
+              port: {{port}}
+              protocol: {{protocol}}
+            {{/each}}
+          {{/if}}
+      {{/each}}
+  envFrom:
+    - secret: srvklage-saksbeh
+    - secret: pdl-apikey
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: {{springProfile}}
+  {{#each envs}}
+    - name: {{name}}
+      value: {{value}}
+  {{/each}}
+  {{#each adRoles}}
+    - name: {{name}}
+      value: {{value}}
+  {{/each}}

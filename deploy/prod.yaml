@@ -1,0 +1,38 @@
+ingresses:
+  - https://kabal-behandling-creator.intern.nav.no
+externalHosts:
+  - host: login.microsoftonline.com
+  - host: saf.prod-fss-pub.nais.io
+  - host: pdl-api.prod-fss-pub.nais.io
+    ports:
+      - name: https
+        port: 26482
+        protocol: TCP
+inboundApplications:
+  - application: kabal-frontend
+springProfile: prod-gcp
+tenant: nav.no
+
+adRoles:
+  - name: KABAL_OPPGAVESTYRING_ALLE_ENHETER_ROLE_ID
+    value: 1c006e8b-c667-4622-9df7-43ed2fd494d6
+  - name: KABAL_MALTEKSTREDIGERING_ROLE_ID
+    value: 95c25ca2-e3e9-423e-a55f-9bc327c29f96
+  - name: KABAL_SAKSBEHANDLING_ROLE_ID
+    value: 2b671b60-9650-4839-9139-40999bbb0f71
+  - name: KABAL_FAGTEKSTREDIGERING_ROLE_ID
+    value: 1edfbdf1-c1bc-4dc6-9cab-4fff1cb7e2a8
+  - name: KABAL_INNSYN_EGEN_ENHET_ROLE_ID
+    value: e9de217a-7244-45ac-8a06-1994905d7964
+  - name: FORTROLIG_ROLE_ID
+    value: 9ec6487d-f37a-4aad-a027-cd221c1ac32b
+  - name: STRENGT_FORTROLIG_ROLE_ID
+    value: ad7b87a6-9180-467c-affc-20a566b0fec0
+  - name: EGEN_ANSATT_ROLE_ID
+    value: e750ceb5-b70b-4d94-b4fa-9d22467b786b
+  - name: KABAL_ADMIN_ROLE_ID
+    value: cd78b8e8-73a3-4fb6-8234-7bebb5e5b9e9
+
+envs:
+  - name: JAVA_OPTS
+    value: "-Xms512m -Xmx4096m"
