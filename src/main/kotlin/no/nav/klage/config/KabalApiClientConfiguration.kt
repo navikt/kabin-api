@@ -20,7 +20,7 @@ class KabalApiClientConfiguration(
     private lateinit var kabalApiURL: String
 
     @Bean
-    fun kabalDocumentWebClient(): WebClient {
+    fun kabalApiWebClient(): WebClient {
         return webClientBuilder
             .baseUrl(kabalApiURL)
             .build()
