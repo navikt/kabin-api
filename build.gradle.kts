@@ -4,7 +4,7 @@ val tokenValidationVersion = "3.0.2"
 val logstashVersion = "7.2"
 val springDocVersion = "2.0.2"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "1.2.14"
+val klageKodeverkVersion = "1.2.15"
 
 plugins {
     val kotlinVersion = "1.8.10"
