@@ -1,0 +1,5 @@
+query($journalpostId: String!) {
+    journalpost(journalpostId: $journalpostId) {
+        <replace>
+    }
+}

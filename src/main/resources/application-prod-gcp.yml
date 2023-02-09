@@ -1,26 +1,6 @@
 TENANT_ID: 62366534-1ec3-4962-8869-9b5535279d0b
-PDL_BASE_URL: https://pdl-api.prod-fss-pub.nais.io/graphql
-PDL_SCOPE: prod-fss.pdl.pdl-api
-SKJERMEDE_BASE_URL: https://skjermede-personer-pip.intern.nav.no
 
 NORG2_API_V1_URL: https://norg2.prod-fss-pub.nais.io/norg2/api/v1
-PROXY_APP_CLIENT_ID: 981be1fb-1379-465f-bddc-7563197aed84
-
-EREG_URL: https://ereg-services.prod-fss-pub.nais.io/ereg/api
-
-VEDTAK_FATTET_TOPIC: klage.vedtak-fattet.v1
-DVH_STATISTIKK_TOPIC: klage.kabal-statistikk.v1
-BEHANDLING_ENDRET_TOPIC_V2: klage.behandling-endret.v2
-BEHANDLING_EVENTS_TOPIC: klage.behandling-events.v1
-
-AIVEN_ES_HOST: elastic-klage-oppgave-es-nav-prod.aivencloud.com
-AIVEN_ES_PORT: 26482
-AIVEN_ES_SCHEME: https
-AIVEN_ES_USE_SSL: true
 
 SAF_BASE_URL: https://saf.prod-fss-pub.nais.io/
 SAF_SCOPE: prod-fss.teamdokumenthandtering.saf
-
-CLAM_AV_URL: http://clamav.clamav/scan
-
-KAKA_VERSION_2_DATE: 2023-01-01

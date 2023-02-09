@@ -54,7 +54,10 @@ class KabalApiClient(
         val vedtakDate: LocalDateTime,
         val sakenGjelder: SakenGjelderView,
         val klager: KlagerView,
+        val tilknyttedeDokumenter: List<TilknyttetDokument>,
     )
+
+    data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)
 
     data class NavnView(
         val fornavn: String?,

@@ -1,0 +1,73 @@
+journalpostId
+tittel
+journalposttype
+journalstatus
+tema
+temanavn
+behandlingstema
+behandlingstemanavn
+sak {
+    datoOpprettet
+    fagsakId
+    fagsaksystem
+}
+bruker {
+    id
+    type
+}
+avsenderMottaker {
+    id
+    type
+    navn
+    land
+    erLikBruker
+}
+journalfoerendeEnhet
+journalfortAvNavn
+opprettetAvNavn
+kanal
+kanalnavn
+skjerming
+datoOpprettet
+relevanteDatoer {
+    dato
+    datotype
+}
+antallRetur
+eksternReferanseId
+utsendingsinfo {
+    epostVarselSendt {
+        tittel
+        adresse
+        varslingstekst
+    }
+    smsVarselSendt {
+        adresse
+        varslingstekst
+    }
+    fysiskpostSendt {
+        adressetekstKonvolutt
+    }
+    digitalpostSendt {
+        adresse
+    }
+}
+tilleggsopplysninger {
+    nokkel
+    verdi
+}
+dokumenter {
+    dokumentInfoId
+    tittel
+    brevkode
+    dokumentstatus
+    datoFerdigstilt
+    originalJournalpostId
+    skjerming
+    dokumentvarianter {
+        variantformat
+        filnavn
+        saksbehandlerHarTilgang
+        skjerming
+    }
+}

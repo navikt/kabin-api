@@ -1,28 +1,6 @@
 TENANT_ID: 966ac572-f5b7-4bbe-aa88-c76419c0f851
-PDL_BASE_URL: https://pdl-api.dev-fss-pub.nais.io/graphql
-PDL_SCOPE: dev-fss.pdl.pdl-api
-SKJERMEDE_BASE_URL: https://skjermede-personer-pip.dev.intern.nav.no
 
 NORG2_API_V1_URL: https://norg2.dev-fss-pub.nais.io/norg2/api/v1
-PROXY_APP_CLIENT_ID: c6050231-3b9f-4173-8d1e-39b7e6e3392e
-
-EREG_URL: https://ereg-services-q1.dev-fss-pub.nais.io/ereg/api
-
-VEDTAK_FATTET_TOPIC: klage.vedtak-fattet.v1
-DVH_STATISTIKK_TOPIC: klage.kabal-statistikk.v1
-BEHANDLING_ENDRET_TOPIC_V2: klage.behandling-endret.v2
-BEHANDLING_EVENTS_TOPIC: klage.behandling-events.v1
-
-AIVEN_ES_HOST: elastic-klage-oppgave-es-nav-dev.aivencloud.com
-AIVEN_ES_PORT: 26482
-AIVEN_ES_SCHEME: https
-AIVEN_ES_USE_SSL: true
 
 SAF_BASE_URL: https://saf.dev-fss-pub.nais.io/
 SAF_SCOPE: dev-fss.teamdokumenthandtering.saf-q1
-
-CLAM_AV_URL: http://clamav.clamav/scan
-
-FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS: 20000
-
-KAKA_VERSION_2_DATE: 2022-12-20
