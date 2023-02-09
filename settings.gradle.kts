@@ -1,1 +1,1 @@
-rootProject.name = "kabal-behandling-creator"
+rootProject.name = "kabin-api"

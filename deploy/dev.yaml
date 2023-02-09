@@ -1,5 +1,5 @@
 ingresses:
-  - https://kabal-behandling-creator.dev.intern.nav.no
+  - https://kabin-api.dev.intern.nav.no
 externalHosts:
   - host: login.microsoftonline.com
   - host: saf.dev-fss-pub.nais.io

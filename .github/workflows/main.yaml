@@ -7,7 +7,7 @@ on:
       - '.github/dependabot.yml'
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}/kabal-behandling-creator:${{ github.sha }}
+  IMAGE: ghcr.io/${{ github.repository }}/kabin-api:${{ github.sha }}
 
 jobs:
   build:
