@@ -4,3 +4,6 @@ NORG2_API_V1_URL: https://norg2.prod-fss-pub.nais.io/norg2/api/v1
 
 SAF_BASE_URL: https://saf.prod-fss-pub.nais.io/
 SAF_SCOPE: prod-fss.teamdokumenthandtering.saf
+
+DOK_ARKIV_SCOPE: prod-fss.teamdokumenthandtering.dokarkiv/
+DOK_ARKIV_SERVICE_URL: https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1/journalpost

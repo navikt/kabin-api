@@ -8,6 +8,7 @@ import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
+import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.KabalApiService
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -20,6 +21,7 @@ import java.util.*
 class CreateAnkeController(
     private val kabalApiService: KabalApiService,
     private val documentService: DocumentService,
+    private val dokArkivService: DokArkivService
 ) {
 
     companion object {
@@ -31,6 +33,12 @@ class CreateAnkeController(
     @PostMapping("/createanke", produces = ["application/json"])
     fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandling) {
         secureLogger.debug("createAnke called with: {}", input)
+        //TODO: Sjekk om vi må fullføre journalposten osv
+        dokArkivService.updateSaksIdInJournalpost(
+            journalpostId = input.ankeDocumentJournalpostId,
+            sakFagsakId = input.sakFagsakId,
+            sakFagsystem = input.sakFagsystem
+        )
         kabalApiService.createAnkeInKabal(input)
     }
 

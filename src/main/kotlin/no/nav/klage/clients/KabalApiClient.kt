@@ -1,7 +1,9 @@
 package no.nav.klage.clients
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
@@ -49,6 +51,7 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("Didn't get any completedklagebehandlinger")
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     data class CompletedKlagebehandling(
         val behandlingId: UUID,
         val ytelse: Ytelse,
@@ -58,6 +61,8 @@ class KabalApiClient(
         val klager: KlagerView,
         val prosessfullmektig: ProsessfullmektigView?,
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
+        val sakFagsakId: String?,
+        val sakFagsystem: Fagsystem
     )
 
     data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)

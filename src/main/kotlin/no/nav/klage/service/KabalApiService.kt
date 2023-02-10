@@ -17,5 +17,4 @@ class KabalApiService(
     fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling) {
         kabalApiClient.createAnkeInKabal(input)
     }
-
 }
