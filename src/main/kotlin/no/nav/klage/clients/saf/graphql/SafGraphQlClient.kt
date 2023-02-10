@@ -22,7 +22,7 @@ class SafGraphQlClient(
     }
 
     fun getDokumentoversiktBruker(
-        fnr: String,
+        idnummer: String,
         tema: List<Tema>,
         pageSize: Int,
         previousPageRef: String? = null
@@ -35,11 +35,11 @@ class SafGraphQlClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
                 )
-                .bodyValue(hentDokumentoversiktBrukerQuery(fnr, tema, pageSize, previousPageRef))
+                .bodyValue(hentDokumentoversiktBrukerQuery(idnummer, tema, pageSize, previousPageRef))
                 .retrieve()
                 .bodyToMono<DokumentoversiktBrukerResponse>()
                 .block()
-                ?.let { logErrorsFromSaf(it, fnr, pageSize, previousPageRef); it }
+                ?.let { logErrorsFromSaf(it, idnummer, pageSize, previousPageRef); it }
                 ?.let { failOnErrors(it); it }
                 ?.data!!.dokumentoversiktBruker.also {
                     logger.debug(

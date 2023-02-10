@@ -1,8 +1,9 @@
 package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
+import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.DokumenterResponse
+import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
@@ -33,24 +34,24 @@ class CreateAnkeController(
         kabalApiService.createAnkeInKabal(input)
     }
 
-    @GetMapping("/{fnr}/ankemuligheter", produces = ["application/json"])
-    fun getCompletedKlagebehandlingerByPartIdValue(@PathVariable fnr: String): List<KabalApiClient.CompletedKlagebehandling> {
-        secureLogger.debug("getCompletedKlagebehandlingerByPartIdValue called for {}", fnr)
-        return kabalApiService.getCompletedKlagebehandlingerByPartIdValue(fnr)
+    @PostMapping("/ankemuligheter", produces = ["application/json"])
+    fun getCompletedKlagebehandlingerByIdnummer(@RequestBody input: IdnummerInput): List<KabalApiClient.CompletedKlagebehandling> {
+        secureLogger.debug("getCompletedKlagebehandlingerByIdnummer called for {}", input.idnummer)
+        return kabalApiService.getCompletedKlagebehandlingerByIdnummer(input)
     }
 
     @Operation(
         summary = "Hent metadata om dokumenter for brukeren som saken gjelder"
     )
-    @GetMapping("/{fnr}/arkivertedokumenter", produces = ["application/json"])
+    @PostMapping("/arkivertedokumenter", produces = ["application/json"])
     fun fetchDokumenter(
-        @PathVariable("fnr") fnr: String,
+        @RequestBody input: IdnummerInput,
         @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
         @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
         @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
     ): DokumenterResponse {
         return documentService.fetchDokumentlisteForBruker(
-            fnr = fnr,
+            idnummer = input.idnummer,
             temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
             pageSize = pageSize,
             previousPageRef = previousPageRef

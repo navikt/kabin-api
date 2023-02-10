@@ -1,6 +1,7 @@
 package no.nav.klage.clients
 
-import no.nav.klage.api.controller.CreateAnkeBasedOnKlagebehandling
+import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
+import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
@@ -35,13 +36,14 @@ class KabalApiClient(
             .block()
     }
 
-    fun getCompletedKlagebehandlingerByPartIdValue(partIdValue: String): List<CompletedKlagebehandling> {
-        return kabalApiWebClient.get()
-            .uri { it.path("/api/internal/brukere/{partIdValue}/completedklagebehandlinger").build(partIdValue) }
+    fun getCompletedKlagebehandlingerByIdnummer(idnummerInput: IdnummerInput): List<CompletedKlagebehandling> {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/completedklagebehandlinger").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
             )
+            .bodyValue(idnummerInput)
             .retrieve()
             .bodyToMono<List<CompletedKlagebehandling>>()
             .block() ?: throw RuntimeException("Didn't get any completedklagebehandlinger")
@@ -54,6 +56,7 @@ class KabalApiClient(
         val vedtakDate: LocalDateTime,
         val sakenGjelder: SakenGjelderView,
         val klager: KlagerView,
+        val prosessfullmektig: ProsessfullmektigView?,
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
     )
 
@@ -71,6 +74,11 @@ class KabalApiClient(
     )
 
     data class SakenGjelderView(
+        val person: PersonView?,
+        val virksomhet: VirksomhetView?
+    )
+
+    data class ProsessfullmektigView(
         val person: PersonView?,
         val virksomhet: VirksomhetView?
     )

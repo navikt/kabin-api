@@ -23,18 +23,18 @@ class DocumentService(
     }
 
     fun fetchDokumentlisteForBruker(
-        fnr: String,
+        idnummer: String,
         temaer: List<Tema>,
         pageSize: Int,
         previousPageRef: String?
     ): DokumenterResponse {
-        if (fnr.length == 11) {
+        if (idnummer.length == 11) {
             val dokumentoversiktBruker: DokumentoversiktBruker =
                 safGraphQlClient.getDokumentoversiktBruker(
-                    fnr,
-                    mapTema(temaer),
-                    pageSize,
-                    previousPageRef
+                    idnummer = idnummer,
+                    tema = mapTema(temaer),
+                    pageSize = pageSize,
+                    previousPageRef = previousPageRef
                 )
 
             return DokumenterResponse(

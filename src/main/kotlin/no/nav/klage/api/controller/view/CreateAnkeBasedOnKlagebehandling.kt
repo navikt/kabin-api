@@ -1,4 +1,4 @@
-package no.nav.klage.api.controller
+package no.nav.klage.api.controller.view
 
 import java.time.LocalDate
 import java.util.*
@@ -7,15 +7,14 @@ data class CreateAnkeBasedOnKlagebehandling(
     val klagebehandlingId: UUID,
     val mottattNav: LocalDate,
     val klager: OversendtKlager?,
+    val prosessfullmektig: OversendtProsessfullmektig?
 ) {
     data class OversendtKlager(
         val id: OversendtPartId,
-        val klagersProsessfullmektig: OversendtProsessfullmektig? = null
     )
 
     data class OversendtProsessfullmektig(
         val id: OversendtPartId,
-        val skalKlagerMottaKopi: Boolean
     )
 
     data class OversendtPartId(
