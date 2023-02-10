@@ -9,7 +9,7 @@ externalHosts:
         port: 26482
         protocol: TCP
 inboundApplications:
-  - application: kabal-frontend
+  - application: kabin
 springProfile: prod-gcp
 tenant: nav.no
 

@@ -10,7 +10,7 @@ externalHosts:
         protocol: TCP
 #Some FE app
 inboundApplications:
-  - application: kabal-frontend
+  - application: kabin
 springProfile: dev-gcp
 tenant: trygdeetaten.no
 
