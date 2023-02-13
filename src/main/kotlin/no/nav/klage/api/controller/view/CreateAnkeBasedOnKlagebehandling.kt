@@ -7,23 +7,15 @@ import java.util.*
 data class CreateAnkeBasedOnKlagebehandling(
     val klagebehandlingId: UUID,
     val mottattNav: LocalDate,
-    val klager: OversendtKlager?,
-    val prosessfullmektig: OversendtProsessfullmektig?,
+    val klager: OversendtPartId?,
+    val prosessfullmektig: OversendtPartId?,
     val ankeDocumentJournalpostId: String,
     val sakFagsakId: String,
     val sakFagsystem: Fagsystem
 ) {
-    data class OversendtKlager(
-        val id: OversendtPartId,
-    )
-
-    data class OversendtProsessfullmektig(
-        val id: OversendtPartId,
-    )
-
     data class OversendtPartId(
         val type: OversendtPartIdType,
-        val verdi: String
+        val value: String
     )
 
     enum class OversendtPartIdType { PERSON, VIRKSOMHET }
