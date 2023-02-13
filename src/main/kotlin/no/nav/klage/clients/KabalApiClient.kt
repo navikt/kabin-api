@@ -5,7 +5,6 @@ import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
-import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
@@ -54,8 +53,8 @@ class KabalApiClient(
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class CompletedKlagebehandling(
         val behandlingId: UUID,
-        val ytelse: Ytelse,
-        val utfall: Utfall,
+        val ytelseId: String,
+        val utfallId: String,
         val vedtakDate: LocalDateTime,
         val sakenGjelder: SakenGjelderView,
         val klager: KlagerView,
