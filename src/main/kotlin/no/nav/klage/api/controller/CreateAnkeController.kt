@@ -1,6 +1,7 @@
 package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.DokumenterResponse
 import no.nav.klage.api.controller.view.IdnummerInput
@@ -13,6 +14,9 @@ import no.nav.klage.service.KabalApiService
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
@@ -63,6 +67,33 @@ class CreateAnkeController(
             temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
             pageSize = pageSize,
             previousPageRef = previousPageRef
+        )
+    }
+
+    @Operation(
+        summary = "Henter fil fra dokumentarkivet",
+        description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
+    )
+    @ResponseBody
+    @GetMapping("/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}/pdf")
+    fun getArkivertDokumentPDF(
+        @Parameter(description = "Id til journalpost")
+        @PathVariable journalpostId: String,
+        @Parameter(description = "Id til dokumentInfo")
+        @PathVariable dokumentInfoId: String,
+    ): ResponseEntity<ByteArray> {
+        val arkivertDokument = documentService.getArkivertDokument(
+            journalpostId = journalpostId,
+            dokumentInfoId = dokumentInfoId
+        )
+
+        val responseHeaders = HttpHeaders()
+        responseHeaders.contentType = arkivertDokument.contentType
+        responseHeaders.add("Content-Disposition", "inline")
+        return ResponseEntity(
+            arkivertDokument.bytes,
+            responseHeaders,
+            HttpStatus.OK
         )
     }
 
