@@ -39,4 +39,20 @@ class DokArkivClient(
 
         logger.debug("Document from journalpost $journalpostId updated with saksId ${input.sak.fagsakid}.")
     }
+
+    fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
+        dokArkivWebClient.patch()
+            .uri("/${journalpostId}/ferdigstill")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(FerdigstillJournalpostPayload(journalfoerendeEnhet))
+            .retrieve()
+
+        logger.debug("Journalpost with id $journalpostId was succesfully finalized.")
+
+    }
+
+    data class FerdigstillJournalpostPayload(
+        val journalfoerendeEnhet: String
+    )
 }
