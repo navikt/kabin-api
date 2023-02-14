@@ -16,4 +16,10 @@ class DevOnlyAdminController(
     fun getToken(): String {
         return tokenUtil.getAccessTokenFrontendSent()
     }
+
+    @Unprotected
+    @GetMapping("/internal/dokarkivtoken")
+    fun getDokakrivToken(): String {
+        return tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()
+    }
 }
