@@ -41,15 +41,18 @@ class DokArkivClient(
     }
 
     fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
-        dokArkivWebClient.patch()
-            .uri("/${journalpostId}/ferdigstill")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(FerdigstillJournalpostPayload(journalfoerendeEnhet))
-            .retrieve()
+        try {
+            dokArkivWebClient.patch()
+                .uri("/${journalpostId}/ferdigstill")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(FerdigstillJournalpostPayload(journalfoerendeEnhet))
+                .retrieve()
+        } catch (e: Exception) {
+            logger.error("Error finalizing journalpost $journalpostId:", e)
+        }
 
         logger.debug("Journalpost with id $journalpostId was succesfully finalized.")
-
     }
 
     data class FerdigstillJournalpostPayload(
