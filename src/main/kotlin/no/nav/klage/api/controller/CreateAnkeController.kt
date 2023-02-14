@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.DokumenterResponse
 import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
@@ -95,6 +96,13 @@ class CreateAnkeController(
             responseHeaders,
             HttpStatus.OK
         )
+    }
+
+    @PostMapping("/searchpart")
+    fun searchPart(
+        @RequestBody input: SearchPartInput,
+    ): KabalApiClient.PartView {
+        return kabalApiService.searchPart(searchPartInput = input)
     }
 
 }

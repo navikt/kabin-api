@@ -2,6 +2,7 @@ package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalApiClient
 import org.springframework.stereotype.Service
 
@@ -16,5 +17,9 @@ class KabalApiService(
 
     fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling) {
         kabalApiClient.createAnkeInKabal(input)
+    }
+
+    fun searchPart(searchPartInput: SearchPartInput): KabalApiClient.PartView {
+        return kabalApiClient.searchPart(searchPartInput = searchPartInput)
     }
 }

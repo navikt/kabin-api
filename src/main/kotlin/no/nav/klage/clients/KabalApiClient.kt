@@ -3,8 +3,8 @@ package no.nav.klage.clients
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
@@ -50,6 +50,19 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("Didn't get any completedklagebehandlinger")
     }
 
+    fun searchPart(searchPartInput: SearchPartInput): PartView {
+        return kabalApiWebClient.post()
+            .uri { it.path("/searchfullmektig").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(searchPartInput)
+            .retrieve()
+            .bodyToMono<PartView>()
+            .block() ?: throw RuntimeException("null part returned")
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class CompletedKlagebehandling(
         val behandlingId: UUID,
@@ -58,7 +71,7 @@ class KabalApiClient(
         val vedtakDate: LocalDateTime,
         val sakenGjelder: SakenGjelderView,
         val klager: KlagerView,
-        val prosessfullmektig: ProsessfullmektigView?,
+        val prosessfullmektig: PartView?,
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
         val sakFagsakId: String?,
         val sakFagsystem: Fagsystem
@@ -82,7 +95,7 @@ class KabalApiClient(
         val virksomhet: VirksomhetView?
     )
 
-    data class ProsessfullmektigView(
+    data class PartView(
         val person: PersonView?,
         val virksomhet: VirksomhetView?
     )
