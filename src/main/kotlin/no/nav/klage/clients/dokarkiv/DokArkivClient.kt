@@ -40,11 +40,14 @@ class DokArkivClient(
         logger.debug("Document from journalpost $journalpostId updated with saksId ${input.sak.fagsakid}.")
     }
 
-    fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
+    fun finalizeJournalpostOnBehalfOf(journalpostId: String, journalfoerendeEnhet: String) {
         try {
             dokArkivWebClient.patch()
                 .uri("/${journalpostId}/ferdigstill")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                )
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(FerdigstillJournalpostPayload(journalfoerendeEnhet))
                 .retrieve()

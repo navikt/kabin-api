@@ -34,11 +34,10 @@ class DokArkivService(
     }
 
     fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
-        dokArkivClient.finalizeJournalpost(journalpostId, journalfoerendeEnhet)
+        dokArkivClient.finalizeJournalpostOnBehalfOf(journalpostId, journalfoerendeEnhet)
     }
 
     fun updateSaksIdInJournalpost(journalpostId: String, completedKlagebehandling: KabalApiClient.CompletedKlagebehandling) {
-
         dokArkivClient.updateDocumentTitleOnBehalfOf(
             journalpostId = journalpostId,
             input = UpdateJournalpostSaksIdRequest(
