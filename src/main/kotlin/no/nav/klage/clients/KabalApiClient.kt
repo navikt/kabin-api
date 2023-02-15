@@ -83,7 +83,7 @@ class KabalApiClient(
         val vedtakDate: LocalDateTime,
         val sakenGjelder: SakenGjelderView,
         val klager: KlagerView,
-        val prosessfullmektig: PartView?,
+        val fullmektig: PartView?,
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
         val sakFagsakId: String?,
         val sakFagsystem: Fagsystem,
