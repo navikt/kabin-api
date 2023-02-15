@@ -2,9 +2,7 @@ package no.nav.klage.config
 
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.util.getSecureLogger
-import org.springframework.http.HttpStatus
-import org.springframework.http.ProblemDetail
-import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.http.*
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.NativeWebRequest
@@ -33,13 +31,6 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         request: NativeWebRequest
     ): ProblemDetail =
         createSectionedValidationProblem(ex)
-
-    @ExceptionHandler
-    fun handleGenericValidationException(
-        ex: HttpMessageNotReadableException,
-        request: NativeWebRequest
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
 
     private fun createProblemForWebClientResponseException(ex: WebClientResponseException): ProblemDetail {
         logError(
