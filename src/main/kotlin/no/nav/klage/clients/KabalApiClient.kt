@@ -50,6 +50,18 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("Didn't get any completedklagebehandlinger")
     }
 
+    fun getCompletedKlagebehandling(klagebehandlingId: UUID): CompletedKlagebehandling {
+        return kabalApiWebClient.get()
+            .uri { it.path("/api/internal/completedklagebehandlinger/{klagebehandlingId}").build(klagebehandlingId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .retrieve()
+            .bodyToMono<CompletedKlagebehandling>()
+            .block() ?: throw RuntimeException("Could not get klagebehandling with id $klagebehandlingId")
+    }
+
     fun searchPart(searchPartInput: SearchPartInput): PartView {
         return kabalApiWebClient.post()
             .uri { it.path("/searchfullmektig").build() }
@@ -71,10 +83,11 @@ class KabalApiClient(
         val vedtakDate: LocalDateTime,
         val sakenGjelder: SakenGjelderView,
         val klager: KlagerView,
-        val prosessfullmektig: PartView?,
+        val fullmektig: PartView?,
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
         val sakFagsakId: String?,
-        val sakFagsystem: Fagsystem
+        val sakFagsystem: Fagsystem,
+        val klageBehandlendeEnhet: String,
     )
 
     data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)

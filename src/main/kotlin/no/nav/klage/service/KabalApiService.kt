@@ -9,6 +9,7 @@ import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.util.*
 
 @Service
 class KabalApiService(
@@ -17,6 +18,10 @@ class KabalApiService(
 
     fun getCompletedKlagebehandlingerByIdnummer(idnummerInput: IdnummerInput): List<KabalApiClient.CompletedKlagebehandling> {
         return kabalApiClient.getCompletedKlagebehandlingerByIdnummer(idnummerInput)
+    }
+
+    fun getCompletedKlagebehandling(klagebehandlingId: UUID): KabalApiClient.CompletedKlagebehandling {
+        return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
     }
 
     fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling) {

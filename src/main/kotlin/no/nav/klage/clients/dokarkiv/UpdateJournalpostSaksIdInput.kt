@@ -1,8 +1,24 @@
 package no.nav.klage.clients.dokarkiv
 
+import no.nav.klage.kodeverk.Tema
+
 data class UpdateJournalpostSaksIdRequest(
-    val sak: Sak
+    val tema: Tema,
+    val bruker: Bruker,
+    val sak: Sak,
+    val journalfoerendeEnhet: String,
 )
+
+data class Bruker(
+    val id: String,
+    val idType: BrukerIdType
+)
+
+enum class BrukerIdType {
+    FNR,
+    ORGNR,
+    AKTOERID
+}
 
 data class Sak(
     val sakstype: Sakstype,

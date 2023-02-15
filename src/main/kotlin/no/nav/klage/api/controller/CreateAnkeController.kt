@@ -38,11 +38,9 @@ class CreateAnkeController(
     @PostMapping("/createanke", produces = ["application/json"])
     fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandling) {
         secureLogger.debug("createAnke called with: {}", input)
-        //TODO: Sjekk om vi må fullføre journalposten osv
-        dokArkivService.updateSaksIdInJournalpost(
+        dokArkivService.updateSaksIdAndFinalizeJournalpost(
             journalpostId = input.ankeDocumentJournalpostId,
-            sakFagsakId = input.sakFagsakId,
-            sakFagsystem = input.sakFagsystem
+            klagebehandlingId = input.klagebehandlingId,
         )
         kabalApiService.createAnkeInKabal(input)
     }
