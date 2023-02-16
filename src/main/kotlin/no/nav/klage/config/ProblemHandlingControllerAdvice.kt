@@ -3,9 +3,11 @@ package no.nav.klage.config
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.util.getSecureLogger
 import org.springframework.http.*
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.NativeWebRequest
+import org.springframework.web.context.request.WebRequest
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
@@ -15,6 +17,17 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val secureLogger = getSecureLogger()
+    }
+
+    /* Override to get better info when client gets 400-error */
+    override fun handleHttpMessageNotReadable(
+        ex: HttpMessageNotReadableException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val body = create(httpStatus = HttpStatus.valueOf(status.value()), ex = ex)
+        return handleExceptionInternal(ex, body, headers, status, request)
     }
 
     @ExceptionHandler
