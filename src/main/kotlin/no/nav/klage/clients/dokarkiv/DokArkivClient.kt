@@ -9,7 +9,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
-
 class DokArkivClient(
     private val dokArkivWebClient: WebClient,
     private val tokenUtil: TokenUtil
@@ -33,14 +32,38 @@ class DokArkivClient(
                 .retrieve()
                 .bodyToMono(JournalpostResponse::class.java)
                 .block()
-                ?: throw RuntimeException("Journalpost could not be updated.")
+                ?: throw RuntimeException("Journalpost fagsakid could not be updated.")
             logger.debug("Svar fra dokarkiv: $output")
         } catch (e: Exception) {
-            logger.error("Error updating journalpost $journalpostId:", e)
+            logger.error("Error updating journalpost $journalpostId fagsakid:", e)
             throw e
         }
 
         logger.debug("Document from journalpost $journalpostId updated with saksId ${input.sak.fagsakid}.")
+    }
+
+    fun updateDocumentTitle(
+        journalpostId: String,
+        input: UpdateDocumentTitleJournalpostInput
+    ) {
+        try {
+            dokArkivWebClient.put()
+                .uri("/${journalpostId}")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(input)
+                .retrieve()
+                .bodyToMono(JournalpostResponse::class.java)
+                .block()
+                ?: throw RuntimeException("Journalpost document title could not be updated.")
+        } catch (e: Exception) {
+            logger.error("Error updating journalpost $journalpostId document title:", e)
+        }
+
+        logger.debug("Document from journalpost $journalpostId with dokumentInfoId id ${input.dokumenter.first().dokumentInfoId} was succesfully updated.")
     }
 
     fun finalizeJournalpostOnBehalfOf(journalpostId: String, journalfoerendeEnhet: String) {

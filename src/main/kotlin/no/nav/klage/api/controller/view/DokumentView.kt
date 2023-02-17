@@ -190,3 +190,7 @@ data class DokumentReferanse(
 }
 
 data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)
+
+data class UpdateDocumentTitleView(
+    val tittel: String
+)

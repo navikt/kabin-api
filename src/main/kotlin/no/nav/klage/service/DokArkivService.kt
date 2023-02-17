@@ -84,4 +84,32 @@ class DokArkivService(
 
         )
     }
+
+    fun updateDocumentTitle(
+        journalpostId: String,
+        dokumentInfoId: String,
+        title: String
+    ) {
+        dokArkivClient.updateDocumentTitle(
+            journalpostId = journalpostId,
+            input = createUpdateDocumentTitleJournalpostInput(
+                dokumentInfoId = dokumentInfoId,
+                title = title
+            )
+        )
+    }
+
+    private fun createUpdateDocumentTitleJournalpostInput(
+        dokumentInfoId: String,
+        title: String
+    ): UpdateDocumentTitleJournalpostInput {
+        return UpdateDocumentTitleJournalpostInput(
+            dokumenter = listOf(
+                UpdateDocumentTitleDokumentInput(
+                    dokumentInfoId = dokumentInfoId,
+                    tittel = title
+                )
+            )
+        )
+    }
 }
