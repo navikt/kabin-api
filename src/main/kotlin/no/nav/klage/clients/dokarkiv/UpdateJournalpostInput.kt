@@ -2,6 +2,15 @@ package no.nav.klage.clients.dokarkiv
 
 import no.nav.klage.kodeverk.Tema
 
+data class UpdateDocumentTitleJournalpostInput(
+    val dokumenter: List<UpdateDocumentTitleDokumentInput>,
+)
+
+data class UpdateDocumentTitleDokumentInput(
+    val dokumentInfoId: String,
+    val tittel: String,
+)
+
 data class UpdateJournalpostSaksIdRequest(
     val tema: Tema,
     val bruker: Bruker,
