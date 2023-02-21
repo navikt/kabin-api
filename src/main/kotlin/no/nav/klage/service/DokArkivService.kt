@@ -53,6 +53,7 @@ class DokArkivService(
             logger.debug("Finalizing journalpost $journalpostId in Dokarkiv")
             dokArkivClient.finalizeJournalpostOnBehalfOf(journalpostId, journalfoerendeEnhet)
         } else {
+            //TODO: Sjekk hvor vanlig dette er, og om det heller bør være en warning.
             logger.debug("Journalpost $journalpostId already finalized. Returning.")
         }
     }
@@ -88,6 +89,7 @@ class DokArkivService(
                 )
             )
         } else {
+            //TODO: Sjekk hvor vanlig dette er, og om det heller bør være en warning.
             logger.debug("Saksid can't be updated for journalpost with type ${journalpostInSaf.journalposttype} and status ${journalpostInSaf.journalstatus}")
         }
     }
