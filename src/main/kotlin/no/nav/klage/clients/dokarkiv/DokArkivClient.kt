@@ -19,7 +19,7 @@ class DokArkivClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun updateDocumentTitleOnBehalfOf(journalpostId: String, input: UpdateJournalpostSaksIdRequest) {
+    fun updateSaksIdOnBehalfOf(journalpostId: String, input: UpdateJournalpostSaksIdRequest) {
         try {
             val output = dokArkivWebClient.put()
                 .uri("/${journalpostId}")
@@ -42,7 +42,7 @@ class DokArkivClient(
         logger.debug("Document from journalpost $journalpostId updated with saksId ${input.sak.fagsakid}.")
     }
 
-    fun updateDocumentTitle(
+    fun updateDocumentTitleOnBehalfOf(
         journalpostId: String,
         input: UpdateDocumentTitleJournalpostInput
     ) {
