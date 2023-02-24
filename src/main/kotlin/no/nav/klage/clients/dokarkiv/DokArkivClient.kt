@@ -2,6 +2,7 @@ package no.nav.klage.clients.dokarkiv
 
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -19,6 +20,9 @@ class DokArkivClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    @Value("\${spring.application.name}")
+    lateinit var applicationName: String
+
     fun createNewJournalpostBasedOnExistingJournalpost(
         payload: CreateNewJournalpostBasedOnExistingJournalpostRequest,
         oldJournalpostId: String,
@@ -28,6 +32,7 @@ class DokArkivClient(
             val journalpostResponse = dokArkivWebClient.put()
                 .uri("/${oldJournalpostId}/knyttTilAnnenSak")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
+                .header("Nav-Consumer-Id", applicationName)
                 .header("Nav-User-Id", journalfoerendeSaksbehandlerIdent)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
