@@ -4,11 +4,7 @@ import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalApiClient
-import no.nav.klage.exceptions.InvalidProperty
-import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
-import no.nav.klage.exceptions.ValidationSection
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.util.*
 
 @Service

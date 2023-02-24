@@ -19,7 +19,56 @@ class DokArkivClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun updateSaksIdOnBehalfOf(journalpostId: String, input: UpdateJournalpostSaksIdRequest) {
+    fun createNewJournalpostBasedOnExistingJournalpost(
+        payload: CreateNewJournalpostBasedOnExistingJournalpostRequest,
+        oldJournalpostId: String,
+        journalfoerendeSaksbehandlerIdent: String,
+    ): CreateNewJournalpostBasedOnExistingJournalpostResponse {
+        try {
+            val journalpostResponse = dokArkivWebClient.post()
+                .uri("/${oldJournalpostId}/knyttTilAnnenSak")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
+                .header("Nav-User-Id", journalfoerendeSaksbehandlerIdent)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(CreateNewJournalpostBasedOnExistingJournalpostResponse::class.java)
+                .block()
+                ?: throw RuntimeException("Journalpost could not be created.")
+
+            logger.debug("Journalpost successfully created in dokarkiv based on saksid ${payload.fagsakId}, resulting in id ${journalpostResponse.newJournalpostId}.")
+
+            return journalpostResponse
+        } catch (e: Exception) {
+            logger.error("Error creating journalpost in dokarkiv based on existing saksid:", e)
+            throw e
+        }
+    }
+
+    fun registerErrorInSaksId(journalpostId: String) {
+        try {
+            val output = dokArkivWebClient.patch()
+                .uri("/${journalpostId}/feilregistrer/feilregistrerSakstilknytning")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono<String>()
+                .block()
+                ?: throw RuntimeException("Could not register error in saksid in journalpost")
+
+            logger.debug("Registered error in saksid, response from dokarkiv: $output")
+        } catch (e: Exception) {
+            logger.error("Error registering error in saksid in journalpost $journalpostId:", e)
+            throw e
+        }
+
+        logger.debug("Error in saksid successfully registered in journalpost with id $journalpostId.")
+    }
+
+    fun updateSaksId(journalpostId: String, input: UpdateJournalpostSaksIdRequest) {
         try {
             val output = dokArkivWebClient.put()
                 .uri("/${journalpostId}")
@@ -42,7 +91,7 @@ class DokArkivClient(
         logger.debug("Document from journalpost $journalpostId updated with saksId ${input.sak.fagsakid}.")
     }
 
-    fun updateDocumentTitleOnBehalfOf(
+    fun updateDocumentTitle(
         journalpostId: String,
         input: UpdateDocumentTitleJournalpostInput
     ) {
@@ -63,10 +112,10 @@ class DokArkivClient(
             logger.error("Error updating journalpost $journalpostId document title:", e)
         }
 
-        logger.debug("Document from journalpost $journalpostId with dokumentInfoId id ${input.dokumenter.first().dokumentInfoId} was succesfully updated.")
+        logger.debug("Document from journalpost $journalpostId with dokumentInfoId id ${input.dokumenter.first().dokumentInfoId} was successfully updated.")
     }
 
-    fun finalizeJournalpostOnBehalfOf(journalpostId: String, journalfoerendeEnhet: String) {
+    fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
         try {
             val output = dokArkivWebClient.patch()
                 .uri("/${journalpostId}/ferdigstill")
@@ -87,7 +136,7 @@ class DokArkivClient(
             throw e
         }
 
-        logger.debug("Journalpost with id $journalpostId was succesfully finalized.")
+        logger.debug("Journalpost with id $journalpostId was successfully finalized.")
     }
 
     data class FerdigstillJournalpostPayload(

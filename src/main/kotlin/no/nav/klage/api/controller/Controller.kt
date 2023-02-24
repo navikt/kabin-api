@@ -11,10 +11,7 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.KabalApiService
-import no.nav.klage.util.TokenUtil
-import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
-import no.nav.klage.util.logMethodDetails
+import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -25,7 +22,8 @@ class Controller(
     private val kabalApiService: KabalApiService,
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
-    private val tokenUtil: TokenUtil
+    private val tokenUtil: TokenUtil,
+    private val validationUtil: ValidationUtil
 ) {
 
     companion object {
@@ -44,7 +42,9 @@ class Controller(
 
         secureLogger.debug("createAnke called with: {}", input)
 
-        dokArkivService.updateSaksIdAndFinalizeJournalpost(
+        validationUtil.validateCreateAnkeInput(input)
+
+        val journalpostId = dokArkivService.handleJournalpost(
             journalpostId = input.ankeDocumentJournalpostId,
             klagebehandlingId = input.klagebehandlingId,
         )
