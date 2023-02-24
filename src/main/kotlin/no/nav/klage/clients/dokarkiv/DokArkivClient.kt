@@ -41,7 +41,7 @@ class DokArkivClient(
                 .block()
                 ?: throw RuntimeException("Journalpost could not be created.")
 
-            logger.debug("Journalpost successfully created in dokarkiv based on saksid ${payload.fagsakId}, resulting in id ${journalpostResponse.newJournalpostId}.")
+            logger.debug("Journalpost successfully created in dokarkiv based on saksid ${payload.fagsakId}, resulting in id ${journalpostResponse.nyJournalpostId}.")
 
             return journalpostResponse
         } catch (e: Exception) {

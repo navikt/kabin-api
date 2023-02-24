@@ -194,7 +194,7 @@ class DokArkivService(
             payload = requestPayload,
             oldJournalpostId = oldJournalpost.journalpostId,
             journalfoerendeSaksbehandlerIdent = tokenUtil.getIdent()
-        ).newJournalpostId
+        ).nyJournalpostId
     }
 
     private fun journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
