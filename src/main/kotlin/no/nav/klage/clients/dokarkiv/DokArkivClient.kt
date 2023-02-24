@@ -25,7 +25,7 @@ class DokArkivClient(
         journalfoerendeSaksbehandlerIdent: String,
     ): CreateNewJournalpostBasedOnExistingJournalpostResponse {
         try {
-            val journalpostResponse = dokArkivWebClient.post()
+            val journalpostResponse = dokArkivWebClient.put()
                 .uri("/${oldJournalpostId}/knyttTilAnnenSak")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
                 .header("Nav-User-Id", journalfoerendeSaksbehandlerIdent)
