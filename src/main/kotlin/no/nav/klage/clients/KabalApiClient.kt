@@ -23,8 +23,8 @@ class KabalApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling) {
-        kabalApiWebClient.post()
+    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): CreatedAnkeResponse {
+        return kabalApiWebClient.post()
             .uri { it.path("/api/internal/createanke").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
@@ -32,8 +32,8 @@ class KabalApiClient(
             )
             .bodyValue(input)
             .retrieve()
-            .bodyToMono<Void>()
-            .block()
+            .bodyToMono<CreatedAnkeResponse>()
+            .block() ?: throw RuntimeException("No response")
     }
 
     fun getCompletedKlagebehandlingerByIdnummer(idnummerInput: IdnummerInput): List<CompletedKlagebehandling> {
@@ -85,6 +85,11 @@ class KabalApiClient(
             .bodyToMono<CreatedBehandlingStatus>()
             .block() ?: throw RuntimeException("Could not get ankestatus for mottakId $mottakId")
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class CreatedAnkeResponse(
+        val mottakId: UUID,
+    )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class CompletedKlagebehandling(

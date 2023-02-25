@@ -35,7 +35,7 @@ class Controller(
     }
 
     @PostMapping("/createanke", produces = ["application/json"])
-    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandling) {
+    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedAnkeResponse {
         logMethodDetails(
             methodName = ::createAnke.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -48,7 +48,7 @@ class Controller(
             journalpostId = input.ankeDocumentJournalpostId,
             klagebehandlingId = input.klagebehandlingId,
         )
-        kabalApiService.createAnkeInKabal(input)
+        return kabalApiService.createAnkeInKabal(input)
     }
 
     @PostMapping("/ankemuligheter", produces = ["application/json"])

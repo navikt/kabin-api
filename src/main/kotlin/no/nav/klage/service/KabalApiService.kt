@@ -24,9 +24,9 @@ class KabalApiService(
         return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling) {
+    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedAnkeResponse {
         validate(input)
-        kabalApiClient.createAnkeInKabal(input)
+        return kabalApiClient.createAnkeInKabal(input)
     }
 
     fun searchPart(searchPartInput: SearchPartInput): KabalApiClient.PartView {
