@@ -98,4 +98,16 @@ class Controller(
         return kabalApiService.searchPart(searchPartInput = input)
     }
 
+    @GetMapping("/anker/{mottakId}/status")
+    fun createdAnkeStatus(
+        @PathVariable mottakId: UUID,
+    ): KabalApiClient.CreatedBehandlingStatus {
+        logMethodDetails(
+            methodName = ::createdAnkeStatus.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+        return kabalApiService.getCreatedAnkeStatus(mottakId = mottakId)
+    }
+
 }

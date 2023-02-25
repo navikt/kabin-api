@@ -33,6 +33,10 @@ class KabalApiService(
         return kabalApiClient.searchPart(searchPartInput = searchPartInput)
     }
 
+    fun getCreatedAnkeStatus(mottakId: UUID): KabalApiClient.CreatedBehandlingStatus {
+        return kabalApiClient.getCreatedAnkeStatus(mottakId)
+    }
+
     private fun validate(input: CreateAnkeBasedOnKlagebehandling) {
         val validationErrors = mutableListOf<InvalidProperty>()
 
