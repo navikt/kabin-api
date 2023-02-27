@@ -24,13 +24,17 @@ class KabalApiService(
         return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling) {
+    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedAnkeResponse {
         validate(input)
-        kabalApiClient.createAnkeInKabal(input)
+        return kabalApiClient.createAnkeInKabal(input)
     }
 
     fun searchPart(searchPartInput: SearchPartInput): KabalApiClient.PartView {
         return kabalApiClient.searchPart(searchPartInput = searchPartInput)
+    }
+
+    fun getCreatedAnkeStatus(mottakId: UUID): KabalApiClient.CreatedBehandlingStatus {
+        return kabalApiClient.getCreatedAnkeStatus(mottakId)
     }
 
     private fun validate(input: CreateAnkeBasedOnKlagebehandling) {
