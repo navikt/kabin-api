@@ -6,7 +6,10 @@ import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.clients.saf.graphql.SafGraphQlClient
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
 import java.util.*
@@ -15,7 +18,8 @@ import java.util.*
 class DokArkivService(
     private val dokArkivClient: DokArkivClient,
     private val kabalApiService: KabalApiService,
-    private val safGraphQlClient: SafGraphQlClient
+    private val safGraphQlClient: SafGraphQlClient,
+    private val tokenUtil: TokenUtil
 ) {
 
     companion object {
@@ -37,7 +41,7 @@ class DokArkivService(
         } else throw Exception("Error in sakenGjelder.")
     }
 
-    private fun getSak(klagebehandling: KabalApiClient.CompletedKlagebehandling): Sak {
+    fun getSak(klagebehandling: KabalApiClient.CompletedKlagebehandling): Sak {
         return Sak(
             sakstype = Sakstype.FAGSAK,
             fagsaksystem = FagsaksSystem.valueOf(klagebehandling.sakFagsystem.name),
@@ -51,7 +55,7 @@ class DokArkivService(
 
         if (journalpostCanBeFinalized(journalpostInSaf)) {
             logger.debug("Finalizing journalpost $journalpostId in Dokarkiv")
-            dokArkivClient.finalizeJournalpostOnBehalfOf(journalpostId, journalfoerendeEnhet)
+            dokArkivClient.finalizeJournalpost(journalpostId, journalfoerendeEnhet)
         } else {
             //TODO: Sjekk hvor vanlig dette er, og om det heller bør være en warning.
             logger.debug("Journalpost $journalpostId already finalized. Returning.")
@@ -78,8 +82,8 @@ class DokArkivService(
         val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
-        if (saksIdCanBeUpdated(journalpostInSaf)) {
-            dokArkivClient.updateSaksIdOnBehalfOf(
+        if (journalpostCanBeUpdated(journalpostInSaf)) {
+            dokArkivClient.updateSaksId(
                 journalpostId = journalpostId,
                 input = UpdateJournalpostSaksIdRequest(
                     tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
@@ -94,7 +98,7 @@ class DokArkivService(
         }
     }
 
-    private fun saksIdCanBeUpdated(journalpostInSaf: Journalpost): Boolean {
+    private fun journalpostCanBeUpdated(journalpostInSaf: Journalpost): Boolean {
         return when (journalpostInSaf.journalposttype) {
             Journalposttype.I -> {
                 when (journalpostInSaf.journalstatus) {
@@ -121,6 +125,7 @@ class DokArkivService(
                     else -> throw RuntimeException("Invalid Journalstatus for journalposttype U")
                 }
             }
+
             Journalposttype.N -> {
                 when (journalpostInSaf.journalstatus) {
                     Journalstatus.UNDER_ARBEID,
@@ -132,22 +137,71 @@ class DokArkivService(
                     else -> throw RuntimeException("Invalid Journalstatus for journalposttype N")
                 }
             }
-            null -> throw RuntimeException("Invalid Journalstatus")
         }
     }
 
-    fun updateSaksIdAndFinalizeJournalpost(journalpostId: String, klagebehandlingId: UUID) {
+    fun handleJournalpost(journalpostId: String, klagebehandlingId: UUID): String {
         val completedKlagebehandling =
             kabalApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
-        updateSaksIdInJournalpost(
-            journalpostId = journalpostId,
-            completedKlagebehandling = completedKlagebehandling
-        )
-        finalizeJournalpost(
-            journalpostId = journalpostId,
-            journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet
+        val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
+            ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
+        if (journalpostCanBeUpdated(journalpostInSaf)) {
+            updateSaksIdInJournalpost(
+                journalpostId = journalpostId,
+                completedKlagebehandling = completedKlagebehandling
+            )
+            finalizeJournalpost(
+                journalpostId = journalpostId,
+                journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet
+            )
+            return journalpostId
+        } else {
+            return if (journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+                    journalpostInSaf = journalpostInSaf,
+                    completedKlagebehandling = completedKlagebehandling
+                )
+            ) {
+                journalpostId
+            } else {
+                val newJournalpostId = createNewJournalpostBasedOnExistingJournalpost(
+                    oldJournalpost = journalpostInSaf,
+                    completedKlagebehandling = completedKlagebehandling
+                )
+                dokArkivClient.registerErrorInSaksId(journalpostId)
+                newJournalpostId
+            }
+        }
+    }
+
+    private fun createNewJournalpostBasedOnExistingJournalpost(
+        oldJournalpost: Journalpost,
+        completedKlagebehandling: KabalApiClient.CompletedKlagebehandling
+    ): String {
+        val requestPayload = CreateNewJournalpostBasedOnExistingJournalpostRequest(
+            sakstype = Sakstype.FAGSAK,
+            fagsakId = completedKlagebehandling.sakFagsakId,
+            fagsaksystem = FagsaksSystem.valueOf(completedKlagebehandling.sakFagsystem.name),
+            tema = Tema.valueOf(oldJournalpost.tema.name),
+            bruker = getBruker(completedKlagebehandling.sakenGjelder),
+            journalfoerendeEnhet = oldJournalpost.journalfoerendeEnhet!!
         )
+
+        return dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
+            payload = requestPayload,
+            oldJournalpostId = oldJournalpost.journalpostId,
+            journalfoerendeSaksbehandlerIdent = tokenUtil.getIdent()
+        ).nyJournalpostId
+    }
+
+    private fun journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+        journalpostInSaf: Journalpost,
+        completedKlagebehandling: KabalApiClient.CompletedKlagebehandling
+    ): Boolean {
+        return if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
+            false
+        } else (journalpostInSaf.sak.fagsakId == completedKlagebehandling.sakFagsakId
+                && Fagsystem.valueOf(journalpostInSaf.sak.fagsaksystem) == completedKlagebehandling.sakFagsystem)
     }
 
     fun updateDocumentTitle(
@@ -155,7 +209,7 @@ class DokArkivService(
         dokumentInfoId: String,
         title: String
     ) {
-        dokArkivClient.updateDocumentTitleOnBehalfOf(
+        dokArkivClient.updateDocumentTitle(
             journalpostId = journalpostId,
             input = createUpdateDocumentTitleJournalpostInput(
                 dokumentInfoId = dokumentInfoId,

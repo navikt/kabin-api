@@ -101,7 +101,7 @@ class KabalApiClient(
         val klager: KlagerView,
         val fullmektig: PartView?,
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
-        val sakFagsakId: String?,
+        val sakFagsakId: String,
         val sakFagsystem: Fagsystem,
         val klageBehandlendeEnhet: String,
     )

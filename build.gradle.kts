@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val tokenValidationVersion = "3.0.3"
 val logstashVersion = "7.2"
 val springDocVersion = "2.0.2"
+val springMockkVersion = "4.0.0"
 val logbackSyslog4jVersion = "1.0.0"
 val klageKodeverkVersion = "1.2.17"
 
@@ -53,6 +54,8 @@ dependencies {
         exclude(group = "org.junit.vintage")
         exclude(group = "org.mockito")
     }
+
+    testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
 
 }
 

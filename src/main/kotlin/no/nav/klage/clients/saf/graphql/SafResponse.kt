@@ -24,9 +24,9 @@ data class JournalpostDataWrapper(val journalpost: Journalpost?)
 data class Journalpost(
     val journalpostId: String,
     val tittel: String?,
-    val journalposttype: Journalposttype?,
+    val journalposttype: Journalposttype,
     val journalstatus: Journalstatus?,
-    val tema: Tema?,
+    val tema: Tema,
     val temanavn: String?,
     val behandlingstema: String?,
     val behandlingstemanavn: String?,

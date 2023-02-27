@@ -2,6 +2,26 @@ package no.nav.klage.clients.dokarkiv
 
 import no.nav.klage.kodeverk.Tema
 
+enum class JournalpostType {
+    INNGAAENDE,
+    UTGAAENDE,
+    NOTAT
+}
+
+data class AvsenderMottaker(
+    val id: String,
+    val idType: AvsenderMottakerIdType,
+    val navn: String? = null,
+    val land: String? = null
+)
+
+enum class AvsenderMottakerIdType {
+    FNR,
+    ORGNR,
+    HPRNR,
+    UTL_ORG
+}
+
 data class UpdateDocumentTitleJournalpostInput(
     val dokumenter: List<UpdateDocumentTitleDokumentInput>,
 )
@@ -9,6 +29,15 @@ data class UpdateDocumentTitleJournalpostInput(
 data class UpdateDocumentTitleDokumentInput(
     val dokumentInfoId: String,
     val tittel: String,
+)
+
+data class CreateNewJournalpostBasedOnExistingJournalpostRequest(
+    val sakstype: Sakstype,
+    val fagsakId: String,
+    val fagsaksystem: FagsaksSystem,
+    val tema: Tema,
+    val bruker: Bruker,
+    val journalfoerendeEnhet: String
 )
 
 data class UpdateJournalpostSaksIdRequest(
