@@ -41,7 +41,7 @@ class DokArkivService(
         } else throw Exception("Error in sakenGjelder.")
     }
 
-    private fun getSak(klagebehandling: KabalApiClient.CompletedKlagebehandling): Sak {
+    fun getSak(klagebehandling: KabalApiClient.CompletedKlagebehandling): Sak {
         return Sak(
             sakstype = Sakstype.FAGSAK,
             fagsaksystem = FagsaksSystem.valueOf(klagebehandling.sakFagsystem.name),
@@ -137,8 +137,6 @@ class DokArkivService(
                     else -> throw RuntimeException("Invalid Journalstatus for journalposttype N")
                 }
             }
-
-            null -> throw RuntimeException("Invalid Journalstatus")
         }
     }
 
@@ -186,7 +184,6 @@ class DokArkivService(
             fagsaksystem = FagsaksSystem.valueOf(completedKlagebehandling.sakFagsystem.name),
             tema = Tema.valueOf(oldJournalpost.tema.name),
             bruker = getBruker(completedKlagebehandling.sakenGjelder),
-            //TODO: Må lese ut enhet fra innlogget, dette blir feil.
             journalfoerendeEnhet = oldJournalpost.journalfoerendeEnhet!!
         )
 

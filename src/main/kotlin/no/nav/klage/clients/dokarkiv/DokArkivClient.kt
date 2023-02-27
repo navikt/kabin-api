@@ -64,13 +64,11 @@ class DokArkivClient(
                 .block()
                 ?: throw RuntimeException("Could not register error in saksid in journalpost")
 
-            logger.debug("Registered error in saksid, response from dokarkiv: $output")
+            logger.debug("Successfully registered error in saksid in journalpost with id $journalpostId. Output: $output")
         } catch (e: Exception) {
             logger.error("Error registering error in saksid in journalpost $journalpostId:", e)
             throw e
         }
-
-        logger.debug("Error in saksid successfully registered in journalpost with id $journalpostId.")
     }
 
     fun updateSaksId(journalpostId: String, input: UpdateJournalpostSaksIdRequest) {

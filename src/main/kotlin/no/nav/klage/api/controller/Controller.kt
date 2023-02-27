@@ -48,7 +48,8 @@ class Controller(
             journalpostId = input.ankeDocumentJournalpostId,
             klagebehandlingId = input.klagebehandlingId,
         )
-        return kabalApiService.createAnkeInKabal(input)
+
+        return kabalApiService.createAnkeInKabal(input.copy(ankeDocumentJournalpostId = journalpostId))
     }
 
     @PostMapping("/ankemuligheter", produces = ["application/json"])

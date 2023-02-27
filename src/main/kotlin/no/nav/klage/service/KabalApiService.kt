@@ -21,7 +21,6 @@ class KabalApiService(
     }
 
     fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedAnkeResponse {
-        validate(input)
         return kabalApiClient.createAnkeInKabal(input)
     }
 
@@ -31,32 +30,5 @@ class KabalApiService(
 
     fun getCreatedAnkeStatus(mottakId: UUID): KabalApiClient.CreatedBehandlingStatus {
         return kabalApiClient.getCreatedAnkeStatus(mottakId)
-    }
-
-    private fun validate(input: CreateAnkeBasedOnKlagebehandling) {
-        val validationErrors = mutableListOf<InvalidProperty>()
-
-        if (input.mottattNav.isAfter(LocalDate.now())) {
-            validationErrors += InvalidProperty(
-                field = CreateAnkeBasedOnKlagebehandling::mottattNav.name,
-                reason = "Dato kan ikke være i fremtiden"
-            )
-        }
-
-        val sectionList = mutableListOf<ValidationSection>()
-
-        if (validationErrors.isNotEmpty()) {
-            sectionList.add(
-                ValidationSection(
-                    section = "saksdata",
-                    properties = validationErrors
-                )
-            )
-
-            throw SectionedValidationErrorWithDetailsException(
-                title = "Validation error",
-                sections = sectionList
-            )
-        }
     }
 }
