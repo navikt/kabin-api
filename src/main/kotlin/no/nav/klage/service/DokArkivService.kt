@@ -182,9 +182,9 @@ class DokArkivService(
             sakstype = Sakstype.FAGSAK,
             fagsakId = completedKlagebehandling.sakFagsakId,
             fagsaksystem = FagsaksSystem.valueOf(completedKlagebehandling.sakFagsystem.name),
-            tema = Tema.valueOf(oldJournalpost.tema.name),
+            tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
             bruker = getBruker(completedKlagebehandling.sakenGjelder),
-            journalfoerendeEnhet = oldJournalpost.journalfoerendeEnhet!!
+            journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet
         )
 
         return dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
