@@ -72,7 +72,8 @@ class DokArkivServiceTest {
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
             sakFagsystem = FAGSYSTEM,
-            klageBehandlendeEnhet = ""
+            klageBehandlendeEnhet = "",
+            alreadyUsedJournalpostIdList = listOf(),
         )
 
         val expectedOutput = Sak(
@@ -231,7 +232,8 @@ class DokArkivServiceTest {
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
             sakFagsystem = FAGSYSTEM,
-            klageBehandlendeEnhet = ENHET
+            klageBehandlendeEnhet = ENHET,
+            alreadyUsedJournalpostIdList = listOf(),
         )
     }
 
