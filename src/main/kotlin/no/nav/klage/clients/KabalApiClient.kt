@@ -86,6 +86,19 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("Could not get ankestatus for mottakId $mottakId")
     }
 
+    fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/searchusedjournalpostid").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(SearchUsedJournalpostIdInput(fnr = fnr))
+            .retrieve()
+            .bodyToMono<List<String>>()
+            .block() ?: throw RuntimeException("null returned for getUsedJournalpostIdListForPerson")
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class CreatedAnkeResponse(
         val mottakId: UUID,
@@ -104,7 +117,6 @@ class KabalApiClient(
         val sakFagsakId: String,
         val sakFagsystem: Fagsystem,
         val klageBehandlendeEnhet: String,
-        val alreadyUsedJournalpostIdList: List<String>,
     )
 
     data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)

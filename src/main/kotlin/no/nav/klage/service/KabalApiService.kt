@@ -31,4 +31,8 @@ class KabalApiService(
     fun getCreatedAnkeStatus(mottakId: UUID): KabalApiClient.CreatedBehandlingStatus {
         return kabalApiClient.getCreatedAnkeStatus(mottakId)
     }
+
+    fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {
+        return kabalApiClient.getUsedJournalpostIdListForPerson(fnr = fnr)
+    }
 }

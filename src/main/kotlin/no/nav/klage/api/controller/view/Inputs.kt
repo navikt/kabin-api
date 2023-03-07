@@ -12,3 +12,7 @@ data class CalculateFristInput(
     val fromDate: LocalDate,
     val fristInWeeks: Int,
 )
+
+data class SearchUsedJournalpostIdInput(
+    val fnr: String,
+)

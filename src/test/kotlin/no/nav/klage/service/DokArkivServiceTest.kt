@@ -73,7 +73,6 @@ class DokArkivServiceTest {
             sakFagsakId = SAKS_ID,
             sakFagsystem = FAGSYSTEM,
             klageBehandlendeEnhet = "",
-            alreadyUsedJournalpostIdList = listOf(),
         )
 
         val expectedOutput = Sak(
@@ -233,7 +232,6 @@ class DokArkivServiceTest {
             sakFagsakId = SAKS_ID,
             sakFagsystem = FAGSYSTEM,
             klageBehandlendeEnhet = ENHET,
-            alreadyUsedJournalpostIdList = listOf(),
         )
     }
 

@@ -34,6 +34,7 @@ data class DokumentReferanse(
     val kanal: Kanal,
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
+    var alreadyUsed: Boolean = false,
 ) {
 
     enum class Kanal {
