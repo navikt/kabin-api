@@ -104,6 +104,7 @@ class KabalApiClient(
         val sakFagsakId: String,
         val sakFagsystem: Fagsystem,
         val klageBehandlendeEnhet: String,
+        val alreadyUsedJournalpostIdList: List<String>,
     )
 
     data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)
