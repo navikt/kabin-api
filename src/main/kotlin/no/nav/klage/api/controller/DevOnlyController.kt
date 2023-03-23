@@ -2,8 +2,8 @@ package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.KlageFssProxyClient
+import no.nav.klage.clients.KlankeSearchHit
 import no.nav.klage.clients.KlankeSearchInput
-import no.nav.klage.clients.KlankeSearchOutput
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -21,7 +21,7 @@ class DevOnlyController(
     @PostMapping("/klanke/search")
     fun searchKlanke(
         @RequestBody input: KlankeSearchInput
-    ): KlankeSearchOutput {
+    ): List<KlankeSearchHit> {
         return klageFssProxyClient.searchKlanke(input)
     }
 }

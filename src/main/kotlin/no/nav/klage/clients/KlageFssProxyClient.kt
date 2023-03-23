@@ -21,7 +21,7 @@ class KlageFssProxyClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun searchKlanke(input: KlankeSearchInput): KlankeSearchOutput {
+    fun searchKlanke(input: KlankeSearchInput): List<KlankeSearchHit> {
         return klageFssProxyWebClient.post()
             .uri("/klanke/search")
             .header(
@@ -30,7 +30,7 @@ class KlageFssProxyClient(
             )
             .bodyValue(input)
             .retrieve()
-            .bodyToMono<KlankeSearchOutput>()
+            .bodyToMono<List<KlankeSearchHit>>()
             .block()
             ?: throw RuntimeException("Empty result")
     }
@@ -38,10 +38,6 @@ class KlageFssProxyClient(
 
 data class KlankeSearchInput(
     val fnr: String
-)
-
-data class KlankeSearchOutput(
-    val klankeSearchHits: Set<KlankeSearchHit>
 )
 
 data class KlankeSearchHit(

@@ -87,7 +87,7 @@ no.nav.security.jwt:
           client-auth-method: private_key_jwt
       klage-fss-proxy-onbehalfof:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: client_credentials
+        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
         scope: api://${FSS_CLUSTER}.klage.klage-fss-proxy/.default
         authentication:
           client-id: ${AZURE_APP_CLIENT_ID}
