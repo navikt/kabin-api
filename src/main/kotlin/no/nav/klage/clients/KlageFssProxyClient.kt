@@ -28,7 +28,6 @@ class KlageFssProxyClient(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
             )
-            .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
             .bodyToMono<KlankeSearchOutput>()
