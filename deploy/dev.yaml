@@ -4,6 +4,7 @@ externalHosts:
   - host: login.microsoftonline.com
   - host: saf.dev-fss-pub.nais.io
   - host: dokarkiv.dev-fss-pub.nais.io
+  - host: klage-fss-proxy.dev-fss-pub.nais.io
   - host: pdl-api.dev-fss-pub.nais.io
     ports:
       - name: https
