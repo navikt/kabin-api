@@ -48,7 +48,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     private fun createProblemForWebClientResponseException(ex: WebClientResponseException): ProblemDetail {
         logError(
             httpStatus = HttpStatus.valueOf(ex.statusCode.value()),
-            errorMessage = ex.statusText,
+            errorMessage = ex.statusText + ": " + ex.responseBodyAsString,
             exception = ex
         )
 
