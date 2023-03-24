@@ -7,3 +7,7 @@ SAF_SCOPE: dev-fss.teamdokumenthandtering.saf-q1
 
 DOK_ARKIV_SCOPE: dev-fss.teamdokumenthandtering.dokarkiv-q1/
 DOK_ARKIV_SERVICE_URL: https://dokarkiv.dev-fss-pub.nais.io/rest/journalpostapi/v1/journalpost
+
+KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.dev-fss-pub.nais.io
+
+FSS_CLUSTER: dev-fss
