@@ -41,7 +41,7 @@ class KlageController(
             logger = logger,
         )
 
-        return fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer)).map {
+        return fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE")).map {
             Klagemulighet(
                 sakId = it.sakId,
                 tema = it.tema,

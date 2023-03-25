@@ -37,7 +37,8 @@ class KlageFssProxyClient(
 }
 
 data class KlankeSearchInput(
-    val fnr: String
+    val fnr: String,
+    val sakstype: String,
 )
 
 data class SakFromKlanke(
