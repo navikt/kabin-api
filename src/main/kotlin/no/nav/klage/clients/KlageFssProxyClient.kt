@@ -23,7 +23,7 @@ class KlageFssProxyClient(
 
     fun searchKlanke(input: KlankeSearchInput): List<SakFromKlanke> {
         return klageFssProxyWebClient.post()
-            .uri("/klanke/search")
+            .uri("/klanke/saker")
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"

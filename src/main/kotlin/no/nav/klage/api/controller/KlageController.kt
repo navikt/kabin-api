@@ -1,26 +1,18 @@
 package no.nav.klage.api.controller
 
-import io.swagger.v3.oas.annotations.Operation
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Tema
-import no.nav.klage.service.DocumentService
-import no.nav.klage.service.DokArkivService
-import no.nav.klage.service.KabalApiService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDate
 import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class KlageController(
-    private val kabalApiService: KabalApiService,
     private val tokenUtil: TokenUtil,
     private val fssProxyClient: KlageFssProxyClient,
 ) {
