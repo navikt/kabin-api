@@ -3,9 +3,10 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.view.DokumentReferanse
 import no.nav.klage.api.controller.view.DokumenterResponse
 import no.nav.klage.clients.saf.graphql.*
-import no.nav.klage.kodeverk.Tema
 import no.nav.klage.clients.saf.rest.ArkivertDokument
 import no.nav.klage.clients.saf.rest.SafRestClient
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -96,7 +97,9 @@ class DokumentMapper {
 
         val dokumentReferanse = DokumentReferanse(
             tittel = hoveddokument.tittel,
-            tema = Tema.fromNavn(journalpost.tema?.name).id,
+            //remove when client no longer uses
+            tema = Tema.fromNavn(journalpost.tema.name).id,
+            temaId = Tema.fromNavn(journalpost.tema.name).id,
             registrert = journalpost.datoOpprettet.toLocalDate(),
             dokumentInfoId = hoveddokument.dokumentInfoId,
             journalpostId = journalpost.journalpostId,
@@ -112,6 +115,7 @@ class DokumentMapper {
                     datoOpprettet = journalpost.sak.datoOpprettet,
                     fagsakId = journalpost.sak.fagsakId,
                     fagsaksystem = journalpost.sak.fagsaksystem,
+                    fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(journalpost.sak.fagsaksystem).id },
                 )
             } else null,
             avsenderMottaker = if (journalpost.avsenderMottaker != null) {

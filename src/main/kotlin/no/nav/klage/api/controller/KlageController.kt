@@ -5,6 +5,7 @@ import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
@@ -45,7 +46,9 @@ class KlageController(
             Klagemulighet(
                 sakId = it.sakId,
                 tema = it.tema,
+                temaId = Tema.fromNavn(it.tema).id,
                 utfall = it.utfall,
+                utfallId = it.utfall,
                 vedtakDate = it.vedtaksdato,
                 sakFagsakId = it.fagsakId,
                 sakFagsystem = Fagsystem.IT01,
@@ -53,5 +56,4 @@ class KlageController(
             )
         }
     }
-
 }
