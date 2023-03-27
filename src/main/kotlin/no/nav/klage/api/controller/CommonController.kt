@@ -16,49 +16,16 @@ import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
-class Controller(
+class CommonController(
     private val kabalApiService: KabalApiService,
     private val documentService: DocumentService,
-    private val dokArkivService: DokArkivService,
     private val tokenUtil: TokenUtil,
-    private val validationUtil: ValidationUtil
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
-    }
-
-    @PostMapping("/createanke", produces = ["application/json"])
-    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedAnkeResponse {
-        logMethodDetails(
-            methodName = ::createAnke.name,
-            innloggetIdent = tokenUtil.getIdent(),
-            logger = logger,
-        )
-
-        secureLogger.debug("createAnke called with: {}", input)
-
-        validationUtil.validateCreateAnkeInput(input)
-
-        val journalpostId = dokArkivService.handleJournalpost(
-            journalpostId = input.ankeDocumentJournalpostId,
-            klagebehandlingId = input.klagebehandlingId,
-        )
-
-        return kabalApiService.createAnkeInKabal(input.copy(ankeDocumentJournalpostId = journalpostId))
-    }
-
-    @PostMapping("/ankemuligheter", produces = ["application/json"])
-    fun getCompletedKlagebehandlingerByIdnummer(@RequestBody input: IdnummerInput): List<KabalApiClient.CompletedKlagebehandling> {
-        logMethodDetails(
-            methodName = ::getCompletedKlagebehandlingerByIdnummer.name,
-            innloggetIdent = tokenUtil.getIdent(),
-            logger = logger,
-        )
-
-        return kabalApiService.getCompletedKlagebehandlingerByIdnummer(input)
     }
 
     @Operation(
@@ -97,18 +64,6 @@ class Controller(
         return kabalApiService.searchPart(searchPartInput = input)
     }
 
-    @GetMapping("/anker/{mottakId}/status")
-    fun createdAnkeStatus(
-        @PathVariable mottakId: UUID,
-    ): KabalApiClient.CreatedBehandlingStatus {
-        logMethodDetails(
-            methodName = ::createdAnkeStatus.name,
-            innloggetIdent = tokenUtil.getIdent(),
-            logger = logger,
-        )
-        return kabalApiService.getCreatedAnkeStatus(mottakId = mottakId)
-    }
-
     @PostMapping("/calculatefrist")
     fun calculateFrist(
         @RequestBody input: CalculateFristInput,
@@ -120,5 +75,4 @@ class Controller(
         )
         return input.fromDate.plusWeeks(input.fristInWeeks.toLong())
     }
-
 }
