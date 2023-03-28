@@ -14,7 +14,8 @@ data class DokumentReferanse(
     val journalpostId: String,
     val dokumentInfoId: String,
     val tittel: String?,
-    val tema: String?,
+    val tema: String,
+    val temaId: String,
     val registrert: LocalDate,
     val harTilgangTilArkivvariant: Boolean,
     val vedlegg: MutableList<VedleggReferanse> = mutableListOf(),
@@ -140,7 +141,12 @@ data class DokumentReferanse(
         N //Notat: Dokumentasjon som NAV har produsert selv, uten at formålet er å distribuere dette ut av NAV. Eksempler på notater er samtalereferater med veileder på kontaktsenter og interne forvaltningsnotater.
     }
 
-    data class Sak(val datoOpprettet: LocalDateTime?, val fagsakId: String?, val fagsaksystem: String?)
+    data class Sak(
+        val datoOpprettet: LocalDateTime?,
+        val fagsakId: String?,
+        val fagsaksystem: String?,
+        val fagsystemId: String?
+    )
 
     data class RelevantDato(
         val dato: LocalDateTime,

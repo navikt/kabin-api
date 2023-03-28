@@ -6,7 +6,9 @@ import java.time.LocalDate
 data class Klagemulighet(
     val sakId: String,
     val tema: String,
+    val temaId: String,
     val utfall: String,
+    val utfallId: String,
     val vedtakDate: LocalDate,
     val sakFagsakId: String,
     val sakFagsystem: Fagsystem,

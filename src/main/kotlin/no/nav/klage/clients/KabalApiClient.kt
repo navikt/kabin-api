@@ -116,6 +116,7 @@ class KabalApiClient(
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
         val sakFagsakId: String,
         val sakFagsystem: Fagsystem,
+        val fagsystemId: String,
         val klageBehandlendeEnhet: String,
     )
 
@@ -167,6 +168,7 @@ class KabalApiClient(
         val frist: LocalDate,
         val sakFagsakId: String,
         val sakFagsystem: Fagsystem,
+        val fagsystemId: String,
         val journalpost: DokumentReferanse,
     )
 }
