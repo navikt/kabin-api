@@ -154,6 +154,7 @@ class KabalApiClient(
         val kjoenn: String?,
     )
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     data class CreatedBehandlingStatus(
         val typeId: String,
         val behandlingId: UUID,
