@@ -71,7 +71,9 @@ class DokArkivServiceTest {
             fullmektig = null,
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
+            fagsakId = SAKS_ID,
             sakFagsystem = FAGSYSTEM,
+            fagsystem = FAGSYSTEM,
             fagsystemId = FAGSYSTEM.id,
             klageBehandlendeEnhet = "",
         )
@@ -231,7 +233,9 @@ class DokArkivServiceTest {
             fullmektig = null,
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
+            fagsakId = SAKS_ID,
             sakFagsystem = FAGSYSTEM,
+            fagsystem = FAGSYSTEM,
             fagsystemId = FAGSYSTEM.id,
             klageBehandlendeEnhet = ENHET,
         )
