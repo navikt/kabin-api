@@ -46,14 +46,31 @@ class AnkeBasedOnKabalKlageController(
     }
 
     @PostMapping("/ankemuligheter", produces = ["application/json"])
-    fun getCompletedKlagebehandlingerByIdnummer(@RequestBody input: IdnummerInput): List<KabalApiClient.CompletedKlagebehandling> {
+    fun getCompletedKlagebehandlingerByIdnummer(@RequestBody input: IdnummerInput): List<Ankemulighet> {
         logMethodDetails(
             methodName = ::getCompletedKlagebehandlingerByIdnummer.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
 
-        return kabalApiService.getCompletedKlagebehandlingerByIdnummer(input)
+        return kabalApiService.getCompletedKlagebehandlingerByIdnummer(input).map {
+            Ankemulighet(
+                behandlingId = it.behandlingId,
+                ytelseId = it.ytelseId,
+                utfallId = it.utfallId,
+                vedtakDate = it.vedtakDate,
+                sakenGjelder = it.sakenGjelder,
+                klager = it.klager,
+                fullmektig = it.fullmektig,
+                tilknyttedeDokumenter = it.tilknyttedeDokumenter,
+                sakFagsakId = it.fagsakId,
+                fagsakId = it.fagsakId,
+                sakFagsystem = it.fagsystem,
+                fagsystem = it.fagsystem,
+                fagsystemId = it.fagsystemId,
+                klageBehandlendeEnhet = it.klageBehandlendeEnhet,
+            )
+        }
     }
 
     @GetMapping("/anker/{mottakId}/status")

@@ -44,8 +44,8 @@ class DokArkivService(
     fun getSak(klagebehandling: KabalApiClient.CompletedKlagebehandling): Sak {
         return Sak(
             sakstype = Sakstype.FAGSAK,
-            fagsaksystem = FagsaksSystem.valueOf(klagebehandling.sakFagsystem.name),
-            fagsakid = klagebehandling.sakFagsakId
+            fagsaksystem = FagsaksSystem.valueOf(klagebehandling.fagsystem.name),
+            fagsakid = klagebehandling.fagsakId
         )
     }
 
@@ -180,8 +180,8 @@ class DokArkivService(
     ): String {
         val requestPayload = CreateNewJournalpostBasedOnExistingJournalpostRequest(
             sakstype = Sakstype.FAGSAK,
-            fagsakId = completedKlagebehandling.sakFagsakId,
-            fagsaksystem = FagsaksSystem.valueOf(completedKlagebehandling.sakFagsystem.name),
+            fagsakId = completedKlagebehandling.fagsakId,
+            fagsaksystem = FagsaksSystem.valueOf(completedKlagebehandling.fagsystem.name),
             tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
             bruker = getBruker(completedKlagebehandling.sakenGjelder),
             journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet
@@ -200,8 +200,8 @@ class DokArkivService(
     ): Boolean {
         return if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
             false
-        } else (journalpostInSaf.sak.fagsakId == completedKlagebehandling.sakFagsakId
-                && Fagsystem.valueOf(journalpostInSaf.sak.fagsaksystem) == completedKlagebehandling.sakFagsystem)
+        } else (journalpostInSaf.sak.fagsakId == completedKlagebehandling.fagsakId
+                && Fagsystem.valueOf(journalpostInSaf.sak.fagsaksystem) == completedKlagebehandling.fagsystem)
     }
 
     fun updateDocumentTitle(

@@ -45,13 +45,11 @@ class KlageController(
         return fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE")).map {
             Klagemulighet(
                 sakId = it.sakId,
-                tema = it.tema,
                 temaId = Tema.fromNavn(it.tema).id,
                 utfall = it.utfall,
-                utfallId = it.utfall,
                 vedtakDate = it.vedtaksdato,
-                sakFagsakId = it.fagsakId,
-                sakFagsystem = Fagsystem.IT01,
+                fagsakId = it.fagsakId,
+                fagsystemId = Fagsystem.IT01.id,
                 klageBehandlendeEnhet = it.enhetsnummer,
             )
         }
