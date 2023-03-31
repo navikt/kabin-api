@@ -1,13 +1,16 @@
 package no.nav.klage.service
 
+import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.clients.saf.graphql.SafGraphQlClient
+import no.nav.klage.exceptions.InvalidProperty
+import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -75,27 +78,31 @@ class DokArkivService(
         }
     }
 
-    fun updateSaksIdInJournalpost(
+    fun updateJournalpost(
         journalpostId: String,
-        completedKlagebehandling: KabalApiClient.CompletedKlagebehandling
+        completedKlagebehandling: KabalApiClient.CompletedKlagebehandling,
+        avsender: CreateAnkeBasedOnKlagebehandling.OversendtPartId?
     ) {
-        val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
-            ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
+        val requestInput = UpdateJournalpostSaksIdRequest(
+            tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
+            bruker = getBruker(completedKlagebehandling.sakenGjelder),
+            sak = getSak(completedKlagebehandling),
+            journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet,
+            avsenderMottaker = null,
+        )
 
-        if (journalpostCanBeUpdated(journalpostInSaf)) {
-            dokArkivClient.updateSaksId(
-                journalpostId = journalpostId,
-                input = UpdateJournalpostSaksIdRequest(
-                    tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
-                    bruker = getBruker(completedKlagebehandling.sakenGjelder),
-                    sak = getSak(completedKlagebehandling),
-                    journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet
-                )
+        if (avsender != null) {
+            requestInput.avsenderMottaker = AvsenderMottaker(
+                id = avsender.value,
+                idType = avsender.type.toAvsenderMottakerIdType(),
             )
-        } else {
-            //TODO: Sjekk hvor vanlig dette er, og om det heller bør være en warning.
-            logger.debug("Saksid can't be updated for journalpost with type ${journalpostInSaf.journalposttype} and status ${journalpostInSaf.journalstatus}")
         }
+
+        dokArkivClient.updateJournalpost(
+            journalpostId = journalpostId,
+            input = requestInput,
+        )
+
     }
 
     private fun journalpostCanBeUpdated(journalpostInSaf: Journalpost): Boolean {
@@ -140,16 +147,38 @@ class DokArkivService(
         }
     }
 
-    fun handleJournalpost(journalpostId: String, klagebehandlingId: UUID): String {
+    fun handleJournalpost(
+        journalpostId: String,
+        klagebehandlingId: UUID,
+        avsender: CreateAnkeBasedOnKlagebehandling.OversendtPartId? = null
+    ): String {
         val completedKlagebehandling =
             kabalApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
         val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
         if (journalpostCanBeUpdated(journalpostInSaf)) {
-            updateSaksIdInJournalpost(
+            if (journalpostInSaf.avsenderMottaker == null && avsender == null) {
+                throw SectionedValidationErrorWithDetailsException(
+                    title = "Validation error",
+                    sections = listOf(
+                        ValidationSection(
+                            section = "saksdata",
+                            properties = listOf(
+                                InvalidProperty(
+                                    field = CreateAnkeBasedOnKlagebehandling::avsender.name,
+                                    reason = "Avsender må velges på denne journalposten"
+                                )
+                            )
+                        )
+                    )
+                )
+            }
+
+            updateJournalpost(
                 journalpostId = journalpostId,
-                completedKlagebehandling = completedKlagebehandling
+                completedKlagebehandling = completedKlagebehandling,
+                avsender = avsender,
             )
             finalizeJournalpost(
                 journalpostId = journalpostId,
@@ -230,5 +259,12 @@ class DokArkivService(
                 )
             )
         )
+    }
+
+    private fun CreateAnkeBasedOnKlagebehandling.OversendtPartIdType.toAvsenderMottakerIdType(): AvsenderMottakerIdType {
+        return when (this) {
+            CreateAnkeBasedOnKlagebehandling.OversendtPartIdType.PERSON -> AvsenderMottakerIdType.FNR
+            CreateAnkeBasedOnKlagebehandling.OversendtPartIdType.VIRKSOMHET -> AvsenderMottakerIdType.ORGNR
+        }
     }
 }

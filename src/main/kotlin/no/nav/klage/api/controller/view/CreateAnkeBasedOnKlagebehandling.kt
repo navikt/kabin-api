@@ -10,6 +10,7 @@ data class CreateAnkeBasedOnKlagebehandling(
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,
     val ankeDocumentJournalpostId: String,
+    val avsender: OversendtPartId?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,

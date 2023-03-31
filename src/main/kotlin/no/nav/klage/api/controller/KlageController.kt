@@ -49,6 +49,7 @@ class KlageController(
                 utfall = it.utfall,
                 vedtakDate = it.vedtaksdato,
                 fagsakId = it.fagsakId,
+                //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
                 klageBehandlendeEnhet = it.enhetsnummer,
             )

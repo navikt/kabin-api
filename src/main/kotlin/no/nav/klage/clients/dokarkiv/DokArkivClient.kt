@@ -71,7 +71,7 @@ class DokArkivClient(
         }
     }
 
-    fun updateSaksId(journalpostId: String, input: UpdateJournalpostSaksIdRequest) {
+    fun updateJournalpost(journalpostId: String, input: UpdateJournalpostSaksIdRequest) {
         try {
             val output = dokArkivWebClient.put()
                 .uri("/${journalpostId}")

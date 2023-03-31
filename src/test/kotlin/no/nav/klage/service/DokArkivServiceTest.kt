@@ -3,12 +3,17 @@ package no.nav.klage.service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.clients.dokarkiv.BrukerIdType
 import no.nav.klage.clients.dokarkiv.Sak
 import no.nav.klage.clients.saf.graphql.*
+import no.nav.klage.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.clients.saf.graphql.Tema.OMS
+import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
@@ -16,6 +21,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
 import java.util.*
 
@@ -33,14 +39,22 @@ class DokArkivServiceTest {
 
     private val SAKS_ID = "SAKS_ID"
     private val FAGSYSTEM = Fagsystem.FS38
+    private val FNR = "28838098519"
     private val PERSON = KabalApiClient.PersonView(
-        foedselsnummer = "28838098519",
+        foedselsnummer = FNR,
         navn = KabalApiClient.NavnView(
             fornavn = "FORNAVN",
             mellomnavn = null,
             etternavn = "ETTERNAVN"
         ),
         kjoenn = null
+    )
+    private val avsenderMottaker = AvsenderMottaker(
+        id = "12345678910",
+        type = AvsenderMottaker.AvsenderMottakerIdType.FNR,
+        navn = null,
+        land = null,
+        erLikBruker = false
     )
     private val ENHET = "4295"
 
@@ -93,18 +107,33 @@ class DokArkivServiceTest {
     @Nested
     inner class HandleJournalpost {
         @Test
-        fun `unfinished journalpost is updated and finalized`() {
+        fun `unfinished journalpost with avsender is updated and finalized`() {
             every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
-            every { dokArkivClient.updateSaksId(any(), any()) } returns Unit
+            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpostWithAvsenderMottaker()
+            every { dokArkivClient.updateJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID())
+            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
 
             verify(exactly = 1) {
-                dokArkivClient.updateSaksId(
+                dokArkivClient.updateJournalpost(
                     journalpostId = any(),
-                    input = any(),
+                    input = eq(
+                        UpdateJournalpostSaksIdRequest(
+                            tema = Tema.OMS,
+                            bruker = Bruker(
+                                id = FNR,
+                                idType = BrukerIdType.FNR
+                            ),
+                            sak = Sak(
+                                sakstype = Sakstype.FAGSAK,
+                                fagsaksystem = FagsaksSystem.FS38,
+                                fagsakid = SAKS_ID,
+                            ),
+                            journalfoerendeEnhet = ENHET,
+                            avsenderMottaker = null,
+                        )
+                    ),
                 )
             }
 
@@ -133,14 +162,95 @@ class DokArkivServiceTest {
         }
 
         @Test
+        fun `unfinished journalpost without avsender is updated and finalized`() {
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
+            every { dokArkivClient.updateJournalpost(any(), any()) } returns Unit
+            every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
+
+            val resultingJournalpost = dokArkivService.handleJournalpost(
+                JOURNALPOST_ID,
+                UUID.randomUUID(),
+                CreateAnkeBasedOnKlagebehandling.OversendtPartId(
+                    type = CreateAnkeBasedOnKlagebehandling.OversendtPartIdType.PERSON,
+                    value = FNR
+                )
+            )
+
+            verify(exactly = 1) {
+                dokArkivClient.updateJournalpost(
+                    journalpostId = any(),
+                    input = eq(
+                        UpdateJournalpostSaksIdRequest(
+                            tema = Tema.OMS,
+                            bruker = Bruker(
+                                id = FNR,
+                                idType = BrukerIdType.FNR
+                            ),
+                            sak = Sak(
+                                sakstype = Sakstype.FAGSAK,
+                                fagsaksystem = FagsaksSystem.FS38,
+                                fagsakid = SAKS_ID,
+                            ),
+                            journalfoerendeEnhet = ENHET,
+                            avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
+                                id = FNR,
+                                idType = AvsenderMottakerIdType.FNR,
+                                navn = null,
+                                land = null
+                            ),
+                        )
+                    ),
+                )
+            }
+
+            verify(exactly = 1) {
+                dokArkivClient.finalizeJournalpost(
+                    journalpostId = any(),
+                    journalfoerendeEnhet = any(),
+                )
+            }
+
+            verify(exactly = 0) {
+                dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
+                    payload = any(),
+                    oldJournalpostId = any(),
+                    journalfoerendeSaksbehandlerIdent = any()
+                )
+            }
+
+            verify(exactly = 0) {
+                dokArkivClient.registerErrorInSaksId(
+                    journalpostId = any()
+                )
+            }
+
+            assertEquals(JOURNALPOST_ID, resultingJournalpost)
+        }
+
+        @Test
+        fun `unfinished journalpost without avsender and withouth avsender in input throws error`() {
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
+
+            assertThrows<SectionedValidationErrorWithDetailsException> {
+                dokArkivService.handleJournalpost(
+                    JOURNALPOST_ID,
+                    UUID.randomUUID(),
+                    null
+                )
+            }
+        }
+
+        @Test
         fun `journalfoert incoming journalpost with correct fagsak is returned directly`() {
             every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID())
+            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
 
             verify(exactly = 0) {
-                dokArkivClient.updateSaksId(
+                dokArkivClient.updateJournalpost(
                     journalpostId = any(),
                     input = any(),
                 )
@@ -184,10 +294,10 @@ class DokArkivServiceTest {
             } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
             every { dokArkivClient.registerErrorInSaksId(any()) } returns Unit
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID())
+            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
 
             verify(exactly = 0) {
-                dokArkivClient.updateSaksId(
+                dokArkivClient.updateJournalpost(
                     journalpostId = any(),
                     input = any(),
                 )
@@ -265,6 +375,12 @@ class DokArkivServiceTest {
             kanal = Kanal.NAV_NO,
             kanalnavn = "",
             utsendingsinfo = null
+        )
+    }
+
+    private fun getMottattIncomingJournalpostWithAvsenderMottaker(): Journalpost {
+        return getMottattIncomingJournalpost().copy(
+            avsenderMottaker = avsenderMottaker
         )
     }
 

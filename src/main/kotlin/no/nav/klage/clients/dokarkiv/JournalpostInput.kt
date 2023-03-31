@@ -45,6 +45,7 @@ data class UpdateJournalpostSaksIdRequest(
     val bruker: Bruker,
     val sak: Sak,
     val journalfoerendeEnhet: String,
+    var avsenderMottaker: AvsenderMottaker?,
 )
 
 data class Bruker(
