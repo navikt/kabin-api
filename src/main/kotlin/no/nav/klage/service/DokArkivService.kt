@@ -14,6 +14,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
+import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -28,6 +29,7 @@ class DokArkivService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
     }
 
     private fun getBruker(sakenGjelder: KabalApiClient.SakenGjelderView): Bruker {
@@ -159,7 +161,8 @@ class DokArkivService(
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
         if (journalpostCanBeUpdated(journalpostInSaf)) {
-            if (journalpostInSaf.avsenderMottaker == null && avsender == null) {
+            secureLogger.debug("Journalpost: $journalpostInSaf")
+            if (avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker) && avsender == null) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
                     sections = listOf(
@@ -202,6 +205,14 @@ class DokArkivService(
                 newJournalpostId
             }
         }
+    }
+
+    private fun avsenderMottakerIsMissing(avsenderMottaker: no.nav.klage.clients.saf.graphql.AvsenderMottaker?): Boolean {
+        return if (avsenderMottaker == null) {
+            true
+        } else if (avsenderMottaker.type == no.nav.klage.clients.saf.graphql.AvsenderMottaker.AvsenderMottakerIdType.FNR) {
+            avsenderMottaker.id == null
+        } else avsenderMottaker.navn == null
     }
 
     private fun createNewJournalpostBasedOnExistingJournalpost(

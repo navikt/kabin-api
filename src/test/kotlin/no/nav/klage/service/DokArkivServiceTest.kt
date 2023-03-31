@@ -362,7 +362,9 @@ class DokArkivServiceTest {
             behandlingstema = null,
             behandlingstemanavn = null,
             sak = null,
-            avsenderMottaker = null,
+            avsenderMottaker = AvsenderMottaker(
+                id = null, type = AvsenderMottaker.AvsenderMottakerIdType.NULL, navn = null, land = null, erLikBruker = false
+            ),
             journalfoerendeEnhet = ENHET,
             journalfortAvNavn = null,
             opprettetAvNavn = null,
