@@ -92,6 +92,7 @@ class DokArkivService(
         )
 
         if (avsender != null) {
+            logger.debug("Including AvsenderMottaker in update request.")
             requestInput.avsenderMottaker = AvsenderMottaker(
                 id = avsender.value,
                 idType = avsender.type.toAvsenderMottakerIdType(),
