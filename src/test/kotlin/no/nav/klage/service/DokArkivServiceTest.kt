@@ -119,7 +119,7 @@ class DokArkivServiceTest {
                 dokArkivClient.updateJournalpost(
                     journalpostId = any(),
                     input = eq(
-                        UpdateJournalpostSaksIdRequest(
+                        UpdateJournalpostRequest(
                             tema = Tema.OMS,
                             bruker = Bruker(
                                 id = FNR,
@@ -181,7 +181,7 @@ class DokArkivServiceTest {
                 dokArkivClient.updateJournalpost(
                     journalpostId = any(),
                     input = eq(
-                        UpdateJournalpostSaksIdRequest(
+                        UpdateJournalpostRequest(
                             tema = Tema.OMS,
                             bruker = Bruker(
                                 id = FNR,

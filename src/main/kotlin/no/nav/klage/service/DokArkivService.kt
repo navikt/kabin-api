@@ -85,7 +85,7 @@ class DokArkivService(
         completedKlagebehandling: KabalApiClient.CompletedKlagebehandling,
         avsender: CreateAnkeBasedOnKlagebehandling.OversendtPartId?
     ) {
-        val requestInput = UpdateJournalpostSaksIdRequest(
+        val requestInput = UpdateJournalpostRequest(
             tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
             bruker = getBruker(completedKlagebehandling.sakenGjelder),
             sak = getSak(completedKlagebehandling),
@@ -161,7 +161,7 @@ class DokArkivService(
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
         if (journalpostCanBeUpdated(journalpostInSaf)) {
-            secureLogger.debug("Journalpost: $journalpostInSaf")
+            secureLogger.debug("Journalpost: {}", journalpostInSaf)
             if (avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker) && avsender == null) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
