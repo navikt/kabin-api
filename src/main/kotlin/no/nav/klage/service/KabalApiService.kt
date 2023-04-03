@@ -20,7 +20,7 @@ class KabalApiService(
         return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedAnkeResponse {
+    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedBehandlingResponse {
         return kabalApiClient.createAnkeInKabal(input)
     }
 

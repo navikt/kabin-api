@@ -1,6 +1,8 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
+import no.nav.klage.api.controller.view.OversendtPartId
+import no.nav.klage.api.controller.view.OversendtPartIdType
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.saf.graphql.Journalpost
@@ -83,7 +85,7 @@ class DokArkivService(
     fun updateJournalpost(
         journalpostId: String,
         completedKlagebehandling: KabalApiClient.CompletedKlagebehandling,
-        avsender: CreateAnkeBasedOnKlagebehandling.OversendtPartId?
+        avsender: OversendtPartId?
     ) {
         val requestInput = UpdateJournalpostRequest(
             tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
@@ -153,7 +155,7 @@ class DokArkivService(
     fun handleJournalpost(
         journalpostId: String,
         klagebehandlingId: UUID,
-        avsender: CreateAnkeBasedOnKlagebehandling.OversendtPartId? = null
+        avsender: OversendtPartId? = null
     ): String {
         val completedKlagebehandling =
             kabalApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
@@ -273,10 +275,10 @@ class DokArkivService(
         )
     }
 
-    private fun CreateAnkeBasedOnKlagebehandling.OversendtPartIdType.toAvsenderMottakerIdType(): AvsenderMottakerIdType {
+    private fun OversendtPartIdType.toAvsenderMottakerIdType(): AvsenderMottakerIdType {
         return when (this) {
-            CreateAnkeBasedOnKlagebehandling.OversendtPartIdType.PERSON -> AvsenderMottakerIdType.FNR
-            CreateAnkeBasedOnKlagebehandling.OversendtPartIdType.VIRKSOMHET -> AvsenderMottakerIdType.ORGNR
+            OversendtPartIdType.PERSON -> AvsenderMottakerIdType.FNR
+            OversendtPartIdType.VIRKSOMHET -> AvsenderMottakerIdType.ORGNR
         }
     }
 }

@@ -11,11 +11,4 @@ data class CreateAnkeBasedOnKlagebehandling(
     val fullmektig: OversendtPartId?,
     val ankeDocumentJournalpostId: String,
     val avsender: OversendtPartId?,
-) {
-    data class OversendtPartId(
-        val type: OversendtPartIdType,
-        val value: String
-    )
-
-    enum class OversendtPartIdType { PERSON, VIRKSOMHET }
-}
+)

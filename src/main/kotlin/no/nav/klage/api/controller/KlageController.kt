@@ -1,6 +1,7 @@
 package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
+import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.config.SecurityConfiguration
@@ -16,6 +17,7 @@ import java.util.*
 class KlageController(
     private val tokenUtil: TokenUtil,
     private val fssProxyClient: KlageFssProxyClient,
+    private val kabalApiClient: KabalApiClient,
 ) {
 
     companion object {
@@ -25,12 +27,19 @@ class KlageController(
     }
 
     @PostMapping("/createklage", produces = ["application/json"])
-    fun createKlage() {
+    fun createKlage(@RequestBody input: CreateKlageInput) {
         logMethodDetails(
             methodName = ::createKlage.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
+
+        secureLogger.debug("createklage called with: {}", input)
+
+//        val sakFromKlanke = fssProxyClient.getSak(input.sakId)
+//
+//        val searchPart = kabalApiClient.searchPart(SearchPartInput(identifikator = sakFromKlanke.fnr))
+
         TODO()
     }
 
@@ -52,6 +61,7 @@ class KlageController(
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
                 klageBehandlendeEnhet = it.enhetsnummer,
+                sakenGjelder = kabalApiClient.searchPart(SearchPartInput(identifikator = it.fnr))
             )
         }
     }

@@ -4,6 +4,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
+import no.nav.klage.api.controller.view.OversendtPartId
+import no.nav.klage.api.controller.view.OversendtPartIdType
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
@@ -171,8 +173,8 @@ class DokArkivServiceTest {
             val resultingJournalpost = dokArkivService.handleJournalpost(
                 JOURNALPOST_ID,
                 UUID.randomUUID(),
-                CreateAnkeBasedOnKlagebehandling.OversendtPartId(
-                    type = CreateAnkeBasedOnKlagebehandling.OversendtPartIdType.PERSON,
+                OversendtPartId(
+                    type = OversendtPartIdType.PERSON,
                     value = FNR
                 )
             )

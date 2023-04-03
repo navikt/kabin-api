@@ -16,3 +16,10 @@ data class CalculateFristInput(
 data class SearchUsedJournalpostIdInput(
     val fnr: String,
 )
+
+data class OversendtPartId(
+    val type: OversendtPartIdType,
+    val value: String
+)
+
+enum class OversendtPartIdType { PERSON, VIRKSOMHET }

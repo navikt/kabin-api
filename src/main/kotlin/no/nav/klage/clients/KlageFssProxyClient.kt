@@ -34,6 +34,32 @@ class KlageFssProxyClient(
             .block()
             ?: throw RuntimeException("Empty result")
     }
+
+    fun getSak(sakId: String): SakFromKlanke {
+        return klageFssProxyWebClient.post()
+            .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+            )
+            .retrieve()
+            .bodyToMono<SakFromKlanke>()
+            .block()
+            ?: throw RuntimeException("Empty result")
+    }
+
+    fun setToHandledInKabal(sakId: String, input: HandledInKabalInput) {
+        klageFssProxyWebClient.post()
+            .uri { it.path("/klanke/saker/{sakId}/handledinkabal").build(sakId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .bodyToMono<Unit>()
+            .block()
+    }
 }
 
 data class KlankeSearchInput(
@@ -48,4 +74,9 @@ data class SakFromKlanke(
     val utfall: String,
     val enhetsnummer: String,
     val vedtaksdato: LocalDate,
+    val fnr: String,
+)
+
+data class HandledInKabalInput(
+    val fristAsString: String
 )

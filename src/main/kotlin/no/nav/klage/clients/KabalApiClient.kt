@@ -23,7 +23,7 @@ class KabalApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): CreatedAnkeResponse {
+    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/createanke").build() }
             .header(
@@ -32,7 +32,7 @@ class KabalApiClient(
             )
             .bodyValue(input)
             .retrieve()
-            .bodyToMono<CreatedAnkeResponse>()
+            .bodyToMono<CreatedBehandlingResponse>()
             .block() ?: throw RuntimeException("No response")
     }
 
@@ -100,7 +100,7 @@ class KabalApiClient(
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class CreatedAnkeResponse(
+    data class CreatedBehandlingResponse(
         val mottakId: UUID,
     )
 

@@ -26,7 +26,7 @@ class AnkeBasedOnKabalKlageController(
     }
 
     @PostMapping("/createanke", produces = ["application/json"])
-    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedAnkeResponse {
+    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnke.name,
             innloggetIdent = tokenUtil.getIdent(),
