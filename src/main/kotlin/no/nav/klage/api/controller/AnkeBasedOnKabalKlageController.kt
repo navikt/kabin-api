@@ -40,6 +40,7 @@ class AnkeBasedOnKabalKlageController(
         val journalpostId = dokArkivService.handleJournalpost(
             journalpostId = input.ankeDocumentJournalpostId,
             klagebehandlingId = input.klagebehandlingId,
+            avsender = input.avsender
         )
 
         return kabalApiService.createAnkeInKabal(input.copy(ankeDocumentJournalpostId = journalpostId))

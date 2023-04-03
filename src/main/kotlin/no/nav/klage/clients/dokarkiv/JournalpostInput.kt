@@ -40,11 +40,12 @@ data class CreateNewJournalpostBasedOnExistingJournalpostRequest(
     val journalfoerendeEnhet: String
 )
 
-data class UpdateJournalpostSaksIdRequest(
+data class UpdateJournalpostRequest(
     val tema: Tema,
     val bruker: Bruker,
     val sak: Sak,
     val journalfoerendeEnhet: String,
+    var avsenderMottaker: AvsenderMottaker?,
 )
 
 data class Bruker(
