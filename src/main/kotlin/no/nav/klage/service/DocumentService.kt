@@ -104,7 +104,7 @@ class DokumentMapper {
             dokumentInfoId = hoveddokument.dokumentInfoId,
             journalpostId = journalpost.journalpostId,
             harTilgangTilArkivvariant = harTilgangTilArkivvariant(hoveddokument),
-            journalposttype = DokumentReferanse.Journalposttype.valueOf(journalpost.journalposttype!!.name),
+            journalposttype = DokumentReferanse.Journalposttype.valueOf(journalpost.journalposttype.name),
             journalstatus = if (journalpost.journalstatus != null) {
                 DokumentReferanse.Journalstatus.valueOf(journalpost.journalstatus.name)
             } else null,
@@ -119,21 +119,16 @@ class DokumentMapper {
                 )
             } else null,
             avsenderMottaker = if (journalpost.avsenderMottaker == null ||
-                (journalpost.avsenderMottaker.id == null &&
-                        journalpost.avsenderMottaker.type == null &&
-                        journalpost.avsenderMottaker.navn == null &&
-                        journalpost.avsenderMottaker.land == null)
+                (journalpost.avsenderMottaker.id == null ||
+                        journalpost.avsenderMottaker.type == null)
             ) {
                 null
             } else {
                 DokumentReferanse.AvsenderMottaker(
                     id = journalpost.avsenderMottaker.id,
-                    type = if (journalpost.avsenderMottaker.type != null) DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
-                        journalpost.avsenderMottaker.type.name
-                    ) else null,
+                    type = DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
+                        journalpost.avsenderMottaker.type.name),
                     navn = journalpost.avsenderMottaker.navn,
-                    land = journalpost.avsenderMottaker.land,
-                    erLikBruker = journalpost.avsenderMottaker.erLikBruker,
                 )
             },
             journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
