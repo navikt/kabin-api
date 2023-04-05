@@ -118,7 +118,14 @@ class DokumentMapper {
                     fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(journalpost.sak.fagsaksystem).id },
                 )
             } else null,
-            avsenderMottaker = if (journalpost.avsenderMottaker != null) {
+            avsenderMottaker = if (journalpost.avsenderMottaker == null ||
+                (journalpost.avsenderMottaker.id == null &&
+                        journalpost.avsenderMottaker.type == null &&
+                        journalpost.avsenderMottaker.navn == null &&
+                        journalpost.avsenderMottaker.land == null)
+            ) {
+                null
+            } else {
                 DokumentReferanse.AvsenderMottaker(
                     id = journalpost.avsenderMottaker.id,
                     type = if (journalpost.avsenderMottaker.type != null) DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
@@ -127,9 +134,8 @@ class DokumentMapper {
                     navn = journalpost.avsenderMottaker.navn,
                     land = journalpost.avsenderMottaker.land,
                     erLikBruker = journalpost.avsenderMottaker.erLikBruker,
-
-                    )
-            } else null,
+                )
+            },
             journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
             journalfortAvNavn = journalpost.journalfortAvNavn,
             opprettetAvNavn = journalpost.opprettetAvNavn,
