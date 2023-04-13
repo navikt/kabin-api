@@ -83,7 +83,8 @@ class DokArkivService(
     fun updateJournalpost(
         journalpostId: String,
         completedKlagebehandling: KabalApiClient.CompletedKlagebehandling,
-        avsender: CreateAnkeBasedOnKlagebehandling.OversendtPartId?
+        avsender: CreateAnkeBasedOnKlagebehandling.OversendtPartId?,
+        journalpostType: Journalposttype
     ) {
         val requestInput = UpdateJournalpostRequest(
             tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
@@ -93,7 +94,7 @@ class DokArkivService(
             avsenderMottaker = null,
         )
 
-        if (avsender != null) {
+        if (journalpostType != Journalposttype.N && avsender != null) {
             logger.debug("Including AvsenderMottaker in update request.")
             requestInput.avsenderMottaker = AvsenderMottaker(
                 id = avsender.value,
@@ -105,7 +106,6 @@ class DokArkivService(
             journalpostId = journalpostId,
             input = requestInput,
         )
-
     }
 
     private fun journalpostCanBeUpdated(journalpostInSaf: Journalpost): Boolean {
@@ -162,7 +162,10 @@ class DokArkivService(
 
         if (journalpostCanBeUpdated(journalpostInSaf)) {
             secureLogger.debug("Journalpost: {}", journalpostInSaf)
-            if (avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker) && avsender == null) {
+            if (journalpostInSaf.journalposttype != Journalposttype.N
+                && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
+                && avsender == null
+            ) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
                     sections = listOf(
@@ -183,7 +186,9 @@ class DokArkivService(
                 journalpostId = journalpostId,
                 completedKlagebehandling = completedKlagebehandling,
                 avsender = avsender,
+                journalpostType = journalpostInSaf.journalposttype
             )
+
             finalizeJournalpost(
                 journalpostId = journalpostId,
                 journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet
