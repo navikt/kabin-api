@@ -4,7 +4,7 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.DokArkivService
-import no.nav.klage.service.KabalApiService
+import no.nav.klage.service.GenericApiService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
@@ -13,7 +13,7 @@ import java.util.*
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class AnkeBasedOnKabalKlageController(
-    private val kabalApiService: KabalApiService,
+    private val genericApiService: GenericApiService,
     private val dokArkivService: DokArkivService,
     private val tokenUtil: TokenUtil,
     private val validationUtil: ValidationUtil
@@ -43,7 +43,7 @@ class AnkeBasedOnKabalKlageController(
             avsender = input.avsender
         )
 
-        return kabalApiService.createAnkeInKabal(input.copy(ankeDocumentJournalpostId = journalpostId))
+        return genericApiService.createAnkeInKabal(input.copy(ankeDocumentJournalpostId = journalpostId))
     }
 
     @PostMapping("/ankemuligheter", produces = ["application/json"])
@@ -54,7 +54,7 @@ class AnkeBasedOnKabalKlageController(
             logger = logger,
         )
 
-        return kabalApiService.getCompletedKlagebehandlingerByIdnummer(input).map {
+        return genericApiService.getCompletedKlagebehandlingerByIdnummer(input).map {
             Ankemulighet(
                 behandlingId = it.behandlingId,
                 ytelseId = it.ytelseId,
@@ -83,6 +83,6 @@ class AnkeBasedOnKabalKlageController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return kabalApiService.getCreatedAnkeStatus(mottakId = mottakId)
+        return genericApiService.getCreatedAnkeStatus(mottakId = mottakId)
     }
 }

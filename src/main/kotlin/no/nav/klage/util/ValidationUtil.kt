@@ -1,6 +1,7 @@
 package no.nav.klage.util
 
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
+import no.nav.klage.api.controller.view.CreateKlageInput
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
@@ -16,6 +17,47 @@ class ValidationUtil {
             validationErrors += InvalidProperty(
                 field = CreateAnkeBasedOnKlagebehandling::mottattNav.name,
                 reason = "Dato kan ikke være i fremtiden"
+            )
+        }
+
+        val sectionList = mutableListOf<ValidationSection>()
+
+        if (validationErrors.isNotEmpty()) {
+            sectionList.add(
+                ValidationSection(
+                    section = "saksdata",
+                    properties = validationErrors
+                )
+            )
+
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = sectionList
+            )
+        }
+    }
+
+    fun validateCreateKlageInput(input: CreateKlageInput) {
+        val validationErrors = mutableListOf<InvalidProperty>()
+
+        if (input.mottattNav.isAfter(LocalDate.now())) {
+            validationErrors += InvalidProperty(
+                field = CreateKlageInput::mottattNav.name,
+                reason = "Dato kan ikke være i fremtiden"
+            )
+        }
+
+        if (input.mottattKa.isAfter(LocalDate.now())) {
+            validationErrors += InvalidProperty(
+                field = CreateKlageInput::mottattKa.name,
+                reason = "Dato kan ikke være i fremtiden"
+            )
+        }
+
+        if (input.mottattNav.isAfter(input.mottattKa)) {
+            validationErrors += InvalidProperty(
+                field = CreateKlageInput::mottattNav.name,
+                reason = "Mottatt NAV kan ikke være etter mottatt KA"
             )
         }
 

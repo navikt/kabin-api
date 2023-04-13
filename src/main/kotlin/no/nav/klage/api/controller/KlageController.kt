@@ -7,6 +7,7 @@ import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.service.GenericApiService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
@@ -17,7 +18,8 @@ import java.util.*
 class KlageController(
     private val tokenUtil: TokenUtil,
     private val fssProxyClient: KlageFssProxyClient,
-    private val kabalApiClient: KabalApiClient,
+    private val genericApiService: GenericApiService,
+    private val validationUtil: ValidationUtil,
 ) {
 
     companion object {
@@ -27,7 +29,7 @@ class KlageController(
     }
 
     @PostMapping("/createklage", produces = ["application/json"])
-    fun createKlage(@RequestBody input: CreateKlageInput) {
+    fun createKlage(@RequestBody input: CreateKlageInput): KabalApiClient.CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createKlage.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -36,11 +38,9 @@ class KlageController(
 
         secureLogger.debug("createklage called with: {}", input)
 
-//        val sakFromKlanke = fssProxyClient.getSak(input.sakId)
-//
-//        val searchPart = kabalApiClient.searchPart(SearchPartInput(identifikator = sakFromKlanke.fnr))
+        validationUtil.validateCreateKlageInput(input)
 
-        TODO()
+        return genericApiService.createKlage(input)
     }
 
     @PostMapping("/klagemuligheter", produces = ["application/json"])
@@ -61,7 +61,7 @@ class KlageController(
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
                 klageBehandlendeEnhet = it.enhetsnummer,
-                sakenGjelder = kabalApiClient.searchPart(SearchPartInput(identifikator = it.fnr))
+                sakenGjelder = genericApiService.searchPart(SearchPartInput(identifikator = it.fnr))
             )
         }
     }

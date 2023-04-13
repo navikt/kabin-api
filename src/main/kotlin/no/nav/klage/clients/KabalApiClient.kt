@@ -99,6 +99,19 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("null returned for getUsedJournalpostIdListForPerson")
     }
 
+    fun createKlageInKabal(input: CreateKlageBasedOnKabinInput): CreatedBehandlingResponse {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/createklage").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .bodyToMono<CreatedBehandlingResponse>()
+            .block() ?: throw RuntimeException("No response")
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class CreatedBehandlingResponse(
         val mottakId: UUID,
@@ -175,5 +188,22 @@ class KabalApiClient(
         val fagsystem: Fagsystem,
         val fagsystemId: String,
         val journalpost: DokumentReferanse,
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class CreateKlageBasedOnKabinInput(
+        val sakenGjelder: OversendtPartId,
+        val klager: OversendtPartId?,
+        val fullmektig: OversendtPartId?,
+        val fagsakId: String,
+        val fagsystemId: String,
+        val hjemmelIdList: List<String>?,
+        val forrigeBehandlendeEnhet: String,
+        val klageJournalpostId: String,
+        val brukersHenvendelseMottattNav: LocalDate,
+        val sakMottattKa: LocalDate,
+        val frist: LocalDate,
+        val ytelseId: String,
+        val kildereferanse: String,
     )
 }

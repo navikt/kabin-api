@@ -3,7 +3,6 @@ package no.nav.klage.service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
 import no.nav.klage.api.controller.view.OversendtPartId
 import no.nav.klage.api.controller.view.OversendtPartIdType
 import no.nav.klage.clients.KabalApiClient
@@ -31,7 +30,7 @@ class DokArkivServiceTest {
 
     val dokArkivClient: DokArkivClient = mockk()
 
-    val kabalApiService: KabalApiService = mockk()
+    val genericApiService: GenericApiService = mockk()
 
     val safGraphQlClient: SafGraphQlClient = mockk()
 
@@ -69,7 +68,7 @@ class DokArkivServiceTest {
     fun setup() {
         dokArkivService = DokArkivService(
             dokArkivClient = dokArkivClient,
-            kabalApiService = kabalApiService,
+            genericApiService = genericApiService,
             safGraphQlClient = safGraphQlClient,
             tokenUtil = tokenUtil
         )
@@ -110,7 +109,7 @@ class DokArkivServiceTest {
     inner class HandleJournalpost {
         @Test
         fun `unfinished journalpost with avsender is updated and finalized`() {
-            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpostWithAvsenderMottaker()
             every { dokArkivClient.updateJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
@@ -165,7 +164,7 @@ class DokArkivServiceTest {
 
         @Test
         fun `unfinished journalpost without avsender is updated and finalized`() {
-            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
             every { dokArkivClient.updateJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
@@ -232,7 +231,7 @@ class DokArkivServiceTest {
 
         @Test
         fun `unfinished journalpost without avsender and withouth avsender in input throws error`() {
-            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
@@ -246,7 +245,7 @@ class DokArkivServiceTest {
 
         @Test
         fun `journalfoert incoming journalpost with correct fagsak is returned directly`() {
-            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
 
             val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
@@ -284,7 +283,7 @@ class DokArkivServiceTest {
 
         @Test
         fun `journalfoert incoming journalpost with incorrect fagsak is handled correctly`() {
-            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpost()
             every { tokenUtil.getIdent() } returns IDENT
             every {

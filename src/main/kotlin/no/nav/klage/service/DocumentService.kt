@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 class DocumentService(
     private val safGraphQlClient: SafGraphQlClient,
     private val safRestClient: SafRestClient,
-    private val kabalApiService: KabalApiService,
+    private val genericApiService: GenericApiService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -44,7 +44,7 @@ class DocumentService(
             }
 
             //enrich documents with usage info
-            val usedJournalpostIdList = kabalApiService.getUsedJournalpostIdListForPerson(fnr = idnummer)
+            val usedJournalpostIdList = genericApiService.getUsedJournalpostIdListForPerson(fnr = idnummer)
             dokumenter.forEach { document ->
                 if (document.journalpostId in usedJournalpostIdList) {
                     document.alreadyUsed = true

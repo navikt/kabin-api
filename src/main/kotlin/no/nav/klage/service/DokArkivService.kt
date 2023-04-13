@@ -23,7 +23,7 @@ import java.util.*
 @Service
 class DokArkivService(
     private val dokArkivClient: DokArkivClient,
-    private val kabalApiService: KabalApiService,
+    private val genericApiService: GenericApiService,
     private val safGraphQlClient: SafGraphQlClient,
     private val tokenUtil: TokenUtil
 ) {
@@ -158,7 +158,7 @@ class DokArkivService(
         avsender: OversendtPartId? = null
     ): String {
         val completedKlagebehandling =
-            kabalApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
+            genericApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
         val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
