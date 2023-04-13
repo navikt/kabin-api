@@ -85,7 +85,7 @@ class DokArkivService(
     fun updateJournalpost(
         journalpostId: String,
         completedKlagebehandling: KabalApiClient.CompletedKlagebehandling,
-        avsender: CreateAnkeBasedOnKlagebehandling.OversendtPartId?,
+        avsender: OversendtPartId?,
         journalpostType: Journalposttype
     ) {
         val requestInput = UpdateJournalpostRequest(
