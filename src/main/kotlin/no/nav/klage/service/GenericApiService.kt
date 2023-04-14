@@ -58,7 +58,7 @@ class GenericApiService(
                 sakMottattKa = input.mottattKa,
                 frist = input.frist,
                 ytelseId = input.ytelseId,
-                kildereferanse = "",
+                kildereferanse = input.sakId,
             )
         )
 
