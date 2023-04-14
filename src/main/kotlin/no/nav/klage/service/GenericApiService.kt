@@ -32,8 +32,12 @@ class GenericApiService(
         return kabalApiClient.searchPart(searchPartInput = searchPartInput)
     }
 
-    fun getCreatedAnkeStatus(mottakId: UUID): KabalApiClient.CreatedBehandlingStatus {
+    fun getCreatedAnkeStatus(mottakId: UUID): KabalApiClient.CreatedAnkebehandlingStatus {
         return kabalApiClient.getCreatedAnkeStatus(mottakId)
+    }
+
+    fun getCreatedKlageStatus(mottakId: UUID): KabalApiClient.CreatedKlagebehandlingStatus {
+        return kabalApiClient.getCreatedKlageStatus(mottakId)
     }
 
     fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {

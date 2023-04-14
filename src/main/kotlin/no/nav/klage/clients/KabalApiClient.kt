@@ -74,7 +74,7 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("null part returned")
     }
 
-    fun getCreatedAnkeStatus(mottakId: UUID): CreatedBehandlingStatus {
+    fun getCreatedAnkeStatus(mottakId: UUID): CreatedAnkebehandlingStatus {
         return kabalApiWebClient.get()
             .uri { it.path("/api/internal/anker/{mottakId}/status").build(mottakId) }
             .header(
@@ -82,8 +82,20 @@ class KabalApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
             )
             .retrieve()
-            .bodyToMono<CreatedBehandlingStatus>()
+            .bodyToMono<CreatedAnkebehandlingStatus>()
             .block() ?: throw RuntimeException("Could not get ankestatus for mottakId $mottakId")
+    }
+
+    fun getCreatedKlageStatus(mottakId: UUID): CreatedKlagebehandlingStatus {
+        return kabalApiWebClient.get()
+            .uri { it.path("/api/internal/klager/{mottakId}/status").build(mottakId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .retrieve()
+            .bodyToMono<CreatedKlagebehandlingStatus>()
+            .block() ?: throw RuntimeException("Could not get klagestatus for mottakId $mottakId")
     }
 
     fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {
@@ -170,7 +182,7 @@ class KabalApiClient(
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class CreatedBehandlingStatus(
+    data class CreatedAnkebehandlingStatus(
         val typeId: String,
         val behandlingId: UUID,
         val ytelseId: String,
@@ -188,6 +200,23 @@ class KabalApiClient(
         val fagsystem: Fagsystem,
         val fagsystemId: String,
         val journalpost: DokumentReferanse,
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class CreatedKlagebehandlingStatus(
+        val typeId: String,
+        val behandlingId: UUID,
+        val ytelseId: String,
+        val sakenGjelder: SakenGjelderView,
+        val klager: KlagerView,
+        val fullmektig: PartView?,
+        val mottattVedtaksinstans: LocalDate,
+        val mottattKlageinstans: LocalDate,
+        val frist: LocalDate,
+        val fagsakId: String,
+        val fagsystemId: String,
+        val journalpost: DokumentReferanse,
+        val kildereferanse: String,
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)

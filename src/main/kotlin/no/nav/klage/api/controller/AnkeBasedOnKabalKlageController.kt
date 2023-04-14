@@ -88,7 +88,7 @@ class AnkeBasedOnKabalKlageController(
     @GetMapping("/anker/{mottakId}/status")
     fun createdAnkeStatus(
         @PathVariable mottakId: UUID,
-    ): CreatedBehandlingStatusView {
+    ): CreatedAnkebehandlingStatusView {
         logMethodDetails(
             methodName = ::createdAnkeStatus.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -97,7 +97,7 @@ class AnkeBasedOnKabalKlageController(
 
         val response = genericApiService.getCreatedAnkeStatus(mottakId = mottakId)
 
-        return CreatedBehandlingStatusView(
+        return CreatedAnkebehandlingStatusView(
             typeId = response.typeId,
             behandlingId = response.behandlingId,
             ytelseId = response.ytelseId,

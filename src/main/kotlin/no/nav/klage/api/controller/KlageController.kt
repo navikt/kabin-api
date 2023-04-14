@@ -65,4 +65,37 @@ class KlageController(
             )
         }
     }
+
+    @GetMapping("/klager/{mottakId}/status")
+    fun createdKlageStatus(
+        @PathVariable mottakId: UUID,
+    ): CreatedKlagebehandlingStatusView {
+        logMethodDetails(
+            methodName = ::createdKlageStatus.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+
+        val status = genericApiService.getCreatedKlageStatus(mottakId = mottakId)
+
+        //TODO works only for klager in Infotrygd
+        val sakFromKlanke = fssProxyClient.getSak(status.kildereferanse)
+
+        return CreatedKlagebehandlingStatusView(
+            typeId = status.typeId,
+            behandlingId = status.behandlingId,
+            ytelseId = status.ytelseId,
+            utfall = sakFromKlanke.utfall,
+            vedtakDate = sakFromKlanke.vedtaksdato,
+            sakenGjelder = status.sakenGjelder,
+            klager = status.klager,
+            fullmektig = status.fullmektig,
+            mottattVedtaksinstans = status.mottattVedtaksinstans,
+            mottattKlageinstans = status.mottattKlageinstans,
+            frist = status.frist,
+            fagsakId = status.fagsakId,
+            fagsystemId = status.fagsystemId,
+            journalpost = status.journalpost
+        )
+    }
 }
