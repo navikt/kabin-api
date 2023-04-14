@@ -36,7 +36,7 @@ class KlageFssProxyClient(
     }
 
     fun getSak(sakId: String): SakFromKlanke {
-        return klageFssProxyWebClient.post()
+        return klageFssProxyWebClient.get()
             .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
