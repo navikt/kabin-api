@@ -6,7 +6,7 @@ data class CreateKlageInput(
     val sakId: String,
     val mottattNav: LocalDate,
     val mottattKa: LocalDate,
-    val frist: LocalDate,
+    val fristInWeeks: Int,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,
     val klageJournalpostId: String,

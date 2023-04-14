@@ -6,6 +6,8 @@ import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.kodeverk.Fagsystem
 import org.springframework.stereotype.Service
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Service
@@ -40,6 +42,7 @@ class GenericApiService(
 
     fun createKlage(input: CreateKlageInput): KabalApiClient.CreatedBehandlingResponse {
         val sakFromKlanke = fssProxyClient.getSak(input.sakId)
+        val frist = LocalDate.now().plusWeeks(input.fristInWeeks.toLong())
         val createdBehandlingResponse = kabalApiClient.createKlageInKabal(
             input = KabalApiClient.CreateKlageBasedOnKabinInput(
                 sakenGjelder = OversendtPartId(
@@ -56,7 +59,7 @@ class GenericApiService(
                 klageJournalpostId = input.klageJournalpostId,
                 brukersHenvendelseMottattNav = input.mottattNav,
                 sakMottattKa = input.mottattKa,
-                frist = input.frist,
+                frist = frist,
                 ytelseId = input.ytelseId,
                 kildereferanse = input.sakId,
             )
@@ -64,8 +67,7 @@ class GenericApiService(
 
         fssProxyClient.setToHandledInKabal(
             sakFromKlanke.sakId, HandledInKabalInput(
-                //TODO: Hvilket format?
-                fristAsString = input.frist.toString()
+                fristAsString = frist.format(DateTimeFormatter.BASIC_ISO_DATE)
             )
         )
 
