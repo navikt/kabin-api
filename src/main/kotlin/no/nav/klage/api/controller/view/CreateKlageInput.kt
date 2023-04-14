@@ -4,8 +4,8 @@ import java.time.LocalDate
 
 data class CreateKlageInput(
     val sakId: String,
-    val mottattNav: LocalDate,
-    val mottattKa: LocalDate,
+    val mottattVedtaksinstans: LocalDate,
+    val mottattKlageinstans: LocalDate,
     val fristInWeeks: Int,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,

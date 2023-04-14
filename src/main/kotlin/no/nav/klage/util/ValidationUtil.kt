@@ -40,23 +40,23 @@ class ValidationUtil {
     fun validateCreateKlageInput(input: CreateKlageInput) {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.mottattNav.isAfter(LocalDate.now())) {
+        if (input.mottattVedtaksinstans.isAfter(LocalDate.now())) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::mottattNav.name,
+                field = CreateKlageInput::mottattVedtaksinstans.name,
                 reason = "Dato kan ikke være i fremtiden"
             )
         }
 
-        if (input.mottattKa.isAfter(LocalDate.now())) {
+        if (input.mottattKlageinstans.isAfter(LocalDate.now())) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::mottattKa.name,
+                field = CreateKlageInput::mottattKlageinstans.name,
                 reason = "Dato kan ikke være i fremtiden"
             )
         }
 
-        if (input.mottattNav.isAfter(input.mottattKa)) {
+        if (input.mottattVedtaksinstans.isAfter(input.mottattKlageinstans)) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::mottattNav.name,
+                field = CreateKlageInput::mottattVedtaksinstans.name,
                 reason = "Mottatt NAV kan ikke være etter mottatt KA"
             )
         }

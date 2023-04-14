@@ -26,14 +26,25 @@ class AnkeBasedOnKabalKlageController(
     }
 
     @PostMapping("/createanke", produces = ["application/json"])
-    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedBehandlingResponse {
+    fun createAnke(@RequestBody newInput: CreateAnkeBasedOnKlagebehandlingIntern): KabalApiClient.CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnke.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
 
-        secureLogger.debug("createAnke called with: {}", input)
+        secureLogger.debug("createAnke called with: {}", newInput)
+
+        val input = CreateAnkeBasedOnKlagebehandling(
+            klagebehandlingId = newInput.klagebehandlingId,
+            mottattNav = newInput.mottattKlageinstans ?: newInput.mottattNav
+            ?: error("mottattNav or mottattKlageinstans must be set"),
+            fristInWeeks = newInput.fristInWeeks,
+            klager = newInput.klager,
+            fullmektig = newInput.fullmektig,
+            ankeDocumentJournalpostId = newInput.ankeDocumentJournalpostId,
+            avsender = newInput.avsender
+        )
 
         validationUtil.validateCreateAnkeInput(input)
 
@@ -77,12 +88,31 @@ class AnkeBasedOnKabalKlageController(
     @GetMapping("/anker/{mottakId}/status")
     fun createdAnkeStatus(
         @PathVariable mottakId: UUID,
-    ): KabalApiClient.CreatedBehandlingStatus {
+    ): CreatedBehandlingStatusView {
         logMethodDetails(
             methodName = ::createdAnkeStatus.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return genericApiService.getCreatedAnkeStatus(mottakId = mottakId)
+
+        val response = genericApiService.getCreatedAnkeStatus(mottakId = mottakId)
+
+        return CreatedBehandlingStatusView(
+            typeId = response.typeId,
+            behandlingId = response.behandlingId,
+            ytelseId = response.ytelseId,
+            utfallId = response.utfallId,
+            vedtakDate = response.vedtakDate,
+            sakenGjelder = response.sakenGjelder,
+            klager = response.klager,
+            fullmektig = response.fullmektig,
+            tilknyttedeDokumenter = response.tilknyttedeDokumenter,
+            mottattNav = response.mottattNav,
+            mottattKlageinstans = response.mottattNav,
+            frist = response.frist,
+            fagsakId = response.fagsakId,
+            fagsystemId = response.fagsystemId,
+            journalpost = response.journalpost
+        )
     }
 }
