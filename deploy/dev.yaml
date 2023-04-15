@@ -1,5 +1,6 @@
 ingresses:
   - https://kabin-api.dev.intern.nav.no
+  - https://kabin-api.intern.dev.nav.no
 externalHosts:
   - host: login.microsoftonline.com
   - host: saf.dev-fss-pub.nais.io
