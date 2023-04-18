@@ -135,8 +135,8 @@ class KabalApiClient(
         val ytelseId: String,
         val utfallId: String,
         val vedtakDate: LocalDateTime,
-        val sakenGjelder: SakenGjelderView,
-        val klager: KlagerView,
+        val sakenGjelder: PartView,
+        val klager: PartView,
         val fullmektig: PartView?,
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
         val sakFagsakId: String,
@@ -153,22 +153,38 @@ class KabalApiClient(
         val fornavn: String?,
         val mellomnavn: String?,
         val etternavn: String?,
-    )
-
-    data class KlagerView(
-        val person: PersonView?,
-        val virksomhet: VirksomhetView?
-    )
-
-    data class SakenGjelderView(
-        val person: PersonView?,
-        val virksomhet: VirksomhetView?
-    )
+    ) {
+        fun toName(): String {
+            return if (mellomnavn != null) {
+                "$fornavn $mellomnavn $etternavn"
+            } else {
+                "$fornavn $etternavn"
+            }
+        }
+    }
 
     data class PartView(
         val person: PersonView?,
         val virksomhet: VirksomhetView?
-    )
+    ) {
+        fun toView(): no.nav.klage.api.controller.view.PartView {
+            return if (person != null) {
+                PartView(
+                    id = person.foedselsnummer!!,
+                    type = no.nav.klage.api.controller.view.PartView.PartType.FNR,
+                    name = person.navn?.toName()
+                )
+            } else if (virksomhet != null) {
+                PartView(
+                    id = virksomhet.virksomhetsnummer!!,
+                    type = no.nav.klage.api.controller.view.PartView.PartType.ORGNR,
+                    name = virksomhet.navn
+                )
+            } else {
+                throw RuntimeException("no part found")
+            }
+        }
+    }
 
     data class VirksomhetView(
         val virksomhetsnummer: String?,
@@ -188,8 +204,8 @@ class KabalApiClient(
         val ytelseId: String,
         val utfallId: String,
         val vedtakDate: LocalDateTime,
-        val sakenGjelder: SakenGjelderView,
-        val klager: KlagerView,
+        val sakenGjelder: PartView,
+        val klager: PartView,
         val fullmektig: PartView?,
         val tilknyttedeDokumenter: List<TilknyttetDokument>,
         val mottattNav: LocalDate,
@@ -207,8 +223,8 @@ class KabalApiClient(
         val typeId: String,
         val behandlingId: UUID,
         val ytelseId: String,
-        val sakenGjelder: SakenGjelderView,
-        val klager: KlagerView,
+        val sakenGjelder: PartView,
+        val klager: PartView,
         val fullmektig: PartView?,
         val mottattVedtaksinstans: LocalDate,
         val mottattKlageinstans: LocalDate,
@@ -235,4 +251,20 @@ class KabalApiClient(
         val ytelseId: String,
         val kildereferanse: String,
     )
+
+    data class CreateAnkeBasedOnKlagebehandling(
+        val klagebehandlingId: UUID,
+        val mottattNav: LocalDate,
+        val fristInWeeks: Int,
+        val klager: OversendtPartId?,
+        val fullmektig: OversendtPartId?,
+        val ankeDocumentJournalpostId: String,
+    )
+
+    data class OversendtPartId(
+        val type: OversendtPartIdType,
+        val value: String
+    )
+
+    enum class OversendtPartIdType { PERSON, VIRKSOMHET }
 }

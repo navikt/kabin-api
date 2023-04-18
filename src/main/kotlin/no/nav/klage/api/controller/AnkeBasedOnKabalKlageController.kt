@@ -26,25 +26,14 @@ class AnkeBasedOnKabalKlageController(
     }
 
     @PostMapping("/createanke", produces = ["application/json"])
-    fun createAnke(@RequestBody newInput: CreateAnkeBasedOnKlagebehandlingIntern): KabalApiClient.CreatedBehandlingResponse {
+    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandlingView): KabalApiClient.CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnke.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
 
-        secureLogger.debug("createAnke called with: {}", newInput)
-
-        val input = CreateAnkeBasedOnKlagebehandling(
-            klagebehandlingId = newInput.klagebehandlingId,
-            mottattNav = newInput.mottattKlageinstans ?: newInput.mottattNav
-            ?: error("mottattNav or mottattKlageinstans must be set"),
-            fristInWeeks = newInput.fristInWeeks,
-            klager = newInput.klager,
-            fullmektig = newInput.fullmektig,
-            ankeDocumentJournalpostId = newInput.ankeDocumentJournalpostId,
-            avsender = newInput.avsender
-        )
+        secureLogger.debug("createAnke called with: {}", input)
 
         validationUtil.validateCreateAnkeInput(input)
 
@@ -71,9 +60,9 @@ class AnkeBasedOnKabalKlageController(
                 ytelseId = it.ytelseId,
                 utfallId = it.utfallId,
                 vedtakDate = it.vedtakDate,
-                sakenGjelder = it.sakenGjelder,
-                klager = it.klager,
-                fullmektig = it.fullmektig,
+                sakenGjelder = it.sakenGjelder.toView(),
+                klager = it.klager.toView(),
+                fullmektig = it.fullmektig?.toView(),
                 tilknyttedeDokumenter = it.tilknyttedeDokumenter,
                 sakFagsakId = it.fagsakId,
                 fagsakId = it.fagsakId,
@@ -103,9 +92,9 @@ class AnkeBasedOnKabalKlageController(
             ytelseId = response.ytelseId,
             utfallId = response.utfallId,
             vedtakDate = response.vedtakDate,
-            sakenGjelder = response.sakenGjelder,
-            klager = response.klager,
-            fullmektig = response.fullmektig,
+            sakenGjelder = response.sakenGjelder.toView(),
+            klager = response.klager.toView(),
+            fullmektig = response.fullmektig?.toView(),
             tilknyttedeDokumenter = response.tilknyttedeDokumenter,
             mottattNav = response.mottattNav,
             mottattKlageinstans = response.mottattNav,

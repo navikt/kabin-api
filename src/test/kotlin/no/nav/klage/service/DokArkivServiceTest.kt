@@ -3,8 +3,8 @@ package no.nav.klage.service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.klage.api.controller.view.OversendtPartId
-import no.nav.klage.api.controller.view.OversendtPartIdType
+import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.PartView
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
@@ -81,8 +81,8 @@ class DokArkivServiceTest {
             ytelseId = "",
             utfallId = "",
             vedtakDate = LocalDateTime.now(),
-            sakenGjelder = KabalApiClient.SakenGjelderView(person = null, virksomhet = null),
-            klager = KabalApiClient.KlagerView(person = null, virksomhet = null),
+            sakenGjelder = KabalApiClient.PartView(person = null, virksomhet = null),
+            klager = KabalApiClient.PartView(person = null, virksomhet = null),
             fullmektig = null,
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
@@ -172,9 +172,9 @@ class DokArkivServiceTest {
             val resultingJournalpost = dokArkivService.handleJournalpost(
                 JOURNALPOST_ID,
                 UUID.randomUUID(),
-                OversendtPartId(
-                    type = OversendtPartIdType.PERSON,
-                    value = FNR
+                PartId(
+                    type = PartView.PartType.FNR,
+                    id = FNR
                 )
             )
 
@@ -329,18 +329,17 @@ class DokArkivServiceTest {
         }
     }
 
-
     private fun getCompletedKlagebehandling(): KabalApiClient.CompletedKlagebehandling {
         return KabalApiClient.CompletedKlagebehandling(
             behandlingId = UUID.randomUUID(),
             ytelseId = Ytelse.OMS_OLP.id,
             utfallId = Utfall.STADFESTELSE.id,
             vedtakDate = LocalDateTime.now(),
-            sakenGjelder = KabalApiClient.SakenGjelderView(
+            sakenGjelder = KabalApiClient.PartView(
                 person = PERSON,
                 virksomhet = null
             ),
-            klager = KabalApiClient.KlagerView(person = null, virksomhet = null),
+            klager = KabalApiClient.PartView(person = null, virksomhet = null),
             fullmektig = null,
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,

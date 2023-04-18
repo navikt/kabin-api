@@ -61,7 +61,7 @@ class KlageController(
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
                 klageBehandlendeEnhet = it.enhetsnummer,
-                sakenGjelder = genericApiService.searchPart(SearchPartInput(identifikator = it.fnr))
+                sakenGjelder = genericApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView()
             )
         }
     }
@@ -87,9 +87,9 @@ class KlageController(
             ytelseId = status.ytelseId,
             utfall = sakFromKlanke.utfall,
             vedtakDate = sakFromKlanke.vedtaksdato,
-            sakenGjelder = status.sakenGjelder,
-            klager = status.klager,
-            fullmektig = status.fullmektig,
+            sakenGjelder = status.sakenGjelder.toView(),
+            klager = status.klager.toView(),
+            fullmektig = status.fullmektig?.toView(),
             mottattVedtaksinstans = status.mottattVedtaksinstans,
             mottattKlageinstans = status.mottattKlageinstans,
             frist = status.frist,

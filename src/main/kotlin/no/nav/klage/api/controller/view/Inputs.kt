@@ -17,9 +17,7 @@ data class SearchUsedJournalpostIdInput(
     val fnr: String,
 )
 
-data class OversendtPartId(
-    val type: OversendtPartIdType,
-    val value: String
+data class PartId(
+    val type: PartView.PartType,
+    val id: String,
 )
-
-enum class OversendtPartIdType { PERSON, VIRKSOMHET }

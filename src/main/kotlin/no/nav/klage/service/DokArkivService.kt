@@ -1,8 +1,8 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandling
-import no.nav.klage.api.controller.view.OversendtPartId
-import no.nav.klage.api.controller.view.OversendtPartIdType
+import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandlingView
+import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.PartView
 import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.saf.graphql.Journalpost
@@ -34,7 +34,7 @@ class DokArkivService(
         private val secureLogger = getSecureLogger()
     }
 
-    private fun getBruker(sakenGjelder: KabalApiClient.SakenGjelderView): Bruker {
+    private fun getBruker(sakenGjelder: KabalApiClient.PartView): Bruker {
         return if (sakenGjelder.person != null) {
             Bruker(
                 id = sakenGjelder.person.foedselsnummer!!,
@@ -85,7 +85,7 @@ class DokArkivService(
     fun updateJournalpost(
         journalpostId: String,
         completedKlagebehandling: KabalApiClient.CompletedKlagebehandling,
-        avsender: OversendtPartId?,
+        avsender: PartId?,
         journalpostType: Journalposttype
     ) {
         val requestInput = UpdateJournalpostRequest(
@@ -99,7 +99,7 @@ class DokArkivService(
         if (journalpostType != Journalposttype.N && avsender != null) {
             logger.debug("Including AvsenderMottaker in update request.")
             requestInput.avsenderMottaker = AvsenderMottaker(
-                id = avsender.value,
+                id = avsender.id,
                 idType = avsender.type.toAvsenderMottakerIdType(),
             )
         }
@@ -155,7 +155,7 @@ class DokArkivService(
     fun handleJournalpost(
         journalpostId: String,
         klagebehandlingId: UUID,
-        avsender: OversendtPartId? = null
+        avsender: PartId? = null
     ): String {
         val completedKlagebehandling =
             genericApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
@@ -175,7 +175,7 @@ class DokArkivService(
                             section = "saksdata",
                             properties = listOf(
                                 InvalidProperty(
-                                    field = CreateAnkeBasedOnKlagebehandling::avsender.name,
+                                    field = CreateAnkeBasedOnKlagebehandlingView::avsender.name,
                                     reason = "Avsender må velges på denne journalposten"
                                 )
                             )
@@ -280,10 +280,10 @@ class DokArkivService(
         )
     }
 
-    private fun OversendtPartIdType.toAvsenderMottakerIdType(): AvsenderMottakerIdType {
+    private fun PartView.PartType.toAvsenderMottakerIdType(): AvsenderMottakerIdType {
         return when (this) {
-            OversendtPartIdType.PERSON -> AvsenderMottakerIdType.FNR
-            OversendtPartIdType.VIRKSOMHET -> AvsenderMottakerIdType.ORGNR
+            PartView.PartType.FNR -> AvsenderMottakerIdType.FNR
+            PartView.PartType.ORGNR -> AvsenderMottakerIdType.ORGNR
         }
     }
 }

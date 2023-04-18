@@ -24,8 +24,33 @@ class GenericApiService(
         return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): KabalApiClient.CreatedBehandlingResponse {
-        return kabalApiClient.createAnkeInKabal(input)
+    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandlingView): KabalApiClient.CreatedBehandlingResponse {
+        return kabalApiClient.createAnkeInKabal(KabalApiClient.CreateAnkeBasedOnKlagebehandling(
+            klagebehandlingId = input.klagebehandlingId,
+            mottattNav = input.mottattKlageinstans,
+            fristInWeeks = input.fristInWeeks,
+            klager = input.klager.toOversendtPartId(),
+            fullmektig = input.fullmektig.toOversendtPartId(),
+            ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
+        ))
+    }
+
+    private fun PartId?.toOversendtPartId(): KabalApiClient.OversendtPartId? {
+        return if (this == null) {
+            null
+        } else {
+            if (type == PartView.PartType.FNR) {
+                KabalApiClient.OversendtPartId(
+                    type = KabalApiClient.OversendtPartIdType.PERSON,
+                    value = this.id
+                )
+            } else {
+                KabalApiClient.OversendtPartId(
+                    type = KabalApiClient.OversendtPartIdType.VIRKSOMHET,
+                    value = this.id
+                )
+            }
+        }
     }
 
     fun searchPart(searchPartInput: SearchPartInput): KabalApiClient.PartView {
@@ -49,12 +74,12 @@ class GenericApiService(
         val frist = LocalDate.now().plusWeeks(input.fristInWeeks.toLong())
         val createdBehandlingResponse = kabalApiClient.createKlageInKabal(
             input = KabalApiClient.CreateKlageBasedOnKabinInput(
-                sakenGjelder = OversendtPartId(
-                    type = OversendtPartIdType.PERSON,
+                sakenGjelder = KabalApiClient.OversendtPartId(
+                    type = KabalApiClient.OversendtPartIdType.PERSON,
                     value = sakFromKlanke.fnr
                 ),
-                klager = input.klager,
-                fullmektig = input.fullmektig,
+                klager = input.klager.toOversendtPartId(),
+                fullmektig = input.fullmektig.toOversendtPartId(),
                 fagsakId = sakFromKlanke.fagsakId,
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,

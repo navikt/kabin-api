@@ -128,7 +128,7 @@ class DokumentMapper {
                     id = journalpost.avsenderMottaker.id,
                     type = DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
                         journalpost.avsenderMottaker.type.name),
-                    navn = journalpost.avsenderMottaker.navn,
+                    name = journalpost.avsenderMottaker.navn,
                 )
             },
             journalfoerendeEnhet = journalpost.journalfoerendeEnhet,

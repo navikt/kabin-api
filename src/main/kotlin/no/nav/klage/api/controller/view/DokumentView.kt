@@ -118,7 +118,7 @@ data class DokumentReferanse(
     data class AvsenderMottaker(
         val id: String,
         val type: AvsenderMottakerIdType,
-        val navn: String?,
+        val name: String?,
         ) {
         enum class AvsenderMottakerIdType {
             //TODO look into NULL

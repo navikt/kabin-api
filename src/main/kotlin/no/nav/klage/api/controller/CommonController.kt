@@ -2,7 +2,6 @@ package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
@@ -54,13 +53,13 @@ class CommonController(
     @PostMapping("/searchpart")
     fun searchPart(
         @RequestBody input: SearchPartInput,
-    ): KabalApiClient.PartView {
+    ): PartView {
         logMethodDetails(
             methodName = ::searchPart.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return genericApiService.searchPart(searchPartInput = input)
+        return genericApiService.searchPart(searchPartInput = input).toView()
     }
 
     @PostMapping("/calculatefrist")
