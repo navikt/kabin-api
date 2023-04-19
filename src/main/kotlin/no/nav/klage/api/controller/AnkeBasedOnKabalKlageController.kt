@@ -1,7 +1,9 @@
 package no.nav.klage.api.controller
 
+import no.nav.klage.api.controller.mapper.toView
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.KabalApiClient
+import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
+import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.GenericApiService
@@ -26,7 +28,7 @@ class AnkeBasedOnKabalKlageController(
     }
 
     @PostMapping("/createanke", produces = ["application/json"])
-    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandlingView): KabalApiClient.CreatedBehandlingResponse {
+    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandlingView): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnke.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -101,7 +103,7 @@ class AnkeBasedOnKabalKlageController(
             frist = response.frist,
             fagsakId = response.fagsakId,
             fagsystemId = response.fagsystemId,
-            journalpost = response.journalpost
+            journalpost = response.journalpost.toView()
         )
     }
 }

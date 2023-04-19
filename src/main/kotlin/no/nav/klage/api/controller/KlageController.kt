@@ -1,9 +1,11 @@
 package no.nav.klage.api.controller
 
+import no.nav.klage.api.controller.mapper.toView
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.KabalApiClient
+import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
+import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
@@ -29,7 +31,7 @@ class KlageController(
     }
 
     @PostMapping("/createklage", produces = ["application/json"])
-    fun createKlage(@RequestBody input: CreateKlageInput): KabalApiClient.CreatedBehandlingResponse {
+    fun createKlage(@RequestBody input: CreateKlageInput): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createKlage.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -95,7 +97,7 @@ class KlageController(
             frist = status.frist,
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
-            journalpost = status.journalpost
+            journalpost = status.journalpost.toView()
         )
     }
 }

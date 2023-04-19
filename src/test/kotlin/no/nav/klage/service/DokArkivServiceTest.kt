@@ -4,11 +4,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.klage.api.controller.view.PartId
-import no.nav.klage.api.controller.view.PartView
-import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
 import no.nav.klage.clients.dokarkiv.Sak
+import no.nav.klage.clients.kabalapi.CompletedKlagebehandling
+import no.nav.klage.clients.kabalapi.NavnView
+import no.nav.klage.clients.kabalapi.PartView
+import no.nav.klage.clients.kabalapi.PersonView
 import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.clients.saf.graphql.Tema.OMS
@@ -41,9 +43,9 @@ class DokArkivServiceTest {
     private val SAKS_ID = "SAKS_ID"
     private val FAGSYSTEM = Fagsystem.FS38
     private val FNR = "28838098519"
-    private val PERSON = KabalApiClient.PersonView(
+    private val PERSON = PersonView(
         foedselsnummer = FNR,
-        navn = KabalApiClient.NavnView(
+        navn = NavnView(
             fornavn = "FORNAVN",
             mellomnavn = null,
             etternavn = "ETTERNAVN"
@@ -76,13 +78,13 @@ class DokArkivServiceTest {
 
     @Test
     fun getSakWorksAsExpected() {
-        val input = KabalApiClient.CompletedKlagebehandling(
+        val input = CompletedKlagebehandling(
             behandlingId = UUID.randomUUID(),
             ytelseId = "",
             utfallId = "",
             vedtakDate = LocalDateTime.now(),
-            sakenGjelder = KabalApiClient.PartView(person = null, virksomhet = null),
-            klager = KabalApiClient.PartView(person = null, virksomhet = null),
+            sakenGjelder = PartView(person = null, virksomhet = null),
+            klager = PartView(person = null, virksomhet = null),
             fullmektig = null,
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
@@ -173,7 +175,7 @@ class DokArkivServiceTest {
                 JOURNALPOST_ID,
                 UUID.randomUUID(),
                 PartId(
-                    type = PartView.PartType.FNR,
+                    type = no.nav.klage.api.controller.view.PartView.PartType.FNR,
                     id = FNR
                 )
             )
@@ -329,17 +331,17 @@ class DokArkivServiceTest {
         }
     }
 
-    private fun getCompletedKlagebehandling(): KabalApiClient.CompletedKlagebehandling {
-        return KabalApiClient.CompletedKlagebehandling(
+    private fun getCompletedKlagebehandling(): CompletedKlagebehandling {
+        return CompletedKlagebehandling(
             behandlingId = UUID.randomUUID(),
             ytelseId = Ytelse.OMS_OLP.id,
             utfallId = Utfall.STADFESTELSE.id,
             vedtakDate = LocalDateTime.now(),
-            sakenGjelder = KabalApiClient.PartView(
+            sakenGjelder = PartView(
                 person = PERSON,
                 virksomhet = null
             ),
-            klager = KabalApiClient.PartView(person = null, virksomhet = null),
+            klager = PartView(person = null, virksomhet = null),
             fullmektig = null,
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
@@ -363,7 +365,11 @@ class DokArkivServiceTest {
             behandlingstemanavn = null,
             sak = null,
             avsenderMottaker = AvsenderMottaker(
-                id = null, type = AvsenderMottaker.AvsenderMottakerIdType.NULL, navn = null, land = null, erLikBruker = false
+                id = null,
+                type = AvsenderMottaker.AvsenderMottakerIdType.NULL,
+                navn = null,
+                land = null,
+                erLikBruker = false
             ),
             journalfoerendeEnhet = ENHET,
             journalfortAvNavn = null,

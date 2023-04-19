@@ -1,6 +1,7 @@
 package no.nav.klage.api.controller.view
 
-import no.nav.klage.clients.KabalApiClient
+import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.clients.kabalapi.TilknyttetDokument
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -14,7 +15,7 @@ data class CreatedAnkebehandlingStatusView(
     val sakenGjelder: PartView,
     val klager: PartView,
     val fullmektig: PartView?,
-    val tilknyttedeDokumenter: List<KabalApiClient.TilknyttetDokument>,
+    val tilknyttedeDokumenter: List<TilknyttetDokument>,
     val mottattNav: LocalDate,
     val mottattKlageinstans: LocalDate,
     val frist: LocalDate,

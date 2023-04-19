@@ -1,9 +1,10 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.PartView
 import no.nav.klage.clients.HandledInKabalInput
-import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.clients.KlageFssProxyClient
+import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.kodeverk.Fagsystem
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -16,52 +17,54 @@ class GenericApiService(
     private val fssProxyClient: KlageFssProxyClient
 ) {
 
-    fun getCompletedKlagebehandlingerByIdnummer(idnummerInput: IdnummerInput): List<KabalApiClient.CompletedKlagebehandling> {
+    fun getCompletedKlagebehandlingerByIdnummer(idnummerInput: IdnummerInput): List<CompletedKlagebehandling> {
         return kabalApiClient.getCompletedKlagebehandlingerByIdnummer(idnummerInput)
     }
 
-    fun getCompletedKlagebehandling(klagebehandlingId: UUID): KabalApiClient.CompletedKlagebehandling {
+    fun getCompletedKlagebehandling(klagebehandlingId: UUID): CompletedKlagebehandling {
         return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandlingView): KabalApiClient.CreatedBehandlingResponse {
-        return kabalApiClient.createAnkeInKabal(KabalApiClient.CreateAnkeBasedOnKlagebehandling(
-            klagebehandlingId = input.klagebehandlingId,
-            mottattNav = input.mottattKlageinstans,
-            fristInWeeks = input.fristInWeeks,
-            klager = input.klager.toOversendtPartId(),
-            fullmektig = input.fullmektig.toOversendtPartId(),
-            ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
-        ))
+    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandlingView): CreatedBehandlingResponse {
+        return kabalApiClient.createAnkeInKabal(
+            CreateAnkeBasedOnKlagebehandling(
+                klagebehandlingId = input.klagebehandlingId,
+                mottattNav = input.mottattKlageinstans,
+                fristInWeeks = input.fristInWeeks,
+                klager = input.klager.toOversendtPartId(),
+                fullmektig = input.fullmektig.toOversendtPartId(),
+                ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
+            )
+        )
     }
 
-    private fun PartId?.toOversendtPartId(): KabalApiClient.OversendtPartId? {
+    private fun PartId?.toOversendtPartId(): OversendtPartId? {
         return if (this == null) {
             null
         } else {
             if (type == PartView.PartType.FNR) {
-                KabalApiClient.OversendtPartId(
-                    type = KabalApiClient.OversendtPartIdType.PERSON,
+                OversendtPartId(
+                    type = OversendtPartIdType.PERSON,
                     value = this.id
                 )
             } else {
-                KabalApiClient.OversendtPartId(
-                    type = KabalApiClient.OversendtPartIdType.VIRKSOMHET,
+                OversendtPartId(
+                    type = OversendtPartIdType.VIRKSOMHET,
                     value = this.id
                 )
             }
         }
     }
 
-    fun searchPart(searchPartInput: SearchPartInput): KabalApiClient.PartView {
+    fun searchPart(searchPartInput: SearchPartInput): no.nav.klage.clients.kabalapi.PartView {
         return kabalApiClient.searchPart(searchPartInput = searchPartInput)
     }
 
-    fun getCreatedAnkeStatus(mottakId: UUID): KabalApiClient.CreatedAnkebehandlingStatus {
+    fun getCreatedAnkeStatus(mottakId: UUID): CreatedAnkebehandlingStatus {
         return kabalApiClient.getCreatedAnkeStatus(mottakId)
     }
 
-    fun getCreatedKlageStatus(mottakId: UUID): KabalApiClient.CreatedKlagebehandlingStatus {
+    fun getCreatedKlageStatus(mottakId: UUID): CreatedKlagebehandlingStatus {
         return kabalApiClient.getCreatedKlageStatus(mottakId)
     }
 
@@ -69,13 +72,13 @@ class GenericApiService(
         return kabalApiClient.getUsedJournalpostIdListForPerson(fnr = fnr)
     }
 
-    fun createKlage(input: CreateKlageInput): KabalApiClient.CreatedBehandlingResponse {
+    fun createKlage(input: CreateKlageInput): CreatedBehandlingResponse {
         val sakFromKlanke = fssProxyClient.getSak(input.sakId)
         val frist = LocalDate.now().plusWeeks(input.fristInWeeks.toLong())
         val createdBehandlingResponse = kabalApiClient.createKlageInKabal(
-            input = KabalApiClient.CreateKlageBasedOnKabinInput(
-                sakenGjelder = KabalApiClient.OversendtPartId(
-                    type = KabalApiClient.OversendtPartIdType.PERSON,
+            input = CreateKlageBasedOnKabinInput(
+                sakenGjelder = OversendtPartId(
+                    type = OversendtPartIdType.PERSON,
                     value = sakFromKlanke.fnr
                 ),
                 klager = input.klager.toOversendtPartId(),

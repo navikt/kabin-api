@@ -3,8 +3,9 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandlingView
 import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.api.controller.view.PartView
-import no.nav.klage.clients.KabalApiClient
+import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.clients.kabalapi.CompletedKlagebehandling
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
@@ -34,7 +35,7 @@ class DokArkivService(
         private val secureLogger = getSecureLogger()
     }
 
-    private fun getBruker(sakenGjelder: KabalApiClient.PartView): Bruker {
+    private fun getBruker(sakenGjelder: no.nav.klage.clients.kabalapi.PartView): Bruker {
         return if (sakenGjelder.person != null) {
             Bruker(
                 id = sakenGjelder.person.foedselsnummer!!,
@@ -48,7 +49,7 @@ class DokArkivService(
         } else throw Exception("Error in sakenGjelder.")
     }
 
-    fun getSak(klagebehandling: KabalApiClient.CompletedKlagebehandling): Sak {
+    fun getSak(klagebehandling: CompletedKlagebehandling): Sak {
         return Sak(
             sakstype = Sakstype.FAGSAK,
             fagsaksystem = FagsaksSystem.valueOf(klagebehandling.fagsystem.name),
@@ -84,7 +85,7 @@ class DokArkivService(
 
     fun updateJournalpost(
         journalpostId: String,
-        completedKlagebehandling: KabalApiClient.CompletedKlagebehandling,
+        completedKlagebehandling: CompletedKlagebehandling,
         avsender: PartId?,
         journalpostType: Journalposttype
     ) {
@@ -224,7 +225,7 @@ class DokArkivService(
 
     private fun createNewJournalpostBasedOnExistingJournalpost(
         oldJournalpost: Journalpost,
-        completedKlagebehandling: KabalApiClient.CompletedKlagebehandling
+        completedKlagebehandling: CompletedKlagebehandling
     ): String {
         val requestPayload = CreateNewJournalpostBasedOnExistingJournalpostRequest(
             sakstype = Sakstype.FAGSAK,
@@ -244,7 +245,7 @@ class DokArkivService(
 
     private fun journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
         journalpostInSaf: Journalpost,
-        completedKlagebehandling: KabalApiClient.CompletedKlagebehandling
+        completedKlagebehandling: CompletedKlagebehandling
     ): Boolean {
         return if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
             false
