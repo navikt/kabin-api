@@ -128,10 +128,3 @@ fun DokumentReferanse.Utsendingsinfo.DigitalpostSendt.toView(): no.nav.klage.api
         adresse = adresse
     )
 }
-
-
-
-
-
-
-//fun
