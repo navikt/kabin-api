@@ -3,6 +3,7 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandlingView
 import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.api.controller.view.PartView
+import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.kabalapi.CompletedKlagebehandling
 import no.nav.klage.clients.saf.graphql.Journalpost
@@ -86,17 +87,34 @@ class DokArkivService(
         journalpostId: String,
         avsender: PartId,
     ) {
-        val requestInput = UpdateAvsenderMottakerInJournalpostRequest(
-            avsenderMottaker = AvsenderMottaker(
-                id = avsender.id,
-                idType = avsender.type.toAvsenderMottakerIdType(),
-            ),
-        )
+        val requestInput = getUpdateAvsenderMottakerInJournalpostRequest(avsender)
 
         dokArkivClient.updateAvsenderMottakerInJournalpost(
             journalpostId = journalpostId,
             input = requestInput,
         )
+    }
+
+    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartId): UpdateAvsenderMottakerInJournalpostRequest {
+        return if (avsender.type == PartView.PartType.ORGNR) {
+            val avsenderPart = genericApiService.searchPart(
+                searchPartInput = SearchPartInput(identifikator = avsender.id)
+            )
+            UpdateAvsenderMottakerInJournalpostRequest(
+                avsenderMottaker = AvsenderMottaker(
+                    id = avsender.id,
+                    idType = avsender.type.toAvsenderMottakerIdType(),
+                    navn = avsenderPart.virksomhet?.navn
+                ),
+            )
+        } else {
+            UpdateAvsenderMottakerInJournalpostRequest(
+                avsenderMottaker = AvsenderMottaker(
+                    id = avsender.id,
+                    idType = avsender.type.toAvsenderMottakerIdType(),
+                ),
+            )
+        }
     }
 
     fun updateSakInJournalpost(
