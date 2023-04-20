@@ -71,7 +71,7 @@ class DokArkivClient(
         }
     }
 
-    fun updateJournalpost(journalpostId: String, input: UpdateJournalpostRequest) {
+    fun updateSakInJournalpost(journalpostId: String, input: UpdateSakInJournalpostRequest) {
         try {
             val output = dokArkivWebClient.put()
                 .uri("/${journalpostId}")
@@ -92,6 +92,29 @@ class DokArkivClient(
         }
 
         logger.debug("Document from journalpost $journalpostId updated with saksId ${input.sak.fagsakid}.")
+    }
+
+    fun updateAvsenderMottakerInJournalpost(journalpostId: String, input: UpdateAvsenderMottakerInJournalpostRequest) {
+        try {
+            val output = dokArkivWebClient.put()
+                .uri("/${journalpostId}")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(input)
+                .retrieve()
+                .bodyToMono(JournalpostResponse::class.java)
+                .block()
+                ?: throw RuntimeException("Journalpost AvsenderMottaker could not be updated.")
+            logger.debug("Svar fra dokarkiv: $output")
+        } catch (e: Exception) {
+            logger.error("Error updating journalpost $journalpostId AvsenderMottaker:", e)
+            throw e
+        }
+
+        logger.debug("Document from journalpost $journalpostId updated with AvsenderMottaker ${input.avsenderMottaker}.")
     }
 
     fun updateDocumentTitle(

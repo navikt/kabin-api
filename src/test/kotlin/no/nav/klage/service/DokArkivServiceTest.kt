@@ -113,16 +113,16 @@ class DokArkivServiceTest {
         fun `unfinished journalpost with avsender is updated and finalized`() {
             every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpostWithAvsenderMottaker()
-            every { dokArkivClient.updateJournalpost(any(), any()) } returns Unit
+            every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
 
             val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
 
             verify(exactly = 1) {
-                dokArkivClient.updateJournalpost(
+                dokArkivClient.updateSakInJournalpost(
                     journalpostId = any(),
                     input = eq(
-                        UpdateJournalpostRequest(
+                        UpdateSakInJournalpostRequest(
                             tema = Tema.OMS,
                             bruker = Bruker(
                                 id = FNR,
@@ -168,7 +168,7 @@ class DokArkivServiceTest {
         fun `unfinished journalpost without avsender is updated and finalized`() {
             every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
-            every { dokArkivClient.updateJournalpost(any(), any()) } returns Unit
+            every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
 
             val resultingJournalpost = dokArkivService.handleJournalpost(
@@ -181,10 +181,10 @@ class DokArkivServiceTest {
             )
 
             verify(exactly = 1) {
-                dokArkivClient.updateJournalpost(
+                dokArkivClient.updateSakInJournalpost(
                     journalpostId = any(),
                     input = eq(
-                        UpdateJournalpostRequest(
+                        UpdateSakInJournalpostRequest(
                             tema = Tema.OMS,
                             bruker = Bruker(
                                 id = FNR,
@@ -253,7 +253,7 @@ class DokArkivServiceTest {
             val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
 
             verify(exactly = 0) {
-                dokArkivClient.updateJournalpost(
+                dokArkivClient.updateAvsenderMottakerInJournalpost(
                     journalpostId = any(),
                     input = any(),
                 )
@@ -300,7 +300,7 @@ class DokArkivServiceTest {
             val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
 
             verify(exactly = 0) {
-                dokArkivClient.updateJournalpost(
+                dokArkivClient.updateAvsenderMottakerInJournalpost(
                     journalpostId = any(),
                     input = any(),
                 )

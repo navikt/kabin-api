@@ -3,7 +3,6 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandlingView
 import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.api.controller.view.PartView
-import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.kabalapi.CompletedKlagebehandling
 import no.nav.klage.clients.saf.graphql.Journalpost
@@ -83,29 +82,35 @@ class DokArkivService(
         }
     }
 
-    fun updateJournalpost(
+    fun updateAvsenderInJournalpost(
+        journalpostId: String,
+        avsender: PartId,
+    ) {
+        val requestInput = UpdateAvsenderMottakerInJournalpostRequest(
+            avsenderMottaker = AvsenderMottaker(
+                id = avsender.id,
+                idType = avsender.type.toAvsenderMottakerIdType(),
+            ),
+        )
+
+        dokArkivClient.updateAvsenderMottakerInJournalpost(
+            journalpostId = journalpostId,
+            input = requestInput,
+        )
+    }
+
+    fun updateSakInJournalpost(
         journalpostId: String,
         completedKlagebehandling: CompletedKlagebehandling,
-        avsender: PartId?,
-        journalpostType: Journalposttype
     ) {
-        val requestInput = UpdateJournalpostRequest(
+        val requestInput = UpdateSakInJournalpostRequest(
             tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
             bruker = getBruker(completedKlagebehandling.sakenGjelder),
             sak = getSak(completedKlagebehandling),
             journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet,
-            avsenderMottaker = null,
         )
 
-        if (journalpostType != Journalposttype.N && avsender != null) {
-            logger.debug("Including AvsenderMottaker in update request.")
-            requestInput.avsenderMottaker = AvsenderMottaker(
-                id = avsender.id,
-                idType = avsender.type.toAvsenderMottakerIdType(),
-            )
-        }
-
-        dokArkivClient.updateJournalpost(
+        dokArkivClient.updateSakInJournalpost(
             journalpostId = journalpostId,
             input = requestInput,
         )
@@ -163,33 +168,39 @@ class DokArkivService(
         val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
-        if (journalpostCanBeUpdated(journalpostInSaf)) {
-            secureLogger.debug("Journalpost: {}", journalpostInSaf)
-            if (journalpostInSaf.journalposttype != Journalposttype.N
-                && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
-                && avsender == null
-            ) {
-                throw SectionedValidationErrorWithDetailsException(
-                    title = "Validation error",
-                    sections = listOf(
-                        ValidationSection(
-                            section = "saksdata",
-                            properties = listOf(
-                                InvalidProperty(
-                                    field = CreateAnkeBasedOnKlagebehandlingView::avsender.name,
-                                    reason = "Avsender må velges på denne journalposten"
-                                )
+        if (journalpostInSaf.journalposttype != Journalposttype.N
+            && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
+            && avsender == null
+        ) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "saksdata",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = CreateAnkeBasedOnKlagebehandlingView::avsender.name,
+                                reason = "Avsender må velges på denne journalposten"
                             )
                         )
                     )
                 )
-            }
+            )
+        }
 
-            updateJournalpost(
+        if (journalpostInSaf.journalposttype != Journalposttype.N && avsender != null) {
+            updateAvsenderInJournalpost(
+                journalpostId = journalpostId,
+                avsender = avsender
+            )
+        }
+
+        if (journalpostCanBeUpdated(journalpostInSaf)) {
+            secureLogger.debug("Journalpost: {}", journalpostInSaf)
+
+            updateSakInJournalpost(
                 journalpostId = journalpostId,
                 completedKlagebehandling = completedKlagebehandling,
-                avsender = avsender,
-                journalpostType = journalpostInSaf.journalposttype
             )
 
             finalizeJournalpost(
