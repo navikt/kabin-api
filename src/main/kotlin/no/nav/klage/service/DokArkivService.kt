@@ -14,6 +14,7 @@ import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -86,8 +87,9 @@ class DokArkivService(
     fun updateAvsenderInJournalpost(
         journalpostId: String,
         avsender: PartId,
+        tema: Tema,
     ) {
-        val requestInput = getUpdateAvsenderMottakerInJournalpostRequest(avsender)
+        val requestInput = getUpdateAvsenderMottakerInJournalpostRequest(avsender, tema)
 
         dokArkivClient.updateAvsenderMottakerInJournalpost(
             journalpostId = journalpostId,
@@ -95,7 +97,7 @@ class DokArkivService(
         )
     }
 
-    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartId): UpdateAvsenderMottakerInJournalpostRequest {
+    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartId, tema: Tema): UpdateAvsenderMottakerInJournalpostRequest {
         return if (avsender.type == PartView.PartType.ORGNR) {
             val avsenderPart = genericApiService.searchPart(
                 searchPartInput = SearchPartInput(identifikator = avsender.id)
@@ -106,6 +108,7 @@ class DokArkivService(
                     idType = avsender.type.toAvsenderMottakerIdType(),
                     navn = avsenderPart.virksomhet?.navn
                 ),
+                tema = tema
             )
         } else {
             UpdateAvsenderMottakerInJournalpostRequest(
@@ -113,6 +116,7 @@ class DokArkivService(
                     id = avsender.id,
                     idType = avsender.type.toAvsenderMottakerIdType(),
                 ),
+                tema = tema
             )
         }
     }
@@ -210,7 +214,8 @@ class DokArkivService(
         if (journalpostInSaf.journalposttype != Journalposttype.N && avsender != null) {
             updateAvsenderInJournalpost(
                 journalpostId = journalpostId,
-                avsender = avsender
+                avsender = avsender,
+                tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema()
             )
         }
 

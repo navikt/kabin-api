@@ -195,8 +195,9 @@ class DokArkivServiceTest {
                             avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
                                 id = FNR,
                                 idType = AvsenderMottakerIdType.FNR,
-                            )
-                        )
+                            ),
+                            tema = Tema.OMS,
+                        ),
                     )
                 )
             }
@@ -328,7 +329,8 @@ class DokArkivServiceTest {
                             avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
                                 id = FNR,
                                 idType = AvsenderMottakerIdType.FNR,
-                            )
+                            ),
+                            tema = Tema.OMS,
                         )
                     )
                 )
@@ -445,7 +447,8 @@ class DokArkivServiceTest {
                         avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
                             id = FNR,
                             idType = AvsenderMottakerIdType.FNR,
-                        )
+                        ),
+                        tema = Tema.OMS,
                     )
                 )
             )
