@@ -1,14 +1,145 @@
-package no.nav.klage.api.controller.view
+package no.nav.klage.clients.kabalapi
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import no.nav.klage.kodeverk.Fagsystem
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
-data class DokumenterResponse(
-    val dokumenter: List<DokumentReferanse>,
-    val pageReference: String? = null,
-    val antall: Int,
-    val totaltAntall: Int
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CreatedBehandlingResponse(
+    val mottakId: UUID,
 )
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CompletedKlagebehandling(
+    val behandlingId: UUID,
+    val ytelseId: String,
+    val utfallId: String,
+    val vedtakDate: LocalDateTime,
+    val sakenGjelder: PartView,
+    val klager: PartView,
+    val fullmektig: PartView?,
+    val tilknyttedeDokumenter: List<TilknyttetDokument>,
+    val sakFagsakId: String,
+    val fagsakId: String,
+    val sakFagsystem: Fagsystem,
+    val fagsystem: Fagsystem,
+    val fagsystemId: String,
+    val klageBehandlendeEnhet: String,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CreatedAnkebehandlingStatus(
+    val typeId: String,
+    val behandlingId: UUID,
+    val ytelseId: String,
+    val utfallId: String,
+    val vedtakDate: LocalDateTime,
+    val sakenGjelder: PartView,
+    val klager: PartView,
+    val fullmektig: PartView?,
+    val tilknyttedeDokumenter: List<TilknyttetDokument>,
+    val mottattNav: LocalDate,
+    val frist: LocalDate,
+    val sakFagsakId: String,
+    val fagsakId: String,
+    val sakFagsystem: Fagsystem,
+    val fagsystem: Fagsystem,
+    val fagsystemId: String,
+    val journalpost: DokumentReferanse,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CreatedKlagebehandlingStatus(
+    val typeId: String,
+    val behandlingId: UUID,
+    val ytelseId: String,
+    val sakenGjelder: PartView,
+    val klager: PartView,
+    val fullmektig: PartView?,
+    val mottattVedtaksinstans: LocalDate,
+    val mottattKlageinstans: LocalDate,
+    val frist: LocalDate,
+    val fagsakId: String,
+    val fagsystemId: String,
+    val journalpost: DokumentReferanse,
+    val kildereferanse: String,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CreateKlageBasedOnKabinInput(
+    val sakenGjelder: OversendtPartId,
+    val klager: OversendtPartId?,
+    val fullmektig: OversendtPartId?,
+    val fagsakId: String,
+    val fagsystemId: String,
+    val hjemmelIdList: List<String>?,
+    val forrigeBehandlendeEnhet: String,
+    val klageJournalpostId: String,
+    val brukersHenvendelseMottattNav: LocalDate,
+    val sakMottattKa: LocalDate,
+    val frist: LocalDate,
+    val ytelseId: String,
+    val kildereferanse: String,
+)
+
+data class OversendtPartId(
+    val type: OversendtPartIdType,
+    val value: String
+)
+
+enum class OversendtPartIdType { PERSON, VIRKSOMHET }
+
+data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)
+
+data class PartView(
+    val person: PersonView?,
+    val virksomhet: VirksomhetView?
+) {
+    fun toView(): no.nav.klage.api.controller.view.PartView {
+        return if (person != null) {
+            no.nav.klage.api.controller.view.PartView(
+                id = person.foedselsnummer!!,
+                type = no.nav.klage.api.controller.view.PartView.PartType.FNR,
+                name = person.navn?.toName()
+            )
+        } else if (virksomhet != null) {
+            no.nav.klage.api.controller.view.PartView(
+                id = virksomhet.virksomhetsnummer!!,
+                type = no.nav.klage.api.controller.view.PartView.PartType.ORGNR,
+                name = virksomhet.navn
+            )
+        } else {
+            throw RuntimeException("no part found")
+        }
+    }
+}
+
+data class VirksomhetView(
+    val virksomhetsnummer: String?,
+    val navn: String?,
+)
+
+data class PersonView(
+    val foedselsnummer: String?,
+    val navn: NavnView?,
+    val kjoenn: String?,
+)
+
+data class NavnView(
+    val fornavn: String?,
+    val mellomnavn: String?,
+    val etternavn: String?,
+) {
+    fun toName(): String {
+        return if (mellomnavn != null) {
+            "$fornavn $mellomnavn $etternavn"
+        } else {
+            "$fornavn $etternavn"
+        }
+    }
+}
 
 data class DokumentReferanse(
     val journalpostId: String,
@@ -37,7 +168,6 @@ data class DokumentReferanse(
     val utsendingsinfo: Utsendingsinfo?,
     var alreadyUsed: Boolean = false,
 ) {
-
     enum class Kanal {
         ALTINN,
         EIA,
@@ -118,8 +248,8 @@ data class DokumentReferanse(
     data class AvsenderMottaker(
         val id: String,
         val type: AvsenderMottakerIdType,
-        val name: String?,
-        ) {
+        val navn: String?,
+    ) {
         enum class AvsenderMottakerIdType {
             //TODO look into NULL
             FNR, ORGNR, HPRNR, UTL_ORG, UKJENT, NULL
@@ -192,7 +322,3 @@ data class DokumentReferanse(
     }
 
 }
-
-data class UpdateDocumentTitleView(
-    val tittel: String
-)

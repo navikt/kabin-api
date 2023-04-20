@@ -10,4 +10,5 @@ data class Klagemulighet(
     val fagsakId: String,
     val fagsystemId: String,
     val klageBehandlendeEnhet: String,
+    val sakenGjelder: PartView,
 )

@@ -2,12 +2,10 @@ package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.KabalApiClient
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
-import no.nav.klage.service.DokArkivService
-import no.nav.klage.service.KabalApiService
+import no.nav.klage.service.GenericApiService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
@@ -17,7 +15,7 @@ import java.util.*
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class CommonController(
-    private val kabalApiService: KabalApiService,
+    private val genericApiService: GenericApiService,
     private val documentService: DocumentService,
     private val tokenUtil: TokenUtil,
 ) {
@@ -55,13 +53,13 @@ class CommonController(
     @PostMapping("/searchpart")
     fun searchPart(
         @RequestBody input: SearchPartInput,
-    ): KabalApiClient.PartView {
+    ): PartView {
         logMethodDetails(
             methodName = ::searchPart.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return kabalApiService.searchPart(searchPartInput = input)
+        return genericApiService.searchPart(searchPartInput = input).toView()
     }
 
     @PostMapping("/calculatefrist")

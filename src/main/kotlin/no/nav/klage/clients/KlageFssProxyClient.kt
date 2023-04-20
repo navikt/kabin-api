@@ -1,6 +1,5 @@
 package no.nav.klage.clients
 
-import no.nav.klage.api.controller.view.*
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
@@ -8,7 +7,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import java.time.LocalDate
-import java.util.*
 
 @Component
 class KlageFssProxyClient(
@@ -34,6 +32,32 @@ class KlageFssProxyClient(
             .block()
             ?: throw RuntimeException("Empty result")
     }
+
+    fun getSak(sakId: String): SakFromKlanke {
+        return klageFssProxyWebClient.get()
+            .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+            )
+            .retrieve()
+            .bodyToMono<SakFromKlanke>()
+            .block()
+            ?: throw RuntimeException("Empty result")
+    }
+
+    fun setToHandledInKabal(sakId: String, input: HandledInKabalInput) {
+        klageFssProxyWebClient.post()
+            .uri { it.path("/klanke/saker/{sakId}/handledinkabal").build(sakId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .bodyToMono<Unit>()
+            .block()
+    }
 }
 
 data class KlankeSearchInput(
@@ -48,4 +72,9 @@ data class SakFromKlanke(
     val utfall: String,
     val enhetsnummer: String,
     val vedtaksdato: LocalDate,
+    val fnr: String,
+)
+
+data class HandledInKabalInput(
+    val fristAsString: String
 )

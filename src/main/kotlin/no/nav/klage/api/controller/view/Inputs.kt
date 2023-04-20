@@ -16,3 +16,8 @@ data class CalculateFristInput(
 data class SearchUsedJournalpostIdInput(
     val fnr: String,
 )
+
+data class PartId(
+    val type: PartView.PartType,
+    val id: String,
+)
