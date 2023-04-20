@@ -87,9 +87,8 @@ class DokArkivService(
     fun updateAvsenderInJournalpost(
         journalpostId: String,
         avsender: PartId,
-        tema: Tema,
     ) {
-        val requestInput = getUpdateAvsenderMottakerInJournalpostRequest(avsender, tema)
+        val requestInput = getUpdateAvsenderMottakerInJournalpostRequest(avsender)
 
         dokArkivClient.updateAvsenderMottakerInJournalpost(
             journalpostId = journalpostId,
@@ -97,26 +96,25 @@ class DokArkivService(
         )
     }
 
-    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartId, tema: Tema): UpdateAvsenderMottakerInJournalpostRequest {
+    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartId): UpdateAvsenderMottakerInJournalpostRequest {
+        val avsenderPart = genericApiService.searchPart(
+            searchPartInput = SearchPartInput(identifikator = avsender.id)
+        )
         return if (avsender.type == PartView.PartType.ORGNR) {
-            val avsenderPart = genericApiService.searchPart(
-                searchPartInput = SearchPartInput(identifikator = avsender.id)
-            )
             UpdateAvsenderMottakerInJournalpostRequest(
                 avsenderMottaker = AvsenderMottaker(
                     id = avsender.id,
                     idType = avsender.type.toAvsenderMottakerIdType(),
                     navn = avsenderPart.virksomhet?.navn
                 ),
-                tema = tema
             )
         } else {
             UpdateAvsenderMottakerInJournalpostRequest(
                 avsenderMottaker = AvsenderMottaker(
                     id = avsender.id,
                     idType = avsender.type.toAvsenderMottakerIdType(),
+                    navn = avsenderPart.person?.navn?.toName()
                 ),
-                tema = tema
             )
         }
     }
@@ -215,7 +213,6 @@ class DokArkivService(
             updateAvsenderInJournalpost(
                 journalpostId = journalpostId,
                 avsender = avsender,
-                tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema()
             )
         }
 

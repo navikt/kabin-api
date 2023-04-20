@@ -42,7 +42,6 @@ data class CreateNewJournalpostBasedOnExistingJournalpostRequest(
 
 data class UpdateAvsenderMottakerInJournalpostRequest(
     var avsenderMottaker: AvsenderMottaker,
-    var tema: Tema,
 )
 
 data class UpdateSakInJournalpostRequest(
