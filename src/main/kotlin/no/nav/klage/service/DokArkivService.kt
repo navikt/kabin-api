@@ -170,6 +170,7 @@ class DokArkivService(
 
         if (journalpostInSaf.journalposttype != Journalposttype.N
             && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
+            && journalpostCanBeUpdated(journalpostInSaf)
             && avsender == null
         ) {
             throw SectionedValidationErrorWithDetailsException(
