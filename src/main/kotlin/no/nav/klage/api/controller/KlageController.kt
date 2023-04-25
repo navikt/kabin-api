@@ -9,6 +9,7 @@ import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.GenericApiService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -22,6 +23,7 @@ class KlageController(
     private val fssProxyClient: KlageFssProxyClient,
     private val genericApiService: GenericApiService,
     private val validationUtil: ValidationUtil,
+    private val dokArkivService: DokArkivService
 ) {
 
     companion object {
@@ -42,7 +44,13 @@ class KlageController(
 
         validationUtil.validateCreateKlageInput(input)
 
-        return genericApiService.createKlage(input)
+        val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
+            journalpostId = input.klageJournalpostId,
+            sakId = input.sakId,
+            avsender = input.avsender
+        )
+
+        return genericApiService.createKlage(input.copy(klageJournalpostId = journalpostId))
     }
 
     @PostMapping("/klagemuligheter", produces = ["application/json"])
