@@ -6,6 +6,7 @@ import no.nav.klage.clients.HandledInKabalInput
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Type
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -23,6 +24,12 @@ class GenericApiService(
 
     fun getCompletedKlagebehandling(klagebehandlingId: UUID): CompletedKlagebehandling {
         return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
+    }
+    
+    fun klagemulighetIsDuplicate(fagsystem: Fagsystem, kildereferanse: String): Boolean {
+        return kabalApiClient.checkDuplicateInKabal(
+            input = IsDuplicateInput(fagsystemId = fagsystem.id, kildereferanse = kildereferanse, typeId = Type.KLAGE.id)
+        )
     }
 
     fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandlingView): CreatedBehandlingResponse {

@@ -10,7 +10,7 @@ data class CreateKlageInput(
     val klager: PartId?,
     val fullmektig: PartId?,
     val klageJournalpostId: String,
-    val hjemmelIdList: List<String>?,
+    val hjemmelIdList: List<String>,
     val ytelseId: String,
     val avsender: PartId?,
 )

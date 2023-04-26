@@ -21,6 +21,19 @@ class KabalApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    fun checkDuplicateInKabal(input: IsDuplicateInput): Boolean {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/isduplicate").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .bodyToMono<Boolean>()
+            .block() ?: throw RuntimeException("No response")
+    }
+
     fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/createanke").build() }

@@ -61,6 +61,13 @@ class ValidationUtil {
             )
         }
 
+        if (input.hjemmelIdList.isNullOrEmpty()) {
+            validationErrors += InvalidProperty(
+                field = CreateKlageInput::hjemmelIdList.name,
+                reason = "Hjemmellisten kan ikke være tom"
+            )
+        }
+
         val sectionList = mutableListOf<ValidationSection>()
 
         if (validationErrors.isNotEmpty()) {
