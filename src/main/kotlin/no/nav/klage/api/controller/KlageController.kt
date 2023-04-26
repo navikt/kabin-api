@@ -8,6 +8,7 @@ import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.infotrygdKlageutfallToUtfall
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.GenericApiService
 import no.nav.klage.util.*
@@ -72,6 +73,7 @@ class KlageController(
                     sakId = it.sakId,
                     temaId = Tema.fromNavn(it.tema).id,
                     utfall = it.utfall,
+                    utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
                     vedtakDate = it.vedtaksdato,
                     fagsakId = it.fagsakId,
                     //TODO: Tilpass når vi får flere fagsystemer.
