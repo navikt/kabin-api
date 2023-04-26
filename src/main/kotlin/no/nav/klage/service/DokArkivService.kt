@@ -4,6 +4,8 @@ import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandlingView
 import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.api.controller.view.PartView
 import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.clients.KabalInnstillingerClient
+import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.kabalapi.CompletedKlagebehandling
 import no.nav.klage.clients.saf.graphql.Journalpost
@@ -27,7 +29,9 @@ class DokArkivService(
     private val dokArkivClient: DokArkivClient,
     private val genericApiService: GenericApiService,
     private val safGraphQlClient: SafGraphQlClient,
-    private val tokenUtil: TokenUtil
+    private val tokenUtil: TokenUtil,
+    private val fssProxyClient: KlageFssProxyClient,
+    private val kabalInnstillingerClient: KabalInnstillingerClient
 ) {
 
     companion object {
@@ -121,13 +125,16 @@ class DokArkivService(
 
     fun updateSakInJournalpost(
         journalpostId: String,
-        completedKlagebehandling: CompletedKlagebehandling,
+        tema: Tema,
+        bruker: Bruker,
+        sak: Sak,
+        journalfoerendeEnhet: String
     ) {
         val requestInput = UpdateSakInJournalpostRequest(
-            tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
-            bruker = getBruker(completedKlagebehandling.sakenGjelder),
-            sak = getSak(completedKlagebehandling),
-            journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet,
+            tema = tema,
+            bruker = bruker,
+            sak = sak,
+            journalfoerendeEnhet = journalfoerendeEnhet,
         )
 
         dokArkivClient.updateSakInJournalpost(
@@ -178,13 +185,55 @@ class DokArkivService(
         }
     }
 
-    fun handleJournalpost(
+    fun handleJournalpostBasedOnInfotrygdSak(
+        journalpostId: String,
+        sakId: String,
+        avsender: PartId?,
+    ): String {
+        val sakFromKlanke = fssProxyClient.getSak(sakId)
+
+        return handleJournalpost(
+            journalpostId = journalpostId,
+            avsender = avsender,
+            tema = Tema.valueOf(sakFromKlanke.tema),
+            bruker = Bruker(
+                id = sakFromKlanke.fnr, idType = BrukerIdType.FNR
+            ),
+            sak = Sak(
+                sakstype = Sakstype.FAGSAK,
+                fagsaksystem = FagsaksSystem.IT01,
+                fagsakid = sakFromKlanke.fagsakId
+            ),
+            journalfoerendeEnhet = kabalInnstillingerClient.getBrukerdata().ansattEnhet.id,
+        )
+    }
+
+    fun handleJournalpostBasedOnKabalKlagebehandling(
         journalpostId: String,
         klagebehandlingId: UUID,
-        avsender: PartId? = null
+        avsender: PartId?,
     ): String {
         val completedKlagebehandling =
-            genericApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
+        genericApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
+
+        return handleJournalpost(
+            journalpostId = journalpostId,
+            avsender = avsender,
+            tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
+            bruker = getBruker(completedKlagebehandling.sakenGjelder),
+            sak = getSak(completedKlagebehandling),
+            journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet,
+        )
+    }
+
+    private fun handleJournalpost(
+        journalpostId: String,
+        avsender: PartId? = null,
+        tema: Tema,
+        bruker: Bruker,
+        sak: Sak,
+        journalfoerendeEnhet: String
+    ): String {
         val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
@@ -221,25 +270,31 @@ class DokArkivService(
 
             updateSakInJournalpost(
                 journalpostId = journalpostId,
-                completedKlagebehandling = completedKlagebehandling,
+                tema = tema,
+                bruker = bruker,
+                sak = sak,
+                journalfoerendeEnhet = journalfoerendeEnhet,
             )
 
             finalizeJournalpost(
                 journalpostId = journalpostId,
-                journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet
+                journalfoerendeEnhet = journalfoerendeEnhet,
             )
             return journalpostId
         } else {
             return if (journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
                     journalpostInSaf = journalpostInSaf,
-                    completedKlagebehandling = completedKlagebehandling
+                    sak = sak,
                 )
             ) {
                 journalpostId
             } else {
                 val newJournalpostId = createNewJournalpostBasedOnExistingJournalpost(
                     oldJournalpost = journalpostInSaf,
-                    completedKlagebehandling = completedKlagebehandling
+                    sak = sak,
+                    tema = tema,
+                    bruker = bruker,
+                    journalfoerendeEnhet = journalfoerendeEnhet,
                 )
                 dokArkivClient.registerErrorInSaksId(journalpostId)
                 newJournalpostId
@@ -257,15 +312,18 @@ class DokArkivService(
 
     private fun createNewJournalpostBasedOnExistingJournalpost(
         oldJournalpost: Journalpost,
-        completedKlagebehandling: CompletedKlagebehandling
+        sak: Sak,
+        tema: Tema,
+        bruker: Bruker,
+        journalfoerendeEnhet: String,
     ): String {
         val requestPayload = CreateNewJournalpostBasedOnExistingJournalpostRequest(
             sakstype = Sakstype.FAGSAK,
-            fagsakId = completedKlagebehandling.fagsakId,
-            fagsaksystem = FagsaksSystem.valueOf(completedKlagebehandling.fagsystem.name),
-            tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
-            bruker = getBruker(completedKlagebehandling.sakenGjelder),
-            journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet
+            fagsakId = sak.fagsakid,
+            fagsaksystem = sak.fagsaksystem,
+            tema = tema,
+            bruker = bruker,
+            journalfoerendeEnhet = journalfoerendeEnhet,
         )
 
         return dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
@@ -277,12 +335,12 @@ class DokArkivService(
 
     private fun journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
         journalpostInSaf: Journalpost,
-        completedKlagebehandling: CompletedKlagebehandling
+        sak: Sak,
     ): Boolean {
         return if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
             false
-        } else (journalpostInSaf.sak.fagsakId == completedKlagebehandling.fagsakId
-                && Fagsystem.valueOf(journalpostInSaf.sak.fagsaksystem) == completedKlagebehandling.fagsystem)
+        } else (journalpostInSaf.sak.fagsakId == sak.fagsakid
+                && FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == sak.fagsaksystem)
     }
 
     fun updateDocumentTitle(

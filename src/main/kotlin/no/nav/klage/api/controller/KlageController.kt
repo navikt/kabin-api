@@ -2,13 +2,13 @@ package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.mapper.toView
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.GenericApiService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -22,6 +22,7 @@ class KlageController(
     private val fssProxyClient: KlageFssProxyClient,
     private val genericApiService: GenericApiService,
     private val validationUtil: ValidationUtil,
+    private val dokArkivService: DokArkivService
 ) {
 
     companion object {
@@ -42,7 +43,13 @@ class KlageController(
 
         validationUtil.validateCreateKlageInput(input)
 
-        return genericApiService.createKlage(input)
+        val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
+            journalpostId = input.klageJournalpostId,
+            sakId = input.sakId,
+            avsender = input.avsender
+        )
+
+        return genericApiService.createKlage(input.copy(klageJournalpostId = journalpostId))
     }
 
     @PostMapping("/klagemuligheter", produces = ["application/json"])
@@ -53,19 +60,26 @@ class KlageController(
             logger = logger,
         )
 
-        return fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE")).map {
-            Klagemulighet(
-                sakId = it.sakId,
-                temaId = Tema.fromNavn(it.tema).id,
-                utfall = it.utfall,
-                vedtakDate = it.vedtaksdato,
-                fagsakId = it.fagsakId,
-                //TODO: Tilpass når vi får flere fagsystemer.
-                fagsystemId = Fagsystem.IT01.id,
-                klageBehandlendeEnhet = it.enhetsnummer,
-                sakenGjelder = genericApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView()
-            )
-        }
+        return fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"))
+            .filter {
+                !genericApiService.klagemulighetIsDuplicate(
+                    fagsystem = Fagsystem.IT01,
+                    kildereferanse = it.sakId
+                )
+            }
+            .map {
+                Klagemulighet(
+                    sakId = it.sakId,
+                    temaId = Tema.fromNavn(it.tema).id,
+                    utfall = it.utfall,
+                    vedtakDate = it.vedtaksdato,
+                    fagsakId = it.fagsakId,
+                    //TODO: Tilpass når vi får flere fagsystemer.
+                    fagsystemId = Fagsystem.IT01.id,
+                    klageBehandlendeEnhet = it.enhetsnummer,
+                    sakenGjelder = genericApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView()
+                )
+            }
     }
 
     @GetMapping("/klager/{mottakId}/status")

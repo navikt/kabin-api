@@ -26,6 +26,12 @@ class TokenUtil(
         return response.accessToken
     }
 
+    fun getSaksbehandlerAccessTokenWithKabalInnstillingerScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["kabal-innstillinger-onbehalfof"]
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken
+    }
+
     fun getSaksbehandlerAccessTokenWithSafScope(): String {
         val clientProperties = clientConfigurationProperties.registration["saf-onbehalfof"]
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)

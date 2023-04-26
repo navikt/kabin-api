@@ -1,16 +1,14 @@
 package no.nav.klage.clients.kabalapi
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import no.nav.klage.api.controller.view.*
-import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.api.controller.view.SearchUsedJournalpostIdInput
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 
 @Component
@@ -21,6 +19,19 @@ class KabalApiClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+    }
+
+    fun checkDuplicateInKabal(input: IsDuplicateInput): Boolean {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/isduplicate").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .bodyToMono<Boolean>()
+            .block() ?: throw RuntimeException("No response")
     }
 
     fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): CreatedBehandlingResponse {

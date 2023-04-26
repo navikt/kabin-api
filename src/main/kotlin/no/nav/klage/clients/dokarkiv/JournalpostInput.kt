@@ -64,8 +64,8 @@ enum class BrukerIdType {
 
 data class Sak(
     val sakstype: Sakstype,
-    val fagsaksystem: FagsaksSystem? = null,
-    val fagsakid: String? = null,
+    val fagsaksystem: FagsaksSystem,
+    val fagsakid: String,
 )
 
 enum class Sakstype {

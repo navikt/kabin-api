@@ -11,3 +11,9 @@ data class CreateAnkeBasedOnKlagebehandling(
     val fullmektig: OversendtPartId?,
     val ankeDocumentJournalpostId: String,
 )
+
+data class IsDuplicateInput(
+    val fagsystemId: String,
+    val kildereferanse: String,
+    val typeId: String
+)

@@ -11,6 +11,8 @@ import no.nav.klage.clients.kabalapi.CompletedKlagebehandling
 import no.nav.klage.clients.kabalapi.NavnView
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PersonView
+import no.nav.klage.clients.KabalInnstillingerClient
+import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.clients.saf.graphql.Tema.OMS
@@ -37,6 +39,10 @@ class DokArkivServiceTest {
     val safGraphQlClient: SafGraphQlClient = mockk()
 
     val tokenUtil: TokenUtil = mockk()
+
+    val fssProxyClient: KlageFssProxyClient = mockk()
+
+    val kabalInnstillingerClient: KabalInnstillingerClient = mockk()
 
     lateinit var dokArkivService: DokArkivService
 
@@ -72,7 +78,9 @@ class DokArkivServiceTest {
             dokArkivClient = dokArkivClient,
             genericApiService = genericApiService,
             safGraphQlClient = safGraphQlClient,
-            tokenUtil = tokenUtil
+            tokenUtil = tokenUtil,
+            fssProxyClient = fssProxyClient,
+            kabalInnstillingerClient = kabalInnstillingerClient,
         )
     }
 
@@ -98,7 +106,7 @@ class DokArkivServiceTest {
         val expectedOutput = Sak(
             sakstype = Sakstype.FAGSAK,
             fagsaksystem = FagsaksSystem.FS38,
-            fagsakid = SAKS_ID
+            fagsakid = SAKS_ID,
         )
 
         assertEquals(
@@ -116,7 +124,11 @@ class DokArkivServiceTest {
             every { dokArkivClient.updateSakInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
+            val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
+                JOURNALPOST_ID,
+                UUID.randomUUID(),
+                null
+            )
 
             verify(exactly = 1) {
                 dokArkivClient.updateSakInJournalpost(
@@ -179,7 +191,7 @@ class DokArkivServiceTest {
             every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
+            val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = PartId(
@@ -253,7 +265,7 @@ class DokArkivServiceTest {
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
-                dokArkivService.handleJournalpost(
+                dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                     JOURNALPOST_ID,
                     UUID.randomUUID(),
                     null
@@ -266,7 +278,11 @@ class DokArkivServiceTest {
             every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
+            val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
+                JOURNALPOST_ID,
+                UUID.randomUUID(),
+                null
+            )
 
             verify(exactly = 0) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
@@ -313,7 +329,7 @@ class DokArkivServiceTest {
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
             every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
+            val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = PartId(
@@ -381,7 +397,11 @@ class DokArkivServiceTest {
             } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
             every { dokArkivClient.registerErrorInSaksId(any()) } returns Unit
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(JOURNALPOST_ID, UUID.randomUUID(), null)
+            val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
+                JOURNALPOST_ID,
+                UUID.randomUUID(),
+                null
+            )
 
             verify(exactly = 0) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
@@ -431,7 +451,7 @@ class DokArkivServiceTest {
             every { dokArkivClient.registerErrorInSaksId(any()) } returns Unit
             every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
+            val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = PartId(

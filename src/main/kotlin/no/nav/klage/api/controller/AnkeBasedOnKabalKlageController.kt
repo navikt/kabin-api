@@ -39,7 +39,7 @@ class AnkeBasedOnKabalKlageController(
 
         validationUtil.validateCreateAnkeInput(input)
 
-        val journalpostId = dokArkivService.handleJournalpost(
+        val journalpostId = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
             journalpostId = input.ankeDocumentJournalpostId,
             klagebehandlingId = input.klagebehandlingId,
             avsender = input.avsender
