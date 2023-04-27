@@ -23,7 +23,7 @@ data class CreateKlageInputView(
     val klager: PartId?,
     val fullmektig: PartId?,
     val klageJournalpostId: String?,
-    val userDocumentJournalpostId: String?,
+    val journalpostId: String?,
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
     val avsender: PartId?,

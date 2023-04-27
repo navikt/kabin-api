@@ -20,6 +20,6 @@ data class CreateAnkeInputView(
     val klager: PartId?,
     val fullmektig: PartId?,
     val ankeDocumentJournalpostId: String?,
-    val userDocumentJournalpostId: String?,
+    val journalpostId: String?,
     val avsender: PartId?,
 )

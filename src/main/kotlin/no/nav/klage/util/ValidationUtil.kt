@@ -47,7 +47,7 @@ class ValidationUtil {
             )
         }
 
-        if (input.ankeDocumentJournalpostId == null && input.userDocumentJournalpostId == null) {
+        if (input.ankeDocumentJournalpostId == null && input.journalpostId == null) {
             validationErrors += InvalidProperty(
                 field = CreateAnkeInputView::ankeDocumentJournalpostId.name,
                 reason = "Journalpost må være valgt"
@@ -76,7 +76,7 @@ class ValidationUtil {
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
             fullmektig = input.fullmektig,
-            ankeDocumentJournalpostId = input.userDocumentJournalpostId ?: input.ankeDocumentJournalpostId!!,
+            ankeDocumentJournalpostId = input.journalpostId ?: input.ankeDocumentJournalpostId!!,
             avsender = input.avsender
 
         )
@@ -139,7 +139,7 @@ class ValidationUtil {
             )
         }
 
-        if (input.klageJournalpostId == null && input.userDocumentJournalpostId == null) {
+        if (input.klageJournalpostId == null && input.journalpostId == null) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInput::klageJournalpostId.name,
                 reason = "Journalpost må være valgt"
@@ -199,7 +199,7 @@ class ValidationUtil {
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
             fullmektig = input.fullmektig,
-            klageJournalpostId = input.userDocumentJournalpostId ?: input.klageJournalpostId!!,
+            klageJournalpostId = input.journalpostId ?: input.klageJournalpostId!!,
             ytelseId = input.ytelseId!!,
             hjemmelIdList = input.hjemmelIdList!!,
             avsender = input.avsender
