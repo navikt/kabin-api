@@ -1,6 +1,5 @@
 package no.nav.klage.api.controller.view
 
-import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.kabalapi.TilknyttetDokument
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -29,6 +28,7 @@ data class CreatedKlagebehandlingStatusView(
     val behandlingId: UUID,
     val ytelseId: String,
     val utfall: String,
+    val utfallId: String,
     val vedtakDate: LocalDate,
     val sakenGjelder: PartView,
     val klager: PartView,

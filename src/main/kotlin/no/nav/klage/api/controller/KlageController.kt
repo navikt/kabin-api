@@ -104,6 +104,7 @@ class KlageController(
             behandlingId = status.behandlingId,
             ytelseId = status.ytelseId,
             utfall = sakFromKlanke.utfall,
+            utfallId = infotrygdKlageutfallToUtfall[sakFromKlanke.utfall]!!.id,
             vedtakDate = sakFromKlanke.vedtaksdato,
             sakenGjelder = status.sakenGjelder.toView(),
             klager = status.klager.toView(),
