@@ -1,6 +1,6 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.CreateAnkeBasedOnKlagebehandlingView
+import no.nav.klage.api.controller.view.CreateAnkeInputView
 import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.api.controller.view.PartView
 import no.nav.klage.api.controller.view.SearchPartInput
@@ -15,7 +15,6 @@ import no.nav.klage.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
-import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
@@ -249,7 +248,7 @@ class DokArkivService(
                         section = "saksdata",
                         properties = listOf(
                             InvalidProperty(
-                                field = CreateAnkeBasedOnKlagebehandlingView::avsender.name,
+                                field = CreateAnkeInputView::avsender.name,
                                 reason = "Avsender må velges på denne journalposten"
                             )
                         )
