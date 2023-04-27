@@ -16,8 +16,8 @@ class ValidationUtil {
 
         if (input.klagebehandlingId == null && input.behandlingId == null) {
             validationErrors += InvalidProperty(
-                field = CreateAnkeInputView::klagebehandlingId.name,
-                reason = "KlagebehandlingId må være satt"
+                field = CreateAnkeInputView::behandlingId.name,
+                reason = "BehandlingId må være satt"
             )
         }
 
@@ -86,20 +86,20 @@ class ValidationUtil {
 
         if (input.sakId == null && input.behandlingId == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::sakId.name,
-                reason = "SakId må være satt"
+                field = CreateKlageInputView::behandlingId.name,
+                reason = "BehandlingId må være satt"
             )
         }
 
         if (input.mottattKlageinstans == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::mottattKlageinstans.name,
+                field = CreateKlageInputView::mottattKlageinstans.name,
                 reason = "Dato for mottatt klageinstans må være satt"
             )
         } else {
             if (input.mottattKlageinstans.isAfter(LocalDate.now())) {
                 validationErrors += InvalidProperty(
-                    field = CreateKlageInput::mottattKlageinstans.name,
+                    field = CreateKlageInputView::mottattKlageinstans.name,
                     reason = "Dato kan ikke være i fremtiden"
                 )
             }
@@ -107,53 +107,53 @@ class ValidationUtil {
 
         if (input.mottattVedtaksinstans == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::mottattVedtaksinstans.name,
+                field = CreateKlageInputView::mottattVedtaksinstans.name,
                 reason = "Dato for mottatt vedtaksInstans må være satt"
             )
         } else if (input.mottattVedtaksinstans.isAfter(LocalDate.now())) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::mottattVedtaksinstans.name,
+                field = CreateKlageInputView::mottattVedtaksinstans.name,
                 reason = "Dato kan ikke være i fremtiden"
             )
         }
 
-        if (input.mottattVedtaksinstans!!.isAfter(input.mottattKlageinstans)) {
+        if (input.mottattVedtaksinstans != null && input.mottattKlageinstans != null && input.mottattVedtaksinstans.isAfter(input.mottattKlageinstans)) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::mottattVedtaksinstans.name,
+                field = CreateKlageInputView::mottattVedtaksinstans.name,
                 reason = "Mottatt NAV kan ikke være etter mottatt KA"
             )
         }
 
         if (input.fristInWeeks == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::fristInWeeks.name,
+                field = CreateKlageInputView::fristInWeeks.name,
                 reason = "Frist i uker må være satt"
             )
         }
 
         if (input.klager == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::klager.name,
+                field = CreateKlageInputView::klager.name,
                 reason = "Klager må være satt"
             )
         }
 
         if (input.klageJournalpostId == null && input.journalpostId == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::klageJournalpostId.name,
+                field = CreateKlageInputView::journalpostId.name,
                 reason = "Journalpost må være valgt"
             )
         }
 
         if (input.ytelseId == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::ytelseId.name,
+                field = CreateKlageInputView::ytelseId.name,
                 reason = "Ytelse må være valgt"
             )
         } else {
             if (Ytelse.values().firstOrNull { it.id == input.ytelseId } == null) {
                 validationErrors += InvalidProperty(
-                    field = CreateKlageInput::ytelseId.name,
+                    field = CreateKlageInputView::ytelseId.name,
                     reason = "Ugyldig ytelse"
                 )
             }
@@ -161,14 +161,14 @@ class ValidationUtil {
 
         if (input.hjemmelIdList.isNullOrEmpty()) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInput::hjemmelIdList.name,
+                field = CreateKlageInputView::hjemmelIdList.name,
                 reason = "Hjemmellisten kan ikke være tom"
             )
         } else {
             input.hjemmelIdList.map{ hjemmelId ->
                 if (Hjemmel.values().firstOrNull { it.id == hjemmelId } == null) {
                     validationErrors += InvalidProperty(
-                        field = CreateKlageInput::hjemmelIdList.name,
+                        field = CreateKlageInputView::hjemmelIdList.name,
                         reason = "Hjemmel med id $hjemmelId er ugyldig"
                     )
                 }
@@ -193,7 +193,7 @@ class ValidationUtil {
 
         return CreateKlageInput(
             sakId = input.behandlingId ?: input.sakId!!,
-            mottattVedtaksinstans = input.mottattVedtaksinstans,
+            mottattVedtaksinstans = input.mottattVedtaksinstans!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
