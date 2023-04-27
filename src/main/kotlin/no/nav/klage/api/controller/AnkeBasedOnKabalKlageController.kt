@@ -65,10 +65,7 @@ class AnkeBasedOnKabalKlageController(
                 klager = it.klager.toView(),
                 fullmektig = it.fullmektig?.toView(),
                 tilknyttedeDokumenter = it.tilknyttedeDokumenter,
-                sakFagsakId = it.fagsakId,
                 fagsakId = it.fagsakId,
-                sakFagsystem = it.fagsystem,
-                fagsystem = it.fagsystem,
                 fagsystemId = it.fagsystemId,
                 klageBehandlendeEnhet = it.klageBehandlendeEnhet,
             )

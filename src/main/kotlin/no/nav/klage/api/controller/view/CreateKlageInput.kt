@@ -17,6 +17,7 @@ data class CreateKlageInput(
 
 data class CreateKlageInputView(
     val sakId: String?,
+    val behandlingId: String?,
     val mottattVedtaksinstans: LocalDate?,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,

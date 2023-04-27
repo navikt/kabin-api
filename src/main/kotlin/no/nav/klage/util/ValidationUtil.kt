@@ -14,7 +14,7 @@ class ValidationUtil {
     fun validateCreateAnkeInputView(input: CreateAnkeInputView): CreateAnkeInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.klagebehandlingId == null) {
+        if (input.klagebehandlingId == null && input.behandlingId == null) {
             validationErrors += InvalidProperty(
                 field = CreateAnkeInputView::klagebehandlingId.name,
                 reason = "KlagebehandlingId må være satt"
@@ -71,21 +71,20 @@ class ValidationUtil {
         }
 
         return CreateAnkeInput(
-            klagebehandlingId = input.klagebehandlingId!!,
+            klagebehandlingId = input.behandlingId ?: input.klagebehandlingId!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
             fullmektig = input.fullmektig,
             ankeDocumentJournalpostId = input.journalpostId ?: input.ankeDocumentJournalpostId!!,
             avsender = input.avsender
-
         )
     }
 
     fun validateCreateKlageInputView(input: CreateKlageInputView): CreateKlageInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.sakId == null) {
+        if (input.sakId == null && input.behandlingId == null) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInput::sakId.name,
                 reason = "SakId må være satt"
@@ -193,7 +192,7 @@ class ValidationUtil {
         }
 
         return CreateKlageInput(
-            sakId = input.sakId!!,
+            sakId = input.behandlingId ?: input.sakId!!,
             mottattVedtaksinstans = input.mottattVedtaksinstans,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,

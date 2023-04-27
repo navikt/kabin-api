@@ -15,6 +15,7 @@ data class CreateAnkeInput(
 
 data class CreateAnkeInputView(
     val klagebehandlingId: UUID?,
+    val behandlingId: UUID?,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
     val klager: PartId?,

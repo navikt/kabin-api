@@ -71,6 +71,7 @@ class KlageController(
             .map {
                 Klagemulighet(
                     sakId = it.sakId,
+                    behandlingId = it.sakId,
                     temaId = Tema.fromNavn(it.tema).id,
                     utfall = it.utfall,
                     utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
