@@ -3,7 +3,6 @@ package no.nav.klage.api.controller
 import no.nav.klage.api.controller.mapper.toView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
-import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.GenericApiService
@@ -28,7 +27,7 @@ class AnkeBasedOnKabalKlageController(
     }
 
     @PostMapping("/createanke", produces = ["application/json"])
-    fun createAnke(@RequestBody input: CreateAnkeBasedOnKlagebehandlingView): CreatedBehandlingResponse {
+    fun createAnke(@RequestBody input: CreateAnkeInputView): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnke.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -37,15 +36,15 @@ class AnkeBasedOnKabalKlageController(
 
         secureLogger.debug("createAnke called with: {}", input)
 
-        validationUtil.validateCreateAnkeInput(input)
+        val processedInput = validationUtil.validateCreateAnkeInputView(input)
 
         val journalpostId = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
-            journalpostId = input.ankeDocumentJournalpostId,
-            klagebehandlingId = input.klagebehandlingId,
-            avsender = input.avsender
+            journalpostId = processedInput.ankeDocumentJournalpostId,
+            klagebehandlingId = processedInput.klagebehandlingId,
+            avsender = processedInput.avsender
         )
 
-        return genericApiService.createAnkeInKabal(input.copy(ankeDocumentJournalpostId = journalpostId))
+        return genericApiService.createAnkeInKabal(processedInput.copy(ankeDocumentJournalpostId = journalpostId))
     }
 
     @PostMapping("/ankemuligheter", produces = ["application/json"])

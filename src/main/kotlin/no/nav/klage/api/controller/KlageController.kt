@@ -33,7 +33,7 @@ class KlageController(
     }
 
     @PostMapping("/createklage", produces = ["application/json"])
-    fun createKlage(@RequestBody input: CreateKlageInput): CreatedBehandlingResponse {
+    fun createKlage(@RequestBody input: CreateKlageInputView): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createKlage.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -42,15 +42,15 @@ class KlageController(
 
         secureLogger.debug("createklage called with: {}", input)
 
-        validationUtil.validateCreateKlageInput(input)
+        val processedInput = validationUtil.validateCreateKlageInputView(input)
 
         val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
-            journalpostId = input.klageJournalpostId,
-            sakId = input.sakId,
+            journalpostId = processedInput.klageJournalpostId,
+            sakId = processedInput.sakId,
             avsender = input.avsender
         )
 
-        return genericApiService.createKlage(input.copy(klageJournalpostId = journalpostId))
+        return genericApiService.createKlage(processedInput.copy(klageJournalpostId = journalpostId))
     }
 
     @PostMapping("/klagemuligheter", produces = ["application/json"])

@@ -32,7 +32,7 @@ class GenericApiService(
         )
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandlingView): CreatedBehandlingResponse {
+    fun createAnkeInKabal(input: CreateAnkeInput): CreatedBehandlingResponse {
         return kabalApiClient.createAnkeInKabal(
             CreateAnkeBasedOnKlagebehandling(
                 klagebehandlingId = input.klagebehandlingId,

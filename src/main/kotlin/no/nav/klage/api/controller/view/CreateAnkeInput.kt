@@ -1,30 +1,25 @@
 package no.nav.klage.api.controller.view
 
 import java.time.LocalDate
+import java.util.*
 
-data class CreateKlageInput(
-    val sakId: String,
-    val mottattVedtaksinstans: LocalDate,
+data class CreateAnkeInput(
+    val klagebehandlingId: UUID,
     val mottattKlageinstans: LocalDate,
     val fristInWeeks: Int,
     val klager: PartId,
     val fullmektig: PartId?,
-    val klageJournalpostId: String,
-    val ytelseId: String,
-    val hjemmelIdList: List<String>,
+    val ankeDocumentJournalpostId: String,
     val avsender: PartId?,
 )
 
-data class CreateKlageInputView(
-    val sakId: String?,
-    val mottattVedtaksinstans: LocalDate?,
+data class CreateAnkeInputView(
+    val klagebehandlingId: UUID?,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
     val klager: PartId?,
     val fullmektig: PartId?,
-    val klageJournalpostId: String?,
+    val ankeDocumentJournalpostId: String?,
     val userDocumentJournalpostId: String?,
-    val ytelseId: String?,
-    val hjemmelIdList: List<String>?,
     val avsender: PartId?,
 )
