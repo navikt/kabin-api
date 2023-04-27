@@ -249,7 +249,7 @@ class DokArkivService(
                         properties = listOf(
                             InvalidProperty(
                                 field = CreateAnkeInputView::avsender.name,
-                                reason = "Avsender må velges på denne journalposten."
+                                reason = "Velg en avsender."
                             )
                         )
                     )
