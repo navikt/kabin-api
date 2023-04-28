@@ -16,14 +16,12 @@ data class CreateKlageInput(
 )
 
 data class CreateKlageInputView(
-    val sakId: String?,
     val behandlingId: String?,
     val mottattVedtaksinstans: LocalDate?,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
     val klager: PartId?,
     val fullmektig: PartId?,
-    val klageJournalpostId: String?,
     val journalpostId: String?,
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
