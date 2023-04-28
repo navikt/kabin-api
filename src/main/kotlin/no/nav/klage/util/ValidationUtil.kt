@@ -14,7 +14,7 @@ class ValidationUtil {
     fun validateCreateAnkeInputView(input: CreateAnkeInputView): CreateAnkeInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.klagebehandlingId == null && input.behandlingId == null) {
+        if (input.behandlingId == null) {
             validationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingId.name,
                 reason = "Velg et vedtak."
@@ -47,10 +47,10 @@ class ValidationUtil {
             )
         }
 
-        if (input.ankeDocumentJournalpostId == null && input.journalpostId == null) {
+        if (input.journalpostId == null) {
             validationErrors += InvalidProperty(
-                field = CreateAnkeInputView::ankeDocumentJournalpostId.name,
-                reason = "Sett en journalpost."
+                field = CreateAnkeInputView::journalpostId.name,
+                reason = "Velg en journalpost."
             )
         }
 
@@ -71,12 +71,12 @@ class ValidationUtil {
         }
 
         return CreateAnkeInput(
-            klagebehandlingId = input.behandlingId ?: input.klagebehandlingId!!,
+            klagebehandlingId = input.behandlingId!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
             fullmektig = input.fullmektig,
-            ankeDocumentJournalpostId = input.journalpostId ?: input.ankeDocumentJournalpostId!!,
+            ankeDocumentJournalpostId = input.journalpostId!!,
             avsender = input.avsender
         )
     }
@@ -84,7 +84,7 @@ class ValidationUtil {
     fun validateCreateKlageInputView(input: CreateKlageInputView): CreateKlageInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.sakId == null && input.behandlingId == null) {
+        if (input.behandlingId == null) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::behandlingId.name,
                 reason = "Velg et vedtak."
@@ -138,7 +138,7 @@ class ValidationUtil {
             )
         }
 
-        if (input.klageJournalpostId == null && input.journalpostId == null) {
+        if (input.journalpostId == null) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::journalpostId.name,
                 reason = "Velg en journalpost."
@@ -192,13 +192,13 @@ class ValidationUtil {
         }
 
         return CreateKlageInput(
-            sakId = input.behandlingId ?: input.sakId!!,
+            sakId = input.behandlingId!!,
             mottattVedtaksinstans = input.mottattVedtaksinstans!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
             fullmektig = input.fullmektig,
-            klageJournalpostId = input.journalpostId ?: input.klageJournalpostId!!,
+            klageJournalpostId = input.journalpostId!!,
             ytelseId = input.ytelseId!!,
             hjemmelIdList = input.hjemmelIdList!!,
             avsender = input.avsender
