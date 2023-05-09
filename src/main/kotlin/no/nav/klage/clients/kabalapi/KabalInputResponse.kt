@@ -74,7 +74,7 @@ data class CreateKlageBasedOnKabinInput(
     val fullmektig: OversendtPartId?,
     val fagsakId: String,
     val fagsystemId: String,
-    val hjemmelIdList: List<String>?,
+    val hjemmelIdList: List<String>,
     val forrigeBehandlendeEnhet: String,
     val klageJournalpostId: String,
     val brukersHenvendelseMottattNav: LocalDate,
