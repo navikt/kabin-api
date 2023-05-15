@@ -101,7 +101,8 @@ class DokArkivServiceTest {
             fagsystem = FAGSYSTEM,
             fagsystemId = FAGSYSTEM.id,
             klageBehandlendeEnhet = "",
-            tildeltSaksbehandlerIdent = "IDENT"
+            tildeltSaksbehandlerIdent = "IDENT",
+            tildeltSaksbehandlerNavn = "NAVN",
         )
 
         val expectedOutput = Sak(
@@ -520,7 +521,8 @@ class DokArkivServiceTest {
             fagsystem = FAGSYSTEM,
             fagsystemId = FAGSYSTEM.id,
             klageBehandlendeEnhet = ENHET,
-            tildeltSaksbehandlerIdent = "IDENT"
+            tildeltSaksbehandlerIdent = "IDENT",
+            tildeltSaksbehandlerNavn = "NAVN",
         )
     }
 

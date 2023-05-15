@@ -28,6 +28,7 @@ data class CompletedKlagebehandling(
     val fagsystemId: String,
     val klageBehandlendeEnhet: String,
     val tildeltSaksbehandlerIdent: String?,
+    val tildeltSaksbehandlerNavn: String?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

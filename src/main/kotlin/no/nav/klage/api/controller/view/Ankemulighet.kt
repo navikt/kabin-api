@@ -15,4 +15,5 @@ data class Ankemulighet(
     val fagsystemId: String,
     val klageBehandlendeEnhet: String,
     val previousSaksbehandlerIdent: String?,
+    val previousSaksbehandlerNavn: String?,
 )
