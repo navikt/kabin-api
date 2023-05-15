@@ -27,6 +27,7 @@ data class CompletedKlagebehandling(
     val fagsystem: Fagsystem,
     val fagsystemId: String,
     val klageBehandlendeEnhet: String,
+    val tildeltSaksbehandlerIdent: String?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -48,6 +49,7 @@ data class CreatedAnkebehandlingStatus(
     val fagsystem: Fagsystem,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
+    val tildeltSaksbehandlerIdent: String?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -65,6 +67,7 @@ data class CreatedKlagebehandlingStatus(
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val kildereferanse: String,
+    val tildeltSaksbehandlerIdent: String?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -82,6 +85,7 @@ data class CreateKlageBasedOnKabinInput(
     val frist: LocalDate,
     val ytelseId: String,
     val kildereferanse: String,
+    val saksbehandlerIdent: String?,
 )
 
 data class OversendtPartId(

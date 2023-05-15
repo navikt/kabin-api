@@ -77,7 +77,8 @@ class ValidationUtil {
             klager = input.klager!!,
             fullmektig = input.fullmektig,
             ankeDocumentJournalpostId = input.journalpostId!!,
-            avsender = input.avsender
+            avsender = input.avsender,
+            saksbehandlerIdent = input.saksbehandlerIdent
         )
     }
 
@@ -201,7 +202,8 @@ class ValidationUtil {
             klageJournalpostId = input.journalpostId!!,
             ytelseId = input.ytelseId!!,
             hjemmelIdList = input.hjemmelIdList!!,
-            avsender = input.avsender
+            avsender = input.avsender,
+            saksbehandlerIdent = input.saksbehandlerIdent,
         )
     }
 }

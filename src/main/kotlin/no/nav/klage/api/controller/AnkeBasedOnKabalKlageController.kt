@@ -67,6 +67,7 @@ class AnkeBasedOnKabalKlageController(
                 fagsakId = it.fagsakId,
                 fagsystemId = it.fagsystemId,
                 klageBehandlendeEnhet = it.klageBehandlendeEnhet,
+                previousSaksbehandlerIdent = it.tildeltSaksbehandlerIdent,
             )
         }
     }
