@@ -99,7 +99,8 @@ class AnkeBasedOnKabalKlageController(
             frist = response.frist,
             fagsakId = response.fagsakId,
             fagsystemId = response.fagsystemId,
-            journalpost = response.journalpost.toView()
+            journalpost = response.journalpost.toView(),
+            tildeltSaksbehandlerIdent = response.tildeltSaksbehandlerIdent,
         )
     }
 }
