@@ -70,24 +70,6 @@ data class CreatedKlagebehandlingStatus(
     val tildeltSaksbehandlerIdent: String?,
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class CreateKlageBasedOnKabinInput(
-    val sakenGjelder: OversendtPartId,
-    val klager: OversendtPartId?,
-    val fullmektig: OversendtPartId?,
-    val fagsakId: String,
-    val fagsystemId: String,
-    val hjemmelIdList: List<String>,
-    val forrigeBehandlendeEnhet: String,
-    val klageJournalpostId: String,
-    val brukersHenvendelseMottattNav: LocalDate,
-    val sakMottattKa: LocalDate,
-    val frist: LocalDate,
-    val ytelseId: String,
-    val kildereferanse: String,
-    val saksbehandlerIdent: String?,
-)
-
 data class OversendtPartId(
     val type: OversendtPartIdType,
     val value: String
