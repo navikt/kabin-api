@@ -21,7 +21,7 @@ data class CreatedAnkebehandlingStatusView(
     val fagsakId: String,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
-    val tildeltSaksbehandlerIdent: String?
+    val tildeltSaksbehandler: TildeltSaksbehandler?,
 )
 
 data class CreatedKlagebehandlingStatusView(
@@ -40,5 +40,10 @@ data class CreatedKlagebehandlingStatusView(
     val fagsakId: String,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
-    val tildeltSaksbehandlerIdent: String?
+    val tildeltSaksbehandler: TildeltSaksbehandler?,
+)
+
+data class TildeltSaksbehandler(
+    val navIdent: String,
+    val navn: String,
 )
