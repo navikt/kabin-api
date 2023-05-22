@@ -5,6 +5,7 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
+import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
@@ -116,7 +117,7 @@ class KlageController(
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
             journalpost = status.journalpost.toView(),
-            tildeltSaksbehandlerIdent = status.tildeltSaksbehandlerIdent,
+            tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
         )
     }
 }

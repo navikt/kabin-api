@@ -3,6 +3,7 @@ package no.nav.klage.api.controller
 import no.nav.klage.api.controller.mapper.toView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
+import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.GenericApiService
@@ -107,7 +108,7 @@ class AnkeBasedOnKabalKlageController(
             fagsakId = response.fagsakId,
             fagsystemId = response.fagsystemId,
             journalpost = response.journalpost.toView(),
-            tildeltSaksbehandlerIdent = response.tildeltSaksbehandlerIdent,
+            tildeltSaksbehandler = response.tildeltSaksbehandler?.toView(),
         )
     }
 }

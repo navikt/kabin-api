@@ -50,7 +50,7 @@ data class CreatedAnkebehandlingStatus(
     val fagsystem: Fagsystem,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
-    val tildeltSaksbehandlerIdent: String?,
+    val tildeltSaksbehandler: TildeltSaksbehandler?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -68,8 +68,20 @@ data class CreatedKlagebehandlingStatus(
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val kildereferanse: String,
-    val tildeltSaksbehandlerIdent: String?,
+    val tildeltSaksbehandler: TildeltSaksbehandler?,
 )
+
+data class TildeltSaksbehandler(
+    val navIdent: String,
+    val navn: String,
+)
+
+fun TildeltSaksbehandler.toView(): no.nav.klage.api.controller.view.TildeltSaksbehandler {
+    return no.nav.klage.api.controller.view.TildeltSaksbehandler(
+        navIdent = navIdent,
+        navn = navn
+    )
+}
 
 data class OversendtPartId(
     val type: OversendtPartIdType,
