@@ -18,6 +18,6 @@ data class Ankemulighet(
 )
 
 data class PreviousSaksbehandler(
-    val ident: String,
+    val navIdent: String,
     val navn: String,
 )

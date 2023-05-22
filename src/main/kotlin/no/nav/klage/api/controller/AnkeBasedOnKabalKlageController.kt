@@ -70,7 +70,7 @@ class AnkeBasedOnKabalKlageController(
                 previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
                     it.tildeltSaksbehandlerNavn?.let { it2 ->
                         PreviousSaksbehandler(
-                            ident = it1,
+                            navIdent = it1,
                             navn = it2,
                         )
                     }
