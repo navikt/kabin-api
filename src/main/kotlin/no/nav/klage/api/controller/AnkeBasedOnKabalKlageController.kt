@@ -67,8 +67,14 @@ class AnkeBasedOnKabalKlageController(
                 fagsakId = it.fagsakId,
                 fagsystemId = it.fagsystemId,
                 klageBehandlendeEnhet = it.klageBehandlendeEnhet,
-                previousSaksbehandlerIdent = it.tildeltSaksbehandlerIdent,
-                previousSaksbehandlerNavn = it.tildeltSaksbehandlerNavn,
+                previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
+                    it.tildeltSaksbehandlerNavn?.let { it2 ->
+                        PreviousSaksbehandler(
+                            ident = it1,
+                            navn = it2,
+                        )
+                    }
+                },
             )
         }
     }
