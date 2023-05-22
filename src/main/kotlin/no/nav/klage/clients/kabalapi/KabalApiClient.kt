@@ -74,7 +74,7 @@ class KabalApiClient(
 
     fun searchPart(searchPartInput: SearchPartInput): PartView {
         return kabalApiWebClient.post()
-            .uri { it.path("/searchfullmektig").build() }
+            .uri { it.path("/api/internal/searchpart").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
