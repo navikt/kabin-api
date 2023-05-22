@@ -14,4 +14,10 @@ data class Ankemulighet(
     val fagsakId: String,
     val fagsystemId: String,
     val klageBehandlendeEnhet: String,
+    val previousSaksbehandler: PreviousSaksbehandler?,
+)
+
+data class PreviousSaksbehandler(
+    val ident: String,
+    val navn: String,
 )

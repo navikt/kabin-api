@@ -67,6 +67,14 @@ class AnkeBasedOnKabalKlageController(
                 fagsakId = it.fagsakId,
                 fagsystemId = it.fagsystemId,
                 klageBehandlendeEnhet = it.klageBehandlendeEnhet,
+                previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
+                    it.tildeltSaksbehandlerNavn?.let { it2 ->
+                        PreviousSaksbehandler(
+                            ident = it1,
+                            navn = it2,
+                        )
+                    }
+                },
             )
         }
     }
@@ -98,7 +106,8 @@ class AnkeBasedOnKabalKlageController(
             frist = response.frist,
             fagsakId = response.fagsakId,
             fagsystemId = response.fagsystemId,
-            journalpost = response.journalpost.toView()
+            journalpost = response.journalpost.toView(),
+            tildeltSaksbehandlerIdent = response.tildeltSaksbehandlerIdent,
         )
     }
 }

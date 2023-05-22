@@ -115,7 +115,8 @@ class KlageController(
             frist = status.frist,
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
-            journalpost = status.journalpost.toView()
+            journalpost = status.journalpost.toView(),
+            tildeltSaksbehandlerIdent = status.tildeltSaksbehandlerIdent,
         )
     }
 }

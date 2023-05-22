@@ -40,6 +40,7 @@ class GenericApiService(
                 klager = input.klager.toOversendtPartId(),
                 fullmektig = input.fullmektig.toOversendtPartId(),
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
+                saksbehandlerIdent = input.saksbehandlerIdent,
             )
         )
     }
@@ -100,6 +101,7 @@ class GenericApiService(
                 frist = frist,
                 ytelseId = input.ytelseId,
                 kildereferanse = input.sakId,
+                saksbehandlerIdent = input.saksbehandlerIdent
             )
         )
 

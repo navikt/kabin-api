@@ -11,6 +11,7 @@ data class CreateAnkeInput(
     val fullmektig: PartId?,
     val ankeDocumentJournalpostId: String,
     val avsender: PartId?,
+    val saksbehandlerIdent: String?
 )
 
 data class CreateAnkeInputView(
@@ -21,4 +22,5 @@ data class CreateAnkeInputView(
     val fullmektig: PartId?,
     val journalpostId: String?,
     val avsender: PartId?,
+    val saksbehandlerIdent: String?
 )

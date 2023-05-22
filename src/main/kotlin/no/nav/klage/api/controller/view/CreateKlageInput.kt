@@ -13,6 +13,7 @@ data class CreateKlageInput(
     val ytelseId: String,
     val hjemmelIdList: List<String>,
     val avsender: PartId?,
+    val saksbehandlerIdent: String?,
 )
 
 data class CreateKlageInputView(
@@ -26,4 +27,5 @@ data class CreateKlageInputView(
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
     val avsender: PartId?,
+    val saksbehandlerIdent: String?
 )
