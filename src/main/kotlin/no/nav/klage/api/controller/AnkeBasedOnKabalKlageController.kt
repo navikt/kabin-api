@@ -61,7 +61,7 @@ class AnkeBasedOnKabalKlageController(
                 behandlingId = it.behandlingId,
                 ytelseId = it.ytelseId,
                 utfallId = it.utfallId,
-                vedtakDate = it.vedtakDate,
+                vedtakDate = it.vedtakDate.toLocalDate(),
                 sakenGjelder = it.sakenGjelder.toView(),
                 klager = it.klager.toView(),
                 fullmektig = it.fullmektig?.toView(),

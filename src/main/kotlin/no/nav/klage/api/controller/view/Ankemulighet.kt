@@ -1,13 +1,13 @@
 package no.nav.klage.api.controller.view
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.util.*
 
 data class Ankemulighet(
     val behandlingId: UUID,
     val ytelseId: String,
     val utfallId: String,
-    val vedtakDate: LocalDateTime,
+    val vedtakDate: LocalDate,
     val sakenGjelder: PartView,
     val klager: PartView,
     val fullmektig: PartView?,
