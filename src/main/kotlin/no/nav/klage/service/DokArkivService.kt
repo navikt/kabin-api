@@ -40,17 +40,10 @@ class DokArkivService(
     }
 
     private fun getBruker(sakenGjelder: no.nav.klage.clients.kabalapi.PartView): Bruker {
-        return if (sakenGjelder.person != null) {
-            Bruker(
-                id = sakenGjelder.person.foedselsnummer!!,
-                idType = BrukerIdType.FNR,
-            )
-        } else if (sakenGjelder.virksomhet != null) {
-            Bruker(
-                id = sakenGjelder.virksomhet.virksomhetsnummer!!,
-                idType = BrukerIdType.ORGNR
-            )
-        } else throw Exception("Error in sakenGjelder.")
+        return Bruker(
+            id = sakenGjelder.id,
+            idType = BrukerIdType.valueOf(sakenGjelder.type.name)
+        )
     }
 
     fun getSak(klagebehandling: CompletedKlagebehandling): Sak {
@@ -103,23 +96,13 @@ class DokArkivService(
         val avsenderPart = genericApiService.searchPart(
             searchPartInput = SearchPartInput(identifikator = avsender.id)
         )
-        return if (avsender.type == PartView.PartType.ORGNR) {
-            UpdateAvsenderMottakerInJournalpostRequest(
-                avsenderMottaker = AvsenderMottaker(
-                    id = avsender.id,
-                    idType = avsender.type.toAvsenderMottakerIdType(),
-                    navn = avsenderPart.virksomhet?.navn
-                ),
-            )
-        } else {
-            UpdateAvsenderMottakerInJournalpostRequest(
-                avsenderMottaker = AvsenderMottaker(
-                    id = avsender.id,
-                    idType = avsender.type.toAvsenderMottakerIdType(),
-                    navn = avsenderPart.person?.navn?.toName()
-                ),
-            )
-        }
+        return UpdateAvsenderMottakerInJournalpostRequest(
+            avsenderMottaker = AvsenderMottaker(
+                id = avsender.id,
+                idType = avsender.type.toAvsenderMottakerIdType(),
+                navn = avsenderPart.name
+            ),
+        )
     }
 
     fun updateSakInJournalpost(
