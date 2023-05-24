@@ -4,15 +4,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.clients.KabalInnstillingerClient
+import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
 import no.nav.klage.clients.dokarkiv.Sak
 import no.nav.klage.clients.kabalapi.CompletedKlagebehandling
-import no.nav.klage.clients.kabalapi.NavnView
 import no.nav.klage.clients.kabalapi.PartView
-import no.nav.klage.clients.kabalapi.PersonView
-import no.nav.klage.clients.KabalInnstillingerClient
-import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.clients.saf.graphql.Tema.OMS
@@ -49,14 +47,10 @@ class DokArkivServiceTest {
     private val SAKS_ID = "SAKS_ID"
     private val FAGSYSTEM = Fagsystem.FS38
     private val FNR = "28838098519"
-    private val PERSON = PersonView(
-        foedselsnummer = FNR,
-        navn = NavnView(
-            fornavn = "FORNAVN",
-            mellomnavn = null,
-            etternavn = "ETTERNAVN"
-        ),
-        kjoenn = null
+    private val PERSON = PartView(
+        id = FNR,
+        name = "FORNAVN ETTERNAVN",
+        type = PartView.PartType.FNR,
     )
     private val avsenderMottaker = AvsenderMottaker(
         id = "12345678910",
@@ -91,8 +85,8 @@ class DokArkivServiceTest {
             ytelseId = "",
             utfallId = "",
             vedtakDate = LocalDateTime.now(),
-            sakenGjelder = PartView(person = null, virksomhet = null),
-            klager = PartView(person = null, virksomhet = null),
+            sakenGjelder = PERSON,
+            klager = PERSON,
             fullmektig = null,
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
@@ -187,7 +181,7 @@ class DokArkivServiceTest {
         @Test
         fun `unfinished journalpost without avsender - Avsender in request - Sak and avsender is updated and journalpost is finalized`() {
             every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { genericApiService.searchPart(any()) } returns PartView(person = null, virksomhet = null)
+            every { genericApiService.searchPart(any()) } returns PERSON
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
             every { dokArkivClient.updateSakInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
@@ -210,6 +204,7 @@ class DokArkivServiceTest {
                             avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
                                 id = FNR,
                                 idType = AvsenderMottakerIdType.FNR,
+                                navn = "FORNAVN ETTERNAVN",
                             ),
                         ),
                     )
@@ -327,7 +322,7 @@ class DokArkivServiceTest {
         @Test
         fun `journalfoert incoming journalpost - Avsender in request, correct fagsak - Avsender updated, then returned`() {
             every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { genericApiService.searchPart(any()) } returns PartView(person = null, virksomhet = null)
+            every { genericApiService.searchPart(any()) } returns PERSON
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
             every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
 
@@ -348,6 +343,7 @@ class DokArkivServiceTest {
                             avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
                                 id = FNR,
                                 idType = AvsenderMottakerIdType.FNR,
+                                navn = "FORNAVN ETTERNAVN",
                             ),
                         )
                     )
@@ -440,7 +436,7 @@ class DokArkivServiceTest {
         @Test
         fun `journalfoert incoming journalpost - Avsender in request, incorrect fagsak - Handled correctly`() {
             every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { genericApiService.searchPart(any()) } returns PartView(person = null, virksomhet = null)
+            every { genericApiService.searchPart(any()) } returns PERSON
             every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpost()
             every { tokenUtil.getIdent() } returns IDENT
             every {
@@ -470,6 +466,7 @@ class DokArkivServiceTest {
                             avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
                                 id = FNR,
                                 idType = AvsenderMottakerIdType.FNR,
+                                navn = "FORNAVN ETTERNAVN",
                             ),
                         )
                     )
@@ -508,11 +505,8 @@ class DokArkivServiceTest {
             ytelseId = Ytelse.OMS_OLP.id,
             utfallId = Utfall.STADFESTELSE.id,
             vedtakDate = LocalDateTime.now(),
-            sakenGjelder = PartView(
-                person = PERSON,
-                virksomhet = null
-            ),
-            klager = PartView(person = null, virksomhet = null),
+            sakenGjelder = PERSON,
+            klager = PERSON,
             fullmektig = null,
             tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,

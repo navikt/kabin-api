@@ -92,51 +92,22 @@ enum class OversendtPartIdType { PERSON, VIRKSOMHET }
 
 data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class PartView(
-    val person: PersonView?,
-    val virksomhet: VirksomhetView?
+    val id: String,
+    val type: PartType,
+    val name: String?,
 ) {
-    fun toView(): no.nav.klage.api.controller.view.PartView {
-        return if (person != null) {
-            no.nav.klage.api.controller.view.PartView(
-                id = person.foedselsnummer!!,
-                type = no.nav.klage.api.controller.view.PartView.PartType.FNR,
-                name = person.navn?.toName()
-            )
-        } else if (virksomhet != null) {
-            no.nav.klage.api.controller.view.PartView(
-                id = virksomhet.virksomhetsnummer!!,
-                type = no.nav.klage.api.controller.view.PartView.PartType.ORGNR,
-                name = virksomhet.navn
-            )
-        } else {
-            throw RuntimeException("no part found")
-        }
+    enum class PartType {
+        FNR, ORGNR
     }
-}
 
-data class VirksomhetView(
-    val virksomhetsnummer: String?,
-    val navn: String?,
-)
-
-data class PersonView(
-    val foedselsnummer: String?,
-    val navn: NavnView?,
-    val kjoenn: String?,
-)
-
-data class NavnView(
-    val fornavn: String?,
-    val mellomnavn: String?,
-    val etternavn: String?,
-) {
-    fun toName(): String {
-        return if (mellomnavn != null) {
-            "$fornavn $mellomnavn $etternavn"
-        } else {
-            "$fornavn $etternavn"
-        }
+    fun toView(): no.nav.klage.api.controller.view.PartView {
+        return no.nav.klage.api.controller.view.PartView(
+            id = id,
+            type = no.nav.klage.api.controller.view.PartView.PartType.valueOf(type.name),
+            name = name
+        )
     }
 }
 
