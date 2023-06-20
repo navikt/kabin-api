@@ -18,6 +18,7 @@ class CommonController(
     private val genericApiService: GenericApiService,
     private val documentService: DocumentService,
     private val tokenUtil: TokenUtil,
+    private val auditLogger: AuditLogger,
 ) {
 
     companion object {
@@ -47,7 +48,15 @@ class CommonController(
             temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
             pageSize = pageSize,
             previousPageRef = previousPageRef
-        )
+        ).also {
+            auditLogger.log(
+                AuditLogEvent(
+                    navIdent = tokenUtil.getIdent(),
+                    personFnr = input.idnummer,
+                    message = "Søkt opp person for å opprette klage/anke."
+                )
+            )
+        }
     }
 
     @PostMapping("/searchpart")
