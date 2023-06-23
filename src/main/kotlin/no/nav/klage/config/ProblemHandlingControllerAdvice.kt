@@ -1,5 +1,6 @@
 package no.nav.klage.config
 
+import no.nav.klage.exceptions.JournalpostNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.util.getSecureLogger
 import org.springframework.http.*
@@ -37,6 +38,12 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ): ProblemDetail =
         createProblemForWebClientResponseException(ex)
 
+    @ExceptionHandler
+    fun handleJournalpostNotFoundException(
+        ex: JournalpostNotFoundException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
     fun handleSectionedValidationErrorWithDetailsException(

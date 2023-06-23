@@ -6,3 +6,5 @@ class SectionedValidationErrorWithDetailsException(val title: String, val sectio
     RuntimeException()
 
 data class ValidationSection(val section: String, val properties: List<InvalidProperty>)
+
+class JournalpostNotFoundException(override val message: String): RuntimeException(message)

@@ -13,6 +13,7 @@ import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.exceptions.InvalidProperty
+import no.nav.klage.exceptions.JournalpostNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Tema
@@ -172,12 +173,16 @@ class DokArkivService(
         sakId: String,
         avsender: PartId?,
     ): String {
+        val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
+            ?: throw JournalpostNotFoundException("Fant ikke journalpost i SAF")
+
+        val tema = journalpostInSaf.tema
         val sakFromKlanke = fssProxyClient.getSak(sakId)
 
         return handleJournalpost(
             journalpostId = journalpostId,
             avsender = avsender,
-            tema = Tema.valueOf(sakFromKlanke.tema),
+            tema = Tema.fromNavn(tema.name),
             bruker = Bruker(
                 id = sakFromKlanke.fnr, idType = BrukerIdType.FNR
             ),
