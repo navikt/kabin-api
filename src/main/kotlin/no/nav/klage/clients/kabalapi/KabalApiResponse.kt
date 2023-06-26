@@ -97,6 +97,7 @@ data class PartView(
     val id: String,
     val type: PartType,
     val name: String?,
+    val available: Boolean,
 ) {
     enum class PartType {
         FNR, ORGNR
@@ -106,7 +107,8 @@ data class PartView(
         return no.nav.klage.api.controller.view.PartView(
             id = id,
             type = no.nav.klage.api.controller.view.PartView.PartType.valueOf(type.name),
-            name = name
+            name = name,
+            available = available,
         )
     }
 }
