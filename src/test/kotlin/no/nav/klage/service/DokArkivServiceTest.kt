@@ -51,6 +51,7 @@ class DokArkivServiceTest {
         id = FNR,
         name = "FORNAVN ETTERNAVN",
         type = PartView.PartType.FNR,
+        available = true,
     )
     private val avsenderMottaker = AvsenderMottaker(
         id = "12345678910",
