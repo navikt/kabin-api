@@ -201,7 +201,7 @@ class DokArkivService(
         avsender: PartId?,
     ): String {
         val completedKlagebehandling =
-        genericApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
+            genericApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
 
         return handleJournalpost(
             journalpostId = journalpostId,
@@ -215,14 +215,22 @@ class DokArkivService(
 
     private fun handleJournalpost(
         journalpostId: String,
-        avsender: PartId? = null,
+        avsender: PartId?,
         tema: Tema,
         bruker: Bruker,
         sak: Sak,
         journalfoerendeEnhet: String
     ): String {
+        logger.debug("handleJournalpost called")
         val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
+
+        secureLogger.debug(
+            "handleJournalpost called. Fetched journalpostInSaf: {}, sak: {}, tema: {}",
+            journalpostInSaf,
+            sak,
+            tema
+        )
 
         if (journalpostInSaf.journalposttype != Journalposttype.N
             && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
@@ -246,6 +254,7 @@ class DokArkivService(
         }
 
         if (journalpostInSaf.journalposttype != Journalposttype.N && avsender != null) {
+            logger.debug("updating avsender in journalpost")
             updateAvsenderInJournalpost(
                 journalpostId = journalpostId,
                 avsender = avsender,
@@ -253,7 +262,8 @@ class DokArkivService(
         }
 
         if (journalpostCanBeUpdated(journalpostInSaf)) {
-            secureLogger.debug("Journalpost: {}", journalpostInSaf)
+            logger.debug("journalpost can be updated")
+            secureLogger.debug("Journalpost can be updated: {}", journalpostInSaf)
 
             updateSakInJournalpost(
                 journalpostId = journalpostId,
@@ -274,8 +284,15 @@ class DokArkivService(
                     sak = sak,
                 )
             ) {
+                logger.debug("journalpostAndCompletedKlagebehandlingHaveTheSameFagsak")
                 journalpostId
             } else {
+                logger.debug("Creating new createNewJournalpostBasedOnExistingJournalpost")
+                secureLogger.debug(
+                    "Creating new createNewJournalpostBasedOnExistingJournalpost. JournalpostinSaf: {}, sak: {}",
+                    journalpostInSaf,
+                    sak
+                )
                 val newJournalpostId = createNewJournalpostBasedOnExistingJournalpost(
                     oldJournalpost = journalpostInSaf,
                     sak = sak,
@@ -326,8 +343,15 @@ class DokArkivService(
     ): Boolean {
         return if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
             false
-        } else (journalpostInSaf.sak.fagsakId == sak.fagsakid
-                && FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == sak.fagsaksystem)
+        } else {
+            logger.debug(
+                "journalpostInSaf.sak.fagsaksystem: {} , sak.fagsaksystem: {}",
+                FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem),
+                sak.fagsaksystem
+            )
+            (journalpostInSaf.sak.fagsakId == sak.fagsakid
+                    && FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == sak.fagsaksystem)
+        }
     }
 
     fun updateDocumentTitle(
