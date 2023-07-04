@@ -126,43 +126,30 @@ class DokArkivService(
         )
     }
 
-    private fun journalpostCanBeUpdated(journalpostInSaf: Journalpost): Boolean {
-        return when (journalpostInSaf.journalposttype) {
+    private fun Journalpost.isFinalized(): Boolean {
+        return when (journalposttype) {
             Journalposttype.I -> {
-                when (journalpostInSaf.journalstatus) {
-                    Journalstatus.MOTTATT,
-                    Journalstatus.OPPLASTING_DOKUMENT,
-                    Journalstatus.UKJENT_BRUKER,
-                    Journalstatus.UTGAAR -> true
-
-                    Journalstatus.JOURNALFOERT -> false
-
-                    else -> throw RuntimeException("Invalid Journalstatus for journalposttype I")
+                when (journalstatus) {
+                    Journalstatus.JOURNALFOERT -> true
+                    else -> false
                 }
             }
 
             Journalposttype.U -> {
-                when (journalpostInSaf.journalstatus) {
-                    Journalstatus.RESERVERT,
-                    Journalstatus.UNDER_ARBEID,
-                    Journalstatus.AVBRUTT -> true
-
+                when (journalstatus) {
                     Journalstatus.FERDIGSTILT,
-                    Journalstatus.EKSPEDERT -> false
+                    Journalstatus.EKSPEDERT -> true
 
-                    else -> throw RuntimeException("Invalid Journalstatus for journalposttype U")
+                    else -> false
                 }
             }
 
             Journalposttype.N -> {
-                when (journalpostInSaf.journalstatus) {
-                    Journalstatus.UNDER_ARBEID,
-                    Journalstatus.AVBRUTT -> true
-
+                when (journalstatus) {
                     Journalstatus.FERDIGSTILT,
-                    Journalstatus.EKSPEDERT -> false
+                    Journalstatus.EKSPEDERT -> true
 
-                    else -> throw RuntimeException("Invalid Journalstatus for journalposttype N")
+                    else -> false
                 }
             }
         }
@@ -186,7 +173,7 @@ class DokArkivService(
             bruker = Bruker(
                 id = sakFromKlanke.fnr, idType = BrukerIdType.FNR
             ),
-            sak = Sak(
+            sakInFagsystem = Sak(
                 sakstype = Sakstype.FAGSAK,
                 fagsaksystem = FagsaksSystem.IT01,
                 fagsakid = sakFromKlanke.fagsakId
@@ -208,7 +195,7 @@ class DokArkivService(
             avsender = avsender,
             tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
             bruker = getBruker(completedKlagebehandling.sakenGjelder),
-            sak = getSak(completedKlagebehandling),
+            sakInFagsystem = getSak(completedKlagebehandling),
             journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet,
         )
     }
@@ -218,7 +205,7 @@ class DokArkivService(
         avsender: PartId?,
         tema: Tema,
         bruker: Bruker,
-        sak: Sak,
+        sakInFagsystem: Sak,
         journalfoerendeEnhet: String
     ): String {
         logger.debug("handleJournalpost called")
@@ -228,13 +215,13 @@ class DokArkivService(
         secureLogger.debug(
             "handleJournalpost called. Fetched journalpostInSaf: {}, sak: {}, tema: {}",
             journalpostInSaf,
-            sak,
+            sakInFagsystem,
             tema
         )
 
         if (journalpostInSaf.journalposttype != Journalposttype.N
             && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
-            && journalpostCanBeUpdated(journalpostInSaf)
+            && !journalpostInSaf.isFinalized()
             && avsender == null
         ) {
             throw SectionedValidationErrorWithDetailsException(
@@ -254,34 +241,19 @@ class DokArkivService(
         }
 
         if (journalpostInSaf.journalposttype != Journalposttype.N && avsender != null) {
-            logger.debug("updating avsender in journalpost")
-            updateAvsenderInJournalpost(
-                journalpostId = journalpostId,
-                avsender = avsender,
-            )
+            if (journalpostInSaf.avsenderMottaker?.id != avsender.id) {
+                logger.debug("updating avsender in journalpost")
+                updateAvsenderInJournalpost(
+                    journalpostId = journalpostId,
+                    avsender = avsender,
+                )
+            }
         }
 
-        if (journalpostCanBeUpdated(journalpostInSaf)) {
-            logger.debug("journalpost can be updated")
-            secureLogger.debug("Journalpost can be updated: {}", journalpostInSaf)
-
-            updateSakInJournalpost(
-                journalpostId = journalpostId,
-                tema = tema,
-                bruker = bruker,
-                sak = sak,
-                journalfoerendeEnhet = journalfoerendeEnhet,
-            )
-
-            finalizeJournalpost(
-                journalpostId = journalpostId,
-                journalfoerendeEnhet = journalfoerendeEnhet,
-            )
-            return journalpostId
-        } else {
+        if (journalpostInSaf.isFinalized()) {
             return if (journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
                     journalpostInSaf = journalpostInSaf,
-                    sak = sak,
+                    sakInFagsystem = sakInFagsystem,
                 )
             ) {
                 logger.debug("journalpostAndCompletedKlagebehandlingHaveTheSameFagsak")
@@ -291,11 +263,11 @@ class DokArkivService(
                 secureLogger.debug(
                     "Creating new createNewJournalpostBasedOnExistingJournalpost. JournalpostinSaf: {}, sak: {}",
                     journalpostInSaf,
-                    sak
+                    sakInFagsystem
                 )
                 val newJournalpostId = createNewJournalpostBasedOnExistingJournalpost(
                     oldJournalpost = journalpostInSaf,
-                    sak = sak,
+                    sak = sakInFagsystem,
                     tema = tema,
                     bruker = bruker,
                     journalfoerendeEnhet = journalfoerendeEnhet,
@@ -303,6 +275,29 @@ class DokArkivService(
                 dokArkivClient.registerErrorInSaksId(journalpostId)
                 newJournalpostId
             }
+        } else {
+            logger.debug("Journalpost is not finalized")
+            secureLogger.debug("Journalpost is not finalized: {}", journalpostInSaf)
+
+            if (!journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+                    journalpostInSaf = journalpostInSaf,
+                    sakInFagsystem = sakInFagsystem,
+                )
+            ) {
+                updateSakInJournalpost(
+                    journalpostId = journalpostId,
+                    tema = tema,
+                    bruker = bruker,
+                    sak = sakInFagsystem,
+                    journalfoerendeEnhet = journalfoerendeEnhet,
+                )
+            }
+
+            finalizeJournalpost(
+                journalpostId = journalpostId,
+                journalfoerendeEnhet = journalfoerendeEnhet,
+            )
+            return journalpostId
         }
     }
 
@@ -339,18 +334,18 @@ class DokArkivService(
 
     private fun journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
         journalpostInSaf: Journalpost,
-        sak: Sak,
+        sakInFagsystem: Sak,
     ): Boolean {
         return if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
             false
         } else {
             logger.debug(
-                "journalpostInSaf.sak.fagsaksystem: {} , sak.fagsaksystem: {}",
+                "journalpostInSaf.sak.fagsaksystem: {}, sak.fagsaksystem: {}",
                 FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem),
-                sak.fagsaksystem
+                sakInFagsystem.fagsaksystem
             )
-            (journalpostInSaf.sak.fagsakId == sak.fagsakid
-                    && FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == sak.fagsaksystem)
+            (journalpostInSaf.sak.fagsakId == sakInFagsystem.fagsakid
+                    && FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == sakInFagsystem.fagsaksystem)
         }
     }
 
