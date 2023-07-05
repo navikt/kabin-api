@@ -17,6 +17,7 @@ import no.nav.klage.exceptions.JournalpostNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -179,6 +180,7 @@ class DokArkivService(
                 fagsakid = sakFromKlanke.fagsakId
             ),
             journalfoerendeEnhet = kabalInnstillingerClient.getBrukerdata().ansattEnhet.id,
+            type = Type.KLAGE,
         )
     }
 
@@ -197,6 +199,7 @@ class DokArkivService(
             bruker = getBruker(completedKlagebehandling.sakenGjelder),
             sakInFagsystem = getSak(completedKlagebehandling),
             journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet,
+            type = Type.ANKE,
         )
     }
 
@@ -206,7 +209,8 @@ class DokArkivService(
         tema: Tema,
         bruker: Bruker,
         sakInFagsystem: Sak,
-        journalfoerendeEnhet: String
+        journalfoerendeEnhet: String,
+        type: Type,
     ): String {
         logger.debug("handleJournalpost called")
         val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
@@ -251,6 +255,12 @@ class DokArkivService(
         }
 
         if (journalpostInSaf.isFinalized()) {
+
+            //Never change journalpost for klager
+            if (type == Type.KLAGE) {
+                return journalpostId
+            }
+
             return if (journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
                     journalpostInSaf = journalpostInSaf,
                     sakInFagsystem = sakInFagsystem,
@@ -279,7 +289,7 @@ class DokArkivService(
             logger.debug("Journalpost is not finalized")
             secureLogger.debug("Journalpost is not finalized: {}", journalpostInSaf)
 
-            if (!journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+            if (type != Type.KLAGE && !journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
                     journalpostInSaf = journalpostInSaf,
                     sakInFagsystem = sakInFagsystem,
                 )
