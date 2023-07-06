@@ -8,7 +8,7 @@ val logbackSyslog4jVersion = "1.0.0"
 val klageKodeverkVersion = "1.3.14"
 
 plugins {
-    val kotlinVersion = "1.8.21"
+    val kotlinVersion = "1.9.0"
     id("org.springframework.boot") version "3.0.6"
     id("io.spring.dependency-management") version "1.1.0"
     kotlin("jvm") version kotlinVersion
