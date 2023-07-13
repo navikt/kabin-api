@@ -9,6 +9,7 @@ import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.infotrygdKlageutfallToUtfall
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.GenericApiService
@@ -64,9 +65,10 @@ class KlageController(
 
         return fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"))
             .filter {
-                !genericApiService.klagemulighetIsDuplicate(
+                !genericApiService.mulighetIsDuplicate(
                     fagsystem = Fagsystem.IT01,
-                    kildereferanse = it.sakId
+                    kildereferanse = it.sakId,
+                    type = Type.KLAGE,
                 )
             }
             .map {
