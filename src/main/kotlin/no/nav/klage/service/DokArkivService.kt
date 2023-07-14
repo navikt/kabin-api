@@ -1,9 +1,6 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.CreateAnkeInputView
-import no.nav.klage.api.controller.view.PartId
-import no.nav.klage.api.controller.view.PartView
-import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.dokarkiv.*
@@ -158,14 +155,15 @@ class DokArkivService(
 
     fun handleJournalpostBasedOnInfotrygdSak(
         journalpostId: String,
-        sakId: String,
+        eksternBehandlingId: String,
         avsender: PartId?,
+        type: Type,
     ): String {
         val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw JournalpostNotFoundException("Fant ikke journalpost i SAF")
 
         val tema = journalpostInSaf.tema
-        val sakFromKlanke = fssProxyClient.getSak(sakId)
+        val sakFromKlanke = fssProxyClient.getSak(eksternBehandlingId)
 
         return handleJournalpost(
             journalpostId = journalpostId,
@@ -180,8 +178,25 @@ class DokArkivService(
                 fagsakid = sakFromKlanke.fagsakId
             ),
             journalfoerendeEnhet = kabalInnstillingerClient.getBrukerdata().ansattEnhet.id,
-            type = Type.KLAGE,
+            type = type,
         )
+    }
+
+    fun handleJournalpostBasedOnAnkeInput(input: CreateAnkeInput): String {
+        return if (input.eksternBehandlingId != null) {
+            handleJournalpostBasedOnInfotrygdSak(
+                journalpostId = input.ankeDocumentJournalpostId,
+                eksternBehandlingId = input.eksternBehandlingId,
+                avsender = input.avsender,
+                type = Type.ANKE,
+            )
+        } else {
+            handleJournalpostBasedOnKabalKlagebehandling(
+                journalpostId = input.ankeDocumentJournalpostId,
+                klagebehandlingId = input.klagebehandlingId!!,
+                avsender = input.avsender,
+            )
+        }
     }
 
     fun handleJournalpostBasedOnKabalKlagebehandling(

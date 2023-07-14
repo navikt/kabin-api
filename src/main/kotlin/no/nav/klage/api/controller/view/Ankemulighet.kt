@@ -5,7 +5,9 @@ import java.util.*
 
 data class Ankemulighet(
     val behandlingId: UUID?,
+    val eksternBehandlingId: String?,
     val ytelseId: String?,
+    val hjemmelId: String?,
     val utfallId: String,
     val temaId: String,
     val vedtakDate: LocalDate,

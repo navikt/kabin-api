@@ -48,8 +48,9 @@ class KlageController(
 
         val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
             journalpostId = processedInput.klageJournalpostId,
-            sakId = processedInput.sakId,
-            avsender = input.avsender
+            eksternBehandlingId = processedInput.eksternBehandlingId,
+            avsender = input.avsender,
+            type = Type.KLAGE
         )
 
         return genericApiService.createKlage(processedInput.copy(klageJournalpostId = journalpostId))
@@ -76,7 +77,6 @@ class KlageController(
                     sakId = it.sakId,
                     behandlingId = it.sakId,
                     temaId = Tema.fromNavn(it.tema).id,
-                    utfall = it.utfall,
                     utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
                     vedtakDate = it.vedtaksdato,
                     fagsakId = it.fagsakId,

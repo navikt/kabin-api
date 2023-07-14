@@ -7,7 +7,6 @@ data class Klagemulighet(
     val behandlingId: String,
     val temaId: String,
     val utfallId: String,
-    val utfall: String,
     val vedtakDate: LocalDate,
     val sakenGjelder: PartView,
     val fagsakId: String,

@@ -39,11 +39,7 @@ class AnkeController(
 
         val processedInput = validationUtil.validateCreateAnkeInputView(input)
 
-        val journalpostId = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
-            journalpostId = processedInput.ankeDocumentJournalpostId,
-            klagebehandlingId = processedInput.klagebehandlingId,
-            avsender = processedInput.avsender
-        )
+        val journalpostId = dokArkivService.handleJournalpostBasedOnAnkeInput(processedInput)
 
         return genericApiService.createAnkeInKabal(processedInput.copy(ankeDocumentJournalpostId = journalpostId))
     }
