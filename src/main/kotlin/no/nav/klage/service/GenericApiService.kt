@@ -125,12 +125,12 @@ class GenericApiService(
                 fagsakId = sakFromKlanke.fagsakId,
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
-                hjemmelId = input.hjemmelId,
+                hjemmelId = input.hjemmelId!!,
                 forrigeBehandlendeEnhet = sakFromKlanke.enhetsnummer,
                 ankeJournalpostId = input.ankeDocumentJournalpostId,
                 mottattNav = input.mottattKlageinstans,
                 frist = frist,
-                ytelseId = input.ytelseId,
+                ytelseId = input.ytelseId!!,
                 kildereferanse = input.eksternBehandlingId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
             )
