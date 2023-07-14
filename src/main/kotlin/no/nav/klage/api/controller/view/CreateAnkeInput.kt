@@ -11,8 +11,8 @@ data class CreateAnkeInput(
     val klager: PartId,
     val fullmektig: PartId?,
     val ankeDocumentJournalpostId: String,
-    val ytelseId: String,
-    val hjemmelId: String,
+    val ytelseId: String?,
+    val hjemmelId: String?,
     val avsender: PartId?,
     val saksbehandlerIdent: String?
 )

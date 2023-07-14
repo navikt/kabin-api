@@ -54,30 +54,18 @@ class ValidationUtil {
             )
         }
 
-        if (input.ytelseId == null) {
-            validationErrors += InvalidProperty(
-                field = CreateAnkeInputView::ytelseId.name,
-                reason = "Velg en ytelse."
-            )
-        } else {
-            if (Ytelse.values().firstOrNull { it.id == input.ytelseId } == null) {
-                validationErrors += InvalidProperty(
-                    field = CreateAnkeInputView::ytelseId.name,
-                    reason = "Ugyldig ytelse."
-                )
-            }
-        }
-
-        if (input.hjemmelId.isNullOrEmpty()) {
-            validationErrors += InvalidProperty(
-                field = CreateKlageInputView::hjemmelId.name,
-                reason = "Velg minst én hjemmel."
-            )
-        } else {
-            if (Hjemmel.values().firstOrNull { it.id == input.hjemmelId } == null) {
+        if (input.behandlingId == null) {
+            if (input.hjemmelId == null) {
                 validationErrors += InvalidProperty(
                     field = CreateKlageInputView::hjemmelId.name,
-                    reason = "Hjemmel med id ${input.hjemmelId} er ugyldig."
+                    reason = "Velg en hjemmel."
+                )
+            }
+
+            if (input.ytelseId == null) {
+                validationErrors += InvalidProperty(
+                    field = CreateAnkeInputView::ytelseId.name,
+                    reason = "Velg en ytelse."
                 )
             }
         }
@@ -106,8 +94,8 @@ class ValidationUtil {
             klager = input.klager!!,
             fullmektig = input.fullmektig,
             ankeDocumentJournalpostId = input.journalpostId!!,
-            ytelseId = input.ytelseId!!,
-            hjemmelId = input.hjemmelId!!,
+            ytelseId = input.ytelseId,
+            hjemmelId = input.hjemmelId,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent
         )
@@ -185,19 +173,12 @@ class ValidationUtil {
                 field = CreateKlageInputView::ytelseId.name,
                 reason = "Velg en ytelse."
             )
-        } else {
-            if (Ytelse.values().firstOrNull { it.id == input.ytelseId } == null) {
-                validationErrors += InvalidProperty(
-                    field = CreateKlageInputView::ytelseId.name,
-                    reason = "Ugyldig ytelse."
-                )
-            }
         }
 
         if (input.hjemmelIdList.isNullOrEmpty() && input.hjemmelId == null) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::hjemmelId.name,
-                reason = "Velg minst én hjemmel."
+                reason = "Velg en hjemmel."
             )
         }
 
