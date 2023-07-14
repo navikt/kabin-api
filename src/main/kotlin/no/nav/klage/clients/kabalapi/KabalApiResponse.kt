@@ -16,6 +16,7 @@ data class CompletedKlagebehandling(
     val behandlingId: UUID,
     val ytelseId: String,
     val utfallId: String,
+    val hjemmelId: String,
     val vedtakDate: LocalDateTime,
     val sakenGjelder: PartView,
     val klager: PartView,

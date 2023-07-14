@@ -7,6 +7,7 @@ import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.kodeverk.*
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -14,38 +15,56 @@ import java.util.*
 @Service
 class GenericApiService(
     private val kabalApiClient: KabalApiClient,
-    private val fssProxyClient: KlageFssProxyClient
+    private val fssProxyClient: KlageFssProxyClient,
+    @Value("\${FETCH_ANKEMULIGHETER_FROM_INFOTRYGD}")
+    private val toggleFetchFromInfotrygd: Boolean
 ) {
     fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
-        val ankemuligheterFromInfotrygd = fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"))
-            .filter {
-                !mulighetIsDuplicate(
-                    fagsystem = Fagsystem.IT01,
-                    kildereferanse = it.sakId,
-                    type = Type.ANKE,
-                )
-            }
-            .map {
-                Ankemulighet(
-                    behandlingId = null,
-                    ytelseId = null,
-                    utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
-                    temaId = Tema.fromNavn(it.tema).id,
-                    vedtakDate = it.vedtaksdato,
-                    sakenGjelder = searchPart(SearchPartInput(identifikator = it.fnr)).toView(),
-                    klager = null,
-                    fullmektig = null,
-                    fagsakId = it.fagsakId,
-                    //TODO: Tilpass når vi får flere fagsystemer.
-                    fagsystemId = Fagsystem.IT01.id,
-                    klageBehandlendeEnhet = it.enhetsnummer,
-                    previousSaksbehandler = null,
-                )
-            }
+        val ankemuligheterFromInfotrygd =
+            if (toggleFetchFromInfotrygd && fssProxyClient.checkAccess().access) {
+            fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"))
+                .filter {
+                    val utfallInSak = infotrygdKlageutfallToUtfall[it.utfall]
+                    utfallInSak !in setOf(
+                        Utfall.RETUR,
+                        Utfall.TRUKKET,
+                        Utfall.OPPHEVET,
+                    )
+                }
+                .filter {
+                    !mulighetIsDuplicate(
+                        fagsystem = Fagsystem.IT01,
+                        kildereferanse = it.sakId,
+                        type = Type.ANKE,
+                    )
+                }
+                .map {
+                    Ankemulighet(
+                        behandlingId = null,
+                        eksternBehandlingId = it.sakId,
+                        ytelseId = null,
+                        hjemmelId = null,
+                        utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
+                        temaId = Tema.fromNavn(it.tema).id,
+                        vedtakDate = it.vedtaksdato,
+                        sakenGjelder = searchPart(SearchPartInput(identifikator = it.fnr)).toView(),
+                        klager = null,
+                        fullmektig = null,
+                        fagsakId = it.fagsakId,
+                        //TODO: Tilpass når vi får flere fagsystemer.
+                        fagsystemId = Fagsystem.IT01.id,
+                        klageBehandlendeEnhet = it.enhetsnummer,
+                        previousSaksbehandler = null,
+                    )
+                }
+            } else emptyList()
+
         val ankemuligheterFromKabal = getCompletedKlagebehandlingerByIdnummer(input).map {
             Ankemulighet(
                 behandlingId = it.behandlingId,
+                eksternBehandlingId = null,
                 ytelseId = it.ytelseId,
+                hjemmelId = it.hjemmelId,
                 utfallId = it.utfallId,
                 temaId = Ytelse.of(it.ytelseId).toTema().id,
                 vedtakDate = it.vedtakDate.toLocalDate(),
@@ -70,7 +89,6 @@ class GenericApiService(
     }
 
 
-
     fun getCompletedKlagebehandlingerByIdnummer(idnummerInput: IdnummerInput): List<CompletedKlagebehandling> {
         return kabalApiClient.getCompletedKlagebehandlingerByIdnummer(idnummerInput)
     }
@@ -78,7 +96,7 @@ class GenericApiService(
     fun getCompletedKlagebehandling(klagebehandlingId: UUID): CompletedKlagebehandling {
         return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
     }
-    
+
     fun mulighetIsDuplicate(fagsystem: Fagsystem, kildereferanse: String, type: Type): Boolean {
         return kabalApiClient.checkDuplicateInKabal(
             input = IsDuplicateInput(fagsystemId = fagsystem.id, kildereferanse = kildereferanse, typeId = type.id)
@@ -86,11 +104,53 @@ class GenericApiService(
     }
 
     fun createAnkeInKabal(input: CreateAnkeInput): CreatedBehandlingResponse {
-        return kabalApiClient.createAnkeInKabal(
-            CreateAnkeBasedOnKlagebehandling(
-                klagebehandlingId = input.klagebehandlingId,
+        return if (input.eksternBehandlingId != null) {
+            createAnkeInKabalFromCompleteInput(input)
+        } else {
+            createAnkeInKabalFromKlagebehandling(input)
+        }
+    }
+
+    private fun createAnkeInKabalFromCompleteInput(input: CreateAnkeInput): CreatedBehandlingResponse {
+        val sakFromKlanke = fssProxyClient.getSak(input.eksternBehandlingId!!)
+        val frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong())
+        val createdBehandlingResponse = kabalApiClient.createAnkeFromCompleteInputInKabal(
+            CreateAnkeBasedOnKabinInput(
+                sakenGjelder = OversendtPartId(
+                    type = OversendtPartIdType.PERSON,
+                    value = sakFromKlanke.fnr
+                ),
+                klager = input.klager.toOversendtPartId(),
+                fullmektig = input.fullmektig.toOversendtPartId(),
+                fagsakId = sakFromKlanke.fagsakId,
+                //TODO: Tilpass når vi får flere fagsystemer.
+                fagsystemId = Fagsystem.IT01.id,
+                hjemmelId = input.hjemmelId,
+                forrigeBehandlendeEnhet = sakFromKlanke.enhetsnummer,
+                ankeJournalpostId = input.ankeDocumentJournalpostId,
                 mottattNav = input.mottattKlageinstans,
-                fristInWeeks = input.fristInWeeks,
+                frist = frist,
+                ytelseId = input.ytelseId,
+                kildereferanse = input.eksternBehandlingId,
+                saksbehandlerIdent = input.saksbehandlerIdent,
+            )
+        )
+
+        fssProxyClient.setToHandledInKabal(
+            sakFromKlanke.sakId, HandledInKabalInput(
+                fristAsString = frist.format(DateTimeFormatter.BASIC_ISO_DATE)
+            )
+        )
+
+        return createdBehandlingResponse
+    }
+
+    private fun createAnkeInKabalFromKlagebehandling(input: CreateAnkeInput): CreatedBehandlingResponse {
+        return kabalApiClient.createAnkeInKabal(
+            CreateAnkeBasedOnKlagebehandlingInput(
+                klagebehandlingId = input.klagebehandlingId!!,
+                mottattNav = input.mottattKlageinstans,
+                frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong()),
                 klager = input.klager.toOversendtPartId(),
                 fullmektig = input.fullmektig.toOversendtPartId(),
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
@@ -98,6 +158,7 @@ class GenericApiService(
             )
         )
     }
+
 
     private fun PartId?.toOversendtPartId(): OversendtPartId? {
         return if (this == null) {
@@ -134,7 +195,7 @@ class GenericApiService(
     }
 
     fun createKlage(input: CreateKlageInput): CreatedBehandlingResponse {
-        val sakFromKlanke = fssProxyClient.getSak(input.sakId)
+        val sakFromKlanke = fssProxyClient.getSak(input.eksternBehandlingId)
         val frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong())
         val createdBehandlingResponse = kabalApiClient.createKlageInKabal(
             input = CreateKlageBasedOnKabinInput(
@@ -147,15 +208,15 @@ class GenericApiService(
                 fagsakId = sakFromKlanke.fagsakId,
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
-                hjemmelIdList = input.hjemmelIdList,
+                hjemmelId = input.hjemmelId,
                 forrigeBehandlendeEnhet = sakFromKlanke.enhetsnummer,
                 klageJournalpostId = input.klageJournalpostId,
                 brukersHenvendelseMottattNav = input.mottattVedtaksinstans,
                 sakMottattKa = input.mottattKlageinstans,
                 frist = frist,
                 ytelseId = input.ytelseId,
-                kildereferanse = input.sakId,
-                saksbehandlerIdent = input.saksbehandlerIdent
+                kildereferanse = input.eksternBehandlingId,
+                saksbehandlerIdent = input.saksbehandlerIdent,
             )
         )
 

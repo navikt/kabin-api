@@ -34,9 +34,22 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandling): CreatedBehandlingResponse {
+    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandlingInput): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/createanke").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .bodyToMono<CreatedBehandlingResponse>()
+            .block() ?: throw RuntimeException("No response")
+    }
+
+    fun createAnkeFromCompleteInputInKabal(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/createankefromcompleteinput").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
