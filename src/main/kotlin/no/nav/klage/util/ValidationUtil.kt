@@ -5,7 +5,6 @@ import no.nav.klage.api.controller.view.CreateAnkeInputView
 import no.nav.klage.api.controller.view.CreateKlageInput
 import no.nav.klage.api.controller.view.CreateKlageInputView
 import no.nav.klage.exceptions.InvalidProperty
-import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
@@ -118,7 +117,7 @@ class ValidationUtil {
     fun validateCreateKlageInputView(input: CreateKlageInputView): CreateKlageInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.behandlingId == null && input.eksternBehandlingId == null) {
+        if (input.behandlingId == null && input.id == null) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::behandlingId.name,
                 reason = "Velg et vedtak."
@@ -213,7 +212,7 @@ class ValidationUtil {
         }
 
         return CreateKlageInput(
-            eksternBehandlingId = input.eksternBehandlingId ?: input.behandlingId!!,
+            eksternBehandlingId = input.id ?: input.behandlingId!!,
             mottattVedtaksinstans = input.mottattVedtaksinstans!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,

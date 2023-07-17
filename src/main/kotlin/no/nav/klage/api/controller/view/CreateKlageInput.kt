@@ -17,8 +17,9 @@ data class CreateKlageInput(
 )
 
 data class CreateKlageInputView(
+    @Deprecated("use id instead")
     val behandlingId: String?,
-    val eksternBehandlingId: String?,
+    val id: String?,
     val mottattVedtaksinstans: LocalDate?,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
