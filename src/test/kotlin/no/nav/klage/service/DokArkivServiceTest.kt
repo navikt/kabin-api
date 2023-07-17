@@ -19,6 +19,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.util.TokenUtil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -89,7 +90,6 @@ class DokArkivServiceTest {
             sakenGjelder = PERSON,
             klager = PERSON,
             fullmektig = null,
-            tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
             fagsakId = SAKS_ID,
             sakFagsystem = FAGSYSTEM,
@@ -98,6 +98,8 @@ class DokArkivServiceTest {
             klageBehandlendeEnhet = "",
             tildeltSaksbehandlerIdent = "IDENT",
             tildeltSaksbehandlerNavn = "NAVN",
+            hjemmelId = Hjemmel.FTRL_15_3.id,
+
         )
 
         val expectedOutput = Sak(
@@ -509,7 +511,6 @@ class DokArkivServiceTest {
             sakenGjelder = PERSON,
             klager = PERSON,
             fullmektig = null,
-            tilknyttedeDokumenter = listOf(),
             sakFagsakId = SAKS_ID,
             fagsakId = SAKS_ID,
             sakFagsystem = FAGSYSTEM,
@@ -518,6 +519,7 @@ class DokArkivServiceTest {
             klageBehandlendeEnhet = ENHET,
             tildeltSaksbehandlerIdent = "IDENT",
             tildeltSaksbehandlerNavn = "NAVN",
+            hjemmelId = Hjemmel.FTRL_15_3.id,
         )
     }
 

@@ -14,7 +14,7 @@ import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
-class AnkeBasedOnKabalKlageController(
+class AnkeController(
     private val genericApiService: GenericApiService,
     private val dokArkivService: DokArkivService,
     private val tokenUtil: TokenUtil,
@@ -39,45 +39,20 @@ class AnkeBasedOnKabalKlageController(
 
         val processedInput = validationUtil.validateCreateAnkeInputView(input)
 
-        val journalpostId = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
-            journalpostId = processedInput.ankeDocumentJournalpostId,
-            klagebehandlingId = processedInput.klagebehandlingId,
-            avsender = processedInput.avsender
-        )
+        val journalpostId = dokArkivService.handleJournalpostBasedOnAnkeInput(processedInput)
 
         return genericApiService.createAnkeInKabal(processedInput.copy(ankeDocumentJournalpostId = journalpostId))
     }
 
     @PostMapping("/ankemuligheter", produces = ["application/json"])
-    fun getCompletedKlagebehandlingerByIdnummer(@RequestBody input: IdnummerInput): List<Ankemulighet> {
+    fun getAnkemuligheterByIdnummer(@RequestBody input: IdnummerInput): List<Ankemulighet> {
         logMethodDetails(
-            methodName = ::getCompletedKlagebehandlingerByIdnummer.name,
+            methodName = ::getAnkemuligheterByIdnummer.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
 
-        return genericApiService.getCompletedKlagebehandlingerByIdnummer(input).map {
-            Ankemulighet(
-                behandlingId = it.behandlingId,
-                ytelseId = it.ytelseId,
-                utfallId = it.utfallId,
-                vedtakDate = it.vedtakDate.toLocalDate(),
-                sakenGjelder = it.sakenGjelder.toView(),
-                klager = it.klager.toView(),
-                fullmektig = it.fullmektig?.toView(),
-                fagsakId = it.fagsakId,
-                fagsystemId = it.fagsystemId,
-                klageBehandlendeEnhet = it.klageBehandlendeEnhet,
-                previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
-                    it.tildeltSaksbehandlerNavn?.let { it2 ->
-                        PreviousSaksbehandler(
-                            navIdent = it1,
-                            navn = it2,
-                        )
-                    }
-                },
-            )
-        }
+        return genericApiService.getAnkemuligheter(input = input)
     }
 
     @GetMapping("/anker/{mottakId}/status")
@@ -94,14 +69,12 @@ class AnkeBasedOnKabalKlageController(
 
         return CreatedAnkebehandlingStatusView(
             typeId = response.typeId,
-            behandlingId = response.behandlingId,
             ytelseId = response.ytelseId,
             utfallId = response.utfallId,
             vedtakDate = response.vedtakDate,
             sakenGjelder = response.sakenGjelder.toView(),
             klager = response.klager.toView(),
             fullmektig = response.fullmektig?.toView(),
-            tilknyttedeDokumenter = response.tilknyttedeDokumenter,
             mottattNav = response.mottattNav,
             mottattKlageinstans = response.mottattNav,
             frist = response.frist,

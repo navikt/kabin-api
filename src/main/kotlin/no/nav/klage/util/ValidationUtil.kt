@@ -1,11 +1,13 @@
 package no.nav.klage.util
 
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateAnkeInput
+import no.nav.klage.api.controller.view.CreateAnkeInputView
+import no.nav.klage.api.controller.view.CreateKlageInput
+import no.nav.klage.api.controller.view.CreateKlageInputView
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
-import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.Fagsystem
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -14,7 +16,18 @@ class ValidationUtil {
     fun validateCreateAnkeInputView(input: CreateAnkeInputView): CreateAnkeInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.behandlingId == null) {
+        val ankemulighetSource =
+            try {
+                AnkemulighetSource.of(Fagsystem.of(input.sourceId!!))
+            } catch (exception: Exception) {
+                //TODO: Gjeninnfør når FE er klare
+//                throw InvalidSourceException(
+//                    message = "Ugyldig sourceId."
+//                )
+                AnkemulighetSource.KABAL
+            }
+
+        if (input.behandlingId == null && input.id == null) {
             validationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingId.name,
                 reason = "Velg et vedtak."
@@ -54,6 +67,22 @@ class ValidationUtil {
             )
         }
 
+        if (ankemulighetSource == AnkemulighetSource.INFOTRYGD) {
+            if (input.hjemmelId == null) {
+                validationErrors += InvalidProperty(
+                    field = CreateKlageInputView::hjemmelId.name,
+                    reason = "Velg en hjemmel."
+                )
+            }
+
+            if (input.ytelseId == null) {
+                validationErrors += InvalidProperty(
+                    field = CreateAnkeInputView::ytelseId.name,
+                    reason = "Velg en ytelse."
+                )
+            }
+        }
+
         val sectionList = mutableListOf<ValidationSection>()
 
         if (validationErrors.isNotEmpty()) {
@@ -71,21 +100,24 @@ class ValidationUtil {
         }
 
         return CreateAnkeInput(
-            klagebehandlingId = input.behandlingId!!,
+            id = input.id ?: input.behandlingId.toString(),
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
             fullmektig = input.fullmektig,
             ankeDocumentJournalpostId = input.journalpostId!!,
+            ytelseId = input.ytelseId,
+            hjemmelId = input.hjemmelId,
             avsender = input.avsender,
-            saksbehandlerIdent = input.saksbehandlerIdent
+            saksbehandlerIdent = input.saksbehandlerIdent,
+            ankemulighetSource = ankemulighetSource,
         )
     }
 
     fun validateCreateKlageInputView(input: CreateKlageInputView): CreateKlageInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.behandlingId == null) {
+        if (input.behandlingId == null && input.id == null) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::behandlingId.name,
                 reason = "Velg et vedtak."
@@ -118,7 +150,10 @@ class ValidationUtil {
             )
         }
 
-        if (input.mottattVedtaksinstans != null && input.mottattKlageinstans != null && input.mottattVedtaksinstans.isAfter(input.mottattKlageinstans)) {
+        if (input.mottattVedtaksinstans != null && input.mottattKlageinstans != null && input.mottattVedtaksinstans.isAfter(
+                input.mottattKlageinstans
+            )
+        ) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::mottattVedtaksinstans.name,
                 reason = "Sett en dato som er før dato for mottatt Klageinstans."
@@ -151,29 +186,13 @@ class ValidationUtil {
                 field = CreateKlageInputView::ytelseId.name,
                 reason = "Velg en ytelse."
             )
-        } else {
-            if (Ytelse.values().firstOrNull { it.id == input.ytelseId } == null) {
-                validationErrors += InvalidProperty(
-                    field = CreateKlageInputView::ytelseId.name,
-                    reason = "Ugyldig ytelse."
-                )
-            }
         }
 
-        if (input.hjemmelIdList.isNullOrEmpty()) {
+        if (input.hjemmelIdList.isNullOrEmpty() && input.hjemmelId == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInputView::hjemmelIdList.name,
-                reason = "Velg minst én hjemmel."
+                field = CreateKlageInputView::hjemmelId.name,
+                reason = "Velg en hjemmel."
             )
-        } else {
-            input.hjemmelIdList.map{ hjemmelId ->
-                if (Hjemmel.values().firstOrNull { it.id == hjemmelId } == null) {
-                    validationErrors += InvalidProperty(
-                        field = CreateKlageInputView::hjemmelIdList.name,
-                        reason = "Hjemmel med id $hjemmelId er ugyldig."
-                    )
-                }
-            }
         }
 
         val sectionList = mutableListOf<ValidationSection>()
@@ -193,7 +212,7 @@ class ValidationUtil {
         }
 
         return CreateKlageInput(
-            sakId = input.behandlingId!!,
+            eksternBehandlingId = input.id ?: input.behandlingId!!,
             mottattVedtaksinstans = input.mottattVedtaksinstans!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
@@ -201,7 +220,7 @@ class ValidationUtil {
             fullmektig = input.fullmektig,
             klageJournalpostId = input.journalpostId!!,
             ytelseId = input.ytelseId!!,
-            hjemmelIdList = input.hjemmelIdList!!,
+            hjemmelId = input.hjemmelId ?: input.hjemmelIdList!!.first(),
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
         )

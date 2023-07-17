@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 import java.util.*
 
-data class CreateAnkeBasedOnKlagebehandling(
+data class CreateAnkeBasedOnKlagebehandlingInput(
     val klagebehandlingId: UUID,
     val mottattNav: LocalDate,
-    val fristInWeeks: Int,
+    val frist: LocalDate,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,
     val ankeDocumentJournalpostId: String,
@@ -21,13 +21,30 @@ data class IsDuplicateInput(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+data class CreateAnkeBasedOnKabinInput(
+    val sakenGjelder: OversendtPartId,
+    val klager: OversendtPartId?,
+    val fullmektig: OversendtPartId?,
+    val fagsakId: String,
+    val fagsystemId: String,
+    val hjemmelId: String,
+    val forrigeBehandlendeEnhet: String,
+    val ankeJournalpostId: String,
+    val mottattNav: LocalDate,
+    val frist: LocalDate,
+    val ytelseId: String,
+    val kildereferanse: String,
+    val saksbehandlerIdent: String?,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateKlageBasedOnKabinInput(
     val sakenGjelder: OversendtPartId,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,
     val fagsakId: String,
     val fagsystemId: String,
-    val hjemmelIdList: List<String>,
+    val hjemmelId: String,
     val forrigeBehandlendeEnhet: String,
     val klageJournalpostId: String,
     val brukersHenvendelseMottattNav: LocalDate,

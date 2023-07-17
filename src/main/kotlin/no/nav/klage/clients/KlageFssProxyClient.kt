@@ -46,6 +46,19 @@ class KlageFssProxyClient(
             ?: throw RuntimeException("Empty result")
     }
 
+    fun checkAccess(): Access {
+        return klageFssProxyWebClient.get()
+            .uri { it.path("/klanke/access").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+            )
+            .retrieve()
+            .bodyToMono<Access>()
+            .block()
+            ?: throw RuntimeException("Empty result")
+    }
+
     fun setToHandledInKabal(sakId: String, input: HandledInKabalInput) {
         klageFssProxyWebClient.post()
             .uri { it.path("/klanke/saker/{sakId}/handledinkabal").build(sakId) }
@@ -77,4 +90,8 @@ data class SakFromKlanke(
 
 data class HandledInKabalInput(
     val fristAsString: String
+)
+
+data class Access(
+    val access: Boolean
 )
