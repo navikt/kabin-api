@@ -8,3 +8,5 @@ class SectionedValidationErrorWithDetailsException(val title: String, val sectio
 data class ValidationSection(val section: String, val properties: List<InvalidProperty>)
 
 class JournalpostNotFoundException(override val message: String): RuntimeException(message)
+
+class InvalidSourceException(override val message: String): RuntimeException(message)
