@@ -39,9 +39,9 @@ class DokArkivServiceTest {
 
     val tokenUtil: TokenUtil = mockk()
 
-    val fssProxyClient: KlageFssProxyClient = mockk()
+    private val fssProxyClient: KlageFssProxyClient = mockk()
 
-    val kabalInnstillingerClient: KabalInnstillingerClient = mockk()
+    private val kabalInnstillingerClient: KabalInnstillingerClient = mockk()
 
     lateinit var dokArkivService: DokArkivService
 
@@ -90,9 +90,7 @@ class DokArkivServiceTest {
             sakenGjelder = PERSON,
             klager = PERSON,
             fullmektig = null,
-            sakFagsakId = SAKS_ID,
             fagsakId = SAKS_ID,
-            sakFagsystem = FAGSYSTEM,
             fagsystem = FAGSYSTEM,
             fagsystemId = FAGSYSTEM.id,
             klageBehandlendeEnhet = "",
@@ -511,9 +509,7 @@ class DokArkivServiceTest {
             sakenGjelder = PERSON,
             klager = PERSON,
             fullmektig = null,
-            sakFagsakId = SAKS_ID,
             fagsakId = SAKS_ID,
-            sakFagsystem = FAGSYSTEM,
             fagsystem = FAGSYSTEM,
             fagsystemId = FAGSYSTEM.id,
             klageBehandlendeEnhet = ENHET,

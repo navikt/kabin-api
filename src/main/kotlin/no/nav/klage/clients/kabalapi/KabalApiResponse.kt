@@ -21,9 +21,7 @@ data class CompletedKlagebehandling(
     val sakenGjelder: PartView,
     val klager: PartView,
     val fullmektig: PartView?,
-    val sakFagsakId: String,
     val fagsakId: String,
-    val sakFagsystem: Fagsystem,
     val fagsystem: Fagsystem,
     val fagsystemId: String,
     val klageBehandlendeEnhet: String,
@@ -51,7 +49,6 @@ data class CreatedAnkebehandlingStatus(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CreatedKlagebehandlingStatus(
     val typeId: String,
-    val behandlingId: UUID,
     val ytelseId: String,
     val sakenGjelder: PartView,
     val klager: PartView,
@@ -84,8 +81,6 @@ data class OversendtPartId(
 )
 
 enum class OversendtPartIdType { PERSON, VIRKSOMHET }
-
-data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PartView(

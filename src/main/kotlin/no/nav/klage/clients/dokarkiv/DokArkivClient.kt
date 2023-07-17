@@ -108,13 +108,17 @@ class DokArkivClient(
                 .bodyToMono(JournalpostResponse::class.java)
                 .block()
                 ?: throw RuntimeException("Journalpost AvsenderMottaker could not be updated.")
-            logger.debug("Svar fra dokarkiv: $output")
+            logger.debug("Svar fra dokarkiv: {}", output)
         } catch (e: Exception) {
             logger.error("Error updating journalpost $journalpostId AvsenderMottaker:", e)
             throw e
         }
 
-        logger.debug("Document from journalpost $journalpostId updated with AvsenderMottaker ${input.avsenderMottaker}.")
+        logger.debug(
+            /* format = */ "Document from journalpost {} updated with AvsenderMottaker {}.",
+            /* arg1 = */ journalpostId,
+            /* arg2 = */ input.avsenderMottaker
+        )
     }
 
     fun updateDocumentTitle(

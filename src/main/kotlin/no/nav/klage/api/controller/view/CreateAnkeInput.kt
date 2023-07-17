@@ -2,7 +2,6 @@ package no.nav.klage.api.controller.view
 
 import no.nav.klage.util.AnkemulighetSource
 import java.time.LocalDate
-import java.util.*
 
 data class CreateAnkeInput(
     val id: String,
@@ -19,10 +18,8 @@ data class CreateAnkeInput(
 )
 
 data class CreateAnkeInputView(
-    @Deprecated("use id instead")
-    val behandlingId: UUID?,
     val id: String?,
-    val sourceId: String?,
+    val sourceId: String,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
     val klager: PartId?,

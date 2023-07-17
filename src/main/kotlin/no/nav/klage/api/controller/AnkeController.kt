@@ -75,7 +75,6 @@ class AnkeController(
             sakenGjelder = response.sakenGjelder.toView(),
             klager = response.klager.toView(),
             fullmektig = response.fullmektig?.toView(),
-            mottattNav = response.mottattNav,
             mottattKlageinstans = response.mottattNav,
             frist = response.frist,
             fagsakId = response.fagsakId,

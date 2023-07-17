@@ -38,7 +38,6 @@ class GenericApiService(
                 }
                 .map {
                     Ankemulighet(
-                        behandlingId = null,
                         id = it.sakId,
                         ytelseId = null,
                         hjemmelId = null,
@@ -51,7 +50,6 @@ class GenericApiService(
                         fagsakId = it.fagsakId,
                         //TODO: Tilpass når vi får flere fagsystemer.
                         fagsystemId = Fagsystem.IT01.id,
-                        klageBehandlendeEnhet = it.enhetsnummer,
                         previousSaksbehandler = null,
                         sourceId = AnkemulighetSource.INFOTRYGD.fagsystem.id
                     )
@@ -60,7 +58,6 @@ class GenericApiService(
 
         val ankemuligheterFromKabal = getCompletedKlagebehandlingerByIdnummer(input).map {
             Ankemulighet(
-                behandlingId = it.behandlingId,
                 id = it.behandlingId.toString(),
                 ytelseId = it.ytelseId,
                 hjemmelId = it.hjemmelId,
@@ -72,7 +69,6 @@ class GenericApiService(
                 fullmektig = it.fullmektig?.toView(),
                 fagsakId = it.fagsakId,
                 fagsystemId = it.fagsystemId,
-                klageBehandlendeEnhet = it.klageBehandlendeEnhet,
                 previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
                     it.tildeltSaksbehandlerNavn?.let { it2 ->
                         PreviousSaksbehandler(

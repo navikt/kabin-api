@@ -5,6 +5,7 @@ import no.nav.klage.api.controller.view.CreateAnkeInputView
 import no.nav.klage.api.controller.view.CreateKlageInput
 import no.nav.klage.api.controller.view.CreateKlageInputView
 import no.nav.klage.exceptions.InvalidProperty
+import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
@@ -18,18 +19,16 @@ class ValidationUtil {
 
         val ankemulighetSource =
             try {
-                AnkemulighetSource.of(Fagsystem.of(input.sourceId!!))
+                AnkemulighetSource.of(Fagsystem.of(input.sourceId))
             } catch (exception: Exception) {
-                //TODO: Gjeninnfør når FE er klare
-//                throw InvalidSourceException(
-//                    message = "Ugyldig sourceId."
-//                )
-                AnkemulighetSource.KABAL
+                throw InvalidSourceException(
+                    message = "Ugyldig sourceId."
+                )
             }
 
-        if (input.behandlingId == null && input.id == null) {
+        if (input.id == null) {
             validationErrors += InvalidProperty(
-                field = CreateAnkeInputView::behandlingId.name,
+                field = CreateAnkeInputView::id.name,
                 reason = "Velg et vedtak."
             )
         }
@@ -100,7 +99,7 @@ class ValidationUtil {
         }
 
         return CreateAnkeInput(
-            id = input.id ?: input.behandlingId.toString(),
+            id = input.id!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
@@ -117,9 +116,9 @@ class ValidationUtil {
     fun validateCreateKlageInputView(input: CreateKlageInputView): CreateKlageInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.behandlingId == null && input.id == null) {
+        if (input.id == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInputView::behandlingId.name,
+                field = CreateKlageInputView::id.name,
                 reason = "Velg et vedtak."
             )
         }
@@ -188,7 +187,7 @@ class ValidationUtil {
             )
         }
 
-        if (input.hjemmelIdList.isNullOrEmpty() && input.hjemmelId == null) {
+        if (input.hjemmelId == null) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::hjemmelId.name,
                 reason = "Velg en hjemmel."
@@ -212,7 +211,7 @@ class ValidationUtil {
         }
 
         return CreateKlageInput(
-            eksternBehandlingId = input.id ?: input.behandlingId!!,
+            eksternBehandlingId = input.id!!,
             mottattVedtaksinstans = input.mottattVedtaksinstans!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
@@ -220,7 +219,7 @@ class ValidationUtil {
             fullmektig = input.fullmektig,
             klageJournalpostId = input.journalpostId!!,
             ytelseId = input.ytelseId!!,
-            hjemmelId = input.hjemmelId ?: input.hjemmelIdList!!.first(),
+            hjemmelId = input.hjemmelId!!,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
         )

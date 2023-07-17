@@ -17,8 +17,6 @@ data class CreateKlageInput(
 )
 
 data class CreateKlageInputView(
-    @Deprecated("use id instead")
-    val behandlingId: String?,
     val id: String?,
     val mottattVedtaksinstans: LocalDate?,
     val mottattKlageinstans: LocalDate?,
@@ -28,8 +26,6 @@ data class CreateKlageInputView(
     val journalpostId: String?,
     val ytelseId: String?,
     val hjemmelId: String?,
-    //TODO: Remove after FE change
-    val hjemmelIdList: List<String>?,
     val avsender: PartId?,
     val saksbehandlerIdent: String?
 )

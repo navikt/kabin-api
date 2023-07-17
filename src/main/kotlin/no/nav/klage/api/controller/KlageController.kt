@@ -74,7 +74,6 @@ class KlageController(
             }
             .map {
                 Klagemulighet(
-                    sakId = it.sakId,
                     behandlingId = it.sakId,
                     temaId = Tema.fromNavn(it.tema).id,
                     utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
@@ -105,9 +104,7 @@ class KlageController(
 
         return CreatedKlagebehandlingStatusView(
             typeId = status.typeId,
-            behandlingId = status.behandlingId,
             ytelseId = status.ytelseId,
-            utfall = sakFromKlanke.utfall,
             utfallId = infotrygdKlageutfallToUtfall[sakFromKlanke.utfall]!!.id,
             vedtakDate = sakFromKlanke.vedtaksdato,
             sakenGjelder = status.sakenGjelder.toView(),

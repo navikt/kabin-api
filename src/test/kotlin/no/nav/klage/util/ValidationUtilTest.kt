@@ -7,26 +7,24 @@ import org.junit.jupiter.api.assertThrows
 
 class ValidationUtilTest {
 
-    var validationUtil = ValidationUtil()
+    private var validationUtil = ValidationUtil()
 
-    //TODO: Reintroduce after FE change.
-//    @Test
-//    fun wrongSourceIdGivesError() {
-//        val input = CreateAnkeInputView(
-//            behandlingId = null,
-//            id = null,
-//            sourceId = "",
-//            mottattKlageinstans = null,
-//            fristInWeeks = null,
-//            klager = null,
-//            fullmektig = null,
-//            journalpostId = null,
-//            ytelseId = null,
-//            hjemmelId = null,
-//            avsender = null,
-//            saksbehandlerIdent = null
-//        )
-//
-//        assertThrows<InvalidSourceException> { validationUtil.validateCreateAnkeInputView(input = input) }
-//    }
+    @Test
+    fun wrongSourceIdGivesError() {
+        val input = CreateAnkeInputView(
+            id = null,
+            sourceId = "",
+            mottattKlageinstans = null,
+            fristInWeeks = null,
+            klager = null,
+            fullmektig = null,
+            journalpostId = null,
+            ytelseId = null,
+            hjemmelId = null,
+            avsender = null,
+            saksbehandlerIdent = null
+        )
+
+        assertThrows<InvalidSourceException> { validationUtil.validateCreateAnkeInputView(input = input) }
+    }
 }
