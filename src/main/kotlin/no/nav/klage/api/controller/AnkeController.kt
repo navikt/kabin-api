@@ -69,14 +69,12 @@ class AnkeController(
 
         return CreatedAnkebehandlingStatusView(
             typeId = response.typeId,
-            behandlingId = response.behandlingId,
             ytelseId = response.ytelseId,
             utfallId = response.utfallId,
             vedtakDate = response.vedtakDate,
             sakenGjelder = response.sakenGjelder.toView(),
             klager = response.klager.toView(),
             fullmektig = response.fullmektig?.toView(),
-            tilknyttedeDokumenter = response.tilknyttedeDokumenter,
             mottattNav = response.mottattNav,
             mottattKlageinstans = response.mottattNav,
             frist = response.frist,

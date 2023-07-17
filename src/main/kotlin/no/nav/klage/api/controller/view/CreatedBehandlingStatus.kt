@@ -7,14 +7,12 @@ import java.util.*
 
 data class CreatedAnkebehandlingStatusView(
     val typeId: String,
-    val behandlingId: UUID,
     val ytelseId: String,
     val utfallId: String,
     val vedtakDate: LocalDateTime,
     val sakenGjelder: PartView,
     val klager: PartView,
     val fullmektig: PartView?,
-    val tilknyttedeDokumenter: List<TilknyttetDokument>,
     val mottattNav: LocalDate,
     val mottattKlageinstans: LocalDate,
     val frist: LocalDate,
