@@ -22,7 +22,7 @@ data class CreateAnkeInputView(
     @Deprecated("use id instead")
     val behandlingId: UUID?,
     val id: String?,
-    val sourceId: String,
+    val sourceId: String?,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
     val klager: PartId?,

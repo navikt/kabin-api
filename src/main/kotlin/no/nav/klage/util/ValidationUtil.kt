@@ -19,7 +19,7 @@ class ValidationUtil {
 
         val ankemulighetSource =
             try {
-                AnkemulighetSource.of(Fagsystem.of(input.sourceId))
+                AnkemulighetSource.of(Fagsystem.of(input.sourceId!!))
             } catch (exception: Exception) {
                 throw InvalidSourceException(
                     message = "Ugyldig sourceId."
