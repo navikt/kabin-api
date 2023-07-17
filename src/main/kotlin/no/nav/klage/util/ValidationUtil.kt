@@ -21,9 +21,11 @@ class ValidationUtil {
             try {
                 AnkemulighetSource.of(Fagsystem.of(input.sourceId!!))
             } catch (exception: Exception) {
-                throw InvalidSourceException(
-                    message = "Ugyldig sourceId."
-                )
+                //TODO: Gjeninnfør når FE er klare
+//                throw InvalidSourceException(
+//                    message = "Ugyldig sourceId."
+//                )
+                AnkemulighetSource.KABAL
             }
 
         if (input.behandlingId == null && input.id == null) {
