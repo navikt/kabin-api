@@ -16,6 +16,7 @@ import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.util.AnkemulighetSource
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -183,17 +184,16 @@ class DokArkivService(
     }
 
     fun handleJournalpostBasedOnAnkeInput(input: CreateAnkeInput): String {
-        return if (input.eksternBehandlingId != null) {
-            handleJournalpostBasedOnInfotrygdSak(
+        return when(input.ankemulighetSource) {
+            AnkemulighetSource.INFOTRYGD -> handleJournalpostBasedOnInfotrygdSak(
                 journalpostId = input.ankeDocumentJournalpostId,
-                eksternBehandlingId = input.eksternBehandlingId,
+                eksternBehandlingId = input.id,
                 avsender = input.avsender,
                 type = Type.ANKE,
             )
-        } else {
-            handleJournalpostBasedOnKabalKlagebehandling(
+            AnkemulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = input.ankeDocumentJournalpostId,
-                klagebehandlingId = input.klagebehandlingId!!,
+                klagebehandlingId = UUID.fromString(input.id),
                 avsender = input.avsender,
             )
         }

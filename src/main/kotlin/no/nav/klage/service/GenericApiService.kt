@@ -7,6 +7,8 @@ import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.kodeverk.*
+import no.nav.klage.util.AnkemulighetSource
+import no.nav.klage.util.utfallWithoutAnkemulighet
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.format.DateTimeFormatter
@@ -25,11 +27,7 @@ class GenericApiService(
             fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"))
                 .filter {
                     val utfallInSak = infotrygdKlageutfallToUtfall[it.utfall]
-                    utfallInSak !in setOf(
-                        Utfall.RETUR,
-                        Utfall.TRUKKET,
-                        Utfall.OPPHEVET,
-                    )
+                    utfallInSak !in utfallWithoutAnkemulighet
                 }
                 .filter {
                     !mulighetIsDuplicate(
@@ -41,7 +39,7 @@ class GenericApiService(
                 .map {
                     Ankemulighet(
                         behandlingId = null,
-                        eksternBehandlingId = it.sakId,
+                        id = it.sakId,
                         ytelseId = null,
                         hjemmelId = null,
                         utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
@@ -55,6 +53,7 @@ class GenericApiService(
                         fagsystemId = Fagsystem.IT01.id,
                         klageBehandlendeEnhet = it.enhetsnummer,
                         previousSaksbehandler = null,
+                        sourceId = AnkemulighetSource.INFOTRYGD.fagsystem.id
                     )
                 }
             } else emptyList()
@@ -62,7 +61,7 @@ class GenericApiService(
         val ankemuligheterFromKabal = getCompletedKlagebehandlingerByIdnummer(input).map {
             Ankemulighet(
                 behandlingId = it.behandlingId,
-                eksternBehandlingId = null,
+                id = it.behandlingId.toString(),
                 ytelseId = it.ytelseId,
                 hjemmelId = it.hjemmelId,
                 utfallId = it.utfallId,
@@ -82,9 +81,9 @@ class GenericApiService(
                         )
                     }
                 },
+                sourceId = AnkemulighetSource.KABAL.fagsystem.id,
             )
         }
-
         return ankemuligheterFromInfotrygd + ankemuligheterFromKabal
     }
 
@@ -104,15 +103,14 @@ class GenericApiService(
     }
 
     fun createAnkeInKabal(input: CreateAnkeInput): CreatedBehandlingResponse {
-        return if (input.eksternBehandlingId != null) {
-            createAnkeInKabalFromCompleteInput(input)
-        } else {
-            createAnkeInKabalFromKlagebehandling(input)
+        return when (input.ankemulighetSource) {
+            AnkemulighetSource.INFOTRYGD -> createAnkeInKabalFromCompleteInput(input)
+            AnkemulighetSource.KABAL -> createAnkeInKabalFromKlagebehandling(input)
         }
     }
 
     private fun createAnkeInKabalFromCompleteInput(input: CreateAnkeInput): CreatedBehandlingResponse {
-        val sakFromKlanke = fssProxyClient.getSak(input.eksternBehandlingId!!)
+        val sakFromKlanke = fssProxyClient.getSak(input.id)
         val frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong())
         val createdBehandlingResponse = kabalApiClient.createAnkeFromCompleteInputInKabal(
             CreateAnkeBasedOnKabinInput(
@@ -131,7 +129,7 @@ class GenericApiService(
                 mottattNav = input.mottattKlageinstans,
                 frist = frist,
                 ytelseId = input.ytelseId!!,
-                kildereferanse = input.eksternBehandlingId,
+                kildereferanse = input.id,
                 saksbehandlerIdent = input.saksbehandlerIdent,
             )
         )
@@ -148,7 +146,7 @@ class GenericApiService(
     private fun createAnkeInKabalFromKlagebehandling(input: CreateAnkeInput): CreatedBehandlingResponse {
         return kabalApiClient.createAnkeInKabal(
             CreateAnkeBasedOnKlagebehandlingInput(
-                klagebehandlingId = input.klagebehandlingId!!,
+                klagebehandlingId = UUID.fromString(input.id),
                 mottattNav = input.mottattKlageinstans,
                 frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong()),
                 klager = input.klager.toOversendtPartId(),

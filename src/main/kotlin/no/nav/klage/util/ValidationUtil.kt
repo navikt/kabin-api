@@ -1,11 +1,14 @@
 package no.nav.klage.util
 
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateAnkeInput
+import no.nav.klage.api.controller.view.CreateAnkeInputView
+import no.nav.klage.api.controller.view.CreateKlageInput
+import no.nav.klage.api.controller.view.CreateKlageInputView
 import no.nav.klage.exceptions.InvalidProperty
+import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
-import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.Fagsystem
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -14,7 +17,16 @@ class ValidationUtil {
     fun validateCreateAnkeInputView(input: CreateAnkeInputView): CreateAnkeInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.behandlingId == null && input.eksternBehandlingId == null) {
+        val ankemulighetSource =
+            try {
+                AnkemulighetSource.of(Fagsystem.of(input.sourceId))
+            } catch (exception: Exception) {
+                throw InvalidSourceException(
+                    message = "Ugyldig sourceId."
+                )
+            }
+
+        if (input.behandlingId == null && input.id == null) {
             validationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingId.name,
                 reason = "Velg et vedtak."
@@ -54,7 +66,7 @@ class ValidationUtil {
             )
         }
 
-        if (input.behandlingId == null) {
+        if (ankemulighetSource == AnkemulighetSource.INFOTRYGD) {
             if (input.hjemmelId == null) {
                 validationErrors += InvalidProperty(
                     field = CreateKlageInputView::hjemmelId.name,
@@ -87,8 +99,7 @@ class ValidationUtil {
         }
 
         return CreateAnkeInput(
-            klagebehandlingId = input.behandlingId,
-            eksternBehandlingId = input.eksternBehandlingId,
+            id = input.id ?: input.behandlingId.toString(),
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
@@ -97,7 +108,8 @@ class ValidationUtil {
             ytelseId = input.ytelseId,
             hjemmelId = input.hjemmelId,
             avsender = input.avsender,
-            saksbehandlerIdent = input.saksbehandlerIdent
+            saksbehandlerIdent = input.saksbehandlerIdent,
+            ankemulighetSource = ankemulighetSource,
         )
     }
 
