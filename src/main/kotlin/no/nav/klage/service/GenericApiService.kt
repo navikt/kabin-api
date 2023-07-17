@@ -18,10 +18,12 @@ import java.util.*
 class GenericApiService(
     private val kabalApiClient: KabalApiClient,
     private val fssProxyClient: KlageFssProxyClient,
+    @Value("\${FETCH_ANKEMULIGHETER_FROM_INFOTRYGD}")
+    private val toggleFetchFromInfotrygd: Boolean
 ) {
     fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
         val ankemuligheterFromInfotrygd =
-            if (fssProxyClient.checkAccess().access) {
+            if (toggleFetchFromInfotrygd && fssProxyClient.checkAccess().access) {
             fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"))
                 .filter {
                     val utfallInSak = infotrygdKlageutfallToUtfall[it.utfall]
