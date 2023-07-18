@@ -5,7 +5,7 @@ val logstashVersion = "7.4"
 val springDocVersion = "2.1.0"
 val springMockkVersion = "4.0.2"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "v1.4.0"
+val klageKodeverkVersion = "1.5.5"
 
 plugins {
     val kotlinVersion = "1.9.0"
@@ -22,7 +22,6 @@ java.sourceCompatibility = JavaVersion.VERSION_17
 repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-    maven("https://jitpack.io")
 }
 
 dependencies {
@@ -45,7 +44,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
     implementation("com.papertrailapp:logback-syslog4j:$logbackSyslog4jVersion")
 
-    implementation("com.github.navikt:klage-kodeverk:$klageKodeverkVersion")
+    implementation("no.nav.klage:klage-kodeverk:$klageKodeverkVersion")
 
     implementation("no.nav.security:token-validation-spring:$tokenValidationVersion")
     implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
