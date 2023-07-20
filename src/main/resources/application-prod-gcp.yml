@@ -1,7 +1,5 @@
 TENANT_ID: 62366534-1ec3-4962-8869-9b5535279d0b
 
-NORG2_API_V1_URL: https://norg2.prod-fss-pub.nais.io/norg2/api/v1
-
 SAF_BASE_URL: https://saf.prod-fss-pub.nais.io/
 SAF_SCOPE: prod-fss.teamdokumenthandtering.saf
 
@@ -12,4 +10,3 @@ KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.prod-fss-pub.nais.io
 
 FSS_CLUSTER: prod-fss
 
-FETCH_ANKEMULIGHETER_FROM_INFOTRYGD: false
