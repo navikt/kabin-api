@@ -1,18 +1,8 @@
 package no.nav.klage.api.controller
 
-import no.nav.klage.api.controller.mapper.toView
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.KlageFssProxyClient
-import no.nav.klage.clients.KlankeSearchInput
-import no.nav.klage.clients.kabalapi.CreatedBehandlingResponse
-import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.config.SecurityConfiguration
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Tema
-import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.infotrygdKlageutfallToUtfall
-import no.nav.klage.service.DokArkivService
-import no.nav.klage.service.GenericApiService
+import no.nav.klage.service.KlageService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
@@ -22,10 +12,7 @@ import java.util.*
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class KlageController(
     private val tokenUtil: TokenUtil,
-    private val fssProxyClient: KlageFssProxyClient,
-    private val genericApiService: GenericApiService,
-    private val validationUtil: ValidationUtil,
-    private val dokArkivService: DokArkivService
+    private val klageService: KlageService,
 ) {
 
     companion object {
@@ -38,53 +25,24 @@ class KlageController(
     fun createKlage(@RequestBody input: CreateKlageInputView): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createKlage.name,
-            innloggetIdent = tokenUtil.getIdent(),
+            innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
         secureLogger.debug("createklage called with: {}", input)
 
-        val processedInput = validationUtil.validateCreateKlageInputView(input)
-
-        val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
-            journalpostId = processedInput.klageJournalpostId,
-            eksternBehandlingId = processedInput.eksternBehandlingId,
-            avsender = input.avsender,
-            type = Type.KLAGE
-        )
-
-        return genericApiService.createKlage(processedInput.copy(klageJournalpostId = journalpostId))
+        return klageService.createKlage(input = input)
     }
 
     @PostMapping("/klagemuligheter", produces = ["application/json"])
     fun getCompletedKlagebehandlingerInVedtaksinstansByIdnummer(@RequestBody input: IdnummerInput): List<Klagemulighet> {
         logMethodDetails(
             methodName = ::getCompletedKlagebehandlingerInVedtaksinstansByIdnummer.name,
-            innloggetIdent = tokenUtil.getIdent(),
+            innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
-        return fssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"))
-            .filter {
-                !genericApiService.mulighetIsDuplicate(
-                    fagsystem = Fagsystem.IT01,
-                    kildereferanse = it.sakId,
-                    type = Type.KLAGE,
-                )
-            }
-            .map {
-                Klagemulighet(
-                    behandlingId = it.sakId,
-                    temaId = Tema.fromNavn(it.tema).id,
-                    utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
-                    vedtakDate = it.vedtaksdato,
-                    fagsakId = it.fagsakId,
-                    //TODO: Tilpass når vi får flere fagsystemer.
-                    fagsystemId = Fagsystem.IT01.id,
-                    klageBehandlendeEnhet = it.enhetsnummer,
-                    sakenGjelder = genericApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView()
-                )
-            }
+        return klageService.getKlagemuligheter(input)
     }
 
     @GetMapping("/klager/{mottakId}/status")
@@ -93,30 +51,10 @@ class KlageController(
     ): CreatedKlagebehandlingStatusView {
         logMethodDetails(
             methodName = ::createdKlageStatus.name,
-            innloggetIdent = tokenUtil.getIdent(),
+            innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
-        val status = genericApiService.getCreatedKlageStatus(mottakId = mottakId)
-
-        //TODO works only for klager in Infotrygd
-        val sakFromKlanke = fssProxyClient.getSak(status.kildereferanse)
-
-        return CreatedKlagebehandlingStatusView(
-            typeId = status.typeId,
-            ytelseId = status.ytelseId,
-            utfallId = infotrygdKlageutfallToUtfall[sakFromKlanke.utfall]!!.id,
-            vedtakDate = sakFromKlanke.vedtaksdato,
-            sakenGjelder = status.sakenGjelder.toView(),
-            klager = status.klager.toView(),
-            fullmektig = status.fullmektig?.toView(),
-            mottattVedtaksinstans = status.mottattVedtaksinstans,
-            mottattKlageinstans = status.mottattKlageinstans,
-            frist = status.frist,
-            fagsakId = status.fagsakId,
-            fagsystemId = status.fagsystemId,
-            journalpost = status.journalpost.toView(),
-            tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
-        )
+        return klageService.getCreatedKlageStatus(mottakId = mottakId)
     }
 }

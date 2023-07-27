@@ -1,6 +1,7 @@
 package no.nav.klage.clients.kabalapi
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.kodeverk.Fagsystem
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -27,7 +28,15 @@ data class CompletedKlagebehandling(
     val klageBehandlendeEnhet: String,
     val tildeltSaksbehandlerIdent: String?,
     val tildeltSaksbehandlerNavn: String?,
-)
+) {
+    fun toDokarkivSak(): Sak {
+        return Sak(
+            sakstype = Sakstype.FAGSAK,
+            fagsaksystem = FagsaksSystem.valueOf(fagsystem.name),
+            fagsakid = fagsakId
+        )
+    }
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CreatedAnkebehandlingStatus(
@@ -99,6 +108,13 @@ data class PartView(
             type = no.nav.klage.api.controller.view.PartView.PartType.valueOf(type.name),
             name = name,
             available = available,
+        )
+    }
+
+    fun toDokarkivBruker(): Bruker {
+        return Bruker(
+            id = id,
+            idType = BrukerIdType.valueOf(type.name)
         )
     }
 }

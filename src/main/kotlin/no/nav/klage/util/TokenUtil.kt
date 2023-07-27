@@ -53,7 +53,7 @@ class TokenUtil(
     fun getAccessTokenFrontendSent(): String =
         tokenValidationContextHolder.tokenValidationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD).tokenAsString
 
-    fun getIdent(): String =
+    fun getCurrentIdent(): String =
         tokenValidationContextHolder.tokenValidationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)
             .jwtTokenClaims?.get("NAVident")?.toString()
             ?: throw RuntimeException("Ident not found in token")

@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.clients.KabalInnstillingerClient
-import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
 import no.nav.klage.clients.dokarkiv.Sak
@@ -20,7 +19,6 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
-import no.nav.klage.util.TokenUtil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -33,13 +31,11 @@ class DokArkivServiceTest {
 
     val dokArkivClient: DokArkivClient = mockk()
 
-    val genericApiService: GenericApiService = mockk()
+    val kabalApiService: KabalApiService = mockk()
 
-    val safGraphQlClient: SafGraphQlClient = mockk()
+    val safService: SafService = mockk()
 
-    val tokenUtil: TokenUtil = mockk()
-
-    private val fssProxyClient: KlageFssProxyClient = mockk()
+    private val fssProxyService: KlageFssProxyService = mockk()
 
     private val kabalInnstillingerClient: KabalInnstillingerClient = mockk()
 
@@ -72,52 +68,20 @@ class DokArkivServiceTest {
     fun setup() {
         dokArkivService = DokArkivService(
             dokArkivClient = dokArkivClient,
-            genericApiService = genericApiService,
-            safGraphQlClient = safGraphQlClient,
-            tokenUtil = tokenUtil,
-            fssProxyClient = fssProxyClient,
+            safService = safService,
+            fssProxyService = fssProxyService,
             kabalInnstillingerClient = kabalInnstillingerClient,
+            kabalApiService = kabalApiService,
         )
     }
 
-    @Test
-    fun getSakWorksAsExpected() {
-        val input = CompletedKlagebehandling(
-            behandlingId = UUID.randomUUID(),
-            ytelseId = "",
-            utfallId = "",
-            vedtakDate = LocalDateTime.now(),
-            sakenGjelder = PERSON,
-            klager = PERSON,
-            fullmektig = null,
-            fagsakId = SAKS_ID,
-            fagsystem = FAGSYSTEM,
-            fagsystemId = FAGSYSTEM.id,
-            klageBehandlendeEnhet = "",
-            tildeltSaksbehandlerIdent = "IDENT",
-            tildeltSaksbehandlerNavn = "NAVN",
-            hjemmelId = Hjemmel.FTRL_15_3.id,
-
-        )
-
-        val expectedOutput = Sak(
-            sakstype = Sakstype.FAGSAK,
-            fagsaksystem = FagsaksSystem.FS38,
-            fagsakid = SAKS_ID,
-        )
-
-        assertEquals(
-            expectedOutput,
-            dokArkivService.getSak(input)
-        )
-    }
 
     @Nested
     inner class HandleJournalpost {
         @Test
         fun `unfinished journalpost with avsender - No avsender in request - Sak is updated and journalpost is finalized`() {
-            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpostWithAvsenderMottaker()
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { safService.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpostWithAvsenderMottaker()
             every { dokArkivClient.updateSakInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
 
@@ -159,7 +123,6 @@ class DokArkivServiceTest {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     payload = any(),
                     oldJournalpostId = any(),
-                    journalfoerendeSaksbehandlerIdent = any()
                 )
             }
 
@@ -181,9 +144,9 @@ class DokArkivServiceTest {
 
         @Test
         fun `unfinished journalpost without avsender - Avsender in request - Sak and avsender is updated and journalpost is finalized`() {
-            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { genericApiService.searchPart(any()) } returns PERSON
-            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { kabalApiService.searchPart(any()) } returns PERSON
+            every { safService.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
             every { dokArkivClient.updateSakInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
@@ -244,7 +207,6 @@ class DokArkivServiceTest {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     payload = any(),
                     oldJournalpostId = any(),
-                    journalfoerendeSaksbehandlerIdent = any()
                 )
             }
 
@@ -259,8 +221,8 @@ class DokArkivServiceTest {
 
         @Test
         fun `unfinished journalpost without avsender - No avsender in request - throws validation error`() {
-            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { safService.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
                 dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
@@ -273,8 +235,8 @@ class DokArkivServiceTest {
 
         @Test
         fun `journalfoert incoming journalpost - No avsender in request, correct fagsak - returned directly`() {
-            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
 
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                 JOURNALPOST_ID,
@@ -307,7 +269,6 @@ class DokArkivServiceTest {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     payload = any(),
                     oldJournalpostId = any(),
-                    journalfoerendeSaksbehandlerIdent = any()
                 )
             }
 
@@ -322,9 +283,9 @@ class DokArkivServiceTest {
 
         @Test
         fun `journalfoert incoming journalpost - Avsender in request, correct fagsak - Avsender updated, then returned`() {
-            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { genericApiService.searchPart(any()) } returns PERSON
-            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { kabalApiService.searchPart(any()) } returns PERSON
+            every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
             every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
 
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
@@ -369,7 +330,6 @@ class DokArkivServiceTest {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     payload = any(),
                     oldJournalpostId = any(),
-                    journalfoerendeSaksbehandlerIdent = any()
                 )
             }
 
@@ -384,14 +344,12 @@ class DokArkivServiceTest {
 
         @Test
         fun `journalfoert incoming journalpost - No avsender in request, incorrect fagsak - Handled correctly`() {
-            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpost()
-            every { tokenUtil.getIdent() } returns IDENT
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpost()
             every {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     any(),
                     any(),
-                    any()
                 )
             } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
             every { dokArkivClient.registerErrorInSaksId(any()) } returns Unit
@@ -420,7 +378,6 @@ class DokArkivServiceTest {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     payload = any(),
                     oldJournalpostId = any(),
-                    journalfoerendeSaksbehandlerIdent = any()
                 )
             }
 
@@ -436,15 +393,13 @@ class DokArkivServiceTest {
 
         @Test
         fun `journalfoert incoming journalpost - Avsender in request, incorrect fagsak - Handled correctly`() {
-            every { genericApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
-            every { genericApiService.searchPart(any()) } returns PERSON
-            every { safGraphQlClient.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpost()
-            every { tokenUtil.getIdent() } returns IDENT
+            every { kabalApiService.getCompletedKlagebehandling(any()) } returns getCompletedKlagebehandling()
+            every { kabalApiService.searchPart(any()) } returns PERSON
+            every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpost()
             every {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     any(),
                     any(),
-                    any()
                 )
             } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
             every { dokArkivClient.registerErrorInSaksId(any()) } returns Unit
@@ -485,7 +440,6 @@ class DokArkivServiceTest {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     payload = any(),
                     oldJournalpostId = any(),
-                    journalfoerendeSaksbehandlerIdent = any()
                 )
             }
 

@@ -26,14 +26,13 @@ class DokArkivClient(
     fun createNewJournalpostBasedOnExistingJournalpost(
         payload: CreateNewJournalpostBasedOnExistingJournalpostRequest,
         oldJournalpostId: String,
-        journalfoerendeSaksbehandlerIdent: String,
     ): CreateNewJournalpostBasedOnExistingJournalpostResponse {
         try {
             val journalpostResponse = dokArkivWebClient.put()
                 .uri("/${oldJournalpostId}/knyttTilAnnenSak")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
                 .header("Nav-Consumer-Id", applicationName)
-                .header("Nav-User-Id", journalfoerendeSaksbehandlerIdent)
+                .header("Nav-User-Id", tokenUtil.getCurrentIdent())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(payload)
                 .retrieve()
