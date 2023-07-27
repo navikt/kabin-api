@@ -4,11 +4,9 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
-import no.nav.klage.service.DokArkivService
-import no.nav.klage.util.TokenUtil
-import no.nav.klage.util.getLogger
-import no.nav.klage.util.logMethodDetails
+import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -18,11 +16,10 @@ import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
-@RequestMapping("/journalposter")
-class JournalposterController(
+class DokumentController(
     private val documentService: DocumentService,
-    private val dokArkivService: DokArkivService,
-    private val tokenUtil: TokenUtil
+    private val tokenUtil: TokenUtil,
+    private val auditLogger: AuditLogger,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -30,11 +27,43 @@ class JournalposterController(
     }
 
     @Operation(
+        summary = "Hent liste med dokumentreferanser for angitt bruker"
+    )
+    @PostMapping("/arkivertedokumenter", produces = ["application/json"])
+    fun fetchDokumenter(
+        @RequestBody input: IdnummerInput,
+        @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
+        @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
+        @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
+    ): DokumenterResponse {
+        logMethodDetails(
+            methodName = ::fetchDokumenter.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        return documentService.fetchDokumentlisteForBruker(
+            idnummer = input.idnummer,
+            temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
+            pageSize = pageSize,
+            previousPageRef = previousPageRef
+        ).also {
+            auditLogger.log(
+                AuditLogEvent(
+                    navIdent = tokenUtil.getCurrentIdent(),
+                    personFnr = input.idnummer,
+                    message = "Søkt opp person for å opprette klage/anke."
+                )
+            )
+        }
+    }
+
+    @Operation(
         summary = "Henter fil fra dokumentarkivet",
         description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
     )
     @ResponseBody
-    @GetMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/pdf")
+    @GetMapping("/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}/pdf")
     fun getArkivertDokumentPDF(
         @Parameter(description = "Id til journalpost")
         @PathVariable journalpostId: String,
@@ -43,7 +72,7 @@ class JournalposterController(
     ): ResponseEntity<ByteArray> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
-            innloggetIdent = tokenUtil.getIdent(),
+            innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
@@ -66,7 +95,7 @@ class JournalposterController(
         summary = "Oppdaterer filnavn i dokumentarkivet",
         description = "Oppdaterer filnavn i dokumentarkivet"
     )
-    @PutMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/tittel")
+    @PutMapping("/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}/tittel")
     fun updateTitle(
         @Parameter(description = "Id til journalpost")
         @PathVariable journalpostId: String,
@@ -77,11 +106,11 @@ class JournalposterController(
     ): UpdateDocumentTitleView {
         logMethodDetails(
             methodName = ::updateTitle.name,
-            innloggetIdent = tokenUtil.getIdent(),
+            innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
-        dokArkivService.updateDocumentTitle(
+        documentService.updateDocumentTitle(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             title = input.tittel

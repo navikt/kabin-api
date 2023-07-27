@@ -1,14 +1,15 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateAnkeInputView
+import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.PartView
+import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalInnstillingerClient
-import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.dokarkiv.*
-import no.nav.klage.clients.kabalapi.CompletedKlagebehandling
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
-import no.nav.klage.clients.saf.graphql.SafGraphQlClient
+import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.JournalpostNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
@@ -17,7 +18,6 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.AnkemulighetSource
-import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -26,11 +26,10 @@ import java.util.*
 @Service
 class DokArkivService(
     private val dokArkivClient: DokArkivClient,
-    private val genericApiService: GenericApiService,
-    private val safGraphQlClient: SafGraphQlClient,
-    private val tokenUtil: TokenUtil,
-    private val fssProxyClient: KlageFssProxyClient,
-    private val kabalInnstillingerClient: KabalInnstillingerClient
+    private val safService: SafService,
+    private val fssProxyService: KlageFssProxyService,
+    private val kabalInnstillingerClient: KabalInnstillingerClient,
+    private val kabalApiService: KabalApiService,
 ) {
 
     companion object {
@@ -39,23 +38,8 @@ class DokArkivService(
         private val secureLogger = getSecureLogger()
     }
 
-    private fun getBruker(sakenGjelder: no.nav.klage.clients.kabalapi.PartView): Bruker {
-        return Bruker(
-            id = sakenGjelder.id,
-            idType = BrukerIdType.valueOf(sakenGjelder.type.name)
-        )
-    }
-
-    fun getSak(klagebehandling: CompletedKlagebehandling): Sak {
-        return Sak(
-            sakstype = Sakstype.FAGSAK,
-            fagsaksystem = FagsaksSystem.valueOf(klagebehandling.fagsystem.name),
-            fagsakid = klagebehandling.fagsakId
-        )
-    }
-
-    fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
-        val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
+    private fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
+        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
         if (journalpostCanBeFinalized(journalpostInSaf)) {
@@ -80,7 +64,7 @@ class DokArkivService(
         }
     }
 
-    fun updateAvsenderInJournalpost(
+    private fun updateAvsenderInJournalpost(
         journalpostId: String,
         avsender: PartId,
     ) {
@@ -93,7 +77,7 @@ class DokArkivService(
     }
 
     private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartId): UpdateAvsenderMottakerInJournalpostRequest {
-        val avsenderPart = genericApiService.searchPart(
+        val avsenderPart = kabalApiService.searchPart(
             searchPartInput = SearchPartInput(identifikator = avsender.id)
         )
         return UpdateAvsenderMottakerInJournalpostRequest(
@@ -105,7 +89,7 @@ class DokArkivService(
         )
     }
 
-    fun updateSakInJournalpost(
+    private fun updateSakInJournalpost(
         journalpostId: String,
         tema: Tema,
         bruker: Bruker,
@@ -160,11 +144,11 @@ class DokArkivService(
         avsender: PartId?,
         type: Type,
     ): String {
-        val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
+        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw JournalpostNotFoundException("Fant ikke journalpost i SAF")
 
         val tema = journalpostInSaf.tema
-        val sakFromKlanke = fssProxyClient.getSak(eksternBehandlingId)
+        val sakFromKlanke = fssProxyService.getSak(eksternBehandlingId)
 
         return handleJournalpost(
             journalpostId = journalpostId,
@@ -184,13 +168,14 @@ class DokArkivService(
     }
 
     fun handleJournalpostBasedOnAnkeInput(input: CreateAnkeInput): String {
-        return when(input.ankemulighetSource) {
+        return when (input.ankemulighetSource) {
             AnkemulighetSource.INFOTRYGD -> handleJournalpostBasedOnInfotrygdSak(
                 journalpostId = input.ankeDocumentJournalpostId,
                 eksternBehandlingId = input.id,
                 avsender = input.avsender,
                 type = Type.ANKE,
             )
+
             AnkemulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = input.ankeDocumentJournalpostId,
                 klagebehandlingId = UUID.fromString(input.id),
@@ -205,14 +190,14 @@ class DokArkivService(
         avsender: PartId?,
     ): String {
         val completedKlagebehandling =
-            genericApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
+            kabalApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
 
         return handleJournalpost(
             journalpostId = journalpostId,
             avsender = avsender,
             tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
-            bruker = getBruker(completedKlagebehandling.sakenGjelder),
-            sakInFagsystem = getSak(completedKlagebehandling),
+            bruker = completedKlagebehandling.sakenGjelder.toDokarkivBruker(),
+            sakInFagsystem = completedKlagebehandling.toDokarkivSak(),
             journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet,
             type = Type.ANKE,
         )
@@ -228,7 +213,7 @@ class DokArkivService(
         type: Type,
     ): String {
         logger.debug("handleJournalpost called")
-        val journalpostInSaf = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
+        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
 
         secureLogger.debug(
@@ -353,7 +338,6 @@ class DokArkivService(
         return dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
             payload = requestPayload,
             oldJournalpostId = oldJournalpost.journalpostId,
-            journalfoerendeSaksbehandlerIdent = tokenUtil.getIdent()
         ).nyJournalpostId
     }
 

@@ -1,9 +1,9 @@
 package no.nav.klage.util
 
-import no.nav.klage.api.controller.view.CreateAnkeInput
 import no.nav.klage.api.controller.view.CreateAnkeInputView
-import no.nav.klage.api.controller.view.CreateKlageInput
 import no.nav.klage.api.controller.view.CreateKlageInputView
+import no.nav.klage.domain.CreateAnkeInput
+import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
