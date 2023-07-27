@@ -11,6 +11,10 @@ sak {
     fagsakId
     fagsaksystem
 }
+bruker {
+    id
+    type
+}
 avsenderMottaker {
     id
     type
@@ -21,6 +25,8 @@ avsenderMottaker {
 journalfoerendeEnhet
 journalfortAvNavn
 opprettetAvNavn
+kanal
+kanalnavn
 skjerming
 datoOpprettet
 relevanteDatoer {
@@ -28,6 +34,7 @@ relevanteDatoer {
     datotype
 }
 antallRetur
+eksternReferanseId
 utsendingsinfo {
     epostVarselSendt {
         tittel
@@ -53,6 +60,9 @@ dokumenter {
     dokumentInfoId
     tittel
     brevkode
+    dokumentstatus
+    datoFerdigstilt
+    originalJournalpostId
     skjerming
     dokumentvarianter {
         variantformat
