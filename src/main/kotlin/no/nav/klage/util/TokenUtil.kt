@@ -58,12 +58,4 @@ class TokenUtil(
             .jwtTokenClaims?.get("NAVident")?.toString()
             ?: throw RuntimeException("Ident not found in token")
 
-    fun getRoleIdsFromToken(): List<String> =
-        tokenValidationContextHolder.tokenValidationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)
-            .jwtTokenClaims?.getAsList("groups").orEmpty().toList()
-
-    private fun getClaim(name: String) =
-        tokenValidationContextHolder.tokenValidationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)
-            .jwtTokenClaims?.getStringClaim(name)
-
 }

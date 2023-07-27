@@ -84,7 +84,7 @@ class DokArkivClient(
                 .bodyToMono(JournalpostResponse::class.java)
                 .block()
                 ?: throw RuntimeException("Journalpost fagsakid could not be updated.")
-            logger.debug("Svar fra dokarkiv: $output")
+            logger.debug("Svar fra dokarkiv: {}", output)
         } catch (e: Exception) {
             logger.error("Error updating journalpost $journalpostId fagsakid:", e)
             throw e
