@@ -65,7 +65,10 @@ class DocumentService(
     }
 
     fun getArkivertDokument(journalpostId: String, dokumentInfoId: String): ArkivertDokument {
-        return safService.getDokument(dokumentInfoId, journalpostId)
+        return safService.getDokument(
+            journalpostId = journalpostId,
+            dokumentInfoId = dokumentInfoId
+        )
     }
 
     fun updateDocumentTitle(

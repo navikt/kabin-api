@@ -27,7 +27,10 @@ class SafService(
     }
 
     fun getDokument(journalpostId: String, dokumentInfoId: String): ArkivertDokument {
-        return safRestClient.getDokument(dokumentInfoId, journalpostId)
+        return safRestClient.getDokument(
+            dokumentInfoId = dokumentInfoId,
+            journalpostId = journalpostId
+        )
     }
 
     private fun mapTema(temaer: List<Tema>): List<no.nav.klage.clients.saf.graphql.Tema> =
