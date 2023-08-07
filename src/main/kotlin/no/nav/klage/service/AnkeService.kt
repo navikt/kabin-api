@@ -82,7 +82,7 @@ class AnkeService(
                     hjemmelId = null,
                     utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
                     temaId = Tema.fromNavn(it.tema).id,
-                    vedtakDate = it.vedtaksdato,
+                    vedtakDate = null,
                     sakenGjelder = kabalApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView(),
                     klager = null,
                     fullmektig = null,

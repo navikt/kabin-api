@@ -10,7 +10,7 @@ data class Ankemulighet(
     val hjemmelId: String?,
     val utfallId: String,
     val temaId: String,
-    val vedtakDate: LocalDate,
+    val vedtakDate: LocalDate?,
     val sakenGjelder: PartView,
     val klager: PartView?,
     val fullmektig: PartView?,
