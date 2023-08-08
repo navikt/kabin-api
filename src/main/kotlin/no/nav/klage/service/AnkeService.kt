@@ -103,7 +103,7 @@ class AnkeService(
             typeId = response.typeId,
             ytelseId = response.ytelseId,
             utfallId = response.utfallId,
-            vedtakDate = response.vedtakDate,
+            vedtakDate = if (Fagsystem.of(response.fagsystemId) == Fagsystem.IT01) null else response.vedtakDate.toLocalDate(),
             sakenGjelder = response.sakenGjelder.toView(),
             klager = response.klager.toView(),
             fullmektig = response.fullmektig?.toView(),
