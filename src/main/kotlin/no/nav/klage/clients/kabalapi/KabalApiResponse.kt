@@ -125,7 +125,6 @@ data class DokumentReferanse(
     val tittel: String?,
     val tema: String,
     val temaId: String,
-    val registrert: LocalDate,
     val harTilgangTilArkivvariant: Boolean,
     val vedlegg: MutableList<VedleggReferanse> = mutableListOf(),
     val journalposttype: Journalposttype?,

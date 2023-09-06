@@ -10,7 +10,6 @@ fun DokumentReferanse.toView(): no.nav.klage.api.controller.view.DokumentReferan
         tittel = tittel,
         tema = tema,
         temaId = temaId,
-        registrert = registrert,
         harTilgangTilArkivvariant = harTilgangTilArkivvariant,
         vedlegg = vedlegg.map { it.toView() }.toMutableList(),
         journalposttype = journalposttype?.toView(),

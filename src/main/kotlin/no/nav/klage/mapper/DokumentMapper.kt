@@ -28,7 +28,6 @@ class DokumentMapper {
             //remove when client no longer uses
             tema = Tema.fromNavn(journalpost.tema.name).id,
             temaId = Tema.fromNavn(journalpost.tema.name).id,
-            registrert = journalpost.datoOpprettet.toLocalDate(),
             dokumentInfoId = hoveddokument.dokumentInfoId,
             journalpostId = journalpost.journalpostId,
             harTilgangTilArkivvariant = harTilgangTilArkivvariant(hoveddokument),
