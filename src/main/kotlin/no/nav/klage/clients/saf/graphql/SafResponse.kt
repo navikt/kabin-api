@@ -167,12 +167,16 @@ enum class Tema {
     AAP, //Arbeidsavklaringspenger
     AAR, //Aa-registeret
     AGR, //Ajourhold - Grunnopplysninger
+    ARP, //Arbeidsrådgivning - psykologtjenester
+    ARS, //Arbeidsrådgivning - skjermet
     BAR, //Barnetrygd
     BID, //Bidrag
     BIL, //Bil
     DAG, //Dagpenger
     ENF, //Enslig forsørger
     ERS, //Erstatning
+    EYB, //Barnepensjon
+    EYO, //Omstillingsstønad
     FAR, //Farskap
     FEI, //Feilutbetaling
     FOR, //Foreldre- og svangerskapspenger
@@ -186,7 +190,9 @@ enum class Tema {
     HJE, //Hjelpemidler
     IAR, //Inkluderende arbeidsliv
     IND, //Tiltakspenger
+    KLL, //Klage - lønnsgaranti
     KON, //Kontantstøtte
+    KTA, //Kontroll - anmeldelse
     KTR, //Kontroll
     MED, //Medlemskap
     MOB, //Mobilitetsfremmende stønad
