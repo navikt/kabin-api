@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val tokenValidationVersion = "3.1.5"
+val tokenValidationVersion = "3.1.7"
 val logstashVersion = "7.4"
 val springDocVersion = "2.2.0"
 val springMockkVersion = "4.0.2"
