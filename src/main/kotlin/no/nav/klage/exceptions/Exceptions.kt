@@ -10,3 +10,5 @@ data class ValidationSection(val section: String, val properties: List<InvalidPr
 class JournalpostNotFoundException(override val message: String): RuntimeException(message)
 
 class InvalidSourceException(override val message: String): RuntimeException(message)
+
+class IllegalUpdateException(override val message: String): RuntimeException(message)

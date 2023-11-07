@@ -1,5 +1,6 @@
 package no.nav.klage.config
 
+import no.nav.klage.exceptions.IllegalUpdateException
 import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.JournalpostNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
@@ -49,6 +50,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     @ExceptionHandler
     fun handleInvalidSourceException(
         ex: InvalidSourceException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
+    fun handleIllegalUpdateException(
+        ex: IllegalUpdateException,
         request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)
