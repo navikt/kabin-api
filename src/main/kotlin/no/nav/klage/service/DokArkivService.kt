@@ -6,6 +6,7 @@ import no.nav.klage.api.controller.view.PartView
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.clients.saf.graphql.Datotype
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
@@ -21,6 +22,7 @@ import no.nav.klage.util.AnkemulighetSource
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -223,7 +225,9 @@ class DokArkivService(
             tema
         )
 
-        if (journalpostInSaf.journalposttype != Journalposttype.N
+        val journalpostType = journalpostInSaf.journalposttype
+
+        if (journalpostType != Journalposttype.N
             && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
             && !journalpostInSaf.isFinalized()
             && avsender == null
@@ -244,13 +248,31 @@ class DokArkivService(
             )
         }
 
-        if (journalpostInSaf.journalposttype != Journalposttype.N && avsender != null) {
+        if (journalpostType != Journalposttype.N && avsender != null) {
             if (journalpostInSaf.avsenderMottaker?.id != avsender.id) {
-                logger.debug("updating avsender in journalpost")
-                updateAvsenderInJournalpost(
-                    journalpostId = journalpostId,
-                    avsender = avsender,
-                )
+                val datoJournalfoert = journalpostInSaf.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
+                if (journalpostType == Journalposttype.I && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true) {
+                    throw SectionedValidationErrorWithDetailsException(
+                        title = "Validation error",
+                        sections = listOf(
+                            ValidationSection(
+                                section = "saksdata",
+                                properties = listOf(
+                                    InvalidProperty(
+                                        field = CreateAnkeInputView::avsender.name,
+                                        reason = "Det er ikke mulig å endre avsender på inngående dokument journalført for over et år siden."
+                                    )
+                                )
+                            )
+                        )
+                    )
+                } else {
+                    logger.debug("updating avsender in journalpost")
+                    updateAvsenderInJournalpost(
+                        journalpostId = journalpostId,
+                        avsender = avsender,
+                    )
+                }
             }
         }
 
