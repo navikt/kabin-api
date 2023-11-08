@@ -65,10 +65,6 @@ class AnkeService(
         val resultsFromInfotrygd = klageFssProxyService.getAnkemuligheter(input = input)
         return resultsFromInfotrygd
             .filter {
-                val utfallInSak = infotrygdKlageutfallToUtfall[it.utfall]
-                utfallInSak !in utfallWithoutAnkemulighet
-            }
-            .filter {
                 !kabalApiService.mulighetIsDuplicate(
                     fagsystem = Fagsystem.IT01,
                     kildereferanse = it.sakId,
