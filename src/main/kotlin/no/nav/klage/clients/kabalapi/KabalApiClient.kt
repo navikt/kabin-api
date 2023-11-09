@@ -73,6 +73,19 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("Didn't get any completedklagebehandlinger")
     }
 
+    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): List<AnkemulighetFromKabal> {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/ankemuligheter").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(idnummerInput)
+            .retrieve()
+            .bodyToMono<List<AnkemulighetFromKabal>>()
+            .block() ?: throw RuntimeException("Didn't get any ankemuligheter")
+    }
+
     fun getCompletedKlagebehandling(klagebehandlingId: UUID): CompletedKlagebehandling {
         return kabalApiWebClient.get()
             .uri { it.path("/api/internal/completedklagebehandlinger/{klagebehandlingId}").build(klagebehandlingId) }

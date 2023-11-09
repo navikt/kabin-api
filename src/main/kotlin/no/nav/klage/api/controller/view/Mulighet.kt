@@ -17,6 +17,7 @@ data class Ankemulighet(
     val fagsakId: String,
     val fagsystemId: String,
     val previousSaksbehandler: PreviousSaksbehandler?,
+    val typeId: String?,
 )
 
 data class PreviousSaksbehandler(

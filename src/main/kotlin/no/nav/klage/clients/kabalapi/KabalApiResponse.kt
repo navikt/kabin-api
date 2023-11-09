@@ -39,6 +39,34 @@ data class CompletedKlagebehandling(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+data class AnkemulighetFromKabal(
+    val behandlingId: UUID,
+    val typeId: String,
+    val previouslyUsed: Boolean,
+    val ytelseId: String,
+    val utfallId: String,
+    val hjemmelId: String,
+    val vedtakDate: LocalDateTime,
+    val sakenGjelder: PartView,
+    val klager: PartView,
+    val fullmektig: PartView,
+    val fagsakId: String,
+    val fagsystem: Fagsystem,
+    val fagsystemId: String,
+    val klageBehandlendeEnhet: String,
+    val tildeltSaksbehandlerIdent: String?,
+    val tildeltSaksbehandlerNavn: String?,
+) {
+    fun toDokarkivSak(): Sak {
+        return Sak(
+            sakstype = Sakstype.FAGSAK,
+            fagsaksystem = FagsaksSystem.valueOf(fagsystem.name),
+            fagsakid = fagsakId
+        )
+    }
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class CreatedAnkebehandlingStatus(
     val typeId: String,
     val ytelseId: String,

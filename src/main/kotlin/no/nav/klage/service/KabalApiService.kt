@@ -28,7 +28,7 @@ class KabalApiService(
     }
 
     fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
-        return kabalApiClient.getCompletedKlagebehandlingerByIdnummer(input).map {
+        return kabalApiClient.getAnkemuligheterByIdnummer(input).map {
             Ankemulighet(
                 id = it.behandlingId.toString(),
                 ytelseId = it.ytelseId,
@@ -50,6 +50,7 @@ class KabalApiService(
                     }
                 },
                 sourceId = AnkemulighetSource.KABAL.fagsystem.id,
+                typeId = it.typeId,
             )
         }
     }
