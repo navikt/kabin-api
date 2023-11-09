@@ -251,7 +251,10 @@ class DokArkivService(
         if (journalpostType != Journalposttype.N && avsender != null) {
             if (journalpostInSaf.avsenderMottaker?.id != avsender.id) {
                 val datoJournalfoert = journalpostInSaf.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
-                if (journalpostType == Journalposttype.I && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true) {
+                val journalStatus = journalpostInSaf.journalstatus
+                if (journalpostType == Journalposttype.I
+                    && journalStatus == Journalstatus.JOURNALFOERT
+                    && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true) {
                     throw SectionedValidationErrorWithDetailsException(
                         title = "Validation error",
                         sections = listOf(
