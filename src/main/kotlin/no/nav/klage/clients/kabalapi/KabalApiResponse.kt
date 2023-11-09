@@ -49,7 +49,7 @@ data class AnkemulighetFromKabal(
     val vedtakDate: LocalDateTime,
     val sakenGjelder: PartView,
     val klager: PartView,
-    val fullmektig: PartView,
+    val fullmektig: PartView?,
     val fagsakId: String,
     val fagsystem: Fagsystem,
     val fagsystemId: String,
