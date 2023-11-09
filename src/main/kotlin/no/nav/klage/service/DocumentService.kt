@@ -81,26 +81,11 @@ class DocumentService(
         dokumentInfoId: String,
         title: String
     ) {
-        validateJournalpostChange(journalpostId = journalpostId)
-
         dokArkivService.updateDocumentTitle(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             title = title,
         )
-    }
-
-    private fun validateJournalpostChange(journalpostId: String) {
-        val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId = journalpostId)
-        val datoJournalfoert = journalpost?.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
-        val journalpostType = journalpost?.journalposttype
-        val journalStatus = journalpost?.journalstatus
-
-        if (journalpostType == Journalposttype.I
-            && journalStatus == Journalstatus.JOURNALFOERT
-            && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true) {
-            throw IllegalUpdateException("Kan ikke oppdatere tittel på inngående dokument journalført for over et år siden.")
-        }
     }
 }
 
