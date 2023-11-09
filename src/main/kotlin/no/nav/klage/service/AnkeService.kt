@@ -86,7 +86,8 @@ class AnkeService(
                     //TODO: Tilpass når vi får flere fagsystemer.
                     fagsystemId = Fagsystem.IT01.id,
                     previousSaksbehandler = null,
-                    sourceId = AnkemulighetSource.INFOTRYGD.fagsystem.id
+                    sourceId = AnkemulighetSource.INFOTRYGD.fagsystem.id,
+                    typeId = null,
                 )
             }
 
