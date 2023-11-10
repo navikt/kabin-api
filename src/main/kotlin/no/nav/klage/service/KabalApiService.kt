@@ -83,6 +83,7 @@ class KabalApiService(
         return kabalApiClient.createAnkeInKabal(
             CreateAnkeBasedOnKlagebehandlingInput(
                 klagebehandlingId = UUID.fromString(input.id),
+                sourceId = UUID.fromString(input.id),
                 mottattNav = input.mottattKlageinstans,
                 frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong()),
                 klager = input.klager.toOversendtPartId(),

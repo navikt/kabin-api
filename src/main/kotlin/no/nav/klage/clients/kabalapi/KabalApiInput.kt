@@ -6,6 +6,7 @@ import java.util.*
 
 data class CreateAnkeBasedOnKlagebehandlingInput(
     val klagebehandlingId: UUID,
+    val sourceId: UUID,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val klager: OversendtPartId?,
