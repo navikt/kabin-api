@@ -88,6 +88,7 @@ class AnkeService(
                     previousSaksbehandler = null,
                     sourceId = AnkemulighetSource.INFOTRYGD.fagsystem.id,
                     typeId = null,
+                    sourceOfAnkebehandlingWithId = emptyList(),
                 )
             }
 

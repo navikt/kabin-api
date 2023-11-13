@@ -13,7 +13,7 @@ data class CreatedBehandlingResponse(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class CompletedKlagebehandling(
+data class CompletedBehandling(
     val behandlingId: UUID,
     val ytelseId: String,
     val utfallId: String,
@@ -42,7 +42,7 @@ data class CompletedKlagebehandling(
 data class AnkemulighetFromKabal(
     val behandlingId: UUID,
     val typeId: String,
-    val previouslyUsed: Boolean,
+    val sourceOfAnkebehandlingWithId: List<UUID>?,
     val ytelseId: String,
     val utfallId: String,
     val hjemmelId: String,

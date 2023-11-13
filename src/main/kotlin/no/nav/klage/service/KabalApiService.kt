@@ -51,6 +51,7 @@ class KabalApiService(
                 },
                 sourceId = AnkemulighetSource.KABAL.fagsystem.id,
                 typeId = it.typeId,
+                sourceOfAnkebehandlingWithId = it.sourceOfAnkebehandlingWithId,
             )
         }
     }
@@ -135,7 +136,7 @@ class KabalApiService(
         return kabalApiClient.getUsedJournalpostIdListForPerson(fnr = fnr)
     }
 
-    fun getCompletedKlagebehandling(klagebehandlingId: UUID): CompletedKlagebehandling {
-        return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
+    fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {
+        return kabalApiClient.getCompletedBehandling(behandlingId)
     }
 }

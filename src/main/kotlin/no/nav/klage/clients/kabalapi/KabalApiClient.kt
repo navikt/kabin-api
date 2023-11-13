@@ -60,19 +60,6 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun getCompletedKlagebehandlingerByIdnummer(idnummerInput: IdnummerInput): List<CompletedKlagebehandling> {
-        return kabalApiWebClient.post()
-            .uri { it.path("/api/internal/completedklagebehandlinger").build() }
-            .header(
-                HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
-            )
-            .bodyValue(idnummerInput)
-            .retrieve()
-            .bodyToMono<List<CompletedKlagebehandling>>()
-            .block() ?: throw RuntimeException("Didn't get any completedklagebehandlinger")
-    }
-
     fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): List<AnkemulighetFromKabal> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/ankemuligheter").build() }
@@ -86,16 +73,16 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("Didn't get any ankemuligheter")
     }
 
-    fun getCompletedKlagebehandling(klagebehandlingId: UUID): CompletedKlagebehandling {
+    fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {
         return kabalApiWebClient.get()
-            .uri { it.path("/api/internal/completedklagebehandlinger/{klagebehandlingId}").build(klagebehandlingId) }
+            .uri { it.path("/api/internal/completedbehandlinger/{klagebehandlingId}").build(behandlingId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
             )
             .retrieve()
-            .bodyToMono<CompletedKlagebehandling>()
-            .block() ?: throw RuntimeException("Could not get klagebehandling with id $klagebehandlingId")
+            .bodyToMono<CompletedBehandling>()
+            .block() ?: throw RuntimeException("Could not get behandling with id $behandlingId")
     }
 
     fun searchPart(searchPartInput: SearchPartInput): PartView {
