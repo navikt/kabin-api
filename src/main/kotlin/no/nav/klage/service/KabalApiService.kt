@@ -1,6 +1,7 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.domain.CreateAnkeInput
@@ -51,7 +52,13 @@ class KabalApiService(
                 },
                 sourceId = AnkemulighetSource.KABAL.fagsystem.id,
                 typeId = it.typeId,
-                sourceOfAnkebehandlingWithId = it.sourceOfAnkebehandlingWithId,
+                sourceOfExistingAnkebehandling = it.sourceOfExistingAnkebehandling.map { existingAnkebehandling ->
+                    ExistingAnkebehandling(
+                        id = existingAnkebehandling.id,
+                        created = existingAnkebehandling.created,
+                        completed = existingAnkebehandling.completed,
+                    )
+                },
             )
         }
     }
