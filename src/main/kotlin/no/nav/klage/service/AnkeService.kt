@@ -89,7 +89,7 @@ class AnkeService(
                     sourceId = AnkemulighetSource.INFOTRYGD.fagsystem.id,
                     //TODO: Les fra Klanke-responsen
                     typeId = Type.KLAGE.id,
-                    sourceOfAnkebehandlingWithId = emptyList(),
+                    sourceOfExistingAnkebehandling = emptyList(),
                 )
             }
 
