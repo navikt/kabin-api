@@ -7,7 +7,7 @@ data class Ankemulighet(
     val id: String,
     //where the "mulighet" comes from. Kabal or Infotrygd (or other).
     val sourceId: String,
-    val sourceOfAnkebehandlingWithId: List<UUID>?,
+    val sourceOfAnkebehandlingWithId: List<UUID>,
     val ytelseId: String?,
     val hjemmelId: String?,
     val utfallId: String,

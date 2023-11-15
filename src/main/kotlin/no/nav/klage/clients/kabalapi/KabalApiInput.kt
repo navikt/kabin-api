@@ -5,8 +5,7 @@ import java.time.LocalDate
 import java.util.*
 
 data class CreateAnkeBasedOnKlagebehandlingInput(
-    val klagebehandlingId: UUID,
-    val sourceId: UUID,
+    val sourceBehandlingId: UUID,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val klager: OversendtPartId?,
