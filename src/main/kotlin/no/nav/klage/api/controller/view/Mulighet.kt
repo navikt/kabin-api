@@ -1,11 +1,14 @@
 package no.nav.klage.api.controller.view
 
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 data class Ankemulighet(
     val id: String,
     //where the "mulighet" comes from. Kabal or Infotrygd (or other).
     val sourceId: String,
+    val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String?,
     val hjemmelId: String?,
     val utfallId: String,
@@ -17,6 +20,13 @@ data class Ankemulighet(
     val fagsakId: String,
     val fagsystemId: String,
     val previousSaksbehandler: PreviousSaksbehandler?,
+    val typeId: String?,
+)
+
+data class ExistingAnkebehandling(
+    val id: UUID,
+    val created: LocalDateTime,
+    val completed: LocalDateTime?,
 )
 
 data class PreviousSaksbehandler(

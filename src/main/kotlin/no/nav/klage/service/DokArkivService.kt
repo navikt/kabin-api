@@ -191,16 +191,16 @@ class DokArkivService(
         klagebehandlingId: UUID,
         avsender: PartId?,
     ): String {
-        val completedKlagebehandling =
-            kabalApiService.getCompletedKlagebehandling(klagebehandlingId = klagebehandlingId)
+        val completedBehandling =
+            kabalApiService.getCompletedBehandling(behandlingId = klagebehandlingId)
 
         return handleJournalpost(
             journalpostId = journalpostId,
             avsender = avsender,
-            tema = Ytelse.of(completedKlagebehandling.ytelseId).toTema(),
-            bruker = completedKlagebehandling.sakenGjelder.toDokarkivBruker(),
-            sakInFagsystem = completedKlagebehandling.toDokarkivSak(),
-            journalfoerendeEnhet = completedKlagebehandling.klageBehandlendeEnhet,
+            tema = Ytelse.of(completedBehandling.ytelseId).toTema(),
+            bruker = completedBehandling.sakenGjelder.toDokarkivBruker(),
+            sakInFagsystem = completedBehandling.toDokarkivSak(),
+            journalfoerendeEnhet = completedBehandling.klageBehandlendeEnhet,
             type = Type.ANKE,
         )
     }

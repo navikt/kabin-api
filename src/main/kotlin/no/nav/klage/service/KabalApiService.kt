@@ -1,6 +1,7 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.domain.CreateAnkeInput
@@ -28,7 +29,7 @@ class KabalApiService(
     }
 
     fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
-        return kabalApiClient.getCompletedKlagebehandlingerByIdnummer(input).map {
+        return kabalApiClient.getAnkemuligheterByIdnummer(input).map {
             Ankemulighet(
                 id = it.behandlingId.toString(),
                 ytelseId = it.ytelseId,
@@ -50,6 +51,14 @@ class KabalApiService(
                     }
                 },
                 sourceId = AnkemulighetSource.KABAL.fagsystem.id,
+                typeId = it.typeId,
+                sourceOfExistingAnkebehandling = it.sourceOfExistingAnkebehandling.map { existingAnkebehandling ->
+                    ExistingAnkebehandling(
+                        id = existingAnkebehandling.id,
+                        created = existingAnkebehandling.created,
+                        completed = existingAnkebehandling.completed,
+                    )
+                },
             )
         }
     }
@@ -81,7 +90,7 @@ class KabalApiService(
     fun createAnkeInKabalFromKlagebehandling(input: CreateAnkeInput): UUID {
         return kabalApiClient.createAnkeInKabal(
             CreateAnkeBasedOnKlagebehandlingInput(
-                klagebehandlingId = UUID.fromString(input.id),
+                sourceBehandlingId = UUID.fromString(input.id),
                 mottattNav = input.mottattKlageinstans,
                 frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong()),
                 klager = input.klager.toOversendtPartId(),
@@ -133,7 +142,7 @@ class KabalApiService(
         return kabalApiClient.getUsedJournalpostIdListForPerson(fnr = fnr)
     }
 
-    fun getCompletedKlagebehandling(klagebehandlingId: UUID): CompletedKlagebehandling {
-        return kabalApiClient.getCompletedKlagebehandling(klagebehandlingId)
+    fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {
+        return kabalApiClient.getCompletedBehandling(behandlingId)
     }
 }
