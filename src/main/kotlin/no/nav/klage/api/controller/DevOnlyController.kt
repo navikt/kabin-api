@@ -29,7 +29,7 @@ class DevOnlyController(
         return klageFssProxyClient.searchKlanke(input)
     }
 
-    @PostMapping("/klanke/sak/{sakId}")
+    @GetMapping("/klanke/sak/{sakId}")
     fun getSakFromKlanke(
         @PathVariable sakId: String
     ): SakFromKlanke {
