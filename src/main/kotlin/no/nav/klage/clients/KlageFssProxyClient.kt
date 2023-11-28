@@ -86,6 +86,7 @@ data class SakFromKlanke(
     val enhetsnummer: String,
     val vedtaksdato: LocalDate,
     val fnr: String,
+    val sakstype: String,
 )
 
 data class HandledInKabalInput(
