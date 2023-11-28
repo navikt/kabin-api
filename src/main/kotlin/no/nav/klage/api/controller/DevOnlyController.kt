@@ -29,6 +29,13 @@ class DevOnlyController(
         return klageFssProxyClient.searchKlanke(input)
     }
 
+    @PostMapping("/klanke/sak/{sakId}")
+    fun getSakFromKlanke(
+        @PathVariable sakId: String
+    ): SakFromKlanke {
+        return klageFssProxyClient.getSak(sakId)
+    }
+
     @Unprotected
     @GetMapping("/internal/mytoken")
     fun getToken(): String {
