@@ -29,7 +29,9 @@ class KlageFssProxyService(
 
     fun getKlagemuligheter(input: IdnummerInput): List<SakFromKlanke> {
         //Deliberately fail if missing access.
-        return klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"))
+        val klageSaker = klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"))
+        val klageTilbakebetalingSaker = klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE_TILBAKEBETALING"))
+        return klageSaker + klageTilbakebetalingSaker
     }
 
     fun getSak(sakId: String): SakFromKlanke {
