@@ -46,6 +46,28 @@ class KlageFssProxyClient(
             ?: throw RuntimeException("Empty result")
     }
 
+    fun getSakAppAccess(sakId: String, saksbehandlerIdent: String): SakFromKlanke {
+        return klageFssProxyWebClient.post()
+            .uri { it.path("/klanke/saker/{sakId}/appaccess").build(sakId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+            )
+            .bodyValue(
+                GetSakAppAccessInput(
+                    saksbehandlerIdent = saksbehandlerIdent
+                )
+            )
+            .retrieve()
+            .bodyToMono<SakFromKlanke>()
+            .block()
+            ?: throw RuntimeException("Empty result")
+    }
+
+    data class GetSakAppAccessInput(
+        val saksbehandlerIdent: String
+    )
+
     fun checkAccess(): Access {
         return klageFssProxyWebClient.get()
             .uri { it.path("/klanke/access").build() }

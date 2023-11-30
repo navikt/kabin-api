@@ -36,6 +36,13 @@ class DevOnlyController(
         return klageFssProxyClient.getSak(sakId)
     }
 
+    @GetMapping("/klanke/sak/{sakId}/appaccess")
+    fun getSakFromKlankeAppAccess(
+        @PathVariable sakId: String
+    ): SakFromKlanke {
+        return klageFssProxyClient.getSakAppAccess(sakId = sakId, saksbehandlerIdent = tokenUtil.getCurrentIdent())
+    }
+
     @Unprotected
     @GetMapping("/internal/mytoken")
     fun getToken(): String {
