@@ -48,7 +48,7 @@ class KlageFssProxyClient(
 
     fun getSakAppAccess(sakId: String, saksbehandlerIdent: String): SakFromKlanke {
         return klageFssProxyWebClient.post()
-            .uri { it.path("/klanke/saker/{sakId}/appaccess").build(sakId) }
+            .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}"
