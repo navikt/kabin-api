@@ -5,7 +5,7 @@ val logstashVersion = "7.4"
 val springDocVersion = "2.2.0"
 val springMockkVersion = "4.0.2"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "1.7.8"
+val klageKodeverkVersion = "1.7.13"
 
 plugins {
     val kotlinVersion = "1.9.21"
