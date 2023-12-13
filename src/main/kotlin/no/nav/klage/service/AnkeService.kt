@@ -83,12 +83,10 @@ class AnkeService(
                     klager = null,
                     fullmektig = null,
                     fagsakId = it.fagsakId,
-                    //TODO: Tilpass når vi får flere fagsystemer.
                     fagsystemId = Fagsystem.IT01.id,
                     previousSaksbehandler = null,
                     sourceId = AnkemulighetSource.INFOTRYGD.fagsystem.id,
-                    //TODO: Les fra Klanke-responsen
-                    typeId = Type.KLAGE.id,
+                    typeId = Type.ANKE.id,
                     sourceOfExistingAnkebehandling = emptyList(),
                 )
             }
