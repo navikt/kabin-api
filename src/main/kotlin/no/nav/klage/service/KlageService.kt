@@ -70,6 +70,7 @@ class KlageService(
                 )
             }
             .map {
+                secureLogger.debug("klagemulighet from Klanke: {}", it)
                 Klagemulighet(
                     behandlingId = it.sakId,
                     temaId = Tema.fromNavn(it.tema).id,
