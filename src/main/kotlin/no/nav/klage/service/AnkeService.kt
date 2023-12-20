@@ -4,10 +4,7 @@ import no.nav.klage.api.controller.mapper.toView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateAnkeInput
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Tema
-import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.infotrygdKlageutfallToUtfall
+import no.nav.klage.kodeverk.*
 import no.nav.klage.util.*
 import org.springframework.stereotype.Service
 import java.util.*
@@ -76,7 +73,6 @@ class AnkeService(
                     id = it.sakId,
                     ytelseId = null,
                     hjemmelId = null,
-                    utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
                     temaId = Tema.fromNavn(it.tema).id,
                     vedtakDate = null,
                     sakenGjelder = kabalApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView(),
@@ -99,7 +95,6 @@ class AnkeService(
         return CreatedAnkebehandlingStatusView(
             typeId = response.typeId,
             ytelseId = response.ytelseId,
-            utfallId = response.utfallId,
             vedtakDate = if (Fagsystem.of(response.fagsystemId) == Fagsystem.IT01) null else response.vedtakDate.toLocalDate(),
             sakenGjelder = response.sakenGjelder.toView(),
             klager = response.klager.toView(),

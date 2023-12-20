@@ -34,7 +34,6 @@ class KabalApiService(
                 id = it.behandlingId.toString(),
                 ytelseId = it.ytelseId,
                 hjemmelId = it.hjemmelId,
-                utfallId = it.utfallId,
                 temaId = Ytelse.of(it.ytelseId).toTema().id,
                 vedtakDate = it.vedtakDate.toLocalDate(),
                 sakenGjelder = it.sakenGjelder.toView(),

@@ -1,5 +1,6 @@
 package no.nav.klage.clients
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
@@ -100,11 +101,11 @@ data class KlankeSearchInput(
     val sakstype: String,
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class SakFromKlanke(
     val sakId: String,
     val fagsakId: String,
     val tema: String,
-    val utfall: String,
     val enhetsnummer: String,
     val vedtaksdato: LocalDate,
     val fnr: String,
