@@ -16,7 +16,6 @@ import no.nav.klage.clients.saf.graphql.Tema.OMS
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
-import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -458,7 +457,6 @@ class DokArkivServiceTest {
         return CompletedBehandling(
             behandlingId = UUID.randomUUID(),
             ytelseId = Ytelse.OMS_OLP.id,
-            utfallId = Utfall.STADFESTELSE.id,
             vedtakDate = LocalDateTime.now(),
             sakenGjelder = PERSON,
             klager = PERSON,

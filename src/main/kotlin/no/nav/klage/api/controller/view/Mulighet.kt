@@ -11,7 +11,6 @@ data class Ankemulighet(
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String?,
     val hjemmelId: String?,
-    val utfallId: String,
     val temaId: String,
     val vedtakDate: LocalDate?,
     val sakenGjelder: PartView,
@@ -37,7 +36,6 @@ data class PreviousSaksbehandler(
 data class Klagemulighet(
     val behandlingId: String,
     val temaId: String,
-    val utfallId: String,
     val vedtakDate: LocalDate,
     val sakenGjelder: PartView,
     val fagsakId: String,

@@ -16,7 +16,6 @@ data class CreatedBehandlingResponse(
 data class CompletedBehandling(
     val behandlingId: UUID,
     val ytelseId: String,
-    val utfallId: String,
     val hjemmelId: String,
     val vedtakDate: LocalDateTime,
     val sakenGjelder: PartView,
@@ -44,7 +43,6 @@ data class AnkemulighetFromKabal(
     val typeId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String,
-    val utfallId: String,
     val hjemmelId: String,
     val vedtakDate: LocalDateTime,
     val sakenGjelder: PartView,
@@ -68,7 +66,6 @@ data class ExistingAnkebehandling(
 data class CreatedAnkebehandlingStatus(
     val typeId: String,
     val ytelseId: String,
-    val utfallId: String,
     val vedtakDate: LocalDateTime,
     val sakenGjelder: PartView,
     val klager: PartView,

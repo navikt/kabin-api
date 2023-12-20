@@ -7,7 +7,6 @@ import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.infotrygdKlageutfallToUtfall
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -70,11 +69,9 @@ class KlageService(
                 )
             }
             .map {
-                secureLogger.debug("klagemulighet from Klanke: {}", it)
                 Klagemulighet(
                     behandlingId = it.sakId,
                     temaId = Tema.fromNavn(it.tema).id,
-                    utfallId = infotrygdKlageutfallToUtfall[it.utfall]!!.id,
                     vedtakDate = it.vedtaksdato,
                     fagsakId = it.fagsakId,
                     //TODO: Tilpass når vi får flere fagsystemer.
@@ -94,7 +91,6 @@ class KlageService(
         return CreatedKlagebehandlingStatusView(
             typeId = status.typeId,
             ytelseId = status.ytelseId,
-            utfallId = infotrygdKlageutfallToUtfall[sakFromKlanke.utfall]!!.id,
             vedtakDate = sakFromKlanke.vedtaksdato,
             sakenGjelder = status.sakenGjelder.toView(),
             klager = status.klager.toView(),

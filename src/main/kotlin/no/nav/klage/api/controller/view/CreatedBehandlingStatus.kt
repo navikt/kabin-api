@@ -5,7 +5,6 @@ import java.time.LocalDate
 data class CreatedAnkebehandlingStatusView(
     val typeId: String,
     val ytelseId: String,
-    val utfallId: String,
     val vedtakDate: LocalDate?,
     val sakenGjelder: PartView,
     val klager: PartView,
@@ -21,7 +20,6 @@ data class CreatedAnkebehandlingStatusView(
 data class CreatedKlagebehandlingStatusView(
     val typeId: String,
     val ytelseId: String,
-    val utfallId: String,
     val vedtakDate: LocalDate,
     val sakenGjelder: PartView,
     val klager: PartView,
