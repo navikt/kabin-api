@@ -163,33 +163,11 @@ data class DokumentReferanse(
     val relevanteDatoer: List<RelevantDato>?,
     val antallRetur: Int?,
     val tilleggsopplysninger: List<Tilleggsopplysning>?,
-    val kanal: Kanal,
+    val kanal: String,
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
     var alreadyUsed: Boolean = false,
 ) {
-    enum class Kanal {
-        ALTINN,
-        EIA,
-        NAV_NO,
-        NAV_NO_UINNLOGGET,
-        NAV_NO_CHAT,
-        SKAN_NETS,
-        SKAN_PEN,
-        SKAN_IM,
-        INNSENDT_NAV_ANSATT,
-        EESSI,
-        EKST_OPPS,
-        SENTRAL_UTSKRIFT,
-        LOKAL_UTSKRIFT,
-        SDP,
-        TRYGDERETTEN,
-        HELSENETTET,
-        INGEN_DISTRIBUSJON,
-        DPV,
-        DPVS,
-        UKJENT,
-    }
 
     enum class Journalstatus {
         //Journalposten er mottatt, men ikke journalført. "Mottatt" er et annet ord for "arkivert" eller "midlertidig journalført"

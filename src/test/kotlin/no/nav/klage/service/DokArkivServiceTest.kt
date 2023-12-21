@@ -498,7 +498,7 @@ class DokArkivServiceTest {
             relevanteDatoer = listOf(),
             antallRetur = null,
             tilleggsopplysninger = listOf(),
-            kanal = Kanal.NAV_NO,
+            kanal = "NAV_NO",
             kanalnavn = "",
             utsendingsinfo = null
         )

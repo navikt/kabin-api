@@ -25,7 +25,7 @@ fun DokumentReferanse.toView(): no.nav.klage.api.controller.view.DokumentReferan
         relevanteDatoer = relevanteDatoer?.map { it.toView() },
         antallRetur = antallRetur,
         tilleggsopplysninger = tilleggsopplysninger?.map { it.toView() },
-        kanal = kanal.toView(),
+        kanal = kanal,
         kanalnavn = kanalnavn,
         utsendingsinfo = utsendingsinfo?.toView(),
         alreadyUsed = alreadyUsed
@@ -86,10 +86,6 @@ fun DokumentReferanse.Tilleggsopplysning.toView(): no.nav.klage.api.controller.v
         key = key,
         value = value
     )
-}
-
-fun DokumentReferanse.Kanal.toView(): no.nav.klage.api.controller.view.DokumentReferanse.Kanal {
-    return no.nav.klage.api.controller.view.DokumentReferanse.Kanal.valueOf(this.name)
 }
 
 fun DokumentReferanse.Utsendingsinfo.toView(): no.nav.klage.api.controller.view.DokumentReferanse.Utsendingsinfo {

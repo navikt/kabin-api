@@ -75,7 +75,7 @@ class DokumentMapper {
                     value = it.verdi,
                 )
             },
-            kanal = DokumentReferanse.Kanal.valueOf(journalpost.kanal.name),
+            kanal = journalpost.kanal,
             kanalnavn = journalpost.kanalnavn,
             utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
         )
