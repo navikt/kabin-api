@@ -1,6 +1,8 @@
 package no.nav.klage.clients.kabalapi
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import no.nav.klage.api.controller.view.PartView.*
+import no.nav.klage.api.controller.view.PartView.PartStatus.Status
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.kodeverk.Fagsystem
 import java.time.LocalDate
@@ -120,9 +122,26 @@ data class PartView(
     val type: PartType,
     val name: String?,
     val available: Boolean,
+    val statusList: List<PartStatus>,
 ) {
     enum class PartType {
         FNR, ORGNR
+    }
+
+    data class PartStatus(
+        val status: Status,
+        val date: LocalDate? = null,
+    ) {
+        enum class Status {
+            DEAD,
+            DELETED,
+            FORTROLIG,
+            STRENGT_FORTROLIG,
+            EGEN_ANSATT,
+            VERGEMAAL,
+            FULLMAKT,
+            RESERVERT_I_KRR,
+        }
     }
 
     fun toView(): no.nav.klage.api.controller.view.PartView {
@@ -131,6 +150,12 @@ data class PartView(
             type = no.nav.klage.api.controller.view.PartView.PartType.valueOf(type.name),
             name = name,
             available = available,
+            statusList = statusList.map { partStatus ->
+                PartStatus(
+                    status = Status.valueOf(partStatus.status.name),
+                    date = partStatus.date,
+                )
+            }
         )
     }
 
