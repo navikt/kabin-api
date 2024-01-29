@@ -72,7 +72,7 @@ class AnkeService(
                 Ankemulighet(
                     id = it.sakId,
                     ytelseId = null,
-                    hjemmelId = null,
+                    hjemmelIdList = null,
                     temaId = Tema.fromNavn(it.tema).id,
                     vedtakDate = null,
                     sakenGjelder = kabalApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView(),

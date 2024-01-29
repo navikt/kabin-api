@@ -13,7 +13,7 @@ data class CreateAnkeInput(
     val fullmektig: PartId?,
     val ankeDocumentJournalpostId: String,
     val ytelseId: String?,
-    val hjemmelId: String?,
+    val hjemmelIdList: List<String>?,
     val avsender: PartId?,
     val saksbehandlerIdent: String?
 )
@@ -27,7 +27,7 @@ data class CreateKlageInput(
     val fullmektig: PartId?,
     val klageJournalpostId: String,
     val ytelseId: String,
-    val hjemmelId: String,
+    val hjemmelIdList: List<String>,
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
 )

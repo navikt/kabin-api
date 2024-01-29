@@ -20,7 +20,7 @@ class ValidationUtilTest {
             fullmektig = null,
             journalpostId = null,
             ytelseId = null,
-            hjemmelId = null,
+            hjemmelIdList = null,
             avsender = null,
             saksbehandlerIdent = null
         )

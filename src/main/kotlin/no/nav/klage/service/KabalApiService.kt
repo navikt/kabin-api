@@ -33,7 +33,7 @@ class KabalApiService(
             Ankemulighet(
                 id = it.behandlingId.toString(),
                 ytelseId = it.ytelseId,
-                hjemmelId = it.hjemmelId,
+                hjemmelIdList = it.hjemmelIdList,
                 temaId = Ytelse.of(it.ytelseId).toTema().id,
                 vedtakDate = it.vedtakDate.toLocalDate(),
                 sakenGjelder = it.sakenGjelder.toView(),
@@ -74,7 +74,7 @@ class KabalApiService(
                 fagsakId = sakFromKlanke.fagsakId,
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
-                hjemmelId = input.hjemmelId!!,
+                hjemmelIdList = input.hjemmelIdList!!,
                 forrigeBehandlendeEnhet = sakFromKlanke.enhetsnummer,
                 ankeJournalpostId = input.ankeDocumentJournalpostId,
                 mottattNav = input.mottattKlageinstans,
@@ -124,7 +124,7 @@ class KabalApiService(
                 fagsakId = sakFromKlanke.fagsakId,
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
-                hjemmelId = input.hjemmelId,
+                hjemmelIdList = input.hjemmelIdList,
                 forrigeBehandlendeEnhet = sakFromKlanke.enhetsnummer,
                 klageJournalpostId = input.klageJournalpostId,
                 brukersHenvendelseMottattNav = input.mottattVedtaksinstans,

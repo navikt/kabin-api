@@ -10,7 +10,7 @@ data class Ankemulighet(
     val sourceId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String?,
-    val hjemmelId: String?,
+    val hjemmelIdList: List<String>?,
     val temaId: String,
     val vedtakDate: LocalDate?,
     val sakenGjelder: PartView,
