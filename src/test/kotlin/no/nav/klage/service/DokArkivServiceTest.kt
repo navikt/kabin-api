@@ -468,7 +468,7 @@ class DokArkivServiceTest {
             klageBehandlendeEnhet = ENHET,
             tildeltSaksbehandlerIdent = "IDENT",
             tildeltSaksbehandlerNavn = "NAVN",
-            hjemmelId = Hjemmel.FTRL_15_3.id,
+            hjemmelIdList = listOf(Hjemmel.FTRL_15_3.id),
         )
     }
 

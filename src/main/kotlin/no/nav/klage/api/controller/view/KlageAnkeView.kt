@@ -12,7 +12,7 @@ data class CreateAnkeInputView(
     val fullmektig: PartId?,
     val journalpostId: String?,
     val ytelseId: String?,
-    val hjemmelId: String?,
+    val hjemmelIdList: List<String>?,
     val avsender: PartId?,
     val saksbehandlerIdent: String?
 )
@@ -30,7 +30,7 @@ data class CreateKlageInputView(
     val fullmektig: PartId?,
     val journalpostId: String?,
     val ytelseId: String?,
-    val hjemmelId: String?,
+    val hjemmelIdList: List<String>?,
     val avsender: PartId?,
     val saksbehandlerIdent: String?
 )

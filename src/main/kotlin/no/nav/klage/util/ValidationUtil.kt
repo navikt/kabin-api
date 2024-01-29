@@ -67,10 +67,10 @@ class ValidationUtil {
         }
 
         if (ankemulighetSource == AnkemulighetSource.INFOTRYGD) {
-            if (input.hjemmelId == null) {
+            if (input.hjemmelIdList == null) {
                 validationErrors += InvalidProperty(
-                    field = CreateKlageInputView::hjemmelId.name,
-                    reason = "Velg en hjemmel."
+                    field = CreateKlageInputView::hjemmelIdList.name,
+                    reason = "Velg minst én hjemmel."
                 )
             }
 
@@ -106,7 +106,7 @@ class ValidationUtil {
             fullmektig = input.fullmektig,
             ankeDocumentJournalpostId = input.journalpostId!!,
             ytelseId = input.ytelseId,
-            hjemmelId = input.hjemmelId,
+            hjemmelIdList = input.hjemmelIdList,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
             ankemulighetSource = ankemulighetSource,
@@ -187,10 +187,10 @@ class ValidationUtil {
             )
         }
 
-        if (input.hjemmelId == null) {
+        if (input.hjemmelIdList == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInputView::hjemmelId.name,
-                reason = "Velg en hjemmel."
+                field = CreateKlageInputView::hjemmelIdList.name,
+                reason = "Velg minst én hjemmel."
             )
         }
 
@@ -219,7 +219,7 @@ class ValidationUtil {
             fullmektig = input.fullmektig,
             klageJournalpostId = input.journalpostId!!,
             ytelseId = input.ytelseId!!,
-            hjemmelId = input.hjemmelId!!,
+            hjemmelIdList = input.hjemmelIdList!!,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
         )
