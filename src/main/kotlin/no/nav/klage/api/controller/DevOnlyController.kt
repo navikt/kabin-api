@@ -30,13 +30,6 @@ class DevOnlyController(
     }
 
     @GetMapping("/klanke/sak/{sakId}")
-    fun getSakFromKlanke(
-        @PathVariable sakId: String
-    ): SakFromKlanke {
-        return klageFssProxyClient.getSak(sakId)
-    }
-
-    @GetMapping("/klanke/sak/{sakId}/appaccess")
     fun getSakFromKlankeAppAccess(
         @PathVariable sakId: String
     ): SakFromKlanke {

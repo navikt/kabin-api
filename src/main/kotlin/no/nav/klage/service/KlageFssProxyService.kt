@@ -5,6 +5,7 @@ import no.nav.klage.clients.HandledInKabalInput
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.SakFromKlanke
+import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter
 @Service
 class KlageFssProxyService(
     private val klageFssProxyClient: KlageFssProxyClient,
+    private val tokenUtil: TokenUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -35,7 +37,10 @@ class KlageFssProxyService(
     }
 
     fun getSak(sakId: String): SakFromKlanke {
-        return klageFssProxyClient.getSak(sakId = sakId)
+        return klageFssProxyClient.getSakAppAccess(
+            sakId = sakId,
+            saksbehandlerIdent = tokenUtil.getCurrentIdent(),
+        )
     }
 
     fun setToHandledInKabal(sakId: String, frist: LocalDate) {
