@@ -26,6 +26,7 @@ data class PartView(
             VERGEMAAL,
             FULLMAKT,
             RESERVERT_I_KRR,
+            DELT_ANSVAR,
         }
     }
 }
