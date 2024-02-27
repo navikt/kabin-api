@@ -112,12 +112,6 @@ class DokArkivClient(
             logger.error("Error updating journalpost $journalpostId AvsenderMottaker:", e)
             throw e
         }
-
-        logger.debug(
-            /* format = */ "Document from journalpost {} updated with AvsenderMottaker {}.",
-            /* arg1 = */ journalpostId,
-            /* arg2 = */ input.avsenderMottaker
-        )
     }
 
     fun updateDocumentTitle(
