@@ -280,23 +280,17 @@ class DokArkivService(
         }
 
         if (journalpostInSaf.isFinalized()) {
-
-            //Never change journalpost for klager
-            if (type == Type.KLAGE) {
-                return journalpostId
-            }
-
-            return if (journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+            return if (journalpostIsConnectedToSakInFagsystem(
                     journalpostInSaf = journalpostInSaf,
                     sakInFagsystem = sakInFagsystem,
                 )
             ) {
-                logger.debug("journalpostAndCompletedKlagebehandlingHaveTheSameFagsak")
+                logger.debug("journalpostIsConnectedToSakInFagsystem, no changes to journalpost.")
                 journalpostId
             } else {
-                logger.debug("Creating new createNewJournalpostBasedOnExistingJournalpost")
+                logger.debug("createNewJournalpostBasedOnExistingJournalpost. Old journalpost: {}", journalpostInSaf.journalpostId)
                 secureLogger.debug(
-                    "Creating new createNewJournalpostBasedOnExistingJournalpost. JournalpostinSaf: {}, sak: {}",
+                    "createNewJournalpostBasedOnExistingJournalpost. JournalpostinSaf: {}, sak: {}",
                     journalpostInSaf,
                     sakInFagsystem
                 )
@@ -307,14 +301,13 @@ class DokArkivService(
                     bruker = bruker,
                     journalfoerendeEnhet = journalfoerendeEnhet,
                 )
-                dokArkivClient.registerErrorInSaksId(journalpostId)
                 newJournalpostId
             }
         } else {
             logger.debug("Journalpost is not finalized")
             secureLogger.debug("Journalpost is not finalized: {}", journalpostInSaf)
 
-            if (type != Type.KLAGE && !journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+            if (type != Type.KLAGE && !journalpostIsConnectedToSakInFagsystem(
                     journalpostInSaf = journalpostInSaf,
                     sakInFagsystem = sakInFagsystem,
                 )
@@ -366,7 +359,7 @@ class DokArkivService(
         ).nyJournalpostId
     }
 
-    private fun journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+    private fun journalpostIsConnectedToSakInFagsystem(
         journalpostInSaf: Journalpost,
         sakInFagsystem: Sak,
     ): Boolean {

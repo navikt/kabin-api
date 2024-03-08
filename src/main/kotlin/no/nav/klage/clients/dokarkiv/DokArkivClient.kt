@@ -49,27 +49,6 @@ class DokArkivClient(
         }
     }
 
-    fun registerErrorInSaksId(journalpostId: String) {
-        try {
-            val output = dokArkivWebClient.patch()
-                .uri("/${journalpostId}/feilregistrer/feilregistrerSakstilknytning")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono<String>()
-                .block()
-                ?: throw RuntimeException("Could not register error in saksid in journalpost")
-
-            logger.debug("Successfully registered error in saksid in journalpost with id $journalpostId. Output: $output")
-        } catch (e: Exception) {
-            logger.error("Error registering error in saksid in journalpost $journalpostId:", e)
-            throw e
-        }
-    }
-
     fun updateSakInJournalpost(journalpostId: String, input: UpdateSakInJournalpostRequest) {
         try {
             val output = dokArkivWebClient.put()
