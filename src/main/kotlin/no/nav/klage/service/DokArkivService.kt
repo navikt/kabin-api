@@ -291,7 +291,7 @@ class DokArkivService(
                 journalpostId
             } else {
                 logger.debug(
-                    "createNewJournalpostBasedOnExistingJournalpost. Old journalpost: {}",
+                    "createNewJournalpostBasedOnExistingJournalpost. Old journalpost id: {}",
                     journalpostInSaf.journalpostId
                 )
                 secureLogger.debug(
@@ -312,7 +312,7 @@ class DokArkivService(
             logger.debug("Journalpost is not finalized")
             secureLogger.debug("Journalpost is not finalized: {}", journalpostInSaf)
 
-            if (type != Type.KLAGE && !journalpostIsConnectedToSakInFagsystem(
+            if (!journalpostIsConnectedToSakInFagsystem(
                     journalpostInSaf = journalpostInSaf,
                     sakInFagsystem = sakInFagsystem,
                 )
