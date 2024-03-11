@@ -250,11 +250,13 @@ class DokArkivService(
 
         if (journalpostType != Journalposttype.N && avsender != null) {
             if (journalpostInSaf.avsenderMottaker?.id != avsender.id) {
-                val datoJournalfoert = journalpostInSaf.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
+                val datoJournalfoert =
+                    journalpostInSaf.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
                 val journalStatus = journalpostInSaf.journalstatus
                 if (journalpostType == Journalposttype.I
                     && journalStatus == Journalstatus.JOURNALFOERT
-                    && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true) {
+                    && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true
+                ) {
                     throw SectionedValidationErrorWithDetailsException(
                         title = "Validation error",
                         sections = listOf(
@@ -288,7 +290,10 @@ class DokArkivService(
                 logger.debug("journalpostIsConnectedToSakInFagsystem, no changes to journalpost.")
                 journalpostId
             } else {
-                logger.debug("createNewJournalpostBasedOnExistingJournalpost. Old journalpost: {}", journalpostInSaf.journalpostId)
+                logger.debug(
+                    "createNewJournalpostBasedOnExistingJournalpost. Old journalpost: {}",
+                    journalpostInSaf.journalpostId
+                )
                 secureLogger.debug(
                     "createNewJournalpostBasedOnExistingJournalpost. JournalpostinSaf: {}, sak: {}",
                     journalpostInSaf,
@@ -327,6 +332,28 @@ class DokArkivService(
             )
             return journalpostId
         }
+    }
+
+    fun journalpostIsFinalizedAndConnectedToFagsak(
+        journalpostId: String,
+        fagsakId: String,
+        fagsystemId: String
+    ): Boolean {
+        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
+            ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
+
+        if (!journalpostInSaf.isFinalized()) {
+            return false
+        }
+
+        return journalpostIsConnectedToSakInFagsystem(
+            journalpostInSaf = journalpostInSaf,
+            sakInFagsystem = Sak(
+                sakstype = Sakstype.FAGSAK,
+                fagsaksystem = FagsaksSystem.valueOf(fagsystemId),
+                fagsakid = fagsakId,
+            )
+        )
     }
 
     private fun avsenderMottakerIsMissing(avsenderMottaker: no.nav.klage.clients.saf.graphql.AvsenderMottaker?): Boolean {
