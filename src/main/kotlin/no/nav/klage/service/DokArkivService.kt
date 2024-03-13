@@ -15,6 +15,7 @@ import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.JournalpostNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
@@ -250,11 +251,13 @@ class DokArkivService(
 
         if (journalpostType != Journalposttype.N && avsender != null) {
             if (journalpostInSaf.avsenderMottaker?.id != avsender.id) {
-                val datoJournalfoert = journalpostInSaf.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
+                val datoJournalfoert =
+                    journalpostInSaf.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
                 val journalStatus = journalpostInSaf.journalstatus
                 if (journalpostType == Journalposttype.I
                     && journalStatus == Journalstatus.JOURNALFOERT
-                    && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true) {
+                    && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true
+                ) {
                     throw SectionedValidationErrorWithDetailsException(
                         title = "Validation error",
                         sections = listOf(
@@ -280,23 +283,20 @@ class DokArkivService(
         }
 
         if (journalpostInSaf.isFinalized()) {
-
-            //Never change journalpost for klager
-            if (type == Type.KLAGE) {
-                return journalpostId
-            }
-
-            return if (journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+            return if (journalpostIsConnectedToSakInFagsystem(
                     journalpostInSaf = journalpostInSaf,
                     sakInFagsystem = sakInFagsystem,
                 )
             ) {
-                logger.debug("journalpostAndCompletedKlagebehandlingHaveTheSameFagsak")
+                logger.debug("journalpostIsConnectedToSakInFagsystem, no changes to journalpost.")
                 journalpostId
             } else {
-                logger.debug("Creating new createNewJournalpostBasedOnExistingJournalpost")
+                logger.debug(
+                    "createNewJournalpostBasedOnExistingJournalpost. Old journalpost id: {}",
+                    journalpostInSaf.journalpostId
+                )
                 secureLogger.debug(
-                    "Creating new createNewJournalpostBasedOnExistingJournalpost. JournalpostinSaf: {}, sak: {}",
+                    "createNewJournalpostBasedOnExistingJournalpost. JournalpostinSaf: {}, sak: {}",
                     journalpostInSaf,
                     sakInFagsystem
                 )
@@ -307,14 +307,13 @@ class DokArkivService(
                     bruker = bruker,
                     journalfoerendeEnhet = journalfoerendeEnhet,
                 )
-                dokArkivClient.registerErrorInSaksId(journalpostId)
                 newJournalpostId
             }
         } else {
             logger.debug("Journalpost is not finalized")
             secureLogger.debug("Journalpost is not finalized: {}", journalpostInSaf)
 
-            if (type != Type.KLAGE && !journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+            if (!journalpostIsConnectedToSakInFagsystem(
                     journalpostInSaf = journalpostInSaf,
                     sakInFagsystem = sakInFagsystem,
                 )
@@ -334,6 +333,30 @@ class DokArkivService(
             )
             return journalpostId
         }
+    }
+
+    fun journalpostIsFinalizedAndConnectedToFagsak(
+        journalpostId: String,
+        fagsakId: String,
+        fagsystemId: String
+    ): Boolean {
+        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
+            ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
+
+        if (!journalpostInSaf.isFinalized()) {
+            return false
+        }
+
+        val fagsystem = Fagsystem.of(fagsystemId)
+
+        return journalpostIsConnectedToSakInFagsystem(
+            journalpostInSaf = journalpostInSaf,
+            sakInFagsystem = Sak(
+                sakstype = Sakstype.FAGSAK,
+                fagsaksystem = FagsaksSystem.valueOf(fagsystem.name),
+                fagsakid = fagsakId,
+            )
+        )
     }
 
     private fun avsenderMottakerIsMissing(avsenderMottaker: no.nav.klage.clients.saf.graphql.AvsenderMottaker?): Boolean {
@@ -366,7 +389,7 @@ class DokArkivService(
         ).nyJournalpostId
     }
 
-    private fun journalpostAndCompletedKlagebehandlingHaveTheSameFagsak(
+    private fun journalpostIsConnectedToSakInFagsystem(
         journalpostInSaf: Journalpost,
         sakInFagsystem: Sak,
     ): Boolean {

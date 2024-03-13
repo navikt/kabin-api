@@ -6,6 +6,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.klage.api.controller.view.CalculateFristInput
 import no.nav.klage.service.DocumentService
+import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.KabalApiService
 import no.nav.klage.util.AuditLogger
 import no.nav.klage.util.TokenUtil
@@ -37,6 +38,9 @@ class CommonControllerTest {
 
     @MockkBean
     lateinit var kabalApiService: KabalApiService
+
+    @MockkBean
+    lateinit var dokArkivService: DokArkivService
 
     @MockkBean
     lateinit var auditLogger: AuditLogger

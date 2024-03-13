@@ -33,6 +33,7 @@ data class DokumentReferanse(
     val kanal: String,
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
+    //Deprecated
     var alreadyUsed: Boolean = false,
 ) {
 

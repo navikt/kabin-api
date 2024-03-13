@@ -127,12 +127,6 @@ class DokArkivServiceTest {
             }
 
             verify(exactly = 0) {
-                dokArkivClient.registerErrorInSaksId(
-                    journalpostId = any()
-                )
-            }
-
-            verify(exactly = 0) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
                     journalpostId = any(),
                     input = any()
@@ -210,12 +204,6 @@ class DokArkivServiceTest {
                 )
             }
 
-            verify(exactly = 0) {
-                dokArkivClient.registerErrorInSaksId(
-                    journalpostId = any()
-                )
-            }
-
             assertEquals(JOURNALPOST_ID, resultingJournalpost)
         }
 
@@ -269,12 +257,6 @@ class DokArkivServiceTest {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     payload = any(),
                     oldJournalpostId = any(),
-                )
-            }
-
-            verify(exactly = 0) {
-                dokArkivClient.registerErrorInSaksId(
-                    journalpostId = any()
                 )
             }
 
@@ -333,12 +315,6 @@ class DokArkivServiceTest {
                 )
             }
 
-            verify(exactly = 0) {
-                dokArkivClient.registerErrorInSaksId(
-                    journalpostId = any()
-                )
-            }
-
             assertEquals(JOURNALPOST_ID, resultingJournalpost)
         }
 
@@ -352,7 +328,6 @@ class DokArkivServiceTest {
                     any(),
                 )
             } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
-            every { dokArkivClient.registerErrorInSaksId(any()) } returns Unit
 
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                 JOURNALPOST_ID,
@@ -381,12 +356,6 @@ class DokArkivServiceTest {
                 )
             }
 
-            verify(exactly = 1) {
-                dokArkivClient.registerErrorInSaksId(
-                    journalpostId = any()
-                )
-            }
-
             assertEquals(JOURNALPOST_ID_2, resultingJournalpost)
         }
 
@@ -402,7 +371,6 @@ class DokArkivServiceTest {
                     any(),
                 )
             } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
-            every { dokArkivClient.registerErrorInSaksId(any()) } returns Unit
             every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
 
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
@@ -440,12 +408,6 @@ class DokArkivServiceTest {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
                     payload = any(),
                     oldJournalpostId = any(),
-                )
-            }
-
-            verify(exactly = 1) {
-                dokArkivClient.registerErrorInSaksId(
-                    journalpostId = any()
                 )
             }
 

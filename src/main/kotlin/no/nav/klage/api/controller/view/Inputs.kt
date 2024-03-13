@@ -15,6 +15,12 @@ data class CalculateFristInput(
     val fristInWeeks: Int,
 )
 
+data class WillCreateNewJournalpostInput(
+    val journalpostId: String,
+    val fagsakId: String,
+    val fagsystemId: String,
+)
+
 data class SearchUsedJournalpostIdInput(
     val fnr: String,
 )
