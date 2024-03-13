@@ -55,7 +55,7 @@ class CommonController(
         return input.fromDate.plusWeeks(input.fristInWeeks.toLong())
     }
 
-    @PostMapping("/willcreatenewjournalpsot")
+    @PostMapping("/willcreatenewjournalpost")
     fun willCreateNewJournalpost(
         @RequestBody input: WillCreateNewJournalpostInput,
     ): Boolean {

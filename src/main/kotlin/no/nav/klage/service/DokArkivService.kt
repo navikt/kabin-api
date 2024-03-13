@@ -15,6 +15,7 @@ import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.JournalpostNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
@@ -346,11 +347,13 @@ class DokArkivService(
             return false
         }
 
+        val fagsystem = Fagsystem.of(fagsystemId)
+
         return journalpostIsConnectedToSakInFagsystem(
             journalpostInSaf = journalpostInSaf,
             sakInFagsystem = Sak(
                 sakstype = Sakstype.FAGSAK,
-                fagsaksystem = FagsaksSystem.valueOf(fagsystemId),
+                fagsaksystem = FagsaksSystem.valueOf(fagsystem.name),
                 fagsakid = fagsakId,
             )
         )
