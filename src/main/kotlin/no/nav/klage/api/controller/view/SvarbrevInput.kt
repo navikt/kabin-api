@@ -3,6 +3,8 @@ package no.nav.klage.api.controller.view
 data class SvarbrevInput(
     val title: String,
     val receivers: List<Receiver>,
+    val enhetId: String,
+    val fullmektigFritekst: String?,
 ) {
     data class Receiver(
         val id: String,
