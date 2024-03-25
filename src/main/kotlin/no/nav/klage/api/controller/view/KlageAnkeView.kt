@@ -14,7 +14,8 @@ data class CreateAnkeInputView(
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
     val avsender: PartId?,
-    val saksbehandlerIdent: String?
+    val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
 )
 
 data class CreatedBehandlingResponse(
