@@ -1,7 +1,7 @@
 package no.nav.klage.api.controller.view
 
 data class SvarbrevInput(
-    val title: String,
+    val title: String = "Anke - orientering om saksbehandlingstid",
     val receivers: List<Receiver>,
     val enhetId: String,
     val fullmektigFritekst: String?,
