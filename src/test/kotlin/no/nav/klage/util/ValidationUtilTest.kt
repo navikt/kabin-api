@@ -22,7 +22,8 @@ class ValidationUtilTest {
             ytelseId = null,
             hjemmelIdList = null,
             avsender = null,
-            saksbehandlerIdent = null
+            saksbehandlerIdent = null,
+            svarbrevInput = null,
         )
 
         assertThrows<InvalidSourceException> { validationUtil.validateCreateAnkeInputView(input = input) }
