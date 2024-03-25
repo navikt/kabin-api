@@ -1,4 +1,4 @@
-package no.nav.klage.dokument.clients.kabaljsontopdf.domain
+package no.nav.klage.clients.kabaljsontopdf.domain
 
 import java.time.LocalDate
 

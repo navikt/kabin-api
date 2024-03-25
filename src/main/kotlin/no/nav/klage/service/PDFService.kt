@@ -1,7 +1,7 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.SvarbrevInput
-import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
+import no.nav.klage.clients.kabaljsontopdf.KabalJsonToPdfClient
 import org.springframework.stereotype.Service
 
 @Service

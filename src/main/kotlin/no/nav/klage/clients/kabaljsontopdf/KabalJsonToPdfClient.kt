@@ -1,4 +1,4 @@
-package no.nav.klage.dokument.clients.kabaljsontopdf
+package no.nav.klage.clients.kabaljsontopdf
 
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
