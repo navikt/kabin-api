@@ -4,8 +4,14 @@ import no.nav.klage.api.controller.mapper.toView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateAnkeInput
-import no.nav.klage.kodeverk.*
-import no.nav.klage.util.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.util.AnkemulighetSource
+import no.nav.klage.util.ValidationUtil
+import no.nav.klage.util.getLogger
+import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -60,6 +66,7 @@ class AnkeService(
 
     private fun getAnkemuligheterFromInfotrygd(input: IdnummerInput): List<Ankemulighet> {
         val resultsFromInfotrygd = klageFssProxyService.getAnkemuligheter(input = input)
+
         return resultsFromInfotrygd
             .filter {
                 !kabalApiService.mulighetIsDuplicate(
@@ -75,7 +82,14 @@ class AnkeService(
                     hjemmelIdList = null,
                     temaId = Tema.fromNavn(it.tema).id,
                     vedtakDate = null,
-                    sakenGjelder = kabalApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView(),
+                    sakenGjelder = kabalApiService.searchPartWithUtsendingskanal(
+                        SearchPartWithUtsendingskanalInput(
+                            identifikator = it.fnr,
+                            sakenGjelderId = it.fnr,
+                            //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
+                            ytelseId = Ytelse.entries.find { y -> y.toTema().navn == it.tema }!!.id,
+                        )
+                    ).partViewWithUtsendingskanal(),
                     klager = null,
                     fullmektig = null,
                     fagsakId = it.fagsakId,
@@ -96,9 +110,9 @@ class AnkeService(
             typeId = response.typeId,
             ytelseId = response.ytelseId,
             vedtakDate = if (Fagsystem.of(response.fagsystemId) == Fagsystem.IT01) null else response.vedtakDate.toLocalDate(),
-            sakenGjelder = response.sakenGjelder.toView(),
-            klager = response.klager.toView(),
-            fullmektig = response.fullmektig?.toView(),
+            sakenGjelder = response.sakenGjelder.partViewWithUtsendingskanal(),
+            klager = response.klager.partViewWithUtsendingskanal(),
+            fullmektig = response.fullmektig?.partViewWithUtsendingskanal(),
             mottattKlageinstans = response.mottattNav,
             frist = response.frist,
             fagsakId = response.fagsakId,

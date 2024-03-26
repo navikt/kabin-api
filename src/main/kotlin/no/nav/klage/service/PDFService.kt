@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 class PDFService(
     private val kabalJsonToPdfClient: KabalJsonToPdfClient,
     private val validationUtil: ValidationUtil,
-    private val kabalApiClient: KabalApiClient,
+    private val kabalApiService: KabalApiService,
 ) {
 
     fun getSvarbrevPDF(createAnkeInputView: CreateAnkeInputView): ByteArray {
@@ -23,12 +23,12 @@ class PDFService(
             throw RuntimeException("SvarbrevInput is null")
         }
 
-        val sakenGjelder = kabalApiClient.searchPart(SearchPartInput(createAnkeInputView.sakenGjelder!!.id))
+        val sakenGjelder = kabalApiService.searchPart(SearchPartInput(createAnkeInputView.sakenGjelder!!.id))
 
         return kabalJsonToPdfClient.getSvarbrevPDF(
             SvarbrevRequest(
                 sakenGjelder = SvarbrevRequest.SakenGjelder(
-                    name = sakenGjelder.name ?: throw RuntimeException("Name is null"),
+                    name = sakenGjelder.name,
                     fnr = sakenGjelder.id,
                 ),
                 enhetsnavn = Enhet.valueOf(createAnkeInputView.svarbrevInput.enhetId).beskrivelse,

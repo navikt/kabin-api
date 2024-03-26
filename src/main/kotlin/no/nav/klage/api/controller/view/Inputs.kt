@@ -10,6 +10,12 @@ data class SearchPartInput(
     val identifikator: String
 )
 
+data class SearchPartWithUtsendingskanalInput(
+    val identifikator: String,
+    val sakenGjelderId: String,
+    val ytelseId: String,
+)
+
 data class CalculateFristInput(
     val fromDate: LocalDate,
     val fristInWeeks: Int,
@@ -26,7 +32,7 @@ data class SearchUsedJournalpostIdInput(
 )
 
 data class PartId(
-    val type: PartView.PartType,
+    val type: PartType,
     val id: String,
 )
 
@@ -34,7 +40,7 @@ fun PartId?.toOversendtPartId(): OversendtPartId? {
     return if (this == null) {
         null
     } else {
-        if (type == PartView.PartType.FNR) {
+        if (type == PartType.FNR) {
             OversendtPartId(
                 type = OversendtPartIdType.PERSON,
                 value = this.id

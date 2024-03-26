@@ -4,6 +4,8 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
+import no.nav.klage.clients.kabalapi.PartView
+import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
 import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
@@ -24,8 +26,12 @@ class KabalApiService(
         )
     }
 
-    fun searchPart(searchPartInput: SearchPartInput): no.nav.klage.clients.kabalapi.PartView {
+    fun searchPart(searchPartInput: SearchPartInput): PartView {
         return kabalApiClient.searchPart(searchPartInput = searchPartInput)
+    }
+
+    fun searchPartWithUtsendingskanal(searchPartInput: SearchPartWithUtsendingskanalInput): PartViewWithUtsendingskanal {
+        return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
     }
 
     fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
@@ -36,9 +42,9 @@ class KabalApiService(
                 hjemmelIdList = it.hjemmelIdList,
                 temaId = Ytelse.of(it.ytelseId).toTema().id,
                 vedtakDate = it.vedtakDate.toLocalDate(),
-                sakenGjelder = it.sakenGjelder.toView(),
-                klager = it.klager.toView(),
-                fullmektig = it.fullmektig?.toView(),
+                sakenGjelder = it.sakenGjelder.partViewWithUtsendingskanal(),
+                klager = it.klager.partViewWithUtsendingskanal(),
+                fullmektig = it.fullmektig?.partViewWithUtsendingskanal(),
                 fagsakId = it.fagsakId,
                 fagsystemId = it.fagsystemId,
                 previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->

@@ -10,7 +10,9 @@ import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
 import no.nav.klage.clients.dokarkiv.Sak
 import no.nav.klage.clients.kabalapi.CompletedBehandling
+import no.nav.klage.clients.kabalapi.PartType
 import no.nav.klage.clients.kabalapi.PartView
+import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
 import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.clients.saf.graphql.Tema.OMS
@@ -47,7 +49,16 @@ class DokArkivServiceTest {
     private val PERSON = PartView(
         id = FNR,
         name = "FORNAVN ETTERNAVN",
-        type = PartView.PartType.FNR,
+        type = PartType.FNR,
+        available = true,
+        statusList = emptyList(),
+        language = null,
+        address = null,
+    )
+    private val PART_WITH_UTSENDINGSKANAL = PartViewWithUtsendingskanal(
+        id = FNR,
+        name = "FORNAVN ETTERNAVN",
+        type = PartType.FNR,
         available = true,
         statusList = emptyList(),
         language = null,
@@ -153,7 +164,7 @@ class DokArkivServiceTest {
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = PartId(
-                    type = no.nav.klage.api.controller.view.PartView.PartType.FNR,
+                    type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 )
             )
@@ -278,7 +289,7 @@ class DokArkivServiceTest {
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = PartId(
-                    type = no.nav.klage.api.controller.view.PartView.PartType.FNR,
+                    type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 )
             )
@@ -381,7 +392,7 @@ class DokArkivServiceTest {
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = PartId(
-                    type = no.nav.klage.api.controller.view.PartView.PartType.FNR,
+                    type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 )
             )
@@ -425,8 +436,8 @@ class DokArkivServiceTest {
             behandlingId = UUID.randomUUID(),
             ytelseId = Ytelse.OMS_OLP.id,
             vedtakDate = LocalDateTime.now(),
-            sakenGjelder = PERSON,
-            klager = PERSON,
+            sakenGjelder = PART_WITH_UTSENDINGSKANAL,
+            klager = PART_WITH_UTSENDINGSKANAL,
             fullmektig = null,
             fagsakId = SAKS_ID,
             fagsystem = FAGSYSTEM,

@@ -1,9 +1,6 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.CreateAnkeInputView
-import no.nav.klage.api.controller.view.PartId
-import no.nav.klage.api.controller.view.PartView
-import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.saf.graphql.Datotype
@@ -434,10 +431,10 @@ class DokArkivService(
         )
     }
 
-    private fun PartView.PartType.toAvsenderMottakerIdType(): AvsenderMottakerIdType {
+    private fun PartType.toAvsenderMottakerIdType(): AvsenderMottakerIdType {
         return when (this) {
-            PartView.PartType.FNR -> AvsenderMottakerIdType.FNR
-            PartView.PartType.ORGNR -> AvsenderMottakerIdType.ORGNR
+            PartType.FNR -> AvsenderMottakerIdType.FNR
+            PartType.ORGNR -> AvsenderMottakerIdType.ORGNR
         }
     }
 }

@@ -1,8 +1,7 @@
 package no.nav.klage.clients.kabalapi
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import no.nav.klage.api.controller.view.PartView.*
-import no.nav.klage.api.controller.view.PartView.PartStatus.Status
+import no.nav.klage.api.controller.view.PartStatus
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.kodeverk.Fagsystem
@@ -21,9 +20,9 @@ data class CompletedBehandling(
     val ytelseId: String,
     val hjemmelIdList: List<String>,
     val vedtakDate: LocalDateTime,
-    val sakenGjelder: PartView,
-    val klager: PartView,
-    val fullmektig: PartView?,
+    val sakenGjelder: PartViewWithUtsendingskanal,
+    val klager: PartViewWithUtsendingskanal,
+    val fullmektig: PartViewWithUtsendingskanal?,
     val fagsakId: String,
     val fagsystem: Fagsystem,
     val fagsystemId: String,
@@ -48,9 +47,9 @@ data class AnkemulighetFromKabal(
     val ytelseId: String,
     val hjemmelIdList: List<String>,
     val vedtakDate: LocalDateTime,
-    val sakenGjelder: PartView,
-    val klager: PartView,
-    val fullmektig: PartView?,
+    val sakenGjelder: PartViewWithUtsendingskanal,
+    val klager: PartViewWithUtsendingskanal,
+    val fullmektig: PartViewWithUtsendingskanal?,
     val fagsakId: String,
     val fagsystem: Fagsystem,
     val fagsystemId: String,
@@ -70,9 +69,9 @@ data class CreatedAnkebehandlingStatus(
     val typeId: String,
     val ytelseId: String,
     val vedtakDate: LocalDateTime,
-    val sakenGjelder: PartView,
-    val klager: PartView,
-    val fullmektig: PartView?,
+    val sakenGjelder: PartViewWithUtsendingskanal,
+    val klager: PartViewWithUtsendingskanal,
+    val fullmektig: PartViewWithUtsendingskanal?,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val fagsakId: String,
@@ -85,9 +84,9 @@ data class CreatedAnkebehandlingStatus(
 data class CreatedKlagebehandlingStatus(
     val typeId: String,
     val ytelseId: String,
-    val sakenGjelder: PartView,
-    val klager: PartView,
-    val fullmektig: PartView?,
+    val sakenGjelder: PartViewWithUtsendingskanal,
+    val klager: PartViewWithUtsendingskanal,
+    val fullmektig: PartViewWithUtsendingskanal?,
     val mottattVedtaksinstans: LocalDate,
     val mottattKlageinstans: LocalDate,
     val frist: LocalDate,
@@ -125,53 +124,61 @@ data class PartView(
     val available: Boolean,
     val statusList: List<PartStatus>,
     val address: Address?,
-    val utsendingskanal: Utsendingskanal,
     val language: String?,
 ) {
-    enum class PartType {
-        FNR, ORGNR
-    }
-
-    data class PartStatus(
-        val status: Status,
-        val date: LocalDate? = null,
-    ) {
-        enum class Status {
-            DEAD,
-            DELETED,
-            FORTROLIG,
-            STRENGT_FORTROLIG,
-            EGEN_ANSATT,
-            VERGEMAAL,
-            FULLMAKT,
-            RESERVERT_I_KRR,
-            DELT_ANSVAR,
-        }
-    }
-
-    data class Address(
-        val adresselinje1: String?,
-        val adresselinje2: String?,
-        val adresselinje3: String?,
-        val landkode: String,
-        val postnummer: String?,
-        val poststed: String?,
-    )
-
-    fun toView(): no.nav.klage.api.controller.view.PartView {
+    fun partView(): no.nav.klage.api.controller.view.PartView {
         return no.nav.klage.api.controller.view.PartView(
             id = id,
-            type = no.nav.klage.api.controller.view.PartView.PartType.valueOf(type.name),
+            type = no.nav.klage.api.controller.view.PartType.valueOf(type.name),
             name = name,
             available = available,
             statusList = statusList.map { partStatus ->
                 PartStatus(
-                    status = Status.valueOf(partStatus.status.name),
+                    status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
                     date = partStatus.date,
                 )
             },
             address = address?.let {
-                no.nav.klage.api.controller.view.PartView.Address(
+                no.nav.klage.api.controller.view.Address(
+                    adresselinje1 = it.adresselinje1,
+                    adresselinje2 = it.adresselinje2,
+                    adresselinje3 = it.adresselinje3,
+                    landkode = it.landkode,
+                    postnummer = it.postnummer,
+                    poststed = it.poststed,
+                )
+            },
+            language = language,
+        )
+    }
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PartViewWithUtsendingskanal(
+    val id: String,
+    val type: PartType,
+    val name: String,
+    val available: Boolean,
+    val statusList: List<PartStatus>,
+    val address: Address?,
+    val utsendingskanal: Utsendingskanal,
+    val language: String?,
+) {
+
+    fun partViewWithUtsendingskanal(): no.nav.klage.api.controller.view.PartViewWithUtsendingskanal {
+        return no.nav.klage.api.controller.view.PartViewWithUtsendingskanal(
+            id = id,
+            type = no.nav.klage.api.controller.view.PartType.valueOf(type.name),
+            name = name,
+            available = available,
+            statusList = statusList.map { partStatus ->
+                PartStatus(
+                    status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
+                    date = partStatus.date,
+                )
+            },
+            address = address?.let {
+                no.nav.klage.api.controller.view.Address(
                     adresselinje1 = it.adresselinje1,
                     adresselinje2 = it.adresselinje2,
                     adresselinje3 = it.adresselinje3,
@@ -192,6 +199,36 @@ data class PartView(
         )
     }
 }
+
+enum class PartType {
+    FNR, ORGNR
+}
+
+data class PartStatus(
+    val status: Status,
+    val date: LocalDate? = null,
+) {
+    enum class Status {
+        DEAD,
+        DELETED,
+        FORTROLIG,
+        STRENGT_FORTROLIG,
+        EGEN_ANSATT,
+        VERGEMAAL,
+        FULLMAKT,
+        RESERVERT_I_KRR,
+        DELT_ANSVAR,
+    }
+}
+
+data class Address(
+    val adresselinje1: String?,
+    val adresselinje2: String?,
+    val adresselinje3: String?,
+    val landkode: String,
+    val postnummer: String?,
+    val poststed: String?,
+)
 
 data class DokumentReferanse(
     val journalpostId: String,

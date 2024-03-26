@@ -41,7 +41,7 @@ class CommonController(
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return kabalApiService.searchPart(searchPartInput = input).toView()
+        return kabalApiService.searchPart(searchPartInput = input).partView()
     }
 
     @PostMapping("/calculatefrist")

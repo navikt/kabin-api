@@ -2,6 +2,7 @@ package no.nav.klage.clients.kabalapi
 
 import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.api.controller.view.SearchUsedJournalpostIdInput
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -95,6 +96,19 @@ class KabalApiClient(
             .bodyValue(searchPartInput)
             .retrieve()
             .bodyToMono<PartView>()
+            .block() ?: throw RuntimeException("null part returned")
+    }
+
+    fun searchPartWithUtsendingskanal(searchPartInput: SearchPartWithUtsendingskanalInput): PartViewWithUtsendingskanal {
+        return kabalApiWebClient.post()
+            .uri { it.path("/searchpartwithutsendingskanal").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(searchPartInput)
+            .retrieve()
+            .bodyToMono<PartViewWithUtsendingskanal>()
             .block() ?: throw RuntimeException("null part returned")
     }
 
