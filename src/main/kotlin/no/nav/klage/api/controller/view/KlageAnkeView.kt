@@ -8,6 +8,7 @@ data class CreateAnkeInputView(
     val sourceId: String,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
+    val sakenGjelder: PartId?,
     val klager: PartId?,
     val fullmektig: PartId?,
     val journalpostId: String?,

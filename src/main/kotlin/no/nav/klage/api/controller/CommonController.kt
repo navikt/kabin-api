@@ -76,10 +76,10 @@ class CommonController(
     @ResponseBody
     @PostMapping("/svarbrev-preview")
     fun getSvarbrevPreview(
-        @RequestBody input: SvarbrevInput,
+        @RequestBody input: CreateAnkeInputView,
     ): ResponseEntity<ByteArray> {
         logger.debug("Kall mottatt på getSvarbrevPreview")
-        secureLogger.debug("Kall mottatt på getSvarbrevPreviewm med input: {}", input)
+        secureLogger.debug("Kall mottatt på getSvarbrevPreview med input: {}", input)
 
         pdfService.getSvarbrevPDF(input).let {
             val responseHeaders = HttpHeaders()
