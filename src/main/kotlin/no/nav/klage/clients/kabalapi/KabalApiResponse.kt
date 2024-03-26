@@ -3,6 +3,7 @@ package no.nav.klage.clients.kabalapi
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.api.controller.view.PartView.*
 import no.nav.klage.api.controller.view.PartView.PartStatus.Status
+import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.kodeverk.Fagsystem
 import java.time.LocalDate
@@ -120,9 +121,12 @@ enum class OversendtPartIdType { PERSON, VIRKSOMHET }
 data class PartView(
     val id: String,
     val type: PartType,
-    val name: String?,
+    val name: String,
     val available: Boolean,
     val statusList: List<PartStatus>,
+    val address: Address?,
+    val utsendingskanal: Utsendingskanal,
+    val language: String?,
 ) {
     enum class PartType {
         FNR, ORGNR
@@ -145,6 +149,15 @@ data class PartView(
         }
     }
 
+    data class Address(
+        val adresselinje1: String?,
+        val adresselinje2: String?,
+        val adresselinje3: String?,
+        val landkode: String,
+        val postnummer: String?,
+        val poststed: String?,
+    )
+
     fun toView(): no.nav.klage.api.controller.view.PartView {
         return no.nav.klage.api.controller.view.PartView(
             id = id,
@@ -156,7 +169,19 @@ data class PartView(
                     status = Status.valueOf(partStatus.status.name),
                     date = partStatus.date,
                 )
-            }
+            },
+            address = address?.let {
+                no.nav.klage.api.controller.view.PartView.Address(
+                    adresselinje1 = it.adresselinje1,
+                    adresselinje2 = it.adresselinje2,
+                    adresselinje3 = it.adresselinje3,
+                    landkode = it.landkode,
+                    postnummer = it.postnummer,
+                    poststed = it.poststed,
+                )
+            },
+            language = language,
+            utsendingskanal = utsendingskanal,
         )
     }
 

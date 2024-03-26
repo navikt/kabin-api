@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
@@ -49,6 +50,9 @@ class DokArkivServiceTest {
         type = PartView.PartType.FNR,
         available = true,
         statusList = emptyList(),
+        language = null,
+        address = null,
+        utsendingskanal = Utsendingskanal.NAV_NO,
     )
     private val avsenderMottaker = AvsenderMottaker(
         id = "12345678910",
