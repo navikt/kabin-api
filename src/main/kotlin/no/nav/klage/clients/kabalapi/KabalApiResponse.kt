@@ -1,6 +1,7 @@
 package no.nav.klage.clients.kabalapi
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import no.nav.klage.api.controller.view.CreatedAnkebehandlingStatusView
 import no.nav.klage.api.controller.view.PartStatus
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.dokarkiv.*
@@ -78,7 +79,31 @@ data class CreatedAnkebehandlingStatus(
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
-)
+    val svarbrev: Svarbrev?,
+) {
+    data class Svarbrev(
+        val dokumentUnderArbeidId: UUID,
+        val title: String,
+        val receivers: List<Receiver>,
+    ) {
+        data class Receiver(
+            val id: String,
+            val name: String,
+            val address: Address?,
+            val localPrint: Boolean,
+            val forceCentralPrint: Boolean,
+        ) {
+            data class Address(
+                val adresselinje1: String?,
+                val adresselinje2: String?,
+                val adresselinje3: String?,
+                val landkode: String,
+                val postnummer: String?,
+                val poststed: String?,
+            )
+        }
+    }
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CreatedKlagebehandlingStatus(
@@ -106,6 +131,31 @@ fun TildeltSaksbehandler.toView(): no.nav.klage.api.controller.view.TildeltSaksb
     return no.nav.klage.api.controller.view.TildeltSaksbehandler(
         navIdent = navIdent,
         navn = navn
+    )
+}
+
+fun CreatedAnkebehandlingStatus.Svarbrev.toView(): CreatedAnkebehandlingStatusView.Svarbrev {
+    return CreatedAnkebehandlingStatusView.Svarbrev(
+        dokumentUnderArbeidId = dokumentUnderArbeidId,
+        title = title,
+        receivers = receivers.map { receiver ->
+            CreatedAnkebehandlingStatusView.Svarbrev.Receiver(
+                id = receiver.id,
+                name = receiver.name,
+                address = receiver.address?.let {
+                    CreatedAnkebehandlingStatusView.Svarbrev.Receiver.Address(
+                        adresselinje1 = it.adresselinje1,
+                        adresselinje2 = it.adresselinje2,
+                        adresselinje3 = it.adresselinje3,
+                        landkode = it.landkode,
+                        postnummer = it.postnummer,
+                        poststed = it.poststed,
+                    )
+                },
+                localPrint = receiver.localPrint,
+                forceCentralPrint = receiver.forceCentralPrint,
+            )
+        }
     )
 }
 

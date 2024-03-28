@@ -119,6 +119,7 @@ class AnkeService(
             fagsystemId = response.fagsystemId,
             journalpost = response.journalpost.toView(),
             tildeltSaksbehandler = response.tildeltSaksbehandler?.toView(),
+            svarbrev = response.svarbrev?.toView(),
         )
     }
 }
