@@ -21,47 +21,47 @@ class TokenUtil(
 
 
     fun getSaksbehandlerAccessTokenWithKabalApiScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["kabal-api-onbehalfof"]
+        val clientProperties = clientConfigurationProperties.registration["kabal-api-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.accessToken
+        return response.accessToken!!
     }
 
     fun getSaksbehandlerAccessTokenWithKabalInnstillingerScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["kabal-innstillinger-onbehalfof"]
+        val clientProperties = clientConfigurationProperties.registration["kabal-innstillinger-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.accessToken
+        return response.accessToken!!
     }
 
     fun getSaksbehandlerAccessTokenWithSafScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["saf-onbehalfof"]
+        val clientProperties = clientConfigurationProperties.registration["saf-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.accessToken
+        return response.accessToken!!
     }
 
     fun getSaksbehandlerAccessTokenWithDokArkivScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["dok-arkiv-onbehalfof"]
+        val clientProperties = clientConfigurationProperties.registration["dok-arkiv-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.accessToken
+        return response.accessToken!!
     }
 
     fun getOnBehalfOfTokenWithKlageFSSProxyScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["klage-fss-proxy-onbehalfof"]
+        val clientProperties = clientConfigurationProperties.registration["klage-fss-proxy-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.accessToken
+        return response.accessToken!!
     }
 
     fun getAppAccessTokenWithKlageFSSProxyScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["klage-fss-proxy-maskintilmaskin"]
+        val clientProperties = clientConfigurationProperties.registration["klage-fss-proxy-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.accessToken
+        return response.accessToken!!
     }
 
     fun getAccessTokenFrontendSent(): String =
-        tokenValidationContextHolder.tokenValidationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD).tokenAsString
+        tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)!!.encodedToken
 
     fun getCurrentIdent(): String =
-        tokenValidationContextHolder.tokenValidationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)
-            .jwtTokenClaims?.get("NAVident")?.toString()
+        tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)
+            ?.jwtTokenClaims?.get("NAVident")?.toString()
             ?: throw RuntimeException("Ident not found in token")
 
 }

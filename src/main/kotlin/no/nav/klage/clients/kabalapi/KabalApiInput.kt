@@ -1,6 +1,5 @@
 package no.nav.klage.clients.kabalapi
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 import java.util.*
 
@@ -12,6 +11,7 @@ data class CreateAnkeBasedOnKlagebehandlingInput(
     val fullmektig: OversendtPartId?,
     val ankeDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
 )
 
 data class IsDuplicateInput(
@@ -20,7 +20,6 @@ data class IsDuplicateInput(
     val typeId: String
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateAnkeBasedOnKabinInput(
     val sakenGjelder: OversendtPartId,
     val klager: OversendtPartId?,
@@ -35,9 +34,9 @@ data class CreateAnkeBasedOnKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateKlageBasedOnKabinInput(
     val sakenGjelder: OversendtPartId,
     val klager: OversendtPartId?,
@@ -54,3 +53,30 @@ data class CreateKlageBasedOnKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
 )
+
+data class SvarbrevInput(
+    val title: String = "Anke - orientering om saksbehandlingstid",
+    val receivers: List<Receiver>,
+    val enhetId: String,
+    val fullmektigFritekst: String?,
+) {
+    data class Receiver(
+        val id: String,
+        val handling: HandlingEnum,
+        val overriddenAddress: AddressInput?,
+    ) {
+        data class AddressInput(
+            val adresselinje1: String?,
+            val adresselinje2: String?,
+            val adresselinje3: String?,
+            val landkode: String,
+            val postnummer: String?,
+        )
+
+        enum class HandlingEnum {
+            AUTO,
+            LOCAL_PRINT,
+            CENTRAL_PRINT
+        }
+    }
+}

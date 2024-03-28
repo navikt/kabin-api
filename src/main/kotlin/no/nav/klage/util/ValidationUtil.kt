@@ -82,6 +82,15 @@ class ValidationUtil {
             }
         }
 
+        if (input.svarbrevInput != null) {
+            if (input.svarbrevInput.receivers.isEmpty()) {
+                validationErrors += InvalidProperty(
+                    field = CreateAnkeInputView::svarbrevInput.name,
+                    reason = "Legg til minst én mottaker."
+                )
+            }
+        }
+
         val sectionList = mutableListOf<ValidationSection>()
 
         if (validationErrors.isNotEmpty()) {
@@ -110,6 +119,7 @@ class ValidationUtil {
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
             ankemulighetSource = ankemulighetSource,
+            svarbrevInput = input.svarbrevInput,
         )
     }
 

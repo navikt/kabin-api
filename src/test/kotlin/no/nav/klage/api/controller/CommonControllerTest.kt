@@ -8,6 +8,7 @@ import no.nav.klage.api.controller.view.CalculateFristInput
 import no.nav.klage.service.DocumentService
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.KabalApiService
+import no.nav.klage.service.PDFService
 import no.nav.klage.util.AuditLogger
 import no.nav.klage.util.TokenUtil
 import org.junit.jupiter.api.Test
@@ -41,6 +42,9 @@ class CommonControllerTest {
 
     @MockkBean
     lateinit var dokArkivService: DokArkivService
+
+    @MockkBean
+    lateinit var pdfService: PDFService
 
     @MockkBean
     lateinit var auditLogger: AuditLogger
