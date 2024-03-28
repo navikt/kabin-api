@@ -6,6 +6,7 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
+import no.nav.klage.clients.kabalapi.SvarbrevInput
 import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
@@ -88,6 +89,7 @@ class KabalApiService(
                 ytelseId = input.ytelseId!!,
                 kildereferanse = input.id,
                 saksbehandlerIdent = input.saksbehandlerIdent,
+                svarbrevInput = input.svarbrevInput?.toKabalModel(),
             )
         ).mottakId
     }
@@ -102,8 +104,34 @@ class KabalApiService(
                 fullmektig = input.fullmektig.toOversendtPartId(),
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
+                svarbrevInput = input.svarbrevInput?.toKabalModel(),
             )
         ).mottakId
+    }
+
+    private fun no.nav.klage.api.controller.view.SvarbrevInput?.toKabalModel(): SvarbrevInput? {
+        return this?.let { svarbrevInput ->
+            SvarbrevInput(
+                title = svarbrevInput.title,
+                receivers = svarbrevInput.receivers.map { receiver ->
+                    SvarbrevInput.Receiver(
+                        id = receiver.id,
+                        handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                        overriddenAddress = receiver.overriddenAddress?.let { address ->
+                            SvarbrevInput.Receiver.AddressInput(
+                                adresselinje1 = address.adresselinje1,
+                                adresselinje2 = address.adresselinje2,
+                                adresselinje3 = address.adresselinje3,
+                                landkode = address.landkode,
+                                postnummer = address.postnummer,
+                            )
+                        }
+                    )
+                },
+                enhetId = svarbrevInput.enhetId,
+                fullmektigFritekst = svarbrevInput.fullmektigFritekst,
+            )
+        }
     }
 
     fun getCreatedAnkeStatus(mottakId: UUID): CreatedAnkebehandlingStatus {

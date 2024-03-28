@@ -35,7 +35,7 @@ class AnkeService(
 
         return CreatedBehandlingResponse(
             mottakId = when (finalInput.ankemulighetSource) {
-                AnkemulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(finalInput)
+                AnkemulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(input = finalInput)
                 AnkemulighetSource.KABAL -> kabalApiService.createAnkeInKabalFromKlagebehandling(input = finalInput)
             }
         )
