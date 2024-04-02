@@ -1,7 +1,19 @@
 package no.nav.klage.api.controller.view
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import java.time.LocalDate
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PreviewAnkeSvarbrevInput(
+    val mottattKlageinstans: LocalDate,
+    val fristInWeeks: Int,
+    val sakenGjelder: PartId,
+    val ytelseId: String,
+    val svarbrevInput: SvarbrevInput,
+)
+
 data class SvarbrevInput(
-    val title: String = "Anke - orientering om saksbehandlingstid",
+    val title: String,
     val receivers: List<Receiver>,
     val enhetId: String,
     val fullmektigFritekst: String?,
