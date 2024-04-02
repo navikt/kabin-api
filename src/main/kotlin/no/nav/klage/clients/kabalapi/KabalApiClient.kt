@@ -112,28 +112,28 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("null part returned")
     }
 
-    fun getCreatedAnkeStatus(mottakId: UUID): CreatedAnkebehandlingStatus {
+    fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatus {
         return kabalApiWebClient.get()
-            .uri { it.path("/api/internal/anker/{mottakId}/status").build(mottakId) }
+            .uri { it.path("/api/internal/anker/{behandlingId}/status").build(behandlingId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
             )
             .retrieve()
             .bodyToMono<CreatedAnkebehandlingStatus>()
-            .block() ?: throw RuntimeException("Could not get ankestatus for mottakId $mottakId")
+            .block() ?: throw RuntimeException("Could not get ankestatus for behandlingId $behandlingId")
     }
 
-    fun getCreatedKlageStatus(mottakId: UUID): CreatedKlagebehandlingStatus {
+    fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatus {
         return kabalApiWebClient.get()
-            .uri { it.path("/api/internal/klager/{mottakId}/status").build(mottakId) }
+            .uri { it.path("/api/internal/klager/{behandlingId}/status").build(behandlingId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
             )
             .retrieve()
             .bodyToMono<CreatedKlagebehandlingStatus>()
-            .block() ?: throw RuntimeException("Could not get klagestatus for mottakId $mottakId")
+            .block() ?: throw RuntimeException("Could not get klagestatus for behandlingId $behandlingId")
     }
 
     fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {

@@ -12,7 +12,7 @@ import java.util.*
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CreatedBehandlingResponse(
-    val mottakId: UUID,
+    val behandlingId: UUID,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

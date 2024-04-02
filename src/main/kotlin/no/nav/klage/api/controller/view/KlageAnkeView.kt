@@ -20,7 +20,7 @@ data class CreateAnkeInputView(
 )
 
 data class CreatedBehandlingResponse(
-    val mottakId: UUID,
+    val behandlingId: UUID,
 )
 
 data class CreateKlageInputView(

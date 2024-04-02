@@ -91,7 +91,7 @@ class KabalApiService(
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
             )
-        ).mottakId
+        ).behandlingId
     }
 
     fun createAnkeInKabalFromKlagebehandling(input: CreateAnkeInput): UUID {
@@ -106,7 +106,7 @@ class KabalApiService(
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
             )
-        ).mottakId
+        ).behandlingId
     }
 
     private fun no.nav.klage.api.controller.view.SvarbrevInput?.toKabalModel(): SvarbrevInput? {
@@ -134,12 +134,12 @@ class KabalApiService(
         }
     }
 
-    fun getCreatedAnkeStatus(mottakId: UUID): CreatedAnkebehandlingStatus {
-        return kabalApiClient.getCreatedAnkeStatus(mottakId = mottakId)
+    fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatus {
+        return kabalApiClient.getCreatedAnkeStatus(behandlingId = behandlingId)
     }
 
-    fun getCreatedKlageStatus(mottakId: UUID): CreatedKlagebehandlingStatus {
-        return kabalApiClient.getCreatedKlageStatus(mottakId = mottakId)
+    fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatus {
+        return kabalApiClient.getCreatedKlageStatus(behandlingId = behandlingId)
     }
 
     fun createKlageInKabalFromCompleteInput(
@@ -168,7 +168,7 @@ class KabalApiService(
                 kildereferanse = input.eksternBehandlingId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
             )
-        ).mottakId
+        ).behandlingId
     }
 
     fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {

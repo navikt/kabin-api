@@ -34,7 +34,7 @@ class AnkeService(
         val finalInput = processedInput.copy(ankeDocumentJournalpostId = journalpostId)
 
         return CreatedBehandlingResponse(
-            mottakId = when (finalInput.ankemulighetSource) {
+            behandlingId = when (finalInput.ankemulighetSource) {
                 AnkemulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(input = finalInput)
                 AnkemulighetSource.KABAL -> kabalApiService.createAnkeInKabalFromKlagebehandling(input = finalInput)
             }
@@ -44,7 +44,7 @@ class AnkeService(
     private fun createAnkeFromInfotrygdSak(input: CreateAnkeInput): UUID {
         val sakFromKlanke = klageFssProxyService.getSak(sakId = input.id)
         val frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong())
-        val mottakId = kabalApiService.createAnkeInKabalFromCompleteInput(
+        val behandlingId = kabalApiService.createAnkeInKabalFromCompleteInput(
             input = input,
             sakFromKlanke = sakFromKlanke,
             frist = frist
@@ -53,7 +53,7 @@ class AnkeService(
             sakId = sakFromKlanke.sakId,
             frist = frist,
         )
-        return mottakId
+        return behandlingId
     }
 
     fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
@@ -103,8 +103,8 @@ class AnkeService(
 
     }
 
-    fun getCreatedAnkeStatus(mottakId: UUID): CreatedAnkebehandlingStatusView {
-        val response = kabalApiService.getCreatedAnkeStatus(mottakId = mottakId)
+    fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatusView {
+        val response = kabalApiService.getCreatedAnkeStatus(behandlingId = behandlingId)
 
         return CreatedAnkebehandlingStatusView(
             typeId = response.typeId,

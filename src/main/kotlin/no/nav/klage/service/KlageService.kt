@@ -40,14 +40,14 @@ class KlageService(
         val finalInput = processedInput.copy(klageJournalpostId = journalpostId)
 
         return CreatedBehandlingResponse(
-            mottakId = createKlageFromInfotrygdSak(input = finalInput)
+            behandlingId = createKlageFromInfotrygdSak(input = finalInput)
         )
     }
 
     private fun createKlageFromInfotrygdSak(input: CreateKlageInput): UUID {
         val sakFromKlanke = klageFssProxyService.getSak(sakId = input.eksternBehandlingId)
         val frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong())
-        val mottakId = kabalApiService.createKlageInKabalFromCompleteInput(
+        val behandlingId = kabalApiService.createKlageInKabalFromCompleteInput(
             input = input,
             sakFromKlanke = sakFromKlanke,
             frist = frist
@@ -56,7 +56,7 @@ class KlageService(
             sakId = sakFromKlanke.sakId,
             frist = frist,
         )
-        return mottakId
+        return behandlingId
     }
 
     fun getKlagemuligheter(input: IdnummerInput): List<Klagemulighet> {
@@ -90,8 +90,8 @@ class KlageService(
             }
     }
 
-    fun getCreatedKlageStatus(mottakId: UUID): CreatedKlagebehandlingStatusView {
-        val status = kabalApiService.getCreatedKlageStatus(mottakId = mottakId)
+    fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatusView {
+        val status = kabalApiService.getCreatedKlageStatus(behandlingId = behandlingId)
 
         //TODO works only for klager in Infotrygd
         val sakFromKlanke = klageFssProxyService.getSak(status.kildereferanse)
