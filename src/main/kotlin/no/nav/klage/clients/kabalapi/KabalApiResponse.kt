@@ -87,11 +87,9 @@ data class CreatedAnkebehandlingStatus(
         val receivers: List<Receiver>,
     ) {
         data class Receiver(
-            val id: String,
-            val name: String,
-            val address: Address?,
-            val localPrint: Boolean,
-            val forceCentralPrint: Boolean,
+            val part: PartViewWithUtsendingskanal,
+            val overriddenAddress: Address?,
+            val handling: SvarbrevInput.Receiver.HandlingEnum,
         ) {
             data class Address(
                 val adresselinje1: String?,
@@ -140,9 +138,8 @@ fun CreatedAnkebehandlingStatus.Svarbrev.toView(): CreatedAnkebehandlingStatusVi
         title = title,
         receivers = receivers.map { receiver ->
             CreatedAnkebehandlingStatusView.Svarbrev.Receiver(
-                id = receiver.id,
-                name = receiver.name,
-                address = receiver.address?.let {
+                part = receiver.part.partViewWithUtsendingskanal(),
+                overriddenAddress = receiver.overriddenAddress?.let {
                     CreatedAnkebehandlingStatusView.Svarbrev.Receiver.Address(
                         adresselinje1 = it.adresselinje1,
                         adresselinje2 = it.adresselinje2,
@@ -152,8 +149,7 @@ fun CreatedAnkebehandlingStatus.Svarbrev.toView(): CreatedAnkebehandlingStatusVi
                         poststed = it.poststed,
                     )
                 },
-                localPrint = receiver.localPrint,
-                forceCentralPrint = receiver.forceCentralPrint,
+                handling = no.nav.klage.api.controller.view.SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
             )
         }
     )

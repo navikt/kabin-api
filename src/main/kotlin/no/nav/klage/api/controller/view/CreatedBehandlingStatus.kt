@@ -24,11 +24,9 @@ data class CreatedAnkebehandlingStatusView(
         val receivers: List<Receiver>,
     ) {
         data class Receiver(
-            val id: String,
-            val name: String,
-            val address: Address?,
-            val localPrint: Boolean,
-            val forceCentralPrint: Boolean,
+            val part: PartViewWithUtsendingskanal,
+            val overriddenAddress: Address?,
+            val handling: SvarbrevInput.Receiver.HandlingEnum,
         ) {
             data class Address(
                 val adresselinje1: String?,
