@@ -26,7 +26,7 @@ data class CreatedAnkebehandlingStatusView(
         data class Receiver(
             val part: PartViewWithUtsendingskanal,
             val overriddenAddress: Address?,
-            val handling: SvarbrevInput.Receiver.HandlingEnum,
+            val handling: SvarbrevWithReceiverInput.Receiver.HandlingEnum,
         ) {
             data class Address(
                 val adresselinje1: String?,

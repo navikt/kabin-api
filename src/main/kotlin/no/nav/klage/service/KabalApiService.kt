@@ -109,7 +109,7 @@ class KabalApiService(
         ).behandlingId
     }
 
-    private fun no.nav.klage.api.controller.view.SvarbrevInput?.toKabalModel(): SvarbrevInput? {
+    private fun SvarbrevWithReceiverInput?.toKabalModel(): SvarbrevInput? {
         return this?.let { svarbrevInput ->
             SvarbrevInput(
                 title = svarbrevInput.title,

@@ -12,12 +12,19 @@ data class PreviewAnkeSvarbrevInput(
     val svarbrevInput: SvarbrevInput,
 )
 
-data class SvarbrevInput(
-    val title: String,
+open class SvarbrevInput(
+    open val title: String,
+    open val enhetId: String,
+    open val fullmektigFritekst: String?,
+)
+
+data class SvarbrevWithReceiverInput(
+    override val title: String,
+    override val enhetId: String,
+    override val fullmektigFritekst: String?,
     val receivers: List<Receiver>,
-    val enhetId: String,
-    val fullmektigFritekst: String?,
-) {
+) : SvarbrevInput(title, enhetId, fullmektigFritekst) {
+
     data class Receiver(
         val id: String,
         val handling: HandlingEnum,

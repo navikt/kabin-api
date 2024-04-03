@@ -149,7 +149,7 @@ fun CreatedAnkebehandlingStatus.Svarbrev.toView(): CreatedAnkebehandlingStatusVi
                         poststed = it.poststed,
                     )
                 },
-                handling = no.nav.klage.api.controller.view.SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                handling = no.nav.klage.api.controller.view.SvarbrevWithReceiverInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
             )
         }
     )

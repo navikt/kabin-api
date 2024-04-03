@@ -1,7 +1,7 @@
 package no.nav.klage.domain
 
 import no.nav.klage.api.controller.view.PartId
-import no.nav.klage.api.controller.view.SvarbrevInput
+import no.nav.klage.api.controller.view.SvarbrevWithReceiverInput
 import no.nav.klage.util.AnkemulighetSource
 import java.time.LocalDate
 
@@ -17,7 +17,7 @@ data class CreateAnkeInput(
     val hjemmelIdList: List<String>?,
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevWithReceiverInput?,
 )
 
 data class CreateKlageInput(
