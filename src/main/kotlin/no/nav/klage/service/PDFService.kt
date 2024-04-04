@@ -25,11 +25,25 @@ class PDFService(
                     fnr = sakenGjelder.id,
                 ),
                 enhetsnavn = Enhet.entries.find { it.navn == createAnkeInputView.svarbrevInput.enhetId }!!.beskrivelse,
-                ytelsenavn = Ytelse.of(createAnkeInputView.ytelseId).navn,
+                ytelsenavn = Ytelse.of(createAnkeInputView.ytelseId).navn.toSpecialCase(),
                 fullmektigFritekst = createAnkeInputView.svarbrevInput.fullmektigFritekst,
                 ankeReceivedDate = createAnkeInputView.mottattKlageinstans,
                 behandlingstidInWeeks = createAnkeInputView.fristInWeeks,
             )
         )
     }
+
+    private fun String.toSpecialCase(): String {
+        val strings = this.split(" - ")
+        return if (strings.size == 2) {
+            strings[0].decapitalize() + " - " + strings[1].decapitalize()
+        } else this
+    }
+
+    private fun String.decapitalize(): String {
+        return if (!this.startsWith("NAV")) {
+            this.replaceFirstChar(Char::lowercase)
+        } else this
+    }
+
 }
