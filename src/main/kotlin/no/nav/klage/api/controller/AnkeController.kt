@@ -44,9 +44,9 @@ class AnkeController(
         return ankeService.getAnkemuligheter(input = input)
     }
 
-    @GetMapping("/anker/{mottakId}/status")
+    @GetMapping("/anker/{behandlingId}/status")
     fun createdAnkeStatus(
-        @PathVariable mottakId: UUID,
+        @PathVariable behandlingId: UUID,
     ): CreatedAnkebehandlingStatusView {
         logMethodDetails(
             methodName = ::createdAnkeStatus.name,
@@ -54,6 +54,6 @@ class AnkeController(
             logger = logger,
         )
 
-        return ankeService.getCreatedAnkeStatus(mottakId)
+        return ankeService.getCreatedAnkeStatus(behandlingId)
     }
 }

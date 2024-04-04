@@ -7,6 +7,7 @@ import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -39,14 +40,14 @@ class KlageService(
         val finalInput = processedInput.copy(klageJournalpostId = journalpostId)
 
         return CreatedBehandlingResponse(
-            mottakId = createKlageFromInfotrygdSak(input = finalInput)
+            behandlingId = createKlageFromInfotrygdSak(input = finalInput)
         )
     }
 
     private fun createKlageFromInfotrygdSak(input: CreateKlageInput): UUID {
         val sakFromKlanke = klageFssProxyService.getSak(sakId = input.eksternBehandlingId)
         val frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong())
-        val mottakId = kabalApiService.createKlageInKabalFromCompleteInput(
+        val behandlingId = kabalApiService.createKlageInKabalFromCompleteInput(
             input = input,
             sakFromKlanke = sakFromKlanke,
             frist = frist
@@ -55,7 +56,7 @@ class KlageService(
             sakId = sakFromKlanke.sakId,
             frist = frist,
         )
-        return mottakId
+        return behandlingId
     }
 
     fun getKlagemuligheter(input: IdnummerInput): List<Klagemulighet> {
@@ -77,13 +78,20 @@ class KlageService(
                     //TODO: Tilpass når vi får flere fagsystemer.
                     fagsystemId = Fagsystem.IT01.id,
                     klageBehandlendeEnhet = it.enhetsnummer,
-                    sakenGjelder = kabalApiService.searchPart(SearchPartInput(identifikator = it.fnr)).toView()
+                    sakenGjelder = kabalApiService.searchPartWithUtsendingskanal(
+                        SearchPartWithUtsendingskanalInput(
+                            identifikator = it.fnr,
+                            sakenGjelderId = it.fnr,
+                            //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
+                            ytelseId = Ytelse.entries.find { y -> y.toTema().navn == it.tema }!!.id,
+                        )
+                    ).partViewWithUtsendingskanal(),
                 )
             }
     }
 
-    fun getCreatedKlageStatus(mottakId: UUID): CreatedKlagebehandlingStatusView {
-        val status = kabalApiService.getCreatedKlageStatus(mottakId = mottakId)
+    fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatusView {
+        val status = kabalApiService.getCreatedKlageStatus(behandlingId = behandlingId)
 
         //TODO works only for klager in Infotrygd
         val sakFromKlanke = klageFssProxyService.getSak(status.kildereferanse)
@@ -92,9 +100,9 @@ class KlageService(
             typeId = status.typeId,
             ytelseId = status.ytelseId,
             vedtakDate = sakFromKlanke.vedtaksdato,
-            sakenGjelder = status.sakenGjelder.toView(),
-            klager = status.klager.toView(),
-            fullmektig = status.fullmektig?.toView(),
+            sakenGjelder = status.sakenGjelder.partViewWithUtsendingskanal(),
+            klager = status.klager.partViewWithUtsendingskanal(),
+            fullmektig = status.fullmektig?.partViewWithUtsendingskanal(),
             mottattVedtaksinstans = status.mottattVedtaksinstans,
             mottattKlageinstans = status.mottattKlageinstans,
             frist = status.frist,

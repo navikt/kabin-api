@@ -4,6 +4,9 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
+import no.nav.klage.clients.kabalapi.PartView
+import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
+import no.nav.klage.clients.kabalapi.SvarbrevInput
 import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
@@ -24,8 +27,12 @@ class KabalApiService(
         )
     }
 
-    fun searchPart(searchPartInput: SearchPartInput): no.nav.klage.clients.kabalapi.PartView {
+    fun searchPart(searchPartInput: SearchPartInput): PartView {
         return kabalApiClient.searchPart(searchPartInput = searchPartInput)
+    }
+
+    fun searchPartWithUtsendingskanal(searchPartInput: SearchPartWithUtsendingskanalInput): PartViewWithUtsendingskanal {
+        return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
     }
 
     fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
@@ -36,9 +43,9 @@ class KabalApiService(
                 hjemmelIdList = it.hjemmelIdList,
                 temaId = Ytelse.of(it.ytelseId).toTema().id,
                 vedtakDate = it.vedtakDate.toLocalDate(),
-                sakenGjelder = it.sakenGjelder.toView(),
-                klager = it.klager.toView(),
-                fullmektig = it.fullmektig?.toView(),
+                sakenGjelder = it.sakenGjelder.partViewWithUtsendingskanal(),
+                klager = it.klager.partViewWithUtsendingskanal(),
+                fullmektig = it.fullmektig?.partViewWithUtsendingskanal(),
                 fagsakId = it.fagsakId,
                 fagsystemId = it.fagsystemId,
                 previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
@@ -82,8 +89,9 @@ class KabalApiService(
                 ytelseId = input.ytelseId!!,
                 kildereferanse = input.id,
                 saksbehandlerIdent = input.saksbehandlerIdent,
+                svarbrevInput = input.svarbrevInput?.toKabalModel(),
             )
-        ).mottakId
+        ).behandlingId
     }
 
     fun createAnkeInKabalFromKlagebehandling(input: CreateAnkeInput): UUID {
@@ -96,16 +104,42 @@ class KabalApiService(
                 fullmektig = input.fullmektig.toOversendtPartId(),
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
+                svarbrevInput = input.svarbrevInput?.toKabalModel(),
             )
-        ).mottakId
+        ).behandlingId
     }
 
-    fun getCreatedAnkeStatus(mottakId: UUID): CreatedAnkebehandlingStatus {
-        return kabalApiClient.getCreatedAnkeStatus(mottakId = mottakId)
+    private fun SvarbrevWithReceiverInput?.toKabalModel(): SvarbrevInput? {
+        return this?.let { svarbrevInput ->
+            SvarbrevInput(
+                title = svarbrevInput.title,
+                receivers = svarbrevInput.receivers.map { receiver ->
+                    SvarbrevInput.Receiver(
+                        id = receiver.id,
+                        handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                        overriddenAddress = receiver.overriddenAddress?.let { address ->
+                            SvarbrevInput.Receiver.AddressInput(
+                                adresselinje1 = address.adresselinje1,
+                                adresselinje2 = address.adresselinje2,
+                                adresselinje3 = address.adresselinje3,
+                                landkode = address.landkode,
+                                postnummer = address.postnummer,
+                            )
+                        }
+                    )
+                },
+                enhetId = svarbrevInput.enhetId,
+                fullmektigFritekst = svarbrevInput.fullmektigFritekst,
+            )
+        }
     }
 
-    fun getCreatedKlageStatus(mottakId: UUID): CreatedKlagebehandlingStatus {
-        return kabalApiClient.getCreatedKlageStatus(mottakId = mottakId)
+    fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatus {
+        return kabalApiClient.getCreatedAnkeStatus(behandlingId = behandlingId)
+    }
+
+    fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatus {
+        return kabalApiClient.getCreatedKlageStatus(behandlingId = behandlingId)
     }
 
     fun createKlageInKabalFromCompleteInput(
@@ -134,7 +168,7 @@ class KabalApiService(
                 kildereferanse = input.eksternBehandlingId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
             )
-        ).mottakId
+        ).behandlingId
     }
 
     fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {

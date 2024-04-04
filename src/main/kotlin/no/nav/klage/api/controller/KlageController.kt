@@ -45,9 +45,9 @@ class KlageController(
         return klageService.getKlagemuligheter(input)
     }
 
-    @GetMapping("/klager/{mottakId}/status")
+    @GetMapping("/klager/{behandlingId}/status")
     fun createdKlageStatus(
-        @PathVariable mottakId: UUID,
+        @PathVariable behandlingId: UUID,
     ): CreatedKlagebehandlingStatusView {
         logMethodDetails(
             methodName = ::createdKlageStatus.name,
@@ -55,6 +55,6 @@ class KlageController(
             logger = logger,
         )
 
-        return klageService.getCreatedKlageStatus(mottakId = mottakId)
+        return klageService.getCreatedKlageStatus(behandlingId = behandlingId)
     }
 }

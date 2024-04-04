@@ -73,6 +73,7 @@ spec:
       rules:
         - application: kabal-api
         - application: kabal-innstillinger
+        - application: kabal-json-to-pdf
       external:
       {{#each externalHosts}}
         - host: {{host}}
