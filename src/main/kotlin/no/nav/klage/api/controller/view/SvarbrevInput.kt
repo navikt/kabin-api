@@ -10,6 +10,7 @@ data class PreviewAnkeSvarbrevInput(
     val sakenGjelder: PartId,
     val ytelseId: String,
     val svarbrevInput: SvarbrevInput,
+    val klager: PartId?,
 )
 
 open class SvarbrevInput(

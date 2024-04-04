@@ -17,13 +17,23 @@ class PDFService(
     fun getSvarbrevPDF(createAnkeInputView: PreviewAnkeSvarbrevInput): ByteArray {
         val sakenGjelder = kabalApiService.searchPart(SearchPartInput(createAnkeInputView.sakenGjelder.id))
 
+        val klager = if (createAnkeInputView.klager != null) {
+            kabalApiService.searchPart(SearchPartInput(createAnkeInputView.klager.id))
+        } else null
+
         return kabalJsonToPdfClient.getSvarbrevPDF(
             SvarbrevRequest(
                 title = createAnkeInputView.svarbrevInput.title,
-                sakenGjelder = SvarbrevRequest.SakenGjelder(
+                sakenGjelder = SvarbrevRequest.Part(
                     name = sakenGjelder.name,
                     fnr = sakenGjelder.id,
                 ),
+                klager = klager?.let {
+                    SvarbrevRequest.Part(
+                        name = it.name,
+                        fnr = it.id,
+                    )
+                },
                 enhetsnavn = Enhet.entries.find { it.navn == createAnkeInputView.svarbrevInput.enhetId }!!.beskrivelse,
                 ytelsenavn = Ytelse.of(createAnkeInputView.ytelseId).navn.toSpecialCase(),
                 fullmektigFritekst = createAnkeInputView.svarbrevInput.fullmektigFritekst,
