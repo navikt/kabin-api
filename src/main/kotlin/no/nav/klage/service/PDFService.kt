@@ -2,6 +2,7 @@ package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.PreviewAnkeSvarbrevInput
 import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.kodeverk.Enhet
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service
 class PDFService(
     private val kabalJsonToPdfClient: KabalJsonToPdfClient,
     private val kabalApiService: KabalApiService,
+    private val kabalInnstillingerClient: KabalInnstillingerClient,
 ) {
 
     fun getSvarbrevPDF(createAnkeInputView: PreviewAnkeSvarbrevInput): ByteArray {
@@ -39,6 +41,7 @@ class PDFService(
                 fullmektigFritekst = createAnkeInputView.svarbrevInput.fullmektigFritekst,
                 ankeReceivedDate = createAnkeInputView.mottattKlageinstans,
                 behandlingstidInWeeks = createAnkeInputView.fristInWeeks,
+                avsenderEnhetId = kabalInnstillingerClient.getBrukerdata().ansattEnhet.id
             )
         )
     }
