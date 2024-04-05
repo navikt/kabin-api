@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -71,7 +72,7 @@ class KlageService(
             }
             .map {
                 Klagemulighet(
-                    behandlingId = it.sakId,
+                    id = it.sakId,
                     temaId = Tema.fromNavn(it.tema).id,
                     vedtakDate = it.vedtaksdato,
                     fagsakId = it.fagsakId,
@@ -86,6 +87,7 @@ class KlageService(
                             ytelseId = Ytelse.entries.find { y -> y.toTema().navn == it.tema }!!.id,
                         )
                     ).partViewWithUtsendingskanal(),
+                    sourceId = MulighetSource.INFOTRYGD.fagsystem.id,
                 )
             }
     }

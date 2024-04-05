@@ -8,7 +8,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.util.AnkemulighetSource
+import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -34,9 +34,9 @@ class AnkeService(
         val finalInput = processedInput.copy(ankeDocumentJournalpostId = journalpostId)
 
         return CreatedBehandlingResponse(
-            behandlingId = when (finalInput.ankemulighetSource) {
-                AnkemulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(input = finalInput)
-                AnkemulighetSource.KABAL -> kabalApiService.createAnkeInKabalFromKlagebehandling(input = finalInput)
+            behandlingId = when (finalInput.mulighetSource) {
+                MulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(input = finalInput)
+                MulighetSource.KABAL -> kabalApiService.createAnkeInKabalFromKlagebehandling(input = finalInput)
             }
         )
     }
@@ -95,7 +95,7 @@ class AnkeService(
                     fagsakId = it.fagsakId,
                     fagsystemId = Fagsystem.IT01.id,
                     previousSaksbehandler = null,
-                    sourceId = AnkemulighetSource.INFOTRYGD.fagsystem.id,
+                    sourceId = MulighetSource.INFOTRYGD.fagsystem.id,
                     typeId = Type.ANKE.id,
                     sourceOfExistingAnkebehandling = emptyList(),
                 )

@@ -17,20 +17,36 @@ class ValidationUtil {
     fun validateCreateAnkeInputView(input: CreateAnkeInputView): CreateAnkeInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        val ankemulighetSource =
-            try {
-                AnkemulighetSource.of(Fagsystem.of(input.sourceId))
-            } catch (exception: Exception) {
-                throw InvalidSourceException(
-                    message = "Ugyldig sourceId."
-                )
-            }
-
-        if (input.id == null) {
+        if (input.vedtak == null) {
             validationErrors += InvalidProperty(
-                field = CreateAnkeInputView::id.name,
-                reason = "Velg et vedtak."
+                field = CreateAnkeInputView::vedtak.name,
+                reason = "Velg en mulighet/vedtak."
             )
+        } else {
+            val mulighetSource =
+                try {
+                    MulighetSource.of(Fagsystem.of(input.vedtak.sourceId))
+                } catch (exception: Exception) {
+                    throw InvalidSourceException(
+                        message = "Ugyldig sourceId."
+                    )
+                }
+
+            if (mulighetSource == MulighetSource.INFOTRYGD) {
+                if (input.hjemmelIdList.isNullOrEmpty()) {
+                    validationErrors += InvalidProperty(
+                        field = CreateKlageInputView::hjemmelIdList.name,
+                        reason = "Velg minst én hjemmel."
+                    )
+                }
+
+                if (input.ytelseId == null) {
+                    validationErrors += InvalidProperty(
+                        field = CreateAnkeInputView::ytelseId.name,
+                        reason = "Velg en ytelse."
+                    )
+                }
+            }
         }
 
         if (input.mottattKlageinstans == null) {
@@ -66,27 +82,18 @@ class ValidationUtil {
             )
         }
 
-        if (ankemulighetSource == AnkemulighetSource.INFOTRYGD) {
-            if (input.hjemmelIdList.isNullOrEmpty()) {
-                validationErrors += InvalidProperty(
-                    field = CreateKlageInputView::hjemmelIdList.name,
-                    reason = "Velg minst én hjemmel."
-                )
-            }
-
-            if (input.ytelseId == null) {
-                validationErrors += InvalidProperty(
-                    field = CreateAnkeInputView::ytelseId.name,
-                    reason = "Velg en ytelse."
-                )
-            }
-        }
-
         if (input.svarbrevInput != null) {
             if (input.svarbrevInput.receivers.isEmpty()) {
                 validationErrors += InvalidProperty(
                     field = CreateAnkeInputView::svarbrevInput.name,
                     reason = "Legg til minst én mottaker."
+                )
+            }
+
+            if (input.svarbrevInput.enhetId == null) {
+                validationErrors += InvalidProperty(
+                    field = CreateAnkeInputView::svarbrevInput.name,
+                    reason = "Velg en enhet."
                 )
             }
         }
@@ -108,7 +115,7 @@ class ValidationUtil {
         }
 
         return CreateAnkeInput(
-            id = input.id!!,
+            id = input.vedtak!!.id,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,
             klager = input.klager!!,
@@ -118,7 +125,7 @@ class ValidationUtil {
             hjemmelIdList = input.hjemmelIdList,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
-            ankemulighetSource = ankemulighetSource,
+            mulighetSource = MulighetSource.of(Fagsystem.of(input.vedtak.sourceId)),
             svarbrevInput = input.svarbrevInput,
         )
     }
@@ -126,9 +133,9 @@ class ValidationUtil {
     fun validateCreateKlageInputView(input: CreateKlageInputView): CreateKlageInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
-        if (input.id == null) {
+        if (input.vedtak == null) {
             validationErrors += InvalidProperty(
-                field = CreateKlageInputView::id.name,
+                field = CreateKlageInputView::vedtak.name,
                 reason = "Velg et vedtak."
             )
         }
@@ -221,7 +228,7 @@ class ValidationUtil {
         }
 
         return CreateKlageInput(
-            eksternBehandlingId = input.id!!,
+            eksternBehandlingId = input.vedtak!!.id,
             mottattVedtaksinstans = input.mottattVedtaksinstans!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             fristInWeeks = input.fristInWeeks!!,

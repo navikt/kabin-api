@@ -4,11 +4,8 @@ import java.time.LocalDate
 import java.util.*
 
 data class CreateAnkeInputView(
-    val id: String?,
-    val sourceId: String,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
-    val sakenGjelder: PartId?,
     val klager: PartId?,
     val fullmektig: PartId?,
     val journalpostId: String?,
@@ -17,6 +14,7 @@ data class CreateAnkeInputView(
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevWithReceiverInput?,
+    val vedtak: Vedtak?,
 )
 
 data class CreatedBehandlingResponse(
@@ -24,7 +22,6 @@ data class CreatedBehandlingResponse(
 )
 
 data class CreateKlageInputView(
-    val id: String?,
     val mottattVedtaksinstans: LocalDate?,
     val mottattKlageinstans: LocalDate?,
     val fristInWeeks: Int?,
@@ -34,5 +31,12 @@ data class CreateKlageInputView(
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
     val avsender: PartId?,
-    val saksbehandlerIdent: String?
+    val saksbehandlerIdent: String?,
+    val vedtak: Vedtak?,
+)
+
+data class Vedtak(
+    val id: String,
+    val sakenGjelder: PartId,
+    val sourceId: String,
 )
