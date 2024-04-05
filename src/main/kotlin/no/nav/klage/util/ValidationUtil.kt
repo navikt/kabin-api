@@ -67,7 +67,7 @@ class ValidationUtil {
         }
 
         if (ankemulighetSource == AnkemulighetSource.INFOTRYGD) {
-            if (input.hjemmelIdList == null) {
+            if (input.hjemmelIdList.isNullOrEmpty()) {
                 validationErrors += InvalidProperty(
                     field = CreateKlageInputView::hjemmelIdList.name,
                     reason = "Velg minst én hjemmel."
@@ -197,7 +197,7 @@ class ValidationUtil {
             )
         }
 
-        if (input.hjemmelIdList == null) {
+        if (input.hjemmelIdList.isNullOrEmpty()) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::hjemmelIdList.name,
                 reason = "Velg minst én hjemmel."
