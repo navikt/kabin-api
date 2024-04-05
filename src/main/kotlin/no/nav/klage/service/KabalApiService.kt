@@ -12,7 +12,7 @@ import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.util.AnkemulighetSource
+import no.nav.klage.util.MulighetSource
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
@@ -56,7 +56,7 @@ class KabalApiService(
                         )
                     }
                 },
-                sourceId = AnkemulighetSource.KABAL.fagsystem.id,
+                sourceId = MulighetSource.KABAL.fagsystem.id,
                 typeId = it.typeId,
                 sourceOfExistingAnkebehandling = it.sourceOfExistingAnkebehandling.map { existingAnkebehandling ->
                     ExistingAnkebehandling(
@@ -128,7 +128,7 @@ class KabalApiService(
                         }
                     )
                 },
-                enhetId = svarbrevInput.enhetId,
+                enhetId = svarbrevInput.enhetId!!,
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
             )
         }

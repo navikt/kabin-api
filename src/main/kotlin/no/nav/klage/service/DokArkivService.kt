@@ -1,6 +1,9 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateAnkeInputView
+import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.PartType
+import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.saf.graphql.Datotype
@@ -16,7 +19,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.util.AnkemulighetSource
+import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -168,15 +171,15 @@ class DokArkivService(
     }
 
     fun handleJournalpostBasedOnAnkeInput(input: CreateAnkeInput): String {
-        return when (input.ankemulighetSource) {
-            AnkemulighetSource.INFOTRYGD -> handleJournalpostBasedOnInfotrygdSak(
+        return when (input.mulighetSource) {
+            MulighetSource.INFOTRYGD -> handleJournalpostBasedOnInfotrygdSak(
                 journalpostId = input.ankeDocumentJournalpostId,
                 eksternBehandlingId = input.id,
                 avsender = input.avsender,
                 type = Type.ANKE,
             )
 
-            AnkemulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
+            MulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = input.ankeDocumentJournalpostId,
                 klagebehandlingId = UUID.fromString(input.id),
                 avsender = input.avsender,

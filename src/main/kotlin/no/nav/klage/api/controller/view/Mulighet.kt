@@ -34,11 +34,12 @@ data class PreviousSaksbehandler(
 )
 
 data class Klagemulighet(
-    val behandlingId: String,
+    val id: String,
     val temaId: String,
     val vedtakDate: LocalDate,
     val sakenGjelder: PartViewWithUtsendingskanal,
     val fagsakId: String,
     val fagsystemId: String,
     val klageBehandlendeEnhet: String,
+    val sourceId: String,
 )
