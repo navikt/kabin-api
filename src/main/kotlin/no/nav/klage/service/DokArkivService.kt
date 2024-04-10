@@ -335,26 +335,20 @@ class DokArkivService(
                 journalfoerendeEnhet = journalfoerendeEnhet,
             )
 
-            try {
-                logger.debug("About to fetch journalfoeringsoppgave")
-                val oppgave = oppgaveClient.fetchJournalfoeringsoppgave(
-                    journalpostId = journalpostId,
+            logger.debug("About to fetch journalfoeringsoppgave")
+            val oppgave = oppgaveClient.fetchJournalfoeringsoppgave(
+                journalpostId = journalpostId,
+            )
+
+            logger.debug("Fetched journalfoeringsoppgave")
+
+            oppgaveClient.ferdigstillOppgave(
+                FerdigstillOppgaveRequest(
+                    oppgaveId = oppgave.id,
+                    versjon = oppgave.versjon,
                 )
-
-                secureLogger.debug("Fetched journalfoeringsoppgave: {}", oppgave)
-                logger.debug("Fetched journalfoeringsoppgave")
-
-                oppgaveClient.ferdigstillOppgave(
-                    FerdigstillOppgaveRequest(
-                        oppgaveId = oppgave.id,
-                        versjon = oppgave.versjon,
-                    )
-                )
-                logger.debug("Ferdigstilt oppgave")
-
-            } catch (e: Exception) {
-                logger.error("Error while finalizing oppgave", e)
-            }
+            )
+            logger.debug("Ferdigstilt journalfoeringsoppgave")
 
             return journalpostId
         }

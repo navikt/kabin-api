@@ -52,10 +52,7 @@ class OppgaveClient(
             }
 
         if (oppgaveResponse.oppgaver.size != 1) {
-//            logger.warn("Expected exactly one journalfoeringsoppgave, but got ${oppgaveResponse.oppgaver.size}")
-            throw OppgaveClientException("Expected exactly one journalfoeringsoppgave, but got ${oppgaveResponse.antallTreffTotalt}")
-        } else {
-            logger.debug("Found exactly one journalfoeringsoppgave")
+            throw OppgaveClientException("Forventet én journalfoeringsoppgave, men fant ${oppgaveResponse.antallTreffTotalt}.")
         }
         return oppgaveResponse.oppgaver.first()
     }
@@ -76,7 +73,7 @@ class OppgaveClient(
                 .bodyValue(ferdigstillOppgaveRequest)
                 .retrieve()
                 .bodyToMono<OppgaveApiRecord>()
-                .block() ?: throw OppgaveClientException("Oppgave could not be patched")
+                .block() ?: throw OppgaveClientException("Kunne ikke ferdigstille oppgaven.")
         }
     }
 
