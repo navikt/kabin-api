@@ -28,7 +28,7 @@ class OppgaveClient(
 
     fun fetchJournalfoeringsoppgave(
         journalpostId: String,
-    ): OppgaveApiRecord {
+    ): OppgaveApiRecord? {
         val oppgaveResponse =
             logTimingAndWebClientResponseException(OppgaveClient::fetchJournalfoeringsoppgave.name) {
                 oppgaveWebClient.get()
@@ -51,10 +51,10 @@ class OppgaveClient(
                     .block() ?: throw OppgaveClientException("Oppgaver could not be fetched")
             }
 
-        if (oppgaveResponse.oppgaver.size != 1) {
-            throw OppgaveClientException("Forventet én journalfoeringsoppgave, men fant ${oppgaveResponse.antallTreffTotalt}.")
+        if (oppgaveResponse.oppgaver.size > 1) {
+            throw OppgaveClientException("Forventet ingen eller én journalfoeringsoppgave, men fant ${oppgaveResponse.antallTreffTotalt}.")
         }
-        return oppgaveResponse.oppgaver.first()
+        return oppgaveResponse.oppgaver.firstOrNull()
     }
 
     fun ferdigstillOppgave(ferdigstillOppgaveRequest: FerdigstillOppgaveRequest): OppgaveApiRecord {

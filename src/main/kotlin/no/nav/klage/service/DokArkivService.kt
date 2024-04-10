@@ -340,7 +340,10 @@ class DokArkivService(
                 journalpostId = journalpostId,
             )
 
-            logger.debug("Fetched journalfoeringsoppgave")
+            if (oppgave == null) {
+                logger.warn("No journalfoeringsoppgave found")
+                return journalpostId
+            }
 
             oppgaveClient.ferdigstillOppgave(
                 FerdigstillOppgaveRequest(
