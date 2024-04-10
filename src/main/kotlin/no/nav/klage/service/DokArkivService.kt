@@ -347,7 +347,7 @@ class DokArkivService(
                 oppgaveClient.ferdigstillOppgave(
                     FerdigstillOppgaveRequest(
                         oppgaveId = oppgave.id,
-                        versjon = oppgave.versjon + 1,
+                        versjon = oppgave.versjon,
                     )
                 )
                 logger.debug("Ferdigstilt oppgave")
