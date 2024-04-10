@@ -5,7 +5,7 @@ externalHosts:
   - host: saf.prod-fss-pub.nais.io
   - host: dokarkiv.prod-fss-pub.nais.io
   - host: pdl-api.prod-fss-pub.nais.io
-  - host: oppgave.intern.nav.no
+  - host: oppgave.prod-fss-pub.nais.io
 inboundApplications:
   - application: kabin
 springProfile: prod-gcp
