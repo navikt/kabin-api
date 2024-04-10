@@ -6,6 +6,7 @@ externalHosts:
   - host: dokarkiv.dev-fss-pub.nais.io
   - host: klage-fss-proxy.dev-fss-pub.nais.io
   - host: pdl-api.dev-fss-pub.nais.io
+  - host: oppgave.dev-fss-pub.nais.io
 #Some FE app
 inboundApplications:
   - application: kabin

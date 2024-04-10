@@ -6,6 +6,8 @@ import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.clients.oppgaveapi.FerdigstillOppgaveRequest
+import no.nav.klage.clients.oppgaveapi.OppgaveClient
 import no.nav.klage.clients.saf.graphql.Datotype
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
@@ -33,6 +35,7 @@ class DokArkivService(
     private val fssProxyService: KlageFssProxyService,
     private val kabalInnstillingerClient: KabalInnstillingerClient,
     private val kabalApiService: KabalApiService,
+    private val oppgaveClient: OppgaveClient,
 ) {
 
     companion object {
@@ -331,6 +334,28 @@ class DokArkivService(
                 journalpostId = journalpostId,
                 journalfoerendeEnhet = journalfoerendeEnhet,
             )
+
+            try {
+                logger.debug("About to fetch journalfoeringsoppgave")
+                val oppgave = oppgaveClient.fetchJournalfoeringsoppgave(
+                    journalpostId = journalpostId,
+                )
+
+                secureLogger.debug("Fetched journalfoeringsoppgave: {}", oppgave)
+                logger.debug("Fetched journalfoeringsoppgave")
+
+                oppgaveClient.ferdigstillOppgave(
+                    FerdigstillOppgaveRequest(
+                        oppgaveId = oppgave.id,
+                        versjon = oppgave.versjon + 1,
+                    )
+                )
+                logger.debug("Ferdigstilt oppgave")
+
+            } catch (e: Exception) {
+                logger.error("Error while finalizing oppgave", e)
+            }
+
             return journalpostId
         }
     }

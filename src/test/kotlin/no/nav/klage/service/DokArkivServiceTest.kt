@@ -7,14 +7,14 @@ import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
-import no.nav.klage.clients.dokarkiv.BrukerIdType
-import no.nav.klage.clients.dokarkiv.Sak
 import no.nav.klage.clients.kabalapi.CompletedBehandling
 import no.nav.klage.clients.kabalapi.PartType
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
-import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
+import no.nav.klage.clients.saf.graphql.Journalpost
+import no.nav.klage.clients.saf.graphql.Journalposttype
+import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.clients.saf.graphql.Tema.OMS
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.kodeverk.Fagsystem
@@ -87,9 +87,9 @@ class DokArkivServiceTest {
             fssProxyService = fssProxyService,
             kabalInnstillingerClient = kabalInnstillingerClient,
             kabalApiService = kabalApiService,
+            oppgaveClient = mockk(),
         )
     }
-
 
     @Nested
     inner class HandleJournalpost {

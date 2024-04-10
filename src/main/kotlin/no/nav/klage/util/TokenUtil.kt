@@ -38,6 +38,12 @@ class TokenUtil(
         return response.accessToken!!
     }
 
+    fun getSaksbehandlerAccessTokenWithOppgaveScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["oppgave-onbehalfof"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken!!
+    }
+
     fun getSaksbehandlerAccessTokenWithDokArkivScope(): String {
         val clientProperties = clientConfigurationProperties.registration["dok-arkiv-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
