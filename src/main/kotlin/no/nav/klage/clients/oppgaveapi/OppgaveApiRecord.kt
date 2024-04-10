@@ -1,5 +1,6 @@
 package no.nav.klage.clients.oppgaveapi
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -25,8 +26,11 @@ data class OppgaveApiRecord(
     val aktivDato: String?,
     val opprettetAv: String?,
     val endretAv: String?,
+    @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
     val opprettetTidspunkt: LocalDateTime,
+    @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
     val endretTidspunkt: LocalDateTime?,
+    @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
     val ferdigstiltTidspunkt: LocalDateTime?,
     val behandlesAvApplikasjon: String?,
     val journalpostkilde: String?,
