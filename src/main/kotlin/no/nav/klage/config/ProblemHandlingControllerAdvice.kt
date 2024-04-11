@@ -1,5 +1,6 @@
 package no.nav.klage.config
 
+import no.nav.klage.clients.oppgaveapi.OppgaveClientException
 import no.nav.klage.exceptions.IllegalUpdateException
 import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.JournalpostNotFoundException
@@ -46,6 +47,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.NOT_FOUND, ex)
+
+    @ExceptionHandler
+    fun handleOppgaveClientException(
+        ex: OppgaveClientException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
 
     @ExceptionHandler
     fun handleInvalidSourceException(
