@@ -9,6 +9,7 @@ import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -94,6 +95,17 @@ class ValidationUtil {
                 validationErrors += InvalidProperty(
                     field = CreateAnkeInputView::svarbrevInput.name,
                     reason = "Velg en enhet."
+                )
+            }
+        }
+        
+        if (!input.hjemmelIdList.isNullOrEmpty()) {
+            try {
+                input.hjemmelIdList.forEach { Hjemmel.of(it) }
+            } catch (iae: IllegalArgumentException) {
+                validationErrors += InvalidProperty(
+                    field = CreateKlageInputView::hjemmelIdList.name,
+                    reason = "Ugyldig hjemmel."
                 )
             }
         }
@@ -209,6 +221,15 @@ class ValidationUtil {
                 field = CreateKlageInputView::hjemmelIdList.name,
                 reason = "Velg minst én hjemmel."
             )
+        } else {
+            try {
+                input.hjemmelIdList.forEach { Hjemmel.of(it) }
+            } catch(iae: IllegalArgumentException) {
+                validationErrors += InvalidProperty(
+                    field = CreateKlageInputView::hjemmelIdList.name,
+                    reason = "Ugyldig hjemmel."
+                )
+            }
         }
 
         val sectionList = mutableListOf<ValidationSection>()
