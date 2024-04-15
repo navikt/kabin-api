@@ -26,7 +26,7 @@ class ValidationUtilTest {
             fullmektig = null,
             journalpostId = null,
             ytelseId = null,
-            hjemmelIdList = null,
+            hjemmelIdList = listOf(),
             avsender = null,
             saksbehandlerIdent = null,
             svarbrevInput = null,
