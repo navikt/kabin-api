@@ -105,6 +105,7 @@ class KabalApiService(
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
+                replacementHjemmelIdList = input.hjemmelIdList,
             )
         ).behandlingId
     }

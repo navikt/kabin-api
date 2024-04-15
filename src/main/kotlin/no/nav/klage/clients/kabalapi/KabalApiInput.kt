@@ -12,6 +12,7 @@ data class CreateAnkeBasedOnKlagebehandlingInput(
     val ankeDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
+    val replacementHjemmelIdList: List<String>?,
 )
 
 data class IsDuplicateInput(
