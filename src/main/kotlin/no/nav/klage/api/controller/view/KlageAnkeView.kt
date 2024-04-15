@@ -10,7 +10,7 @@ data class CreateAnkeInputView(
     val fullmektig: PartId?,
     val journalpostId: String?,
     val ytelseId: String?,
-    val hjemmelIdList: List<String>?,
+    val hjemmelIdList: List<String>,
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevWithReceiverInput?,

@@ -32,21 +32,31 @@ class ValidationUtil {
                         message = "Ugyldig sourceId."
                     )
                 }
-
             if (mulighetSource == MulighetSource.INFOTRYGD) {
-                if (input.hjemmelIdList.isNullOrEmpty()) {
-                    validationErrors += InvalidProperty(
-                        field = CreateKlageInputView::hjemmelIdList.name,
-                        reason = "Velg minst én hjemmel."
-                    )
-                }
-
                 if (input.ytelseId == null) {
                     validationErrors += InvalidProperty(
                         field = CreateAnkeInputView::ytelseId.name,
                         reason = "Velg en ytelse."
                     )
                 }
+            }
+        }
+
+        if (input.hjemmelIdList.isEmpty()) {
+            validationErrors += InvalidProperty(
+                field = CreateKlageInputView::hjemmelIdList.name,
+                reason = "Velg minst én hjemmel."
+            )
+        }
+
+        if (input.hjemmelIdList.isNotEmpty()) {
+            try {
+                input.hjemmelIdList.forEach { Hjemmel.of(it) }
+            } catch (iae: IllegalArgumentException) {
+                validationErrors += InvalidProperty(
+                    field = CreateKlageInputView::hjemmelIdList.name,
+                    reason = "Ugyldig hjemmel."
+                )
             }
         }
 
@@ -95,24 +105,6 @@ class ValidationUtil {
                 validationErrors += InvalidProperty(
                     field = CreateAnkeInputView::svarbrevInput.name,
                     reason = "Velg en enhet."
-                )
-            }
-        }
-//TODO: Ta inn når FE alltid sender innhold her.
-//        if (input.hjemmelIdList != null && input.hjemmelIdList.isEmpty()) {
-//            validationErrors += InvalidProperty(
-//                field = CreateKlageInputView::hjemmelIdList.name,
-//                reason = "Velg minst én hjemmel."
-//            )
-//        }
-        
-        if (!input.hjemmelIdList.isNullOrEmpty()) {
-            try {
-                input.hjemmelIdList.forEach { Hjemmel.of(it) }
-            } catch (iae: IllegalArgumentException) {
-                validationErrors += InvalidProperty(
-                    field = CreateKlageInputView::hjemmelIdList.name,
-                    reason = "Ugyldig hjemmel."
                 )
             }
         }
@@ -231,7 +223,7 @@ class ValidationUtil {
         } else {
             try {
                 input.hjemmelIdList.forEach { Hjemmel.of(it) }
-            } catch(iae: IllegalArgumentException) {
+            } catch (iae: IllegalArgumentException) {
                 validationErrors += InvalidProperty(
                     field = CreateKlageInputView::hjemmelIdList.name,
                     reason = "Ugyldig hjemmel."
