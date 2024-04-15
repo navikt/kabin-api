@@ -98,13 +98,13 @@ class ValidationUtil {
                 )
             }
         }
-
-        if (input.hjemmelIdList != null && input.hjemmelIdList.isEmpty()) {
-            validationErrors += InvalidProperty(
-                field = CreateKlageInputView::hjemmelIdList.name,
-                reason = "Velg minst én hjemmel."
-            )
-        }
+//TODO: Ta inn når FE alltid sender innhold her.
+//        if (input.hjemmelIdList != null && input.hjemmelIdList.isEmpty()) {
+//            validationErrors += InvalidProperty(
+//                field = CreateKlageInputView::hjemmelIdList.name,
+//                reason = "Velg minst én hjemmel."
+//            )
+//        }
         
         if (!input.hjemmelIdList.isNullOrEmpty()) {
             try {
