@@ -371,7 +371,7 @@ class DokArkivService(
 
         val fagsystem = Fagsystem.of(fagsystemId)
 
-        return journalpostIsConnectedToSakInFagsystem(
+        return !journalpostIsConnectedToSakInFagsystem(
             journalpostInSaf = journalpostInSaf,
             sakInFagsystem = Sak(
                 sakstype = Sakstype.FAGSAK,
