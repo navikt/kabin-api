@@ -215,7 +215,7 @@ class ValidationUtil {
             )
         }
 
-        if (input.hjemmelIdList.isNullOrEmpty()) {
+        if (input.hjemmelIdList.isEmpty()) {
             validationErrors += InvalidProperty(
                 field = CreateKlageInputView::hjemmelIdList.name,
                 reason = "Velg minst én hjemmel."
@@ -256,7 +256,7 @@ class ValidationUtil {
             fullmektig = input.fullmektig,
             klageJournalpostId = input.journalpostId!!,
             ytelseId = input.ytelseId!!,
-            hjemmelIdList = input.hjemmelIdList!!,
+            hjemmelIdList = input.hjemmelIdList,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
         )

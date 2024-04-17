@@ -81,7 +81,7 @@ class KabalApiService(
                 fagsakId = sakFromKlanke.fagsakId,
                 //TODO: Tilpass når vi får flere fagsystemer.
                 fagsystemId = Fagsystem.IT01.id,
-                hjemmelIdList = input.hjemmelIdList!!,
+                hjemmelIdList = input.hjemmelIdList,
                 forrigeBehandlendeEnhet = sakFromKlanke.enhetsnummer,
                 ankeJournalpostId = input.ankeDocumentJournalpostId,
                 mottattNav = input.mottattKlageinstans,
@@ -105,7 +105,7 @@ class KabalApiService(
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
-                replacementHjemmelIdList = input.hjemmelIdList,
+                hjemmelIdList = input.hjemmelIdList,
             )
         ).behandlingId
     }
