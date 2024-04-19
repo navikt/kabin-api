@@ -9,7 +9,7 @@ val klageKodeverkVersion = "1.8.12"
 
 plugins {
     val kotlinVersion = "1.9.23"
-    id("org.springframework.boot") version "3.2.4"
+    id("org.springframework.boot") version "3.2.5"
     id("io.spring.dependency-management") version "1.1.4"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
