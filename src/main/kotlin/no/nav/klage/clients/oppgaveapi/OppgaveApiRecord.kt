@@ -1,9 +1,11 @@
 package no.nav.klage.clients.oppgaveapi
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class OppgaveApiRecord(
     val id: Long,
     val versjon: Int,
