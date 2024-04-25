@@ -1,6 +1,6 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.mapper.toView
+import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateKlageInput
@@ -110,7 +110,7 @@ class KlageService(
             frist = status.frist,
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
-            journalpost = status.journalpost.toView(),
+            journalpost = status.journalpost.toReceiptView(),
             tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
         )
     }

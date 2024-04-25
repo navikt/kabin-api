@@ -14,7 +14,7 @@ data class CreatedAnkebehandlingStatusView(
     val frist: LocalDate,
     val fagsakId: String,
     val fagsystemId: String,
-    val journalpost: DokumentReferanse,
+    val journalpost: DokumentReferanseForReceipt,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
     val svarbrev: Svarbrev?,
 ) {
@@ -52,7 +52,7 @@ data class CreatedKlagebehandlingStatusView(
     val frist: LocalDate,
     val fagsakId: String,
     val fagsystemId: String,
-    val journalpost: DokumentReferanse,
+    val journalpost: DokumentReferanseForReceipt,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
 )
 

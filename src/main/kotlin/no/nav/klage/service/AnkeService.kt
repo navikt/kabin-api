@@ -1,6 +1,6 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.mapper.toView
+import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateAnkeInput
@@ -117,7 +117,7 @@ class AnkeService(
             frist = response.frist,
             fagsakId = response.fagsakId,
             fagsystemId = response.fagsystemId,
-            journalpost = response.journalpost.toView(),
+            journalpost = response.journalpost.toReceiptView(),
             tildeltSaksbehandler = response.tildeltSaksbehandler?.toView(),
             svarbrev = response.svarbrev?.toView(),
         )

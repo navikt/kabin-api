@@ -1,5 +1,6 @@
 package no.nav.klage.api.controller.view
 
+import no.nav.klage.api.controller.view.DokumentReferanse.*
 import java.time.LocalDateTime
 
 data class DokumenterResponse(
@@ -33,6 +34,7 @@ data class DokumentReferanse(
     val kanal: String,
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
+    val canChangeAvsender: Boolean,
     //Deprecated
     var alreadyUsed: Boolean = false,
 ) {
@@ -168,6 +170,34 @@ data class DokumentReferanse(
     }
 
 }
+
+data class DokumentReferanseForReceipt(
+    val journalpostId: String,
+    val dokumentInfoId: String,
+    val tittel: String?,
+    val tema: String,
+    val temaId: String,
+    val harTilgangTilArkivvariant: Boolean,
+    val vedlegg: MutableList<VedleggReferanse> = mutableListOf(),
+    val journalposttype: Journalposttype?,
+    val journalstatus: Journalstatus?,
+    val behandlingstema: String?,
+    val behandlingstemanavn: String?,
+    val sak: Sak?,
+    val avsenderMottaker: AvsenderMottaker?,
+    val journalfoerendeEnhet: String?,
+    val journalfortAvNavn: String?,
+    val opprettetAvNavn: String?,
+    val datoOpprettet: LocalDateTime,
+    val relevanteDatoer: List<RelevantDato>?,
+    val antallRetur: Int?,
+    val tilleggsopplysninger: List<Tilleggsopplysning>?,
+    val kanal: String,
+    val kanalnavn: String,
+    val utsendingsinfo: Utsendingsinfo?,
+    //Deprecated
+    var alreadyUsed: Boolean = false,
+)
 
 data class UpdateDocumentTitleView(
     val tittel: String
