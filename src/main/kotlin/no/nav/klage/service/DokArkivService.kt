@@ -239,7 +239,7 @@ class DokArkivService(
                 title = "Validation error",
                 sections = listOf(
                     ValidationSection(
-                        section = "logiskevedlegg",
+                        section = "logiskeVedlegg",
                         properties = listOf(
                             InvalidProperty(
                                 field = CreateAnkeInputView::logiskeVedlegg.name,
