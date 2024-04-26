@@ -36,7 +36,6 @@ data class Journalpost(
     val journalfortAvNavn: String?,
     val opprettetAvNavn: String?,
     val skjerming: String?,
-    val logiskeVedlegg: List<LogiskVedlegg>?,
     val datoOpprettet: LocalDateTime,
     val dokumenter: List<DokumentInfo>?,
     val relevanteDatoer: List<RelevantDato>?,
@@ -108,6 +107,7 @@ data class DokumentInfo(
     val tittel: String?,
     val brevkode: String?,
     val skjerming: String?,
+    val logiskeVedlegg: List<LogiskVedlegg>?,
     val dokumentvarianter: List<Dokumentvariant>
 )
 

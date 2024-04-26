@@ -62,7 +62,7 @@ class DokumentMapper {
             journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
             journalfortAvNavn = journalpost.journalfortAvNavn,
             opprettetAvNavn = journalpost.opprettetAvNavn,
-            logiskeVedlegg = journalpost.logiskeVedlegg?.map {
+            logiskeVedlegg = hoveddokument.logiskeVedlegg?.map {
                 DokumentReferanse.LogiskVedlegg(
                     tittel = it.tittel,
                     logiskVedleggId = it.logiskVedleggId,

@@ -485,7 +485,8 @@ class DokArkivServiceTest {
                     tittel = null,
                     brevkode = null,
                     skjerming = null,
-                    dokumentvarianter = listOf()
+                    dokumentvarianter = listOf(),
+                    logiskeVedlegg = null,
                 )
             ),
             relevanteDatoer = listOf(),
@@ -494,7 +495,6 @@ class DokArkivServiceTest {
             kanal = "NAV_NO",
             kanalnavn = "",
             utsendingsinfo = null,
-            logiskeVedlegg = null,
         )
     }
 
