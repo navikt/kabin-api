@@ -43,11 +43,10 @@ class SafGraphQlClient(
                 ?.let { failOnErrors(it); it }
                 ?.data!!.dokumentoversiktBruker.also {
                     logger.debug(
-                        "DokumentoversiktBruker: antall: {}, ms: {}, dato/tid: {}, firstDocument: {}",
+                        "DokumentoversiktBruker: antall: {}, ms: {}, dato/tid: {}",
                         it.sideInfo.totaltAntall,
                         System.currentTimeMillis() - start,
-                        LocalDateTime.now(),
-                        it.journalposter.firstOrNull()?.dokumenter?.firstOrNull()
+                        LocalDateTime.now()
                     )
                 }
         }
