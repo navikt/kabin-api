@@ -7,6 +7,7 @@ import no.nav.klage.clients.saf.graphql.Utsendingsinfo
 import no.nav.klage.clients.saf.graphql.Variantformat
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.util.canChangeAvsenderInJournalpost
 import no.nav.klage.util.getLogger
 
 class DokumentMapper {
@@ -78,6 +79,7 @@ class DokumentMapper {
             kanal = journalpost.kanal,
             kanalnavn = journalpost.kanalnavn,
             utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
+            canChangeAvsender = canChangeAvsenderInJournalpost(journalpost),
         )
 
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost))

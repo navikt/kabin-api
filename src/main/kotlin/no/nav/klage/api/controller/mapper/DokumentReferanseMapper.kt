@@ -1,10 +1,11 @@
 package no.nav.klage.api.controller.mapper
 
+import no.nav.klage.api.controller.view.DokumentReferanseForReceipt
 import no.nav.klage.clients.kabalapi.DokumentReferanse
 
 
-fun DokumentReferanse.toView(): no.nav.klage.api.controller.view.DokumentReferanse {
-    return no.nav.klage.api.controller.view.DokumentReferanse(
+fun DokumentReferanse.toReceiptView(): DokumentReferanseForReceipt {
+    return DokumentReferanseForReceipt(
         journalpostId = journalpostId,
         dokumentInfoId = dokumentInfoId,
         tittel = tittel,
@@ -28,7 +29,7 @@ fun DokumentReferanse.toView(): no.nav.klage.api.controller.view.DokumentReferan
         kanal = kanal,
         kanalnavn = kanalnavn,
         utsendingsinfo = utsendingsinfo?.toView(),
-        alreadyUsed = alreadyUsed
+        alreadyUsed = alreadyUsed,
     )
 }
 
