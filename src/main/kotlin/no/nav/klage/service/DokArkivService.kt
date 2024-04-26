@@ -230,7 +230,7 @@ class DokArkivService(
 
         val journalpostType = journalpostInSaf.journalposttype
 
-        if (journalpostType != Journalposttype.N
+        if (journalpostType == Journalposttype.I
             && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
             && !journalpostInSaf.isFinalized()
             && avsender == null
@@ -251,7 +251,7 @@ class DokArkivService(
             )
         }
 
-        if (journalpostType != Journalposttype.N && avsender != null) {
+        if (journalpostType == Journalposttype.I && avsender != null) {
             if (journalpostInSaf.avsenderMottaker?.id != avsender.id) {
                 if (canChangeAvsenderInJournalpost(journalpostInSaf)) {
                     logger.debug("updating avsender in journalpost")

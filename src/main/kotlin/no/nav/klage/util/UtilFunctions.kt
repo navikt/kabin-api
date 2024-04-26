@@ -9,11 +9,15 @@ import java.time.LocalDateTime
 fun canChangeAvsenderInJournalpost(
     journalpost: Journalpost,
 ): Boolean {
+    if (journalpost.journalposttype != Journalposttype.I) {
+        return false
+    }
+
     val datoJournalfoert =
         journalpost.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
-    val cannotChange = journalpost.journalposttype == Journalposttype.I
-            && journalpost.journalstatus == Journalstatus.JOURNALFOERT
+
+    val cannotChangeForInngaaende = journalpost.journalstatus == Journalstatus.JOURNALFOERT
             && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true
 
-    return !cannotChange
+    return !cannotChangeForInngaaende
 }
