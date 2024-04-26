@@ -4,7 +4,7 @@ SAF_BASE_URL: https://saf.prod-fss-pub.nais.io/
 SAF_SCOPE: prod-fss.teamdokumenthandtering.saf
 
 DOK_ARKIV_SCOPE: prod-fss.teamdokumenthandtering.dokarkiv/
-DOK_ARKIV_SERVICE_URL: https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1/journalpost
+DOK_ARKIV_SERVICE_URL: https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1
 
 KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.prod-fss-pub.nais.io
 

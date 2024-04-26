@@ -7,14 +7,14 @@ import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.clients.dokarkiv.BrukerIdType
+import no.nav.klage.clients.dokarkiv.Sak
 import no.nav.klage.clients.kabalapi.CompletedBehandling
 import no.nav.klage.clients.kabalapi.PartType
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
+import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
-import no.nav.klage.clients.saf.graphql.Journalpost
-import no.nav.klage.clients.saf.graphql.Journalposttype
-import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.clients.saf.graphql.Tema.OMS
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.kodeverk.Fagsystem
@@ -101,9 +101,10 @@ class DokArkivServiceTest {
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
 
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
-                JOURNALPOST_ID,
-                UUID.randomUUID(),
-                null
+                journalpostId = JOURNALPOST_ID,
+                klagebehandlingId = UUID.randomUUID(),
+                avsender = null,
+                logiskeVedlegg = null,
             )
 
             verify(exactly = 1) {
@@ -166,7 +167,8 @@ class DokArkivServiceTest {
                 avsender = PartId(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
-                )
+                ),
+                logiskeVedlegg = null,
             )
 
             verify(exactly = 1) {
@@ -229,9 +231,10 @@ class DokArkivServiceTest {
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
                 dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
-                    JOURNALPOST_ID,
-                    UUID.randomUUID(),
-                    null
+                    journalpostId = JOURNALPOST_ID,
+                    klagebehandlingId = UUID.randomUUID(),
+                    avsender = null,
+                    logiskeVedlegg = null,
                 )
             }
         }
@@ -242,9 +245,10 @@ class DokArkivServiceTest {
             every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
 
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
-                JOURNALPOST_ID,
-                UUID.randomUUID(),
-                null
+                journalpostId = JOURNALPOST_ID,
+                klagebehandlingId = UUID.randomUUID(),
+                avsender = null,
+                logiskeVedlegg = null,
             )
 
             verify(exactly = 0) {
@@ -291,7 +295,8 @@ class DokArkivServiceTest {
                 avsender = PartId(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
-                )
+                ),
+                logiskeVedlegg = null,
             )
 
             verify(exactly = 1) {
@@ -345,9 +350,10 @@ class DokArkivServiceTest {
             } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
 
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
-                JOURNALPOST_ID,
-                UUID.randomUUID(),
-                null
+                journalpostId = JOURNALPOST_ID,
+                klagebehandlingId = UUID.randomUUID(),
+                avsender = null,
+                logiskeVedlegg = null,
             )
 
             verify(exactly = 0) {
@@ -394,7 +400,8 @@ class DokArkivServiceTest {
                 avsender = PartId(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
-                )
+                ),
+                logiskeVedlegg = null,
             )
 
             verify(exactly = 1) {
@@ -472,13 +479,22 @@ class DokArkivServiceTest {
             opprettetAvNavn = null,
             skjerming = null,
             datoOpprettet = LocalDateTime.now(),
-            dokumenter = listOf(),
+            dokumenter = listOf(
+                DokumentInfo(
+                    dokumentInfoId = "",
+                    tittel = null,
+                    brevkode = null,
+                    skjerming = null,
+                    dokumentvarianter = listOf(),
+                    logiskeVedlegg = null,
+                )
+            ),
             relevanteDatoer = listOf(),
             antallRetur = null,
             tilleggsopplysninger = listOf(),
             kanal = "NAV_NO",
             kanalnavn = "",
-            utsendingsinfo = null
+            utsendingsinfo = null,
         )
     }
 

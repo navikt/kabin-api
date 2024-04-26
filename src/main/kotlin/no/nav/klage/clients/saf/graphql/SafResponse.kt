@@ -86,6 +86,11 @@ data class Utsendingsinfo(
     )
 }
 
+data class LogiskVedlegg(
+    val tittel: String,
+    val logiskVedleggId: String,
+)
+
 data class Tilleggsopplysning(
     val nokkel: String,
     val verdi: String,
@@ -102,6 +107,7 @@ data class DokumentInfo(
     val tittel: String?,
     val brevkode: String?,
     val skjerming: String?,
+    val logiskeVedlegg: List<LogiskVedlegg>?,
     val dokumentvarianter: List<Dokumentvariant>
 )
 

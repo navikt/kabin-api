@@ -62,6 +62,12 @@ class DokumentMapper {
             journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
             journalfortAvNavn = journalpost.journalfortAvNavn,
             opprettetAvNavn = journalpost.opprettetAvNavn,
+            logiskeVedlegg = hoveddokument.logiskeVedlegg?.map {
+                DokumentReferanse.LogiskVedlegg(
+                    tittel = it.tittel,
+                    logiskVedleggId = it.logiskVedleggId,
+                )
+            },
             datoOpprettet = journalpost.datoOpprettet,
             relevanteDatoer = journalpost.relevanteDatoer?.map {
                 DokumentReferanse.RelevantDato(

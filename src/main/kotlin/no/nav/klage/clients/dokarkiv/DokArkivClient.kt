@@ -29,7 +29,7 @@ class DokArkivClient(
     ): CreateNewJournalpostBasedOnExistingJournalpostResponse {
         try {
             val journalpostResponse = dokArkivWebClient.put()
-                .uri("/${oldJournalpostId}/knyttTilAnnenSak")
+                .uri("/journalpost/${oldJournalpostId}/knyttTilAnnenSak")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
                 .header("Nav-Consumer-Id", applicationName)
                 .header("Nav-User-Id", tokenUtil.getCurrentIdent())
@@ -52,7 +52,7 @@ class DokArkivClient(
     fun updateSakInJournalpost(journalpostId: String, input: UpdateSakInJournalpostRequest) {
         try {
             val output = dokArkivWebClient.put()
-                .uri("/${journalpostId}")
+                .uri("/journalpost/${journalpostId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
@@ -75,7 +75,7 @@ class DokArkivClient(
     fun updateAvsenderMottakerInJournalpost(journalpostId: String, input: UpdateAvsenderMottakerInJournalpostRequest) {
         try {
             val output = dokArkivWebClient.put()
-                .uri("/${journalpostId}")
+                .uri("/journalpost/${journalpostId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
@@ -99,7 +99,7 @@ class DokArkivClient(
     ) {
         try {
             dokArkivWebClient.put()
-                .uri("/${journalpostId}")
+                .uri("/journalpost/${journalpostId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
@@ -117,10 +117,34 @@ class DokArkivClient(
         logger.debug("Document from journalpost $journalpostId with dokumentInfoId id ${input.dokumenter.first().dokumentInfoId} was successfully updated.")
     }
 
+    fun addLogiskVedlegg(
+        dokumentInfoId: String,
+        tittel: String
+    ) {
+        try {
+            dokArkivWebClient.post()
+                .uri("dokumentInfo/${dokumentInfoId}/logiskVedlegg")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(LeggTilLogiskVedleggPayload(tittel = tittel))
+                .retrieve()
+                .bodyToMono(JournalpostResponse::class.java)
+                .block()
+                ?: throw RuntimeException("Could not add logisk vedlegg to dokument.")
+        } catch (e: Exception) {
+            logger.error("Error adding logisk vedlegg to document $dokumentInfoId:", e)
+        }
+
+        logger.debug("Added logisk vedlegg $tittel to document $dokumentInfoId successfully.")
+    }
+
     fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
         try {
             val output = dokArkivWebClient.patch()
-                .uri("/${journalpostId}/ferdigstill")
+                .uri("/journalpost/${journalpostId}/ferdigstill")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
@@ -143,5 +167,9 @@ class DokArkivClient(
 
     data class FerdigstillJournalpostPayload(
         val journalfoerendeEnhet: String
+    )
+
+    data class LeggTilLogiskVedleggPayload(
+        val tittel: String
     )
 }

@@ -148,6 +148,7 @@ class DokArkivService(
         eksternBehandlingId: String,
         avsender: PartId?,
         type: Type,
+        logiskeVedlegg: List<String>?,
     ): String {
         val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw JournalpostNotFoundException("Fant ikke journalpost i SAF")
@@ -168,7 +169,7 @@ class DokArkivService(
                 fagsakid = sakFromKlanke.fagsakId
             ),
             journalfoerendeEnhet = kabalInnstillingerClient.getBrukerdata().ansattEnhet.id,
-            type = type,
+            logiskeVedlegg = logiskeVedlegg,
         )
     }
 
@@ -179,12 +180,14 @@ class DokArkivService(
                 eksternBehandlingId = input.id,
                 avsender = input.avsender,
                 type = Type.ANKE,
+                logiskeVedlegg = input.logiskeVedlegg,
             )
 
             MulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = input.ankeDocumentJournalpostId,
                 klagebehandlingId = UUID.fromString(input.id),
                 avsender = input.avsender,
+                logiskeVedlegg = input.logiskeVedlegg,
             )
         }
     }
@@ -193,6 +196,7 @@ class DokArkivService(
         journalpostId: String,
         klagebehandlingId: UUID,
         avsender: PartId?,
+        logiskeVedlegg: List<String>?,
     ): String {
         val completedBehandling =
             kabalApiService.getCompletedBehandling(behandlingId = klagebehandlingId)
@@ -204,7 +208,7 @@ class DokArkivService(
             bruker = completedBehandling.sakenGjelder.toDokarkivBruker(),
             sakInFagsystem = completedBehandling.toDokarkivSak(),
             journalfoerendeEnhet = completedBehandling.klageBehandlendeEnhet,
-            type = Type.ANKE,
+            logiskeVedlegg = logiskeVedlegg,
         )
     }
 
@@ -215,7 +219,7 @@ class DokArkivService(
         bruker: Bruker,
         sakInFagsystem: Sak,
         journalfoerendeEnhet: String,
-        type: Type,
+        logiskeVedlegg: List<String>?,
     ): String {
         logger.debug("handleJournalpost called")
         val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
@@ -227,6 +231,34 @@ class DokArkivService(
             sakInFagsystem,
             tema
         )
+
+        val dokumentList = journalpostInSaf.dokumenter
+
+        if (dokumentList.isNullOrEmpty() || dokumentList.size != 1) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "logiskeVedlegg",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = CreateAnkeInputView::logiskeVedlegg.name,
+                                reason = "Uventet antall dokumenter i journalposten. Fjern logiske vedlegg."
+                            )
+                        )
+                    )
+                )
+            )
+        }
+
+        val hovedDokumentId = journalpostInSaf.dokumenter.first().dokumentInfoId
+
+        logiskeVedlegg?.forEach{
+            dokArkivClient.addLogiskVedlegg(
+                dokumentInfoId = hovedDokumentId,
+                tittel = it
+            )
+        }
 
         val journalpostType = journalpostInSaf.journalposttype
 

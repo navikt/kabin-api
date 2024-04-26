@@ -27,6 +27,7 @@ data class DokumentReferanse(
     val journalfoerendeEnhet: String?,
     val journalfortAvNavn: String?,
     val opprettetAvNavn: String?,
+    val logiskeVedlegg: List<LogiskVedlegg>?,
     val datoOpprettet: LocalDateTime,
     val relevanteDatoer: List<RelevantDato>?,
     val antallRetur: Int?,
@@ -137,6 +138,11 @@ data class DokumentReferanse(
             DATO_LEST,
         }
     }
+
+    data class LogiskVedlegg(
+        val tittel: String,
+        val logiskVedleggId: String,
+    )
 
     data class Tilleggsopplysning(
         val key: String,
