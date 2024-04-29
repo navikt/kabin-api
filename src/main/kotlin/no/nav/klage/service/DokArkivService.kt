@@ -251,10 +251,10 @@ class DokArkivService(
 
         val hovedDokumentId = journalpostInSaf.dokumenter.first().dokumentInfoId
 
-        logiskeVedlegg?.forEach{
-            dokArkivClient.addLogiskVedlegg(
+        if (logiskeVedlegg?.isNotEmpty() == true) {
+            dokArkivClient.setLogiskeVedlegg(
                 dokumentInfoId = hovedDokumentId,
-                tittel = it
+                payload = DokArkivClient.SetLogiskeVedleggPayload(titler = logiskeVedlegg)
             )
         }
 
