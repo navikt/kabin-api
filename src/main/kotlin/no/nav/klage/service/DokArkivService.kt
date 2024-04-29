@@ -232,9 +232,7 @@ class DokArkivService(
             tema
         )
 
-        val dokumentList = journalpostInSaf.dokumenter
-
-        if (dokumentList.isNullOrEmpty() || dokumentList.size != 1) {
+        if (journalpostInSaf.dokumenter!!.size != 1 && logiskeVedlegg?.isNotEmpty() == true) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = listOf(
