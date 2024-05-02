@@ -109,6 +109,7 @@ data class DokumentReferanse(
         val dokumentInfoId: String,
         val tittel: String?,
         val harTilgangTilArkivvariant: Boolean,
+        val logiskeVedlegg: List<LogiskVedlegg>?,
     )
 
     enum class Journalposttype {
@@ -185,6 +186,7 @@ data class DokumentReferanseForReceipt(
     val temaId: String,
     val harTilgangTilArkivvariant: Boolean,
     val vedlegg: MutableList<VedleggReferanse> = mutableListOf(),
+    val logiskeVedlegg: List<LogiskVedlegg>?,
     val journalposttype: Journalposttype?,
     val journalstatus: Journalstatus?,
     val behandlingstema: String?,

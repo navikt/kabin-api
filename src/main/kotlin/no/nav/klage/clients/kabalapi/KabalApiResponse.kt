@@ -283,6 +283,7 @@ data class DokumentReferanse(
     val tema: String,
     val temaId: String,
     val harTilgangTilArkivvariant: Boolean,
+    val logiskeVedlegg: List<LogiskVedlegg>?,
     val vedlegg: MutableList<VedleggReferanse> = mutableListOf(),
     val journalposttype: Journalposttype?,
     val journalstatus: Journalstatus?,
@@ -357,6 +358,11 @@ data class DokumentReferanse(
         UKJENT
     }
 
+    data class LogiskVedlegg(
+        val tittel: String,
+        val logiskVedleggId: String,
+    )
+
     data class AvsenderMottaker(
         val id: String,
         val type: AvsenderMottakerIdType,
@@ -372,6 +378,7 @@ data class DokumentReferanse(
         val dokumentInfoId: String,
         val tittel: String?,
         val harTilgangTilArkivvariant: Boolean,
+        val logiskeVedlegg: List<LogiskVedlegg>?,
     )
 
     enum class Journalposttype {
