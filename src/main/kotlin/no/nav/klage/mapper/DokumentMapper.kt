@@ -136,6 +136,12 @@ class DokumentMapper {
                     tittel = vedlegg.tittel,
                     dokumentInfoId = vedlegg.dokumentInfoId,
                     harTilgangTilArkivvariant = harTilgangTilArkivvariant(vedlegg),
+                    logiskeVedlegg = vedlegg.logiskeVedlegg?.map {
+                        DokumentReferanse.LogiskVedlegg(
+                            tittel = it.tittel,
+                            logiskVedleggId = it.logiskVedleggId,
+                        )
+                    }
                 )
             } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
         } else {

@@ -12,6 +12,12 @@ fun DokumentReferanse.toReceiptView(): DokumentReferanseForReceipt {
         tema = tema,
         temaId = temaId,
         harTilgangTilArkivvariant = harTilgangTilArkivvariant,
+        logiskeVedlegg = logiskeVedlegg?.map {
+            no.nav.klage.api.controller.view.DokumentReferanse.LogiskVedlegg(
+                logiskVedleggId = it.logiskVedleggId,
+                tittel = it.tittel,
+            )
+        },
         vedlegg = vedlegg.map { it.toView() }.toMutableList(),
         journalposttype = journalposttype?.toView(),
         journalstatus = journalstatus?.toView(),
@@ -37,7 +43,13 @@ fun DokumentReferanse.VedleggReferanse.toView(): no.nav.klage.api.controller.vie
     return no.nav.klage.api.controller.view.DokumentReferanse.VedleggReferanse(
         dokumentInfoId = dokumentInfoId,
         tittel = tittel,
-        harTilgangTilArkivvariant = harTilgangTilArkivvariant
+        harTilgangTilArkivvariant = harTilgangTilArkivvariant,
+        logiskeVedlegg = logiskeVedlegg?.map {
+            no.nav.klage.api.controller.view.DokumentReferanse.LogiskVedlegg(
+                logiskVedleggId = it.logiskVedleggId,
+                tittel = it.tittel,
+            )
+        }
     )
 }
 
