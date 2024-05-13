@@ -36,7 +36,6 @@ class KlageService(
             eksternBehandlingId = processedInput.eksternBehandlingId,
             avsender = input.avsender,
             type = Type.KLAGE,
-            logiskeVedlegg = processedInput.logiskeVedlegg,
         )
 
         val finalInput = processedInput.copy(klageJournalpostId = journalpostId)

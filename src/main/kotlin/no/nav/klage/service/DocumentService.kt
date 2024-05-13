@@ -1,24 +1,22 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.DokumenterResponse
-import no.nav.klage.clients.saf.graphql.Datotype
+import no.nav.klage.api.controller.view.LogiskVedleggResponse
+import no.nav.klage.clients.dokarkiv.DokArkivClient
 import no.nav.klage.clients.saf.graphql.DokumentoversiktBruker
-import no.nav.klage.clients.saf.graphql.Journalposttype
-import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.clients.saf.rest.ArkivertDokument
-import no.nav.klage.exceptions.IllegalUpdateException
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.mapper.DokumentMapper
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
 
 @Service
 class DocumentService(
     private val kabalApiService: KabalApiService,
     private val safService: SafService,
-    private val dokArkivService: DokArkivService
+    private val dokArkivService: DokArkivService,
+    private val dokArkivClient: DokArkivClient
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -85,6 +83,38 @@ class DocumentService(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             title = title,
+        )
+    }
+
+    fun addLogiskVedlegg(dokumentInfoId: String, title: String): LogiskVedleggResponse {
+        val logiskVedleggId = dokArkivClient.addLogiskVedlegg(
+            dokumentInfoId = dokumentInfoId,
+            title = title,
+        )
+
+        return LogiskVedleggResponse(
+            tittel = title,
+            logiskVedleggId = logiskVedleggId.logiskVedleggId
+        )
+    }
+
+    fun updateLogiskVedlegg(dokumentInfoId: String, logiskVedleggId: String, title: String): LogiskVedleggResponse {
+        dokArkivClient.updateLogiskVedlegg(
+            dokumentInfoId = dokumentInfoId,
+            logiskVedleggId = logiskVedleggId,
+            title = title
+        )
+
+        return LogiskVedleggResponse(
+            tittel = title,
+            logiskVedleggId = logiskVedleggId
+        )
+    }
+
+    fun deleteLogiskVedlegg(dokumentInfoId: String, logiskVedleggId: String) {
+        dokArkivClient.deleteLogiskVedlegg(
+            dokumentInfoId = dokumentInfoId,
+            logiskVedleggId = logiskVedleggId,
         )
     }
 }

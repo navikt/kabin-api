@@ -210,3 +210,12 @@ data class DokumentReferanseForReceipt(
 data class UpdateDocumentTitleView(
     val tittel: String
 )
+
+data class LogiskVedleggInput(
+    val tittel: String,
+)
+
+data class LogiskVedleggResponse(
+    val tittel: String,
+    val logiskVedleggId: String,
+)
