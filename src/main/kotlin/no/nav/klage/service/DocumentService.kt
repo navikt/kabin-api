@@ -87,14 +87,14 @@ class DocumentService(
     }
 
     fun addLogiskVedlegg(dokumentInfoId: String, title: String): LogiskVedleggResponse {
-        val logiskVedleggId = dokArkivClient.addLogiskVedlegg(
+        val logiskVedlegg = dokArkivClient.addLogiskVedlegg(
             dokumentInfoId = dokumentInfoId,
             title = title,
         )
 
         return LogiskVedleggResponse(
             tittel = title,
-            logiskVedleggId = logiskVedleggId.logiskVedleggId
+            logiskVedleggId = logiskVedlegg.logiskVedleggId
         )
     }
 

@@ -123,7 +123,7 @@ class DokArkivClient(
     ) {
         try {
             dokArkivWebClient.post()
-                .uri("dokumentInfo/${dokumentInfoId}/logiskVedlegg")
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
@@ -146,7 +146,7 @@ class DokArkivClient(
     ): AddLogiskVedleggResponse {
         try {
             val response = dokArkivWebClient.post()
-                .uri("dokumentInfo/${dokumentInfoId}/logiskVedlegg/")
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
@@ -176,7 +176,7 @@ class DokArkivClient(
     ) {
         try {
             dokArkivWebClient.post()
-                .uri("dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
@@ -203,7 +203,7 @@ class DokArkivClient(
     ) {
         try {
             dokArkivWebClient.delete()
-                .uri("dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"

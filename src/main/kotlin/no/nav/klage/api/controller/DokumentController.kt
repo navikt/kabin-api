@@ -124,6 +124,7 @@ class DokumentController(
         description = "Legger logisk vedlegg til dokument"
     )
     @PostMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg")
+    @ResponseStatus(HttpStatus.CREATED)
     fun addLogiskVedlegg(
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
