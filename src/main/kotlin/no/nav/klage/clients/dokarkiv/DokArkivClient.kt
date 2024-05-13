@@ -123,7 +123,7 @@ class DokArkivClient(
     ) {
         try {
             dokArkivWebClient.post()
-                .uri("dokumentInfo/${dokumentInfoId}/logiskVedlegg")
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
@@ -137,8 +137,85 @@ class DokArkivClient(
         } catch (e: Exception) {
             logger.error("Error setting logiske vedlegg for document $dokumentInfoId:", e)
         }
-
         logger.debug("Bulk updated logiske vedlegg for document $dokumentInfoId successfully.")
+    }
+
+    fun addLogiskVedlegg(
+        dokumentInfoId: String,
+        title: String,
+    ): AddLogiskVedleggResponse {
+        try {
+            val response = dokArkivWebClient.post()
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(
+                    LogiskVedleggPayload(
+                        tittel = title
+                    )
+                )
+                .retrieve()
+                .bodyToMono(AddLogiskVedleggResponse::class.java)
+                .block()
+                ?: throw RuntimeException("Could not add logisk vedlegg to documentInfoId $dokumentInfoId.")
+            logger.debug("Added logisk vedlegg to document $dokumentInfoId successfully.")
+            return response
+        } catch (e: Exception) {
+            logger.error("Error adding logisk vedlegg to document $dokumentInfoId:", e)
+            throw e
+        }
+    }
+
+    fun updateLogiskVedlegg(
+        dokumentInfoId: String,
+        logiskVedleggId: String,
+        title: String,
+    ) {
+        try {
+            dokArkivWebClient.post()
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(
+                    LogiskVedleggPayload(
+                        tittel = title,
+                    )
+                )
+                .retrieve()
+                .bodyToMono<Void>()
+                .block()
+                ?: throw RuntimeException("Could not update logisk vedlegg $logiskVedleggId for documentInfoId $dokumentInfoId.")
+            logger.debug("Updated logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
+        } catch (e: Exception) {
+            logger.error("Error updating logisk vedlegg $dokumentInfoId for document $dokumentInfoId:", e)
+        }
+    }
+
+    fun deleteLogiskVedlegg(
+        dokumentInfoId: String,
+        logiskVedleggId: String
+    ) {
+        try {
+            dokArkivWebClient.delete()
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                )
+                .retrieve()
+                .bodyToMono<Void>()
+                .block()
+                ?: throw RuntimeException("Could not delete logisk vedlegg $logiskVedleggId for documentInfoId $dokumentInfoId.")
+            logger.debug("Deleted logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
+        } catch (e: Exception) {
+            logger.error("Error deleting logisk vedlegg $dokumentInfoId for document $dokumentInfoId:", e)
+        }
     }
 
     fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
@@ -172,4 +249,13 @@ class DokArkivClient(
     data class SetLogiskeVedleggPayload(
         val titler: List<String>
     )
+
+    data class LogiskVedleggPayload(
+        val tittel: String,
+    )
+
+    data class AddLogiskVedleggResponse(
+        val logiskVedleggId: String
+    )
+
 }

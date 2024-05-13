@@ -104,7 +104,6 @@ class DokArkivServiceTest {
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = null,
-                logiskeVedlegg = null,
             )
 
             verify(exactly = 1) {
@@ -168,7 +167,6 @@ class DokArkivServiceTest {
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 ),
-                logiskeVedlegg = null,
             )
 
             verify(exactly = 1) {
@@ -234,7 +232,6 @@ class DokArkivServiceTest {
                     journalpostId = JOURNALPOST_ID,
                     klagebehandlingId = UUID.randomUUID(),
                     avsender = null,
-                    logiskeVedlegg = null,
                 )
             }
         }
@@ -248,7 +245,6 @@ class DokArkivServiceTest {
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = null,
-                logiskeVedlegg = null,
             )
 
             verify(exactly = 0) {
@@ -296,7 +292,6 @@ class DokArkivServiceTest {
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 ),
-                logiskeVedlegg = null,
             )
 
             verify(exactly = 1) {
@@ -353,7 +348,6 @@ class DokArkivServiceTest {
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
                 avsender = null,
-                logiskeVedlegg = null,
             )
 
             verify(exactly = 0) {
@@ -401,7 +395,6 @@ class DokArkivServiceTest {
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 ),
-                logiskeVedlegg = null,
             )
 
             verify(exactly = 1) {
