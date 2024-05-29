@@ -58,7 +58,6 @@ data class CreateKlageBasedOnKabinInput(
 data class SvarbrevInput(
     val title: String = "Anke - orientering om saksbehandlingstid",
     val receivers: List<Receiver>,
-    val enhetId: String,
     val fullmektigFritekst: String?,
 ) {
     data class Receiver(

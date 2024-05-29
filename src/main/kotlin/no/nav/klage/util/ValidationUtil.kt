@@ -101,12 +101,6 @@ class ValidationUtil {
                 )
             }
 
-            if (input.svarbrevInput.enhetId == null) {
-                validationErrors += InvalidProperty(
-                    field = CreateAnkeInputView::svarbrevInput.name,
-                    reason = "Velg en enhet."
-                )
-            }
         }
 
         val sectionList = mutableListOf<ValidationSection>()
