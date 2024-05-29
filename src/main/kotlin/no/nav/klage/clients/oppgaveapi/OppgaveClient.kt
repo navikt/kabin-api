@@ -57,6 +57,32 @@ class OppgaveClient(
         return oppgaveResponse.oppgaver.firstOrNull()
     }
 
+    fun fetchOppgaveForAktoerId(
+        aktoerId: String,
+    ): List<OppgaveApiRecord> {
+        val oppgaveResponse =
+            logTimingAndWebClientResponseException(OppgaveClient::fetchOppgaveForAktoerId.name) {
+                oppgaveWebClient.get()
+                    .uri { uriBuilder ->
+                        uriBuilder.queryParam("aktoerId", aktoerId)
+                        uriBuilder.queryParam("limit", 1000)
+                        uriBuilder.queryParam("offset", 0)
+                        uriBuilder.build()
+                    }
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
+                    )
+                    .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                    .header("Nav-Consumer-Id", applicationName)
+                    .retrieve()
+                    .bodyToMono<OppgaveResponse>()
+                    .block() ?: throw OppgaveClientException("Oppgaver could not be fetched")
+            }
+
+        return oppgaveResponse.oppgaver
+    }
+
     fun ferdigstillOppgave(ferdigstillOppgaveRequest: FerdigstillOppgaveRequest): OppgaveApiRecord {
         return logTimingAndWebClientResponseException(OppgaveClient::ferdigstillOppgave.name) {
             oppgaveWebClient.patch()
@@ -117,5 +143,4 @@ class OppgaveClient(
             logger.info("Method {} took {} millis", methodName, (end - start))
         }
     }
-
 }

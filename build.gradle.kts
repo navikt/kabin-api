@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val tokenValidationVersion = "4.1.4"
 val logstashVersion = "7.4"
+val springRetryVersion = "2.0.5"
 val springDocVersion = "2.5.0"
 val springMockkVersion = "4.0.2"
 val logbackSyslog4jVersion = "1.0.0"
@@ -48,6 +49,8 @@ dependencies {
 
     implementation("no.nav.security:token-validation-spring:$tokenValidationVersion")
     implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
+
+    implementation("org.springframework.retry:spring-retry:$springRetryVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage")

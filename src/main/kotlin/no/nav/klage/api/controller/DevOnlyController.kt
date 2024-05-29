@@ -5,7 +5,9 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.SakFromKlanke
+import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.service.OppgaveService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.Unprotected
@@ -20,6 +22,7 @@ import java.util.*
 class DevOnlyController(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val tokenUtil: TokenUtil,
+    private val oppgaveService: OppgaveService,
 ) {
 
     @PostMapping("/klanke/search")
@@ -46,5 +49,12 @@ class DevOnlyController(
     @GetMapping("/internal/dokarkivtoken")
     fun getDokakrivToken(): String {
         return tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()
+    }
+
+    @GetMapping("/oppgaver/{fnr}")
+    fun searchKlanke(
+        @PathVariable fnr: String
+    ): List<OppgaveApiRecord> {
+        return oppgaveService.getOppgaveList(fnr = fnr)
     }
 }
