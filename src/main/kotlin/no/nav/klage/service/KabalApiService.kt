@@ -129,7 +129,6 @@ class KabalApiService(
                         }
                     )
                 },
-                enhetId = svarbrevInput.enhetId!!,
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
             )
         }

@@ -36,7 +36,6 @@ class PDFService(
                         fnr = it.id,
                     )
                 },
-                enhetsnavn = Enhet.entries.find { it.navn == createAnkeInputView.svarbrevInput.enhetId }!!.beskrivelse,
                 ytelsenavn = Ytelse.of(createAnkeInputView.ytelseId).navn,
                 fullmektigFritekst = createAnkeInputView.svarbrevInput.fullmektigFritekst,
                 ankeReceivedDate = createAnkeInputView.mottattKlageinstans,

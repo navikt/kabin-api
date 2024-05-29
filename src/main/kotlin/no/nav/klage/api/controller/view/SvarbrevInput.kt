@@ -15,16 +15,14 @@ data class PreviewAnkeSvarbrevInput(
 
 open class SvarbrevInput(
     open val title: String,
-    open val enhetId: String?,
     open val fullmektigFritekst: String?,
 )
 
 data class SvarbrevWithReceiverInput(
     override val title: String,
-    override val enhetId: String?,
     override val fullmektigFritekst: String?,
     val receivers: List<Receiver>,
-) : SvarbrevInput(title, enhetId, fullmektigFritekst) {
+) : SvarbrevInput(title, fullmektigFritekst) {
 
     data class Receiver(
         val id: String,
