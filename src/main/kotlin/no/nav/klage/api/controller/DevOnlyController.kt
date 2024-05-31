@@ -55,6 +55,6 @@ class DevOnlyController(
     fun searchKlanke(
         @PathVariable fnr: String
     ): List<OppgaveApiRecord> {
-        return oppgaveService.getOppgaveList(fnr = fnr)
+        return oppgaveService.getOppgaveList(fnr = fnr, tema = null)
     }
 }

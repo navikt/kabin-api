@@ -3,6 +3,7 @@ package no.nav.klage.service
 import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.clients.oppgaveapi.OppgaveClient
 import no.nav.klage.clients.pdl.PdlClient
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -19,11 +20,12 @@ class OppgaveService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getOppgaveList(fnr: String): List<OppgaveApiRecord> {
+    fun getOppgaveList(fnr: String, tema: Tema?): List<OppgaveApiRecord> {
         val aktoerId = pdlClient.hentAktoerIdent(fnr = fnr)
 
-        return oppgaveClient.fetchOppgaveForAktoerId(
-            aktoerId = aktoerId
+        return oppgaveClient.fetchOppgaveForAktoerIdAndTema(
+            aktoerId = aktoerId,
+            tema = tema,
         )
     }
 }

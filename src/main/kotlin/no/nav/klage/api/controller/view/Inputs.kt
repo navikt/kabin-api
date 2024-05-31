@@ -21,6 +21,11 @@ data class CalculateFristInput(
     val fristInWeeks: Int,
 )
 
+data class GetOppgaveListInput(
+    val identifikator: String,
+    val temaId: String,
+)
+
 data class WillCreateNewJournalpostInput(
     val journalpostId: String,
     val fagsakId: String,

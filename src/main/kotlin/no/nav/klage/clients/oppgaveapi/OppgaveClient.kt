@@ -1,6 +1,7 @@
 package no.nav.klage.clients.oppgaveapi
 
 import brave.Tracer
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -57,14 +58,17 @@ class OppgaveClient(
         return oppgaveResponse.oppgaver.firstOrNull()
     }
 
-    fun fetchOppgaveForAktoerId(
+    fun fetchOppgaveForAktoerIdAndTema(
         aktoerId: String,
+        tema: Tema?
     ): List<OppgaveApiRecord> {
         val oppgaveResponse =
-            logTimingAndWebClientResponseException(OppgaveClient::fetchOppgaveForAktoerId.name) {
+            logTimingAndWebClientResponseException(OppgaveClient::fetchOppgaveForAktoerIdAndTema.name) {
                 oppgaveWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.queryParam("aktoerId", aktoerId)
+                        uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
+                        tema?.let { uriBuilder.queryParam("tema", it.navn) }
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)
                         uriBuilder.build()

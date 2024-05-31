@@ -1,9 +1,12 @@
 package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
+import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.KabalApiService
+import no.nav.klage.service.OppgaveService
 import no.nav.klage.service.PDFService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -24,6 +27,7 @@ class CommonController(
     private val kabalApiService: KabalApiService,
     private val dokArkivService: DokArkivService,
     private val pdfService: PDFService,
+    private val oppgaveService: OppgaveService,
 ) {
 
     companion object {
@@ -91,5 +95,21 @@ class CommonController(
                 HttpStatus.OK
             )
         }
+    }
+
+    @PostMapping("/getoppgavelist")
+    fun getOppgaveList(
+        @RequestBody input: GetOppgaveListInput,
+    ): List<OppgaveApiRecord> {
+        logMethodDetails(
+            methodName = ::getOppgaveList.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        return oppgaveService.getOppgaveList(
+            fnr = input.identifikator,
+            tema = Tema.of(input.temaId)
+        )
     }
 }
