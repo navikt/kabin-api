@@ -132,7 +132,7 @@ class OppgaveClient(
             logTimingAndWebClientResponseException(OppgaveClient::getGjelderKodeverkForTema.name) {
                 oppgaveWebClient.get()
                     .uri { uriBuilder ->
-                        uriBuilder.pathSegment("kodeverk", "tema", "{tema}")
+                        uriBuilder.pathSegment("kodeverk", "gjelder", "{tema}")
                         uriBuilder.build(tema.navn)
                     }
                     .header(
