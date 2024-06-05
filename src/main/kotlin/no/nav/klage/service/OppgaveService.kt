@@ -1,5 +1,6 @@
 package no.nav.klage.service
 
+import no.nav.klage.clients.oppgaveapi.GjelderResponse
 import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.clients.oppgaveapi.OppgaveClient
 import no.nav.klage.clients.pdl.PdlClient
@@ -27,5 +28,9 @@ class OppgaveService(
             aktoerId = aktoerId,
             tema = tema,
         )
+    }
+
+    fun getGjelderKodeverkForTema(tema: Tema): GjelderResponse {
+        return oppgaveClient.getGjelderKodeverkForTema(tema = tema)
     }
 }

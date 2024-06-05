@@ -132,6 +132,7 @@ class ValidationUtil {
             saksbehandlerIdent = input.saksbehandlerIdent,
             mulighetSource = MulighetSource.of(Fagsystem.of(input.vedtak.sourceId)),
             svarbrevInput = input.svarbrevInput,
+            oppgaveId = input.oppgaveId,
         )
     }
 
@@ -253,6 +254,7 @@ class ValidationUtil {
             hjemmelIdList = input.hjemmelIdList,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
+            oppgaveId = input.oppgaveId
         )
     }
 }

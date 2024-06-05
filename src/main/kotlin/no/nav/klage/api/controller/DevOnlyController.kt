@@ -1,19 +1,19 @@
 package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Hidden
-import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.SakFromKlanke
+import no.nav.klage.clients.oppgaveapi.GjelderResponse
 import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.OppgaveService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 @Profile("dev-gcp")
 @RestController
@@ -47,14 +47,21 @@ class DevOnlyController(
 
     @Unprotected
     @GetMapping("/internal/dokarkivtoken")
-    fun getDokakrivToken(): String {
+    fun getDokarkivToken(): String {
         return tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()
     }
 
     @GetMapping("/oppgaver/{fnr}")
-    fun searchKlanke(
+    fun searchOppgaveForFnr(
         @PathVariable fnr: String
     ): List<OppgaveApiRecord> {
         return oppgaveService.getOppgaveList(fnr = fnr, tema = null)
+    }
+
+    @GetMapping("/oppgaver/kodeverk/gjelder/{tema}")
+    fun searchGjelderKodeverk(
+        @PathVariable tema: String
+    ): GjelderResponse {
+        return oppgaveService.getGjelderKodeverkForTema(tema = Tema.fromNavn(tema))
     }
 }

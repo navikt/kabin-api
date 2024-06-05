@@ -90,6 +90,7 @@ class KabalApiService(
                 kildereferanse = input.id,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
+                oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }
@@ -106,6 +107,7 @@ class KabalApiService(
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
                 hjemmelIdList = input.hjemmelIdList,
+                oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }
@@ -167,6 +169,7 @@ class KabalApiService(
                 ytelseId = input.ytelseId,
                 kildereferanse = input.eksternBehandlingId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
+                oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }

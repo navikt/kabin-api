@@ -34,6 +34,7 @@ class OppgaveClient(
             logTimingAndWebClientResponseException(OppgaveClient::fetchJournalfoeringsoppgave.name) {
                 oppgaveWebClient.get()
                     .uri { uriBuilder ->
+                        uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
                         uriBuilder.queryParam("oppgavetype", "JFR")
                         uriBuilder.queryParam("journalpostId", journalpostId)
@@ -66,6 +67,7 @@ class OppgaveClient(
             logTimingAndWebClientResponseException(OppgaveClient::fetchOppgaveForAktoerIdAndTema.name) {
                 oppgaveWebClient.get()
                     .uri { uriBuilder ->
+                        uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
                         uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
                         tema?.let { uriBuilder.queryParam("tema", it.navn) }
@@ -91,7 +93,7 @@ class OppgaveClient(
         return logTimingAndWebClientResponseException(OppgaveClient::ferdigstillOppgave.name) {
             oppgaveWebClient.patch()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("{id}").build(ferdigstillOppgaveRequest.oppgaveId)
+                    uriBuilder.pathSegment("oppgaver", "{id}").build(ferdigstillOppgaveRequest.oppgaveId)
                 }
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(
@@ -111,7 +113,7 @@ class OppgaveClient(
         return logTimingAndWebClientResponseException(OppgaveClient::getOppgave.name) {
             oppgaveWebClient.get()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("{id}").build(oppgaveId)
+                    uriBuilder.pathSegment("oppgaver", "{id}").build(oppgaveId)
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
@@ -123,6 +125,28 @@ class OppgaveClient(
                 .bodyToMono<OppgaveApiRecord>()
                 .block() ?: throw OppgaveClientException("Oppgave could not be fetched")
         }
+    }
+
+    fun getGjelderKodeverkForTema(tema: Tema): GjelderResponse {
+        val gjelderResponse =
+            logTimingAndWebClientResponseException(OppgaveClient::getGjelderKodeverkForTema.name) {
+                oppgaveWebClient.get()
+                    .uri { uriBuilder ->
+                        uriBuilder.pathSegment("kodeverk", "tema", "{tema}")
+                        uriBuilder.build(tema.navn)
+                    }
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
+                    )
+                    .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                    .header("Nav-Consumer-Id", applicationName)
+                    .retrieve()
+                    .bodyToMono<GjelderResponse>()
+                    .block() ?: throw OppgaveClientException("Could not fetch kodeverk for tema ${tema.navn}")
+            }
+
+        return gjelderResponse
     }
 
     private fun <T> logTimingAndWebClientResponseException(methodName: String, function: () -> T): T {
