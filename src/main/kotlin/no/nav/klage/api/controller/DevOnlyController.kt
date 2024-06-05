@@ -51,6 +51,12 @@ class DevOnlyController(
         return tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()
     }
 
+    @Unprotected
+    @GetMapping("/internal/oppgavetoken")
+    fun getOppgaveToken(): String {
+        return tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()
+    }
+
     @GetMapping("/oppgaver/{fnr}")
     fun searchOppgaveForFnr(
         @PathVariable fnr: String
