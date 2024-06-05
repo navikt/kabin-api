@@ -1,5 +1,6 @@
 package no.nav.klage.service
 
+import no.nav.klage.clients.oppgaveapi.Gjelder
 import no.nav.klage.clients.oppgaveapi.GjelderResponse
 import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.clients.oppgaveapi.OppgaveClient

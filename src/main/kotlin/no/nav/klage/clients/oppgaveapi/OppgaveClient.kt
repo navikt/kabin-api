@@ -142,11 +142,11 @@ class OppgaveClient(
                     .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
-                    .bodyToMono<GjelderResponse>()
+                    .bodyToMono<List<Gjelder>>()
                     .block() ?: throw OppgaveClientException("Could not fetch kodeverk for tema ${tema.navn}")
             }
 
-        return gjelderResponse
+        return GjelderResponse(gjelder = gjelderResponse)
     }
 
     private fun <T> logTimingAndWebClientResponseException(methodName: String, function: () -> T): T {
