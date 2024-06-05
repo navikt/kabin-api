@@ -5,8 +5,8 @@ data class GjelderResponse(
 )
 
 data class Gjelder(
-    val behandlingsTema: String,
-    val behandlingstemaTerm : String,
-    val behandlingstype: String,
-    val behandlingstypeTerm: String,
+    val behandlingsTema: String?,
+    val behandlingstemaTerm : String?,
+    val behandlingstype: String?,
+    val behandlingstypeTerm: String?,
 )
