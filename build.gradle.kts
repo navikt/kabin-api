@@ -40,6 +40,8 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
 
+    implementation("javax.cache:cache-api")
+
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
 
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")

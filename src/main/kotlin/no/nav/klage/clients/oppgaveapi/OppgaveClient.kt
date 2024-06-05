@@ -1,11 +1,13 @@
 package no.nav.klage.clients.oppgaveapi
 
 import brave.Tracer
+import no.nav.klage.config.CacheWithJCacheConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -127,7 +129,8 @@ class OppgaveClient(
         }
     }
 
-    fun getGjelderKodeverkForTema(tema: Tema): GjelderResponse {
+    @Cacheable(CacheWithJCacheConfiguration.GJELDER_CACHE)
+    fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
         val gjelderResponse =
             logTimingAndWebClientResponseException(OppgaveClient::getGjelderKodeverkForTema.name) {
                 oppgaveWebClient.get()
@@ -143,10 +146,33 @@ class OppgaveClient(
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<Gjelder>>()
-                    .block() ?: throw OppgaveClientException("Could not fetch kodeverk for tema ${tema.navn}")
+                    .block() ?: throw OppgaveClientException("Could not fetch gjelder kodeverk for tema ${tema.navn}")
             }
 
-        return GjelderResponse(gjelder = gjelderResponse)
+        return gjelderResponse
+    }
+
+    @Cacheable(CacheWithJCacheConfiguration.OPPGAVETYPE_CACHE)
+    fun getOppgavetypeKodeverkForTema(tema: Tema): List<OppgavetypeResponse> {
+        val oppgavetypeResponse =
+            logTimingAndWebClientResponseException(OppgaveClient::getGjelderKodeverkForTema.name) {
+                oppgaveWebClient.get()
+                    .uri { uriBuilder ->
+                        uriBuilder.pathSegment("kodeverk", "oppgavetype", "{tema}")
+                        uriBuilder.build(tema.navn)
+                    }
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
+                    )
+                    .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                    .header("Nav-Consumer-Id", applicationName)
+                    .retrieve()
+                    .bodyToMono<List<OppgavetypeResponse>>()
+                    .block() ?: throw OppgaveClientException("Could not fetch oppgavetype kodeverk for tema ${tema.navn}")
+            }
+
+        return oppgavetypeResponse
     }
 
     private fun <T> logTimingAndWebClientResponseException(methodName: String, function: () -> T): T {

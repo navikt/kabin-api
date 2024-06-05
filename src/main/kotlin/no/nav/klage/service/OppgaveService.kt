@@ -1,9 +1,7 @@
 package no.nav.klage.service
 
-import no.nav.klage.clients.oppgaveapi.Gjelder
-import no.nav.klage.clients.oppgaveapi.GjelderResponse
-import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
-import no.nav.klage.clients.oppgaveapi.OppgaveClient
+import no.nav.klage.api.controller.view.OppgaveView
+import no.nav.klage.clients.oppgaveapi.*
 import no.nav.klage.clients.pdl.PdlClient
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.getLogger
@@ -22,16 +20,45 @@ class OppgaveService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getOppgaveList(fnr: String, tema: Tema?): List<OppgaveApiRecord> {
+    fun getOppgaveList(fnr: String, tema: Tema?): List<OppgaveView> {
         val aktoerId = pdlClient.hentAktoerIdent(fnr = fnr)
 
-        return oppgaveClient.fetchOppgaveForAktoerIdAndTema(
+        val oppgaveList = oppgaveClient.fetchOppgaveForAktoerIdAndTema(
             aktoerId = aktoerId,
             tema = tema,
         )
+
+        return oppgaveList.map { it.toOppgaveView() }
     }
 
-    fun getGjelderKodeverkForTema(tema: Tema): GjelderResponse {
+    fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
         return oppgaveClient.getGjelderKodeverkForTema(tema = tema)
+    }
+
+    fun getOppgavetypeKodeverkForTema(tema: Tema): List<OppgavetypeResponse> {
+        return oppgaveClient.getOppgavetypeKodeverkForTema(tema = tema)
+    }
+
+    fun OppgaveApiRecord.toOppgaveView(): OppgaveView {
+        val tema = Tema.fromNavn(tema)
+        return OppgaveView(
+            id = id,
+            temaId = tema.id,
+            gjelder = getGjelder(behandlingstype = behandlingstype, tema = tema),
+            oppgavetype = getOppgavetype(oppgavetype = oppgavetype, tema = tema),
+            opprettetAv = opprettetAv,
+            tildeltEnhetsnr = tildeltEnhetsnr,
+            beskrivelse = beskrivelse,
+            tilordnetRessurs = tilordnetRessurs,
+            endretAv = endretAv,
+        )
+    }
+
+    private fun getGjelder(behandlingstype: String?, tema: Tema): String? {
+        return getGjelderKodeverkForTema(tema = tema).firstOrNull { it.behandlingstype == behandlingstype }?.behandlingstypeTerm
+    }
+
+    private fun getOppgavetype(oppgavetype: String?, tema: Tema): String? {
+        return getOppgavetypeKodeverkForTema(tema = tema).firstOrNull { it.oppgavetype == oppgavetype }?.term
     }
 }

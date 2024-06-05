@@ -100,7 +100,7 @@ class CommonController(
     @PostMapping("/getoppgavelist")
     fun getOppgaveList(
         @RequestBody input: GetOppgaveListInput,
-    ): List<OppgaveApiRecord> {
+    ): List<OppgaveView> {
         logMethodDetails(
             methodName = ::getOppgaveList.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),

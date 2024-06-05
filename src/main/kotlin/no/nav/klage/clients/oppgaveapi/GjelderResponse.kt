@@ -10,3 +10,8 @@ data class Gjelder(
     val behandlingstype: String?,
     val behandlingstypeTerm: String?,
 )
+
+data class OppgavetypeResponse(
+    val oppgavetype: String,
+    val term: String,
+)

@@ -1,9 +1,11 @@
 package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Hidden
+import no.nav.klage.api.controller.view.OppgaveView
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.SakFromKlanke
+import no.nav.klage.clients.oppgaveapi.Gjelder
 import no.nav.klage.clients.oppgaveapi.GjelderResponse
 import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.config.SecurityConfiguration
@@ -60,14 +62,14 @@ class DevOnlyController(
     @GetMapping("/oppgaver/{fnr}")
     fun searchOppgaveForFnr(
         @PathVariable fnr: String
-    ): List<OppgaveApiRecord> {
+    ): List<OppgaveView> {
         return oppgaveService.getOppgaveList(fnr = fnr, tema = null)
     }
 
     @GetMapping("/oppgaver/kodeverk/gjelder/{tema}")
     fun searchGjelderKodeverk(
         @PathVariable tema: String
-    ): GjelderResponse {
+    ): List<Gjelder> {
         return oppgaveService.getGjelderKodeverkForTema(tema = Tema.fromNavn(tema))
     }
 }
