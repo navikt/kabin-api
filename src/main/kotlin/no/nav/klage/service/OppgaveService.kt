@@ -51,6 +51,11 @@ class OppgaveService(
             beskrivelse = beskrivelse,
             tilordnetRessurs = tilordnetRessurs,
             endretAv = endretAv,
+            endretAvEnhetsnr = endretAvEnhetsnr,
+            endretTidspunkt = endretTidspunkt,
+            opprettetAvEnhetsnr = opprettetAvEnhetsnr,
+            opprettetTidspunkt = opprettetTidspunkt,
+            fristFerdigstillelse = fristFerdigstillelse,
         )
     }
 
