@@ -104,20 +104,6 @@ class KabalApiService(
     }
 
     fun createAnkeInKabalFromKlagebehandling(input: CreateAnkeInput): UUID {
-        //For testing in dev:
-        var oppgaveId: Long? = null
-        if (input.ytelseId != null) {
-            logger.debug("Getting oppgave")
-            val oppgaveList = oppgaveService.getOppgaveList(
-                fnr = input.klager.id,
-                tema = Ytelse.of(input.ytelseId).toTema()
-            )
-            if (oppgaveList.isNotEmpty()) {
-                logger.debug("Got oppgave")
-                oppgaveId = oppgaveList.first().id
-            }
-        }
-
         return kabalApiClient.createAnkeInKabal(
             CreateAnkeBasedOnKlagebehandlingInput(
                 sourceBehandlingId = UUID.fromString(input.id),
@@ -129,7 +115,7 @@ class KabalApiService(
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
                 hjemmelIdList = input.hjemmelIdList,
-                oppgaveId = oppgaveId,
+                oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }
