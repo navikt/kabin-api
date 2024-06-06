@@ -23,7 +23,7 @@ data class CalculateFristInput(
 
 data class GetOppgaveListInput(
     val identifikator: String,
-    val temaId: String,
+    val temaId: String?,
 )
 
 data class WillCreateNewJournalpostInput(

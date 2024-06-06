@@ -1,7 +1,6 @@
 package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DokArkivService
@@ -97,19 +96,19 @@ class CommonController(
         }
     }
 
-    @PostMapping("/getoppgavelist")
-    fun getOppgaveList(
+    @PostMapping("/searchoppgave")
+    fun searchOppgaveList(
         @RequestBody input: GetOppgaveListInput,
     ): List<OppgaveView> {
         logMethodDetails(
-            methodName = ::getOppgaveList.name,
+            methodName = ::searchOppgaveList.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
         return oppgaveService.getOppgaveList(
             fnr = input.identifikator,
-            tema = Tema.of(input.temaId)
+            tema = input.temaId?.let { Tema.of(it) }
         )
     }
 }
