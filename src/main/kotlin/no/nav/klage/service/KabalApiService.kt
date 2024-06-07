@@ -7,7 +7,6 @@ import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
 import no.nav.klage.clients.kabalapi.SvarbrevInput
-import no.nav.klage.clients.oppgaveapi.OppgaveClient
 import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
@@ -30,8 +29,14 @@ class KabalApiService(
     }
 
     fun mulighetIsDuplicate(fagsystem: Fagsystem, kildereferanse: String, type: Type): Boolean {
-        return kabalApiClient.checkDuplicateInKabal(
-            input = IsDuplicateInput(fagsystemId = fagsystem.id, kildereferanse = kildereferanse, typeId = type.id)
+        return kabalApiClient.checkBehandlingDuplicateInKabal(
+            input = BehandlingIsDuplicateInput(fagsystemId = fagsystem.id, kildereferanse = kildereferanse, typeId = type.id)
+        )
+    }
+
+    fun oppgaveIsDuplicate(oppgaveId: Long,): Boolean {
+        return kabalApiClient.checkOppgaveDuplicateInKabal(
+            input = OppgaveIsDuplicateInput(oppgaveId = oppgaveId)
         )
     }
 

@@ -6,12 +6,10 @@ import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.oppgaveapi.Gjelder
-import no.nav.klage.clients.oppgaveapi.GjelderResponse
-import no.nav.klage.clients.oppgaveapi.OppgaveApiRecord
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.OppgaveService
-import no.nav.klage.util.*
+import no.nav.klage.util.TokenUtil
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile

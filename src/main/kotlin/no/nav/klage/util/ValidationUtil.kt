@@ -10,11 +10,14 @@ import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.service.KabalApiService
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
-class ValidationUtil {
+class ValidationUtil(
+    private val kabalApiService: KabalApiService
+) {
     fun validateCreateAnkeInputView(input: CreateAnkeInputView): CreateAnkeInput {
         val validationErrors = mutableListOf<InvalidProperty>()
 
@@ -100,7 +103,15 @@ class ValidationUtil {
                     reason = "Legg til minst én mottaker."
                 )
             }
+        }
 
+        if (input.oppgaveId != null) {
+            if (kabalApiService.oppgaveIsDuplicate(oppgaveId = input.oppgaveId)) {
+                validationErrors += InvalidProperty(
+                    field = CreateAnkeInputView::oppgaveId.name,
+                    reason = "Oppgaven er allerede i bruk i en åpen behandling i Kabal."
+                )
+            }
         }
 
         val sectionList = mutableListOf<ValidationSection>()
@@ -222,6 +233,15 @@ class ValidationUtil {
                 validationErrors += InvalidProperty(
                     field = CreateKlageInputView::hjemmelIdList.name,
                     reason = "Ugyldig hjemmel."
+                )
+            }
+        }
+
+        if (input.oppgaveId != null) {
+            if (kabalApiService.oppgaveIsDuplicate(oppgaveId = input.oppgaveId)) {
+                validationErrors += InvalidProperty(
+                    field = CreateAnkeInputView::oppgaveId.name,
+                    reason = "Oppgaven er allerede i bruk i en åpen behandling i Kabal."
                 )
             }
         }

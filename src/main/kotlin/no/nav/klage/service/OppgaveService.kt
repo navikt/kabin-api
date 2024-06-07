@@ -11,7 +11,8 @@ import org.springframework.stereotype.Service
 @Service
 class OppgaveService(
     private val oppgaveClient: OppgaveClient,
-    private val pdlClient: PdlClient
+    private val pdlClient: PdlClient,
+    private val kabalApiService: KabalApiService,
 ) {
 
     companion object {
@@ -41,6 +42,7 @@ class OppgaveService(
 
     fun OppgaveApiRecord.toOppgaveView(): OppgaveView {
         val tema = Tema.fromNavn(tema)
+        val alreadyUsed = kabalApiService.oppgaveIsDuplicate(oppgaveId = id)
         return OppgaveView(
             id = id,
             temaId = tema.id,
@@ -56,6 +58,7 @@ class OppgaveService(
             opprettetAvEnhetsnr = opprettetAvEnhetsnr,
             opprettetTidspunkt = opprettetTidspunkt,
             fristFerdigstillelse = fristFerdigstillelse,
+            alreadyUsed = alreadyUsed,
         )
     }
 

@@ -16,10 +16,14 @@ data class CreateAnkeBasedOnKlagebehandlingInput(
     val oppgaveId: Long?,
 )
 
-data class IsDuplicateInput(
+data class BehandlingIsDuplicateInput(
     val fagsystemId: String,
     val kildereferanse: String,
     val typeId: String
+)
+
+data class OppgaveIsDuplicateInput(
+    val oppgaveId: Long,
 )
 
 data class CreateAnkeBasedOnKabinInput(

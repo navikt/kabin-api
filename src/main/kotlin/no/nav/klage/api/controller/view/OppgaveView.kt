@@ -20,4 +20,5 @@ data class OppgaveView(
     val oppgavetype: String?,
     val tilordnetRessurs: String?,
     val fristFerdigstillelse: LocalDate?,
+    var alreadyUsed: Boolean,
 )
