@@ -21,7 +21,6 @@ import java.util.*
 @Service
 class KabalApiService(
     private val kabalApiClient: KabalApiClient,
-    private val oppgaveService: OppgaveService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -30,11 +29,15 @@ class KabalApiService(
 
     fun mulighetIsDuplicate(fagsystem: Fagsystem, kildereferanse: String, type: Type): Boolean {
         return kabalApiClient.checkBehandlingDuplicateInKabal(
-            input = BehandlingIsDuplicateInput(fagsystemId = fagsystem.id, kildereferanse = kildereferanse, typeId = type.id)
+            input = BehandlingIsDuplicateInput(
+                fagsystemId = fagsystem.id,
+                kildereferanse = kildereferanse,
+                typeId = type.id
+            )
         )
     }
 
-    fun oppgaveIsDuplicate(oppgaveId: Long,): Boolean {
+    fun oppgaveIsDuplicate(oppgaveId: Long): Boolean {
         return kabalApiClient.checkOppgaveDuplicateInKabal(
             input = OppgaveIsDuplicateInput(oppgaveId = oppgaveId)
         )
@@ -82,7 +85,11 @@ class KabalApiService(
         }
     }
 
-    fun createAnkeInKabalFromCompleteInput(input: CreateAnkeInput, sakFromKlanke: SakFromKlanke, frist: LocalDate): UUID {
+    fun createAnkeInKabalFromCompleteInput(
+        input: CreateAnkeInput,
+        sakFromKlanke: SakFromKlanke,
+        frist: LocalDate
+    ): UUID {
         return kabalApiClient.createAnkeFromCompleteInputInKabal(
             CreateAnkeBasedOnKabinInput(
                 sakenGjelder = OversendtPartId(
