@@ -18,7 +18,6 @@ data class OppgaveView(
     val gjelder: String?,
     //Må parses via kodeverk
     val oppgavetype: String?,
-    val tilordnetRessurs: String?,
     val fristFerdigstillelse: LocalDate?,
     var alreadyUsed: Boolean,
 )

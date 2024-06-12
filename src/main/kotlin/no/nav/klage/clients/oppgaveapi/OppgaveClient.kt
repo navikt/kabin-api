@@ -129,6 +129,25 @@ class OppgaveClient(
         }
     }
 
+    fun updateOppgave(oppgaveId: Long, updateOppgaveInput: UpdateOppgaveInput): OppgaveApiRecord {
+        return logTimingAndWebClientResponseException(OppgaveClient::updateOppgave.name) {
+            oppgaveWebClient.patch()
+                .uri { uriBuilder ->
+                    uriBuilder.pathSegment("oppgaver", "{id}").build(oppgaveId)
+                }
+                .bodyValue(updateOppgaveInput)
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
+                )
+                .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                .header("Nav-Consumer-Id", applicationName)
+                .retrieve()
+                .bodyToMono<OppgaveApiRecord>()
+                .block() ?: throw OppgaveClientException("Oppgave could not be updated")
+        }
+    }
+
     @Cacheable(CacheWithJCacheConfiguration.GJELDER_CACHE)
     fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
         val gjelderResponse =
