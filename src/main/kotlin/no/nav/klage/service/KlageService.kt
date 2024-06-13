@@ -54,6 +54,7 @@ class KlageService(
             sakFromKlanke = sakFromKlanke,
             frist = frist
         )
+
         klageFssProxyService.setToHandledInKabal(
             sakId = sakFromKlanke.sakId,
             frist = frist,
