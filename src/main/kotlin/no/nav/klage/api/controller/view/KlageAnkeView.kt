@@ -15,6 +15,7 @@ data class CreateAnkeInputView(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevWithReceiverInput?,
     val vedtak: Vedtak?,
+    val oppgaveId: Long?,
 )
 
 data class CreatedBehandlingResponse(
@@ -33,6 +34,7 @@ data class CreateKlageInputView(
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
     val vedtak: Vedtak?,
+    val oppgaveId: Long?,
 )
 
 data class Vedtak(

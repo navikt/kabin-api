@@ -13,6 +13,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.MulighetSource
+import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
@@ -21,9 +22,24 @@ import java.util.*
 class KabalApiService(
     private val kabalApiClient: KabalApiClient,
 ) {
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+    }
+
     fun mulighetIsDuplicate(fagsystem: Fagsystem, kildereferanse: String, type: Type): Boolean {
-        return kabalApiClient.checkDuplicateInKabal(
-            input = IsDuplicateInput(fagsystemId = fagsystem.id, kildereferanse = kildereferanse, typeId = type.id)
+        return kabalApiClient.checkBehandlingDuplicateInKabal(
+            input = BehandlingIsDuplicateInput(
+                fagsystemId = fagsystem.id,
+                kildereferanse = kildereferanse,
+                typeId = type.id
+            )
+        )
+    }
+
+    fun oppgaveIsDuplicate(oppgaveId: Long): Boolean {
+        return kabalApiClient.checkOppgaveDuplicateInKabal(
+            input = OppgaveIsDuplicateInput(oppgaveId = oppgaveId)
         )
     }
 
@@ -69,7 +85,11 @@ class KabalApiService(
         }
     }
 
-    fun createAnkeInKabalFromCompleteInput(input: CreateAnkeInput, sakFromKlanke: SakFromKlanke, frist: LocalDate): UUID {
+    fun createAnkeInKabalFromCompleteInput(
+        input: CreateAnkeInput,
+        sakFromKlanke: SakFromKlanke,
+        frist: LocalDate
+    ): UUID {
         return kabalApiClient.createAnkeFromCompleteInputInKabal(
             CreateAnkeBasedOnKabinInput(
                 sakenGjelder = OversendtPartId(
@@ -90,6 +110,7 @@ class KabalApiService(
                 kildereferanse = input.id,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
+                oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }
@@ -106,6 +127,7 @@ class KabalApiService(
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
                 hjemmelIdList = input.hjemmelIdList,
+                oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }
@@ -167,6 +189,7 @@ class KabalApiService(
                 ytelseId = input.ytelseId,
                 kildereferanse = input.eksternBehandlingId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
+                oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }

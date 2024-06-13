@@ -12,3 +12,5 @@ class JournalpostNotFoundException(override val message: String): RuntimeExcepti
 class InvalidSourceException(override val message: String): RuntimeException(message)
 
 class IllegalUpdateException(override val message: String): RuntimeException(message)
+
+class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)

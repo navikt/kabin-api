@@ -13,12 +13,17 @@ data class CreateAnkeBasedOnKlagebehandlingInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
     val hjemmelIdList: List<String>,
+    val oppgaveId: Long?,
 )
 
-data class IsDuplicateInput(
+data class BehandlingIsDuplicateInput(
     val fagsystemId: String,
     val kildereferanse: String,
     val typeId: String
+)
+
+data class OppgaveIsDuplicateInput(
+    val oppgaveId: Long,
 )
 
 data class CreateAnkeBasedOnKabinInput(
@@ -36,6 +41,7 @@ data class CreateAnkeBasedOnKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
+    val oppgaveId: Long?,
 )
 
 data class CreateKlageBasedOnKabinInput(
@@ -53,6 +59,7 @@ data class CreateKlageBasedOnKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
+    val oppgaveId: Long?,
 )
 
 data class SvarbrevInput(

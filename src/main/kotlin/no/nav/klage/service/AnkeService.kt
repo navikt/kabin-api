@@ -21,6 +21,7 @@ class AnkeService(
     private val dokArkivService: DokArkivService,
     private val klageFssProxyService: KlageFssProxyService,
     private val kabalApiService: KabalApiService,
+    private val oppgaveService: OppgaveService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -49,10 +50,21 @@ class AnkeService(
             sakFromKlanke = sakFromKlanke,
             frist = frist
         )
+
         klageFssProxyService.setToHandledInKabal(
             sakId = sakFromKlanke.sakId,
             frist = frist,
         )
+
+        input.oppgaveId?.let {
+            logger.debug("Attempting oppgave update")
+            oppgaveService.updateOppgave(
+                oppgaveId = it,
+                frist = frist,
+                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
+            )
+        }
+
         return behandlingId
     }
 

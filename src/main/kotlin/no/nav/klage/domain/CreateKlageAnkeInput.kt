@@ -18,6 +18,7 @@ data class CreateAnkeInput(
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevWithReceiverInput?,
+    val oppgaveId: Long?
 )
 
 data class CreateKlageInput(
@@ -32,4 +33,5 @@ data class CreateKlageInput(
     val hjemmelIdList: List<String>,
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
+    val oppgaveId: Long?
 )
