@@ -1,6 +1,5 @@
 package no.nav.klage.clients.kabalapi
 
-import no.nav.klage.kodeverk.Type
 import java.time.LocalDate
 import java.util.*
 
@@ -65,11 +64,10 @@ data class CreateKlageBasedOnKabinInput(
 )
 
 data class SvarbrevInput(
-    val title: String = "Anke - orientering om saksbehandlingstid",
+    val title: String,
     val receivers: List<Receiver>,
     val fullmektigFritekst: String?,
     val varsletBehandlingstidWeeks: Int,
-    val type: Type,
 ) {
     data class Receiver(
         val id: String,

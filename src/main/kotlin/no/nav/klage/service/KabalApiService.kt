@@ -108,7 +108,7 @@ class KabalApiService(
                 ytelseId = input.ytelseId!!,
                 kildereferanse = input.id,
                 saksbehandlerIdent = input.saksbehandlerIdent,
-                svarbrevInput = input.svarbrevInput?.toKabalModel(Type.ANKE),
+                svarbrevInput = input.svarbrevInput?.toKabalModel(),
                 oppgaveId = input.oppgaveId,
             )
         ).behandlingId
@@ -124,14 +124,14 @@ class KabalApiService(
                 fullmektig = input.fullmektig.toOversendtPartId(),
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
-                svarbrevInput = input.svarbrevInput?.toKabalModel(Type.ANKE),
+                svarbrevInput = input.svarbrevInput?.toKabalModel(),
                 hjemmelIdList = input.hjemmelIdList,
                 oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }
 
-    private fun SvarbrevWithReceiverInput?.toKabalModel(type: Type): SvarbrevInput? {
+    private fun SvarbrevWithReceiverInput?.toKabalModel(): SvarbrevInput? {
         return this?.let { svarbrevInput ->
             SvarbrevInput(
                 title = svarbrevInput.title,
@@ -152,7 +152,6 @@ class KabalApiService(
                 },
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
                 varsletBehandlingstidWeeks = svarbrevInput.varsletBehandlingstidWeeks,
-                type = type,
             )
         }
     }
@@ -191,7 +190,7 @@ class KabalApiService(
                 kildereferanse = input.eksternBehandlingId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 oppgaveId = input.oppgaveId,
-                svarbrevInput = input.svarbrevInput?.toKabalModel(Type.KLAGE),
+                svarbrevInput = input.svarbrevInput?.toKabalModel(),
             )
         ).behandlingId
     }
