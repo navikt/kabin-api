@@ -6,17 +6,14 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.KabalApiService
 import no.nav.klage.service.OppgaveService
-import no.nav.klage.service.PDFService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 
 @RestController
@@ -25,7 +22,6 @@ class CommonController(
     private val tokenUtil: TokenUtil,
     private val kabalApiService: KabalApiService,
     private val dokArkivService: DokArkivService,
-    private val pdfService: PDFService,
     private val oppgaveService: OppgaveService,
 ) {
 
@@ -74,26 +70,6 @@ class CommonController(
             fagsakId = input.fagsakId,
             fagsystemId = input.fagsystemId,
         )
-    }
-
-    @ResponseBody
-    @PostMapping("/svarbrev-preview")
-    fun getSvarbrevPreview(
-        @RequestBody input: PreviewAnkeSvarbrevInput,
-    ): ResponseEntity<ByteArray> {
-        logger.debug("Kall mottatt på getSvarbrevPreview")
-        secureLogger.debug("Kall mottatt på getSvarbrevPreview med input: {}", input)
-
-        pdfService.getSvarbrevPDF(input).let {
-            val responseHeaders = HttpHeaders()
-            responseHeaders.contentType = MediaType.APPLICATION_PDF
-            responseHeaders.add("Content-Disposition", "inline; filename=svarbrev.pdf")
-            return ResponseEntity(
-                it,
-                responseHeaders,
-                HttpStatus.OK
-            )
-        }
     }
 
     @PostMapping("/searchoppgave")

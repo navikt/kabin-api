@@ -33,5 +33,6 @@ data class CreateKlageInput(
     val hjemmelIdList: List<String>,
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
-    val oppgaveId: Long?
+    val oppgaveId: Long?,
+    val svarbrevInput: SvarbrevWithReceiverInput?,
 )

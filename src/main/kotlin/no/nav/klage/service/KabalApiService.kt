@@ -6,7 +6,6 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
-import no.nav.klage.clients.kabalapi.SvarbrevInput
 import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
@@ -109,7 +108,7 @@ class KabalApiService(
                 ytelseId = input.ytelseId!!,
                 kildereferanse = input.id,
                 saksbehandlerIdent = input.saksbehandlerIdent,
-                svarbrevInput = input.svarbrevInput?.toKabalModel(),
+                svarbrevInput = input.svarbrevInput?.toKabalModel(Type.ANKE),
                 oppgaveId = input.oppgaveId,
             )
         ).behandlingId
@@ -125,14 +124,14 @@ class KabalApiService(
                 fullmektig = input.fullmektig.toOversendtPartId(),
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
-                svarbrevInput = input.svarbrevInput?.toKabalModel(),
+                svarbrevInput = input.svarbrevInput?.toKabalModel(Type.ANKE),
                 hjemmelIdList = input.hjemmelIdList,
                 oppgaveId = input.oppgaveId,
             )
         ).behandlingId
     }
 
-    private fun SvarbrevWithReceiverInput?.toKabalModel(): SvarbrevInput? {
+    private fun SvarbrevWithReceiverInput?.toKabalModel(type: Type): SvarbrevInput? {
         return this?.let { svarbrevInput ->
             SvarbrevInput(
                 title = svarbrevInput.title,
@@ -152,6 +151,8 @@ class KabalApiService(
                     )
                 },
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
+                varsletBehandlingstidWeeks = svarbrevInput.varsletBehandlingstidWeeks,
+                type = type,
             )
         }
     }
@@ -190,6 +191,7 @@ class KabalApiService(
                 kildereferanse = input.eksternBehandlingId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 oppgaveId = input.oppgaveId,
+                svarbrevInput = input.svarbrevInput?.toKabalModel(Type.KLAGE),
             )
         ).behandlingId
     }

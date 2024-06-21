@@ -35,6 +35,7 @@ data class CreateKlageInputView(
     val saksbehandlerIdent: String?,
     val vedtak: Vedtak?,
     val oppgaveId: Long?,
+    val svarbrevInput: SvarbrevWithReceiverInput?,
 )
 
 data class Vedtak(

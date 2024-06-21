@@ -246,6 +246,15 @@ class ValidationUtil(
             }
         }
 
+        if (input.svarbrevInput != null) {
+            if (input.svarbrevInput.receivers.isEmpty()) {
+                validationErrors += InvalidProperty(
+                    field = CreateKlageInputView::svarbrevInput.name,
+                    reason = "Legg til minst én mottaker."
+                )
+            }
+        }
+
         val sectionList = mutableListOf<ValidationSection>()
 
         if (validationErrors.isNotEmpty()) {
@@ -274,7 +283,8 @@ class ValidationUtil(
             hjemmelIdList = input.hjemmelIdList,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
-            oppgaveId = input.oppgaveId
+            oppgaveId = input.oppgaveId,
+            svarbrevInput = input.svarbrevInput,
         )
     }
 }
