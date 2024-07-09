@@ -1,5 +1,6 @@
 package no.nav.klage.clients.kabalapi
 
+import no.nav.klage.domain.BehandlingstidUnitType
 import java.time.LocalDate
 import java.util.*
 
@@ -67,8 +68,10 @@ data class SvarbrevInput(
     val title: String,
     val receivers: List<Receiver>,
     val fullmektigFritekst: String?,
-    val varsletBehandlingstidWeeks: Int,
-) {
+    val varsletBehandlingstidUnits: Int,
+    val varsletBehandlingstidUnitType: BehandlingstidUnitType,
+
+    ) {
     data class Receiver(
         val id: String,
         val handling: HandlingEnum,

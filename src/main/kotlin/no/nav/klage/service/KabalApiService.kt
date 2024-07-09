@@ -151,7 +151,8 @@ class KabalApiService(
                     )
                 },
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
-                varsletBehandlingstidWeeks = svarbrevInput.varsletBehandlingstidWeeks,
+                varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
+                varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType,
             )
         }
     }
