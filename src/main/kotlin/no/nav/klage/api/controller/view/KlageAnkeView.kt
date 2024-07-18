@@ -43,6 +43,5 @@ data class CreateKlageInputView(
 
 data class Vedtak(
     val id: String,
-    val sakenGjelder: PartId,
     val sourceId: String,
 )
