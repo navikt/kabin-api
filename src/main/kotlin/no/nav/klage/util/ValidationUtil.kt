@@ -19,10 +19,11 @@ class ValidationUtil(
     private val kabalApiService: KabalApiService
 ) {
     fun validateCreateAnkeInputView(input: CreateAnkeInputView): CreateAnkeInput {
-        val validationErrors = mutableListOf<InvalidProperty>()
+        val saksdataValidationErrors = mutableListOf<InvalidProperty>()
+        val svarbrevValidationErrors = mutableListOf<InvalidProperty>()
 
         if (input.vedtak == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::vedtak.name,
                 reason = "Velg en mulighet/vedtak."
             )
@@ -37,7 +38,7 @@ class ValidationUtil(
                 }
             if (mulighetSource == MulighetSource.INFOTRYGD) {
                 if (input.ytelseId == null) {
-                    validationErrors += InvalidProperty(
+                    saksdataValidationErrors += InvalidProperty(
                         field = CreateAnkeInputView::ytelseId.name,
                         reason = "Velg en ytelse."
                     )
@@ -46,7 +47,7 @@ class ValidationUtil(
         }
 
         if (input.hjemmelIdList.isEmpty()) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::hjemmelIdList.name,
                 reason = "Velg minst én hjemmel."
             )
@@ -56,7 +57,7 @@ class ValidationUtil(
             try {
                 input.hjemmelIdList.forEach { Hjemmel.of(it) }
             } catch (iae: IllegalArgumentException) {
-                validationErrors += InvalidProperty(
+                saksdataValidationErrors += InvalidProperty(
                     field = CreateKlageInputView::hjemmelIdList.name,
                     reason = "Ugyldig hjemmel."
                 )
@@ -64,33 +65,33 @@ class ValidationUtil(
         }
 
         if (input.mottattKlageinstans == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::mottattKlageinstans.name,
                 reason = "Sett en dato."
             )
         } else if (input.mottattKlageinstans.isAfter(LocalDate.now())) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::mottattKlageinstans.name,
                 reason = "Sett en dato som ikke er i fremtiden."
             )
         }
 
-        if (input.fristInWeeks == null) {
-            validationErrors += InvalidProperty(
-                field = CreateAnkeInputView::fristInWeeks.name,
+        if (!(input.behandlingstidUnits != null && input.behandlingstidUnitType != null)) {
+            saksdataValidationErrors += InvalidProperty(
+                field = CreateAnkeInputView::behandlingstidUnits.name,
                 reason = "Sett en frist."
             )
         }
 
         if (input.klager == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::klager.name,
                 reason = "Velg en klager."
             )
         }
 
         if (input.journalpostId == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::journalpostId.name,
                 reason = "Velg en journalpost."
             )
@@ -98,7 +99,7 @@ class ValidationUtil(
 
         if (input.svarbrevInput != null) {
             if (input.svarbrevInput.receivers.isEmpty()) {
-                validationErrors += InvalidProperty(
+                svarbrevValidationErrors += InvalidProperty(
                     field = CreateAnkeInputView::svarbrevInput.name,
                     reason = "Legg til minst én mottaker."
                 )
@@ -107,7 +108,7 @@ class ValidationUtil(
 
         if (input.oppgaveId != null) {
             if (kabalApiService.oppgaveIsDuplicate(oppgaveId = input.oppgaveId)) {
-                validationErrors += InvalidProperty(
+                saksdataValidationErrors += InvalidProperty(
                     field = CreateAnkeInputView::oppgaveId.name,
                     reason = "Oppgaven er allerede i bruk i en åpen behandling i Kabal."
                 )
@@ -116,14 +117,25 @@ class ValidationUtil(
 
         val sectionList = mutableListOf<ValidationSection>()
 
-        if (validationErrors.isNotEmpty()) {
+        if (saksdataValidationErrors.isNotEmpty()) {
             sectionList.add(
                 ValidationSection(
                     section = "saksdata",
-                    properties = validationErrors
+                    properties = saksdataValidationErrors
                 )
             )
+        }
 
+        if (svarbrevValidationErrors.isNotEmpty()) {
+            sectionList.add(
+                ValidationSection(
+                    section = "svarbrev",
+                    properties = svarbrevValidationErrors
+                )
+            )
+        }
+
+        if (sectionList.isNotEmpty()) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = sectionList
@@ -133,7 +145,8 @@ class ValidationUtil(
         return CreateAnkeInput(
             id = input.vedtak!!.id,
             mottattKlageinstans = input.mottattKlageinstans!!,
-            fristInWeeks = input.fristInWeeks!!,
+            behandlingstidUnits = input.behandlingstidUnits!!,
+            behandlingstidUnitType = input.behandlingstidUnitType!!,
             klager = input.klager!!,
             fullmektig = input.fullmektig,
             ankeDocumentJournalpostId = input.journalpostId!!,
@@ -148,23 +161,24 @@ class ValidationUtil(
     }
 
     fun validateCreateKlageInputView(input: CreateKlageInputView): CreateKlageInput {
-        val validationErrors = mutableListOf<InvalidProperty>()
+        val saksdataValidationErrors = mutableListOf<InvalidProperty>()
+        val svarbrevValidationErrors = mutableListOf<InvalidProperty>()
 
         if (input.vedtak == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::vedtak.name,
                 reason = "Velg et vedtak."
             )
         }
 
         if (input.mottattKlageinstans == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::mottattKlageinstans.name,
                 reason = "Sett en dato."
             )
         } else {
             if (input.mottattKlageinstans.isAfter(LocalDate.now())) {
-                validationErrors += InvalidProperty(
+                saksdataValidationErrors += InvalidProperty(
                     field = CreateKlageInputView::mottattKlageinstans.name,
                     reason = "Sett en dato som ikke er i fremtiden."
                 )
@@ -172,12 +186,12 @@ class ValidationUtil(
         }
 
         if (input.mottattVedtaksinstans == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::mottattVedtaksinstans.name,
                 reason = "Sett en dato."
             )
         } else if (input.mottattVedtaksinstans.isAfter(LocalDate.now())) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::mottattVedtaksinstans.name,
                 reason = "Sett en dato som ikke er i fremtiden."
             )
@@ -187,42 +201,42 @@ class ValidationUtil(
                 input.mottattKlageinstans
             )
         ) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::mottattVedtaksinstans.name,
                 reason = "Sett en dato som er før dato for mottatt Klageinstans."
             )
         }
 
-        if (input.fristInWeeks == null) {
-            validationErrors += InvalidProperty(
-                field = CreateKlageInputView::fristInWeeks.name,
+        if (!(input.behandlingstidUnits != null && input.behandlingstidUnitType != null)) {
+            saksdataValidationErrors += InvalidProperty(
+                field = CreateAnkeInputView::behandlingstidUnits.name,
                 reason = "Sett en frist."
             )
         }
 
         if (input.klager == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::klager.name,
                 reason = "Velg en klager."
             )
         }
 
         if (input.journalpostId == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::journalpostId.name,
                 reason = "Velg en journalpost."
             )
         }
 
         if (input.ytelseId == null) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::ytelseId.name,
                 reason = "Velg en ytelse."
             )
         }
 
         if (input.hjemmelIdList.isEmpty()) {
-            validationErrors += InvalidProperty(
+            saksdataValidationErrors += InvalidProperty(
                 field = CreateKlageInputView::hjemmelIdList.name,
                 reason = "Velg minst én hjemmel."
             )
@@ -230,7 +244,7 @@ class ValidationUtil(
             try {
                 input.hjemmelIdList.forEach { Hjemmel.of(it) }
             } catch (iae: IllegalArgumentException) {
-                validationErrors += InvalidProperty(
+                saksdataValidationErrors += InvalidProperty(
                     field = CreateKlageInputView::hjemmelIdList.name,
                     reason = "Ugyldig hjemmel."
                 )
@@ -239,23 +253,43 @@ class ValidationUtil(
 
         if (input.oppgaveId != null) {
             if (kabalApiService.oppgaveIsDuplicate(oppgaveId = input.oppgaveId)) {
-                validationErrors += InvalidProperty(
+                saksdataValidationErrors += InvalidProperty(
                     field = CreateAnkeInputView::oppgaveId.name,
                     reason = "Oppgaven er allerede i bruk i en åpen behandling i Kabal."
                 )
             }
         }
 
+        if (input.svarbrevInput != null) {
+            if (input.svarbrevInput.receivers.isEmpty()) {
+                svarbrevValidationErrors += InvalidProperty(
+                    field = CreateKlageInputView::svarbrevInput.name,
+                    reason = "Legg til minst én mottaker."
+                )
+            }
+        }
+
         val sectionList = mutableListOf<ValidationSection>()
 
-        if (validationErrors.isNotEmpty()) {
+        if (saksdataValidationErrors.isNotEmpty()) {
             sectionList.add(
                 ValidationSection(
                     section = "saksdata",
-                    properties = validationErrors
+                    properties = saksdataValidationErrors
                 )
             )
+        }
 
+        if (svarbrevValidationErrors.isNotEmpty()) {
+            sectionList.add(
+                ValidationSection(
+                    section = "svarbrev",
+                    properties = svarbrevValidationErrors
+                )
+            )
+        }
+
+        if (sectionList.isNotEmpty()) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = sectionList
@@ -266,7 +300,8 @@ class ValidationUtil(
             eksternBehandlingId = input.vedtak!!.id,
             mottattVedtaksinstans = input.mottattVedtaksinstans!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
-            fristInWeeks = input.fristInWeeks!!,
+            behandlingstidUnits = input.behandlingstidUnits!!,
+            behandlingstidUnitType = input.behandlingstidUnitType!!,
             klager = input.klager!!,
             fullmektig = input.fullmektig,
             klageJournalpostId = input.journalpostId!!,
@@ -274,7 +309,8 @@ class ValidationUtil(
             hjemmelIdList = input.hjemmelIdList,
             avsender = input.avsender,
             saksbehandlerIdent = input.saksbehandlerIdent,
-            oppgaveId = input.oppgaveId
+            oppgaveId = input.oppgaveId,
+            svarbrevInput = input.svarbrevInput,
         )
     }
 }

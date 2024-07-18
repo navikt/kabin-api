@@ -1,28 +1,15 @@
 package no.nav.klage.api.controller.view
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import java.time.LocalDate
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class PreviewAnkeSvarbrevInput(
-    val mottattKlageinstans: LocalDate,
-    val fristInWeeks: Int,
-    val sakenGjelder: PartId,
-    val ytelseId: String,
-    val svarbrevInput: SvarbrevInput,
-    val klager: PartId?,
-)
-
-open class SvarbrevInput(
-    open val title: String,
-    open val fullmektigFritekst: String?,
-)
+import no.nav.klage.domain.BehandlingstidUnitType
 
 data class SvarbrevWithReceiverInput(
-    override val title: String,
-    override val fullmektigFritekst: String?,
+    val title: String,
+    val fullmektigFritekst: String?,
     val receivers: List<Receiver>,
-) : SvarbrevInput(title, fullmektigFritekst) {
+    val varsletBehandlingstidUnits: Int,
+    val varsletBehandlingstidUnitType: BehandlingstidUnitType,
+    val customText: String?,
+) {
 
     data class Receiver(
         val id: String,

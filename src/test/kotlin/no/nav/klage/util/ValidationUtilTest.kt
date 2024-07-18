@@ -27,10 +27,10 @@ class ValidationUtilTest {
             vedtak = Vedtak(
                 id = "abc",
                 sourceId = "WRONG",
-                sakenGjelder = PartId(type = PartType.FNR, id = "12345678901")
             ),
             mottattKlageinstans = null,
-            fristInWeeks = null,
+            behandlingstidUnits = null,
+            behandlingstidUnitType = null,
             klager = null,
             fullmektig = null,
             journalpostId = null,

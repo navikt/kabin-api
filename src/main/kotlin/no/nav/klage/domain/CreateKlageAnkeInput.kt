@@ -9,7 +9,8 @@ data class CreateAnkeInput(
     val id: String,
     val mulighetSource: MulighetSource,
     val mottattKlageinstans: LocalDate,
-    val fristInWeeks: Int,
+    val behandlingstidUnits: Int,
+    val behandlingstidUnitType: BehandlingstidUnitType,
     val klager: PartId,
     val fullmektig: PartId?,
     val ankeDocumentJournalpostId: String,
@@ -25,7 +26,8 @@ data class CreateKlageInput(
     val eksternBehandlingId: String,
     val mottattVedtaksinstans: LocalDate,
     val mottattKlageinstans: LocalDate,
-    val fristInWeeks: Int,
+    val behandlingstidUnits: Int,
+    val behandlingstidUnitType: BehandlingstidUnitType,
     val klager: PartId,
     val fullmektig: PartId?,
     val klageJournalpostId: String,
@@ -33,5 +35,6 @@ data class CreateKlageInput(
     val hjemmelIdList: List<String>,
     val avsender: PartId?,
     val saksbehandlerIdent: String?,
-    val oppgaveId: Long?
+    val oppgaveId: Long?,
+    val svarbrevInput: SvarbrevWithReceiverInput?,
 )

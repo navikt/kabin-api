@@ -5,20 +5,23 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.klage.api.controller.view.CalculateFristInput
-import no.nav.klage.service.*
+import no.nav.klage.domain.BehandlingstidUnitType
+import no.nav.klage.service.DocumentService
+import no.nav.klage.service.DokArkivService
+import no.nav.klage.service.KabalApiService
+import no.nav.klage.service.OppgaveService
 import no.nav.klage.util.AuditLogger
 import no.nav.klage.util.TokenUtil
-import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDate
 
 @WebMvcTest(CommonController::class)
@@ -41,9 +44,6 @@ class CommonControllerTest {
     lateinit var dokArkivService: DokArkivService
 
     @MockkBean
-    lateinit var pdfService: PDFService
-
-    @MockkBean
     lateinit var auditLogger: AuditLogger
 
     @MockkBean
@@ -51,9 +51,16 @@ class CommonControllerTest {
 
     private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
-    private val calculateFristInput = CalculateFristInput(
+    private val calculateFristInputWeeks = CalculateFristInput(
         fromDate = LocalDate.of(2023, 7, 10),
-        fristInWeeks = 2
+        varsletBehandlingstidUnits = 2,
+        varsletBehandlingstidUnitType = BehandlingstidUnitType.WEEKS,
+    )
+
+    private val calculateFristInputMonths = CalculateFristInput(
+        fromDate = LocalDate.of(2023, 7, 10),
+        varsletBehandlingstidUnits = 6,
+        varsletBehandlingstidUnitType = BehandlingstidUnitType.MONTHS,
     )
 
     @BeforeEach
@@ -62,13 +69,24 @@ class CommonControllerTest {
     }
 
     @Test
-    fun calculateFrist() {
+    fun calculateFristWeeks() {
         mockMvc.perform(
-            post("/calculatefrist").content(mapper.writeValueAsString(calculateFristInput))
+            post("/calculatefrist").content(mapper.writeValueAsString(calculateFristInputWeeks))
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(content().string("\"2023-07-24\""))
+    }
+
+    @Test
+    fun calculateFrist() {
+        mockMvc.perform(
+            post("/calculatefrist").content(mapper.writeValueAsString(calculateFristInputMonths))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().string("\"2024-01-10\""))
     }
 }

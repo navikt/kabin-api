@@ -2,6 +2,7 @@ package no.nav.klage.api.controller.view
 
 import no.nav.klage.clients.kabalapi.OversendtPartId
 import no.nav.klage.clients.kabalapi.OversendtPartIdType
+import no.nav.klage.domain.BehandlingstidUnitType
 import java.time.LocalDate
 
 data class IdnummerInput(val idnummer: String)
@@ -18,7 +19,8 @@ data class SearchPartWithUtsendingskanalInput(
 
 data class CalculateFristInput(
     val fromDate: LocalDate,
-    val fristInWeeks: Int,
+    val varsletBehandlingstidUnits: Int,
+    val varsletBehandlingstidUnitType: BehandlingstidUnitType,
 )
 
 data class GetOppgaveListInput(

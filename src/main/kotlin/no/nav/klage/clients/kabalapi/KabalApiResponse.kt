@@ -1,8 +1,8 @@
 package no.nav.klage.clients.kabalapi
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import no.nav.klage.api.controller.view.CreatedAnkebehandlingStatusView
 import no.nav.klage.api.controller.view.PartStatus
+import no.nav.klage.api.controller.view.Svarbrev
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.kodeverk.Fagsystem
@@ -75,31 +75,32 @@ data class CreatedAnkebehandlingStatus(
     val fullmektig: PartViewWithUtsendingskanal?,
     val mottattNav: LocalDate,
     val frist: LocalDate,
+    val varsletFrist: LocalDate?,
     val fagsakId: String,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
-    val svarbrev: Svarbrev?,
+    val svarbrev: KabalApiResponseSvarbrev?,
+)
+
+data class KabalApiResponseSvarbrev(
+    val dokumentUnderArbeidId: UUID,
+    val title: String,
+    val receivers: List<Receiver>,
 ) {
-    data class Svarbrev(
-        val dokumentUnderArbeidId: UUID,
-        val title: String,
-        val receivers: List<Receiver>,
+    data class Receiver(
+        val part: PartViewWithUtsendingskanal,
+        val overriddenAddress: Address?,
+        val handling: SvarbrevInput.Receiver.HandlingEnum,
     ) {
-        data class Receiver(
-            val part: PartViewWithUtsendingskanal,
-            val overriddenAddress: Address?,
-            val handling: SvarbrevInput.Receiver.HandlingEnum,
-        ) {
-            data class Address(
-                val adresselinje1: String?,
-                val adresselinje2: String?,
-                val adresselinje3: String?,
-                val landkode: String,
-                val postnummer: String?,
-                val poststed: String?,
-            )
-        }
+        data class Address(
+            val adresselinje1: String?,
+            val adresselinje2: String?,
+            val adresselinje3: String?,
+            val landkode: String,
+            val postnummer: String?,
+            val poststed: String?,
+        )
     }
 }
 
@@ -113,11 +114,13 @@ data class CreatedKlagebehandlingStatus(
     val mottattVedtaksinstans: LocalDate,
     val mottattKlageinstans: LocalDate,
     val frist: LocalDate,
+    val varsletFrist: LocalDate?,
     val fagsakId: String,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val kildereferanse: String,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
+    val svarbrev: KabalApiResponseSvarbrev?,
 )
 
 data class TildeltSaksbehandler(
@@ -132,15 +135,15 @@ fun TildeltSaksbehandler.toView(): no.nav.klage.api.controller.view.TildeltSaksb
     )
 }
 
-fun CreatedAnkebehandlingStatus.Svarbrev.toView(): CreatedAnkebehandlingStatusView.Svarbrev {
-    return CreatedAnkebehandlingStatusView.Svarbrev(
+fun KabalApiResponseSvarbrev.toView(): Svarbrev {
+    return Svarbrev(
         dokumentUnderArbeidId = dokumentUnderArbeidId,
         title = title,
         receivers = receivers.map { receiver ->
-            CreatedAnkebehandlingStatusView.Svarbrev.Receiver(
+            Svarbrev.Receiver(
                 part = receiver.part.partViewWithUtsendingskanal(),
                 overriddenAddress = receiver.overriddenAddress?.let {
-                    CreatedAnkebehandlingStatusView.Svarbrev.Receiver.Address(
+                    Svarbrev.Receiver.Address(
                         adresselinje1 = it.adresselinje1,
                         adresselinje2 = it.adresselinje2,
                         adresselinje3 = it.adresselinje3,
