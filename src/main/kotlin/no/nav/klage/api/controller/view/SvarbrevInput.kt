@@ -8,6 +8,7 @@ data class SvarbrevWithReceiverInput(
     val receivers: List<Receiver>,
     val varsletBehandlingstidUnits: Int,
     val varsletBehandlingstidUnitType: BehandlingstidUnitType,
+    val customText: String?,
 ) {
 
     data class Receiver(
