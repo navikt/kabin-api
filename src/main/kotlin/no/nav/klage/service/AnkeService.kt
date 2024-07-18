@@ -131,6 +131,7 @@ class AnkeService(
             fullmektig = response.fullmektig?.partViewWithUtsendingskanal(),
             mottattKlageinstans = response.mottattNav,
             frist = response.frist,
+            varsletFrist = response.varsletFrist,
             fagsakId = response.fagsakId,
             fagsystemId = response.fagsystemId,
             journalpost = response.journalpost.toReceiptView(),

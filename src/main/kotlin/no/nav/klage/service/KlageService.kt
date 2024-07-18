@@ -124,10 +124,12 @@ class KlageService(
             mottattVedtaksinstans = status.mottattVedtaksinstans,
             mottattKlageinstans = status.mottattKlageinstans,
             frist = status.frist,
+            varsletFrist = status.varsletFrist,
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
             journalpost = status.journalpost.toReceiptView(),
             tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
+            svarbrev = status.svarbrev?.toView(),
         )
     }
 }
