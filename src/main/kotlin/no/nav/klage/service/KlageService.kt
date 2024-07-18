@@ -3,6 +3,7 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.toView
+import no.nav.klage.domain.BehandlingstidUnitType
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
@@ -48,7 +49,10 @@ class KlageService(
 
     private fun createKlageFromInfotrygdSak(input: CreateKlageInput): UUID {
         val sakFromKlanke = klageFssProxyService.getSak(sakId = input.eksternBehandlingId)
-        val frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong())
+        val frist = when(input.behandlingstidUnitType) {
+            BehandlingstidUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
+            BehandlingstidUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
+        }
         val behandlingId = kabalApiService.createKlageInKabalFromCompleteInput(
             input = input,
             sakFromKlanke = sakFromKlanke,

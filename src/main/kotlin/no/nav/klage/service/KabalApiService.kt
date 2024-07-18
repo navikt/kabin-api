@@ -6,6 +6,7 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
+import no.nav.klage.domain.BehandlingstidUnitType
 import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
@@ -119,7 +120,10 @@ class KabalApiService(
             CreateAnkeBasedOnKlagebehandlingInput(
                 sourceBehandlingId = UUID.fromString(input.id),
                 mottattNav = input.mottattKlageinstans,
-                frist = input.mottattKlageinstans.plusWeeks(input.fristInWeeks.toLong()),
+                frist = when(input.behandlingstidUnitType) {
+                    BehandlingstidUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
+                    BehandlingstidUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
+                },
                 klager = input.klager.toOversendtPartId(),
                 fullmektig = input.fullmektig.toOversendtPartId(),
                 ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
