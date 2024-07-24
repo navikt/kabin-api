@@ -121,6 +121,8 @@ class KlageService(
             mottattKlageinstans = status.mottattKlageinstans,
             frist = status.frist,
             varsletFrist = status.varsletFrist,
+            varsletFristUnits = status.varsletFristUnits,
+            varsletFristUnitTypeId = status.varsletFristUnitTypeId,
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
             journalpost = status.journalpost.toReceiptView(),

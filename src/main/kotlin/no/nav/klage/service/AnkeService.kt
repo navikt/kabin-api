@@ -128,6 +128,8 @@ class AnkeService(
             mottattKlageinstans = response.mottattNav,
             frist = response.frist,
             varsletFrist = response.varsletFrist,
+            varsletFristUnits = response.varsletFristUnits,
+            varsletFristUnitTypeId = response.varsletFristUnitTypeId,
             fagsakId = response.fagsakId,
             fagsystemId = response.fagsystemId,
             journalpost = response.journalpost.toReceiptView(),
