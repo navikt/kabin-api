@@ -1,10 +1,7 @@
 package no.nav.klage.config
 
 import no.nav.klage.clients.oppgaveapi.OppgaveClientException
-import no.nav.klage.exceptions.IllegalUpdateException
-import no.nav.klage.exceptions.InvalidSourceException
-import no.nav.klage.exceptions.JournalpostNotFoundException
-import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.exceptions.*
 import no.nav.klage.util.getSecureLogger
 import org.springframework.http.*
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -65,6 +62,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     @ExceptionHandler
     fun handleIllegalUpdateException(
         ex: IllegalUpdateException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
+    fun handleIllegalInputException(
+        ex: IllegalInputException,
         request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)

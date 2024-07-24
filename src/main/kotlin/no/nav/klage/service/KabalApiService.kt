@@ -157,7 +157,7 @@ class KabalApiService(
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
                 customText = svarbrevInput.customText,
                 varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
-                varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType,
+                varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId ?: svarbrevInput.varsletBehandlingstidUnitType!!.id,
             )
         }
     }

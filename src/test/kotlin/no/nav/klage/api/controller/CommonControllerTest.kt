@@ -54,13 +54,15 @@ class CommonControllerTest {
     private val calculateFristInputWeeks = CalculateFristInput(
         fromDate = LocalDate.of(2023, 7, 10),
         varsletBehandlingstidUnits = 2,
-        varsletBehandlingstidUnitType = BehandlingstidUnitType.WEEKS,
+        varsletBehandlingstidUnitTypeId = "1",
+        varsletBehandlingstidUnitType = null
     )
 
     private val calculateFristInputMonths = CalculateFristInput(
         fromDate = LocalDate.of(2023, 7, 10),
         varsletBehandlingstidUnits = 6,
-        varsletBehandlingstidUnitType = BehandlingstidUnitType.MONTHS,
+        varsletBehandlingstidUnitTypeId = "2",
+        varsletBehandlingstidUnitType = null
     )
 
     @BeforeEach

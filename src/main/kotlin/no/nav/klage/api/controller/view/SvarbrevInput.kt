@@ -1,13 +1,14 @@
 package no.nav.klage.api.controller.view
 
-import no.nav.klage.domain.BehandlingstidUnitType
+import no.nav.klage.kodeverk.TimeUnitType
 
 data class SvarbrevWithReceiverInput(
     val title: String,
     val fullmektigFritekst: String?,
     val receivers: List<Receiver>,
     val varsletBehandlingstidUnits: Int,
-    val varsletBehandlingstidUnitType: BehandlingstidUnitType,
+    val varsletBehandlingstidUnitType: TimeUnitType?,
+    val varsletBehandlingstidUnitTypeId: String?,
     val customText: String?,
 ) {
 

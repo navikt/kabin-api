@@ -70,7 +70,7 @@ data class SvarbrevInput(
     val fullmektigFritekst: String?,
     val customText: String?,
     val varsletBehandlingstidUnits: Int,
-    val varsletBehandlingstidUnitType: BehandlingstidUnitType,
+    val varsletBehandlingstidUnitTypeId: String,
 
     ) {
     data class Receiver(

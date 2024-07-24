@@ -13,4 +13,6 @@ class InvalidSourceException(override val message: String): RuntimeException(mes
 
 class IllegalUpdateException(override val message: String): RuntimeException(message)
 
+class IllegalInputException(override val message: String): RuntimeException(message)
+
 class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)

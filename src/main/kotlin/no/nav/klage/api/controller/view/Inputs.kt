@@ -20,7 +20,8 @@ data class SearchPartWithUtsendingskanalInput(
 data class CalculateFristInput(
     val fromDate: LocalDate,
     val varsletBehandlingstidUnits: Int,
-    val varsletBehandlingstidUnitType: BehandlingstidUnitType,
+    val varsletBehandlingstidUnitType: BehandlingstidUnitType?,
+    val varsletBehandlingstidUnitTypeId: String?
 )
 
 data class GetOppgaveListInput(
