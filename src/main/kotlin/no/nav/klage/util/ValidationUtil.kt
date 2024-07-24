@@ -86,7 +86,7 @@ class ValidationUtil(
         if (input.klager == null) {
             saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::klager.name,
-                reason = "Velg en klager."
+                reason = "Velg en ankende part."
             )
         }
 
