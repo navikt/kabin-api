@@ -2,6 +2,7 @@ package no.nav.klage.domain
 
 import no.nav.klage.api.controller.view.PartId
 import no.nav.klage.api.controller.view.SvarbrevWithReceiverInput
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.util.MulighetSource
 import java.time.LocalDate
 
@@ -10,7 +11,7 @@ data class CreateAnkeInput(
     val mulighetSource: MulighetSource,
     val mottattKlageinstans: LocalDate,
     val behandlingstidUnits: Int,
-    val behandlingstidUnitType: BehandlingstidUnitType,
+    val behandlingstidUnitType: TimeUnitType,
     val klager: PartId,
     val fullmektig: PartId?,
     val ankeDocumentJournalpostId: String,
@@ -27,7 +28,7 @@ data class CreateKlageInput(
     val mottattVedtaksinstans: LocalDate,
     val mottattKlageinstans: LocalDate,
     val behandlingstidUnits: Int,
-    val behandlingstidUnitType: BehandlingstidUnitType,
+    val behandlingstidUnitType: TimeUnitType,
     val klager: PartId,
     val fullmektig: PartId?,
     val klageJournalpostId: String,

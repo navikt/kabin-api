@@ -2,7 +2,6 @@ package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
-import no.nav.klage.domain.BehandlingstidUnitType
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.service.DokArkivService
@@ -64,9 +63,6 @@ class CommonController(
         return when(inputType) {
             TimeUnitType.WEEKS -> input.fromDate.plusWeeks(input.varsletBehandlingstidUnits.toLong())
             TimeUnitType.MONTHS -> input.fromDate.plusMonths(input.varsletBehandlingstidUnits.toLong())
-            else -> {
-                throw IllegalStateException("Input type $inputType not supported")
-            }
         }
     }
 

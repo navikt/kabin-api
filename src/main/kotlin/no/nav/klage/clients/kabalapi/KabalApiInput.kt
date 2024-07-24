@@ -1,6 +1,5 @@
 package no.nav.klage.clients.kabalapi
 
-import no.nav.klage.domain.BehandlingstidUnitType
 import java.time.LocalDate
 import java.util.*
 
