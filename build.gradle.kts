@@ -6,7 +6,7 @@ val springRetryVersion = "2.0.6"
 val springDocVersion = "2.6.0"
 val springMockkVersion = "4.0.2"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "1.8.35"
+val klageKodeverkVersion = "1.8.36"
 
 plugins {
     val kotlinVersion = "2.0.0"

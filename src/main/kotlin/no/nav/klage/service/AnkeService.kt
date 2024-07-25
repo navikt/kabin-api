@@ -3,12 +3,8 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.toView
-import no.nav.klage.domain.BehandlingstidUnitType
 import no.nav.klage.domain.CreateAnkeInput
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Tema
-import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.*
 import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
@@ -46,8 +42,8 @@ class AnkeService(
     private fun createAnkeFromInfotrygdSak(input: CreateAnkeInput): UUID {
         val sakFromKlanke = klageFssProxyService.getSak(sakId = input.id)
         val frist = when(input.behandlingstidUnitType) {
-            BehandlingstidUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
-            BehandlingstidUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
+            TimeUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
+            TimeUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
         }
         val behandlingId = kabalApiService.createAnkeInKabalFromCompleteInput(
             input = input,
@@ -132,6 +128,8 @@ class AnkeService(
             mottattKlageinstans = response.mottattNav,
             frist = response.frist,
             varsletFrist = response.varsletFrist,
+            varsletFristUnits = response.varsletFristUnits,
+            varsletFristUnitTypeId = response.varsletFristUnitTypeId,
             fagsakId = response.fagsakId,
             fagsystemId = response.fagsystemId,
             journalpost = response.journalpost.toReceiptView(),

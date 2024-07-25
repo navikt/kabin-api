@@ -6,10 +6,10 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
-import no.nav.klage.domain.BehandlingstidUnitType
 import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.MulighetSource
@@ -121,8 +121,8 @@ class KabalApiService(
                 sourceBehandlingId = UUID.fromString(input.id),
                 mottattNav = input.mottattKlageinstans,
                 frist = when(input.behandlingstidUnitType) {
-                    BehandlingstidUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
-                    BehandlingstidUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
+                    TimeUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
+                    TimeUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
                 },
                 klager = input.klager.toOversendtPartId(),
                 fullmektig = input.fullmektig.toOversendtPartId(),
@@ -157,7 +157,7 @@ class KabalApiService(
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
                 customText = svarbrevInput.customText,
                 varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
-                varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType,
+                varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId ?: svarbrevInput.varsletBehandlingstidUnitType!!.id,
             )
         }
     }

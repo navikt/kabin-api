@@ -9,6 +9,7 @@ import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.service.KabalApiService
 import org.springframework.stereotype.Service
@@ -76,7 +77,7 @@ class ValidationUtil(
             )
         }
 
-        if (!(input.behandlingstidUnits != null && input.behandlingstidUnitType != null)) {
+        if (!(input.behandlingstidUnits != null && (input.behandlingstidUnitType != null || input.behandlingstidUnitTypeId != null ))) {
             saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingstidUnits.name,
                 reason = "Sett en frist."
@@ -146,7 +147,10 @@ class ValidationUtil(
             id = input.vedtak!!.id,
             mottattKlageinstans = input.mottattKlageinstans!!,
             behandlingstidUnits = input.behandlingstidUnits!!,
-            behandlingstidUnitType = input.behandlingstidUnitType!!,
+            behandlingstidUnitType = getTimeUnitType(
+                behandlingstidUnitTypeId = input.behandlingstidUnitTypeId,
+                behandlingstidUnitType = input.behandlingstidUnitType,
+            ),
             klager = input.klager!!,
             fullmektig = input.fullmektig,
             ankeDocumentJournalpostId = input.journalpostId!!,
@@ -207,7 +211,7 @@ class ValidationUtil(
             )
         }
 
-        if (!(input.behandlingstidUnits != null && input.behandlingstidUnitType != null)) {
+        if (!(input.behandlingstidUnits != null && (input.behandlingstidUnitType != null || input.behandlingstidUnitTypeId != null ))) {
             saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingstidUnits.name,
                 reason = "Sett en frist."
@@ -301,7 +305,10 @@ class ValidationUtil(
             mottattVedtaksinstans = input.mottattVedtaksinstans!!,
             mottattKlageinstans = input.mottattKlageinstans!!,
             behandlingstidUnits = input.behandlingstidUnits!!,
-            behandlingstidUnitType = input.behandlingstidUnitType!!,
+            behandlingstidUnitType = getTimeUnitType(
+                behandlingstidUnitTypeId = input.behandlingstidUnitTypeId,
+                behandlingstidUnitType = input.behandlingstidUnitType,
+            ),
             klager = input.klager!!,
             fullmektig = input.fullmektig,
             klageJournalpostId = input.journalpostId!!,
@@ -312,5 +319,16 @@ class ValidationUtil(
             oppgaveId = input.oppgaveId,
             svarbrevInput = input.svarbrevInput,
         )
+    }
+
+    private fun getTimeUnitType(
+        behandlingstidUnitTypeId: String?,
+        behandlingstidUnitType: TimeUnitType?
+    ): TimeUnitType {
+        return if (behandlingstidUnitTypeId != null) {
+            TimeUnitType.of(behandlingstidUnitTypeId)
+        } else {
+            behandlingstidUnitType!!
+        }
     }
 }

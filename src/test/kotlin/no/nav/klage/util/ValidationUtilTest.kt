@@ -31,6 +31,7 @@ class ValidationUtilTest {
             mottattKlageinstans = null,
             behandlingstidUnits = null,
             behandlingstidUnitType = null,
+            behandlingstidUnitTypeId = null,
             klager = null,
             fullmektig = null,
             journalpostId = null,

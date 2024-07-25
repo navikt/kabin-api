@@ -1,13 +1,14 @@
 package no.nav.klage.api.controller.view
 
-import no.nav.klage.domain.BehandlingstidUnitType
+import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
 import java.util.*
 
 data class CreateAnkeInputView(
     val mottattKlageinstans: LocalDate?,
     val behandlingstidUnits: Int?,
-    val behandlingstidUnitType: BehandlingstidUnitType?,
+    val behandlingstidUnitType: TimeUnitType?,
+    val behandlingstidUnitTypeId: String?,
     val klager: PartId?,
     val fullmektig: PartId?,
     val journalpostId: String?,
@@ -28,7 +29,8 @@ data class CreateKlageInputView(
     val mottattVedtaksinstans: LocalDate?,
     val mottattKlageinstans: LocalDate?,
     val behandlingstidUnits: Int?,
-    val behandlingstidUnitType: BehandlingstidUnitType?,
+    val behandlingstidUnitType: TimeUnitType?,
+    val behandlingstidUnitTypeId: String?,
     val klager: PartId?,
     val fullmektig: PartId?,
     val journalpostId: String?,
