@@ -77,7 +77,7 @@ class ValidationUtil(
             )
         }
 
-        if (!(input.behandlingstidUnits != null && input.behandlingstidUnitType != null)) {
+        if (!(input.behandlingstidUnits != null && (input.behandlingstidUnitType != null || input.behandlingstidUnitTypeId != null ))) {
             saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingstidUnits.name,
                 reason = "Sett en frist."
@@ -211,7 +211,7 @@ class ValidationUtil(
             )
         }
 
-        if (!(input.behandlingstidUnits != null && input.behandlingstidUnitType != null)) {
+        if (!(input.behandlingstidUnits != null && (input.behandlingstidUnitType != null || input.behandlingstidUnitTypeId != null ))) {
             saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingstidUnits.name,
                 reason = "Sett en frist."
