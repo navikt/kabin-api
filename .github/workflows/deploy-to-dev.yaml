@@ -2,11 +2,23 @@ name: Manual deploy to dev
 
 on:
   workflow_call:
+    inputs:
+      e2e_tag:
+        description: "Tag of E2E image to run"
+        required: false
+        default: latest
+        type: string
     secrets:
       NAIS_WORKLOAD_IDENTITY_PROVIDER:
         description: "Identity provider for nais/docker-build-push"
         required: true
   workflow_dispatch:
+    inputs:
+      e2e_tag:
+        description: "Tag of E2E image to run"
+        required: false
+        default: latest
+        type: string
 
 run-name: Dev deploy of ${{ github.ref_name }}
 
@@ -98,3 +110,17 @@ jobs:
           MESSAGE: "Deploy til dev feilet"
           CHANNEL: "#klage-notifications"
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+  e2e_test:
+    name: E2E
+    needs: deploy_to_dev
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: E2E
+        uses: navikt/kabin-e2e-tests/.github/actions/run@main
+        with:
+          e2e_tag: ${{ inputs.e2e_tag }}
+          nais_management_project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          nais_workload_identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
