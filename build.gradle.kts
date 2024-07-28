@@ -7,11 +7,13 @@ val springDocVersion = "2.6.0"
 val springMockkVersion = "4.0.2"
 val logbackSyslog4jVersion = "1.0.0"
 val klageKodeverkVersion = "1.8.36"
+val testContainersVersion = "1.20.0"
+val otelVersion = "1.40.0"
 
 plugins {
     val kotlinVersion = "2.0.0"
-    id("org.springframework.boot") version "3.3.1"
-    id("io.spring.dependency-management") version "1.1.5"
+    id("org.springframework.boot") version "3.3.2"
+    id("io.spring.dependency-management") version "1.1.6"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
@@ -33,12 +35,19 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("com.zaxxer:HikariCP")
+    implementation("org.postgresql:postgresql")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
-    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
 
     implementation("javax.cache:cache-api")
 
@@ -58,6 +67,10 @@ dependencies {
         exclude(group = "org.junit.vintage")
         exclude(group = "org.mockito")
     }
+
+    testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+    testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
 
