@@ -62,3 +62,11 @@ fun PartId?.toOversendtPartId(): OversendtPartId? {
     }
 }
 
+//////////////////////// new inputs ////////////////////////
+
+data class CreateRegistrering(
+    val sakenGjelderValue: String,
+)
+
+data class JournalpostIdInput(val journalpostId: String?)
+

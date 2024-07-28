@@ -45,7 +45,8 @@ CREATE TABLE klage.registrering
     svarbrev_fullmektig_fritekst         TEXT,
     created                              TIMESTAMP        NOT NULL,
     modified                             TIMESTAMP        NOT NULL,
-    created_by                           TEXT             NOT NULL
+    created_by                           TEXT             NOT NULL,
+    finished                             TIMESTAMP
 );
 
 CREATE TABLE klage.svarbrev_receiver
@@ -54,7 +55,9 @@ CREATE TABLE klage.svarbrev_receiver
     part_type       TEXT,
     part_value      TEXT,
     handling        TEXT,
-    adresslinje1    TEXT,
+    adresselinje1   TEXT,
+    adresselinje2   TEXT,
+    adresselinje3   TEXT,
     postnummer      TEXT,
     landkode        TEXT,
     registrering_id UUID REFERENCES klage.registrering (id) ON DELETE CASCADE

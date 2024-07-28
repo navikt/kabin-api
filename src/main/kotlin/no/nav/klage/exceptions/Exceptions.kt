@@ -16,3 +16,5 @@ class IllegalUpdateException(override val message: String): RuntimeException(mes
 class IllegalInputException(override val message: String): RuntimeException(message)
 
 class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)
+
+class RegistreringNotFoundException(msg: String) : RuntimeException(msg)

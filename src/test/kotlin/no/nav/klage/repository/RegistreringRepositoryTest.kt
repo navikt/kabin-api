@@ -13,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 @ActiveProfiles("local")
@@ -67,7 +68,9 @@ class RegistreringRepositoryTest {
                         ),
                         handling = HandlingEnum.AUTO,
                         overriddenAddress = Address(
-                            addressLine1 = "addressLine1",
+                            adresselinje1 = "addressLine1",
+                            adresselinje2 = "addressLine2",
+                            adresselinje3 = "addressLine3",
                             postnummer = "1234",
                             landkode = "NO"
                         )
@@ -79,13 +82,16 @@ class RegistreringRepositoryTest {
                         ),
                         handling = HandlingEnum.AUTO,
                         overriddenAddress = Address(
-                            addressLine1 = "addr",
+                            adresselinje1 = "addr",
+                            adresselinje2 = "rsdtdstst",
+                            adresselinje3 = "addressdthdthdthsLine3",
                             postnummer = "0123",
                             landkode = "NO"
                         )
                     )
                 ),
-                createdBy = "S123456"
+                createdBy = "S123456",
+                finished = LocalDateTime.now(),
             )
         )
 
@@ -137,14 +143,14 @@ class RegistreringRepositoryTest {
         assertThat(firstSvarbrevReceiver.id).isEqualTo(registrering.svarbrevReceivers.first().id)
         assertThat(firstSvarbrevReceiver.part).isEqualTo(registrering.svarbrevReceivers.first().part)
         assertThat(firstSvarbrevReceiver.handling).isEqualTo(registrering.svarbrevReceivers.first().handling)
-        assertThat(firstSvarbrevReceiver.overriddenAddress!!.addressLine1).isEqualTo(registrering.svarbrevReceivers.first().overriddenAddress!!.addressLine1)
+        assertThat(firstSvarbrevReceiver.overriddenAddress!!.adresselinje1).isEqualTo(registrering.svarbrevReceivers.first().overriddenAddress!!.adresselinje1)
         assertThat(firstSvarbrevReceiver.overriddenAddress!!.postnummer).isEqualTo(registrering.svarbrevReceivers.first().overriddenAddress!!.postnummer)
         assertThat(firstSvarbrevReceiver.overriddenAddress!!.landkode).isEqualTo(registrering.svarbrevReceivers.first().overriddenAddress!!.landkode)
 
         assertThat(secondSvarbrevReceiver.id).isEqualTo(registrering.svarbrevReceivers.last().id)
         assertThat(secondSvarbrevReceiver.part).isEqualTo(registrering.svarbrevReceivers.last().part)
         assertThat(secondSvarbrevReceiver.handling).isEqualTo(registrering.svarbrevReceivers.last().handling)
-        assertThat(secondSvarbrevReceiver.overriddenAddress!!.addressLine1).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.addressLine1)
+        assertThat(secondSvarbrevReceiver.overriddenAddress!!.adresselinje1).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.adresselinje1)
         assertThat(secondSvarbrevReceiver.overriddenAddress!!.postnummer).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.postnummer)
         assertThat(secondSvarbrevReceiver.overriddenAddress!!.landkode).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.landkode)
     }
