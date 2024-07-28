@@ -13,9 +13,7 @@ spring:
   codec:
     max-in-memory-size: 256MB
   datasource:
-    url: jdbc:postgresql://${NAIS_DATABASE_KABIN_API_KABIN_API_HOST}:${NAIS_DATABASE_KABIN_API_KABIN_API_PORT}/${NAIS_DATABASE_KABIN_API_KABIN_API_DATABASE}
-    username: ${NAIS_DATABASE_KABIN_API_KABIN_API_USERNAME}
-    password: ${NAIS_DATABASE_KABIN_API_KABIN_API_PASSWORD}
+    url: ${NAIS_DATABASE_KABIN_API_MYDB_JDBC_URL}
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
