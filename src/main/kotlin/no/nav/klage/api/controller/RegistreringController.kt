@@ -45,8 +45,7 @@ class RegistreringController(
             logger = logger,
         )
 
-        return registreringService.getRegistreringer(
-            fullfoert = true,
+        return registreringService.getFerdigeRegistreringer(
             sidenDager = sidenDager,
         )
     }
@@ -60,10 +59,7 @@ class RegistreringController(
             logger = logger,
         )
 
-        return registreringService.getRegistreringer(
-            fullfoert = false,
-            sidenDager = 1_000,
-        )
+        return registreringService.getUferdigeRegistreringer()
     }
 
     @GetMapping("/{id}")

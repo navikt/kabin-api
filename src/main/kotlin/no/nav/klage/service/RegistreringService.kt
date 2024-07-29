@@ -11,6 +11,7 @@ import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -60,12 +61,20 @@ class RegistreringService(
             .toRegistreringView()
     }
 
-    fun getRegistreringer(
-        fullfoert: Boolean,
+    fun getFerdigeRegistreringer(
         sidenDager: Int?,
     ): List<RegistreringView> {
-        //TODO: Implement filtering
-        return registreringRepository.findAll().map { it.toRegistreringView() }
+        return registreringRepository.findFerdigeRegistreringer(
+            navIdent = tokenUtil.getCurrentIdent(),
+            finishedFrom = LocalDateTime.now().minusDays(sidenDager?.toLong() ?: 31)
+        ).map { it.toRegistreringView() }
+    }
+
+    fun getUferdigeRegistreringer(
+    ): List<RegistreringView> {
+        return registreringRepository.findUferdigeRegistreringer(
+            navIdent = tokenUtil.getCurrentIdent(),
+        ).map { it.toRegistreringView() }
     }
 
     fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput) {

@@ -155,4 +155,140 @@ class RegistreringRepositoryTest {
         assertThat(secondSvarbrevReceiver.overriddenAddress!!.landkode).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.landkode)
     }
 
+    @Test
+    fun `ferdige registreringer works`() {
+        testEntityManager.persistAndFlush(
+            Registrering(
+                sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678910"),
+                klager = PartId(type = PartIdType.PERSON, value = "22345678910"),
+                fullmektig = PartId(type = PartIdType.PERSON, value = "32345678910"),
+                avsender = PartId(type = PartIdType.PERSON, value = "42345678910"),
+                journalpostId = "123456789",
+                type = Type.KLAGE,
+                mulighetId = "123",
+                mulighetFagsystem = Fagsystem.KABAL,
+                mottattVedtaksinstans = LocalDate.now(),
+                mottattKlageinstans = LocalDate.now(),
+                behandlingstidUnits = 12,
+                behandlingstidUnitType = TimeUnitType.WEEKS,
+                hjemmelIdList = listOf("123", "456"),
+                ytelse = Ytelse.OMS_PSB,
+                saksbehandlerIdent = "S223456",
+                oppgaveId = "923456789",
+                sendSvarbrev = true,
+                svarbrevTitle = "a title",
+                svarbrevCustomText = "custom text",
+                svarbrevBehandlingstidUnits = 5,
+                svarbrevBehandlingstidUnitType = TimeUnitType.MONTHS,
+                svarbrevFullmektigFritekst = "fullmektig fritekst",
+                svarbrevReceivers = mutableSetOf(
+                    SvarbrevReceiver(
+                        part = PartId(
+                            type = PartIdType.PERSON,
+                            value = "52345678910"
+                        ),
+                        handling = HandlingEnum.AUTO,
+                        overriddenAddress = Address(
+                            adresselinje1 = "addressLine1",
+                            adresselinje2 = "addressLine2",
+                            adresselinje3 = "addressLine3",
+                            postnummer = "1234",
+                            landkode = "NO"
+                        )
+                    ),
+                    SvarbrevReceiver(
+                        part = PartId(
+                            type = PartIdType.VIRKSOMHET,
+                            value = "123456789"
+                        ),
+                        handling = HandlingEnum.AUTO,
+                        overriddenAddress = Address(
+                            adresselinje1 = "addr",
+                            adresselinje2 = "rsdtdstst",
+                            adresselinje3 = "addressdthdthdthsLine3",
+                            postnummer = "0123",
+                            landkode = "NO"
+                        )
+                    )
+                ),
+                createdBy = "S223456",
+                finished = LocalDateTime.now(),
+            )
+        )
+
+        testEntityManager.clear()
+
+        val registreringerFromDb = registreringRepository.findFerdigeRegistreringer(navIdent = "S223456", finishedFrom = LocalDateTime.now().minusDays(1))
+
+        assertThat(registreringerFromDb).hasSize(1)
+    }
+
+    @Test
+    fun `uferdige registreringer works`() {
+        testEntityManager.persistAndFlush(
+            Registrering(
+                sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678910"),
+                klager = PartId(type = PartIdType.PERSON, value = "22345678910"),
+                fullmektig = PartId(type = PartIdType.PERSON, value = "32345678910"),
+                avsender = PartId(type = PartIdType.PERSON, value = "42345678910"),
+                journalpostId = "123456789",
+                type = Type.KLAGE,
+                mulighetId = "123",
+                mulighetFagsystem = Fagsystem.KABAL,
+                mottattVedtaksinstans = LocalDate.now(),
+                mottattKlageinstans = LocalDate.now(),
+                behandlingstidUnits = 12,
+                behandlingstidUnitType = TimeUnitType.WEEKS,
+                hjemmelIdList = listOf("123", "456"),
+                ytelse = Ytelse.OMS_PSB,
+                saksbehandlerIdent = "S223456",
+                oppgaveId = "923456789",
+                sendSvarbrev = true,
+                svarbrevTitle = "a title",
+                svarbrevCustomText = "custom text",
+                svarbrevBehandlingstidUnits = 5,
+                svarbrevBehandlingstidUnitType = TimeUnitType.MONTHS,
+                svarbrevFullmektigFritekst = "fullmektig fritekst",
+                svarbrevReceivers = mutableSetOf(
+                    SvarbrevReceiver(
+                        part = PartId(
+                            type = PartIdType.PERSON,
+                            value = "52345678910"
+                        ),
+                        handling = HandlingEnum.AUTO,
+                        overriddenAddress = Address(
+                            adresselinje1 = "addressLine1",
+                            adresselinje2 = "addressLine2",
+                            adresselinje3 = "addressLine3",
+                            postnummer = "1234",
+                            landkode = "NO"
+                        )
+                    ),
+                    SvarbrevReceiver(
+                        part = PartId(
+                            type = PartIdType.VIRKSOMHET,
+                            value = "123456789"
+                        ),
+                        handling = HandlingEnum.AUTO,
+                        overriddenAddress = Address(
+                            adresselinje1 = "addr",
+                            adresselinje2 = "rsdtdstst",
+                            adresselinje3 = "addressdthdthdthsLine3",
+                            postnummer = "0123",
+                            landkode = "NO"
+                        )
+                    )
+                ),
+                createdBy = "S223456",
+                finished = null,
+            )
+        )
+
+        testEntityManager.clear()
+
+        val registreringerFromDb = registreringRepository.findUferdigeRegistreringer(navIdent = "S223456")
+
+        assertThat(registreringerFromDb).hasSize(1)
+    }
+
 }
