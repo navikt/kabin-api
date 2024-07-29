@@ -349,6 +349,7 @@ class RegistreringService(
         created = created,
         modified = modified,
         createdBy = createdBy,
+        finished = finished,
     )
 
     private fun Registrering.partViewWithUtsendingskanal(identifikator: String?) =

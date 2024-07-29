@@ -15,6 +15,7 @@ data class RegistreringView(
     val created: LocalDateTime,
     val modified: LocalDateTime,
     val createdBy: String,
+    val finished: LocalDateTime?,
 ) {
     data class MulighetView(
         val id: String,
