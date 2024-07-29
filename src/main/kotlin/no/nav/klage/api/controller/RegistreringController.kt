@@ -352,4 +352,16 @@ class RegistreringController(
         registreringService.setSvarbrevReceivers(registreringId = id, input = input)
     }
 
+    @PostMapping("/{id}/ferdigstill")
+    fun finishRegistrering(
+        @PathVariable id: UUID,
+    ) {
+        logMethodDetails(
+            methodName = ::finishRegistrering.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        TODO()
+    }
+
 }
