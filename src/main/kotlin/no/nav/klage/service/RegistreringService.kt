@@ -61,7 +61,6 @@ class RegistreringService(
     }
 
     fun getRegistreringer(
-        navIdent: String,
         fullfoert: Boolean,
         sidenDager: Int?,
     ): List<RegistreringView> {
@@ -371,5 +370,9 @@ class RegistreringService(
                 )
             ).partViewWithUtsendingskanal()
         } else null
+
+    fun deleteRegistrering(registreringId: UUID) {
+        registreringRepository.deleteById(registreringId)
+    }
 
 }

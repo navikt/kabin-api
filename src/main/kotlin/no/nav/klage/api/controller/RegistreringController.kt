@@ -35,22 +35,34 @@ class RegistreringController(
         registreringService.createRegistrering()
     }
 
-    @GetMapping
-    fun getRegistreringer(
-        @RequestParam navIdent: String,
-        @RequestParam fullfoert: Boolean,
+    @GetMapping("/ferdige")
+    fun getRegistreringerFerdige(
         @RequestParam(required = false) sidenDager: Int?,
     ): List<RegistreringView> {
         logMethodDetails(
-            methodName = ::getRegistreringer.name,
+            methodName = ::getRegistreringerFerdige.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
         return registreringService.getRegistreringer(
-            navIdent = navIdent,
-            fullfoert = fullfoert,
+            fullfoert = true,
             sidenDager = sidenDager,
+        )
+    }
+
+    @GetMapping("/uferdige")
+    fun getRegistreringerUferdige(
+    ): List<RegistreringView> {
+        logMethodDetails(
+            methodName = ::getRegistreringerUferdige.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        return registreringService.getRegistreringer(
+            fullfoert = false,
+            sidenDager = 1_000,
         )
     }
 
@@ -65,6 +77,21 @@ class RegistreringController(
         )
 
         return registreringService.getRegistrering(
+            registreringId = id
+        )
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteRegistrering(
+        @PathVariable id: UUID,
+    ) {
+        logMethodDetails(
+            methodName = ::deleteRegistrering.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        registreringService.deleteRegistrering(
             registreringId = id
         )
     }

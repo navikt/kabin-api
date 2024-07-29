@@ -12,7 +12,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
@@ -32,8 +31,6 @@ class DokumentController(
     @PostMapping("/arkivertedokumenter", produces = ["application/json"])
     fun fetchDokumenter(
         @RequestBody input: IdnummerInput,
-        @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
         @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
     ): DokumenterResponse {
         logMethodDetails(
@@ -45,8 +42,6 @@ class DokumentController(
         return documentService.fetchDokumentlisteForBruker(
             idnummer = input.idnummer,
             temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
-            pageSize = pageSize,
-            previousPageRef = previousPageRef
         ).also {
             auditLogger.log(
                 AuditLogEvent(

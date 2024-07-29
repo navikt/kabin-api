@@ -28,8 +28,8 @@ class DocumentService(
     fun fetchDokumentlisteForBruker(
         idnummer: String,
         temaer: List<Tema>,
-        pageSize: Int,
-        previousPageRef: String?
+        pageSize: Int = 50_000,
+        previousPageRef: String? = null,
     ): DokumenterResponse {
         if (idnummer.length == 11) {
             val dokumentoversiktBruker: DokumentoversiktBruker =
@@ -54,16 +54,9 @@ class DocumentService(
 
             return DokumenterResponse(
                 dokumenter = dokumenter,
-                pageReference = if (dokumentoversiktBruker.sideInfo.finnesNesteSide) {
-                    dokumentoversiktBruker.sideInfo.sluttpeker
-                } else {
-                    null
-                },
-                antall = dokumentoversiktBruker.sideInfo.antall,
-                totaltAntall = dokumentoversiktBruker.sideInfo.totaltAntall
             )
         } else {
-            return DokumenterResponse(dokumenter = emptyList(), pageReference = null, antall = 0, totaltAntall = 0)
+            return DokumenterResponse(dokumenter = emptyList())
         }
     }
 
