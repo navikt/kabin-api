@@ -32,9 +32,7 @@ class RegistreringController(
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.createRegistrering(
-            createdBy = tokenUtil.getCurrentIdent(),
-        )
+        registreringService.createRegistrering()
     }
 
     @GetMapping
@@ -69,6 +67,19 @@ class RegistreringController(
         return registreringService.getRegistrering(
             registreringId = id
         )
+    }
+
+    @PutMapping("/{id}/saken-gjelder-value")
+    fun updateSakenGjelderValue(
+        @PathVariable id: UUID,
+        @RequestBody input: SakenGjelderValueInput
+    ) {
+        logMethodDetails(
+            methodName = ::updateSakenGjelderValue.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        registreringService.setSakenGjelderValue(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/journalpost-id")

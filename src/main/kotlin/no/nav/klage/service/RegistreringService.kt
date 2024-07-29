@@ -8,6 +8,7 @@ import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.exceptions.RegistreringNotFoundException
 import no.nav.klage.kodeverk.*
 import no.nav.klage.repository.RegistreringRepository
+import no.nav.klage.util.TokenUtil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -17,16 +18,15 @@ import java.util.*
 class RegistreringService(
     private val registreringRepository: RegistreringRepository,
     private val kabalApiClient: KabalApiClient,
+    private val tokenUtil: TokenUtil,
 ) {
 
-    fun createRegistrering(
-        createdBy: String,
-    ) {
+    fun createRegistrering() {
         registreringRepository.save(
             Registrering(
-                sakenGjelder = null,
-                createdBy = createdBy,
+                createdBy = tokenUtil.getCurrentIdent(),
                 //defaults
+                sakenGjelder = null,
                 klager = null,
                 fullmektig = null,
                 avsender = null,
@@ -67,6 +67,19 @@ class RegistreringService(
     ): List<RegistreringView> {
         //TODO: Implement filtering
         return registreringRepository.findAll().map { it.toRegistreringView() }
+    }
+
+    fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                sakenGjelder = input.sakenGjelderValue?.let { sakenGjelderValue ->
+                    PartId(
+                        value = sakenGjelderValue,
+                        type = PartIdType.PERSON
+                    )
+                }
+            }
     }
 
     fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput) {

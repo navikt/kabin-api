@@ -65,7 +65,7 @@ fun PartIdInput?.toOversendtPartId(): OversendtPartId? {
 
 //////////////////////// new inputs ////////////////////////
 
-data class CreateRegistreringInput(val sakenGjelderValue: String)
+data class SakenGjelderValueInput(val sakenGjelderValue: String?)
 
 data class JournalpostIdInput(val journalpostId: String?)
 
