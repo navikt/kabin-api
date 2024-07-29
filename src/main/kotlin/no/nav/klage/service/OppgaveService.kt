@@ -34,8 +34,8 @@ class OppgaveService(
             aktoerId = aktoerId,
             tema = tema,
         )
-
-        return oppgaveList.map { it.toOppgaveView() }
+        //TODO: Legg til filter i spørringen mot oppgave-api
+        return oppgaveList.map { it.toOppgaveView() }.filter { it.oppgavetype != "Journalføring" }
     }
 
     fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
