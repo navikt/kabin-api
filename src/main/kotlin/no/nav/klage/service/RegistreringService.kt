@@ -1,13 +1,12 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.JournalpostIdInput
-import no.nav.klage.api.controller.view.RegistreringView
-import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
+import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.exceptions.RegistreringNotFoundException
-import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.*
 import no.nav.klage.repository.RegistreringRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -79,6 +78,216 @@ class RegistreringService(
             .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
             .apply {
                 journalpostId = input.journalpostId
+            }
+    }
+
+    fun setTypeId(registreringId: UUID, input: TypeIdInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                type = input.typeId?.let { typeId ->
+                    Type.of(typeId)
+                }
+            }
+    }
+
+    fun setMulighet(registreringId: UUID, input: MulighetInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                mulighetId = input.mulighetId
+                mulighetFagsystem = Fagsystem.of(input.fagsystemId)
+            }
+    }
+
+    fun setMottattVedtaksinstans(registreringId: UUID, input: MottattVedtaksinstansInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                mottattVedtaksinstans = input.mottattVedtaksinstans
+            }
+    }
+
+    fun setMottattKlageinstans(registreringId: UUID, input: MottattKlageinstansInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                mottattKlageinstans = input.mottattKlageinstans
+            }
+    }
+
+    fun setBehandlingstid(registreringId: UUID, input: BehandlingstidInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                behandlingstidUnits = input.units
+                behandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
+            }
+    }
+
+    fun setHjemmelIdList(registreringId: UUID, input: HjemmelIdListInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                hjemmelIdList = input.hjemmelIdList
+            }
+    }
+
+    fun setYtelseId(registreringId: UUID, input: YtelseIdInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                ytelse = input.ytelseId?.let { ytelseId ->
+                    Ytelse.of(ytelseId)
+                }
+            }
+    }
+
+    fun setFullmektig(registreringId: UUID, input: PartIdInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                fullmektig = PartId(
+                    value = input.id,
+                    type = when (input.type) {
+                        PartType.FNR -> {
+                            PartIdType.PERSON
+                        }
+
+                        PartType.ORGNR -> {
+                            PartIdType.VIRKSOMHET
+                        }
+                    }
+                )
+            }
+    }
+
+    fun setKlager(registreringId: UUID, input: PartIdInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                klager = PartId(
+                    value = input.id,
+                    type = when (input.type) {
+                        PartType.FNR -> {
+                            PartIdType.PERSON
+                        }
+
+                        PartType.ORGNR -> {
+                            PartIdType.VIRKSOMHET
+                        }
+                    }
+                )
+            }
+    }
+
+    fun setAvsender(registreringId: UUID, input: PartIdInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                avsender = PartId(
+                    value = input.id,
+                    type = when (input.type) {
+                        PartType.FNR -> {
+                            PartIdType.PERSON
+                        }
+
+                        PartType.ORGNR -> {
+                            PartIdType.VIRKSOMHET
+                        }
+                    }
+                )
+            }
+    }
+
+    fun setSaksbehandlerIdent(registreringId: UUID, input: SaksbehandlerIdentInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                saksbehandlerIdent = input.saksbehandlerIdent
+            }
+    }
+
+    fun setOppgaveId(registreringId: UUID, input: OppgaveIdInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                oppgaveId = input.oppgaveId
+            }
+    }
+
+    fun setSendSvarbrev(registreringId: UUID, input: SendSvarbrevInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                sendSvarbrev = input.send
+            }
+    }
+
+    fun setSvarbrevTitle(registreringId: UUID, input: SvarbrevTitleInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                svarbrevTitle = input.title
+            }
+    }
+
+    fun setSvarbrevCustomText(registreringId: UUID, input: SvarbrevCustomTextInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                svarbrevCustomText = input.customText
+            }
+    }
+
+    fun setSvarbrevBehandlingstid(registreringId: UUID, input: BehandlingstidInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                svarbrevBehandlingstidUnits = input.units
+                svarbrevBehandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
+            }
+    }
+
+    fun setSvarbrevFullmektigFritekst(registreringId: UUID, input: SvarbrevFullmektigFritekstInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                svarbrevFullmektigFritekst = input.fullmektigFritekst
+            }
+    }
+
+    fun setSvarbrevReceivers(registreringId: UUID, input: SvarbrevReceiversInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                svarbrevReceivers.clear()
+                svarbrevReceivers.addAll(input.receivers.map { receiver ->
+                    SvarbrevReceiver(
+                        part = PartId(
+                            value = receiver.part.id,
+                            type = when (receiver.part.type) {
+                                PartType.FNR -> {
+                                    PartIdType.PERSON
+                                }
+
+                                PartType.ORGNR -> {
+                                    PartIdType.VIRKSOMHET
+                                }
+                            }
+                        ),
+                        handling = receiver.handling,
+                        overriddenAddress = receiver.overriddenAddress?.let { address ->
+                            no.nav.klage.domain.entities.Address(
+                                adresselinje1 = address.adresselinje1,
+                                adresselinje2 = address.adresselinje2,
+                                adresselinje3 = address.adresselinje3,
+                                landkode = address.landkode,
+                                postnummer = address.postnummer,
+                            )
+                        }
+                    )
+                })
             }
     }
 

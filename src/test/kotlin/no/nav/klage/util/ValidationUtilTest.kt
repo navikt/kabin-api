@@ -1,11 +1,8 @@
 package no.nav.klage.util
 
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.api.controller.view.CreateAnkeInputView
-import no.nav.klage.api.controller.view.PartId
-import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.Vedtak
 import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.service.KabalApiService

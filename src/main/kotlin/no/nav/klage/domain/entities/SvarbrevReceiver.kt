@@ -15,7 +15,7 @@ class SvarbrevReceiver(
             AttributeOverride(name = "value", column = Column(name = "part_value"))
         ]
     )
-    val part: PartId?,
+    val part: PartId,
     //TODO: should be kodeverk?
     @Column(name = "handling")
     @Enumerated(EnumType.STRING)
