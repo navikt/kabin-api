@@ -26,16 +26,13 @@ class RegistreringController(
     }
 
     @PostMapping
-    fun createRegistrering(
-        @RequestBody input: CreateRegistreringInput
-    ) {
+    fun createRegistrering() {
         logMethodDetails(
             methodName = ::createRegistrering.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
         registreringService.createRegistrering(
-            sakenGjelderValue = input.sakenGjelderValue,
             createdBy = tokenUtil.getCurrentIdent(),
         )
     }

@@ -6,7 +6,7 @@ import java.util.*
 
 data class RegistreringView(
     val id: UUID,
-    val sakenGjelderValue: String,
+    val sakenGjelderValue: String?,
     val journalpostId: String?,
     val typeId: String?,
     val mulighet: MulighetView?,

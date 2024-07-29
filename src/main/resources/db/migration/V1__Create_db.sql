@@ -17,8 +17,8 @@ $$;
 CREATE TABLE klage.registrering
 (
     id                                   UUID PRIMARY KEY NOT NULL,
-    saken_gjelder_type                   TEXT             NOT NULL,
-    saken_gjelder_value                  TEXT             NOT NULL,
+    saken_gjelder_type                   TEXT,
+    saken_gjelder_value                  TEXT,
     klager_type                          TEXT,
     klager_value                         TEXT,
     fullmektig_type                      TEXT,

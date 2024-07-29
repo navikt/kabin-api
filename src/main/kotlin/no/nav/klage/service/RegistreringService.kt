@@ -20,15 +20,11 @@ class RegistreringService(
 ) {
 
     fun createRegistrering(
-        sakenGjelderValue: String,
         createdBy: String,
     ) {
         registreringRepository.save(
             Registrering(
-                sakenGjelder = PartId(
-                    value = sakenGjelderValue,
-                    type = PartIdType.PERSON,
-                ),
+                sakenGjelder = null,
                 createdBy = createdBy,
                 //defaults
                 klager = null,
@@ -294,7 +290,7 @@ class RegistreringService(
     private fun Registrering.toRegistreringView() = RegistreringView(
         id = id,
         journalpostId = journalpostId,
-        sakenGjelderValue = sakenGjelder.value,
+        sakenGjelderValue = sakenGjelder?.value,
         typeId = type?.id,
         mulighet = if (mulighetId != null) {
             RegistreringView.MulighetView(
@@ -357,7 +353,7 @@ class RegistreringService(
             kabalApiClient.searchPartWithUtsendingskanal(
                 searchPartInput = SearchPartWithUtsendingskanalInput(
                     identifikator = identifikator,
-                    sakenGjelderId = sakenGjelder.value,
+                    sakenGjelderId = sakenGjelder!!.value,
                     ytelseId = ytelse!!.id
                 )
             ).partViewWithUtsendingskanal()

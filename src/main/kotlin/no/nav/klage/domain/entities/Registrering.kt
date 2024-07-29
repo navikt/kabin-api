@@ -20,7 +20,7 @@ class Registrering(
             AttributeOverride(name = "value", column = Column(name = "saken_gjelder_value"))
         ]
     )
-    val sakenGjelder: PartId,
+    val sakenGjelder: PartId?,
     @Embedded
     @AttributeOverrides(
         value = [
