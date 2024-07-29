@@ -34,7 +34,7 @@ class OppgaveService(
             aktoerId = aktoerId,
             tema = tema,
         )
-
+        //TODO: Legg til filter i spørringen mot oppgave-api
         return oppgaveList.map { it.toOppgaveView() }.filter { it.oppgavetype != "Journalføring" }
     }
 
