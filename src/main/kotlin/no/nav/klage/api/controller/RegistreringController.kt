@@ -109,13 +109,13 @@ class RegistreringController(
     fun updateJournalpostId(
         @PathVariable id: UUID,
         @RequestBody input: JournalpostIdInput
-    ) {
+    ): RegistreringView {
         logMethodDetails(
             methodName = ::updateJournalpostId.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setJournalpostId(registreringId = id, input = input)
+        return registreringService.setJournalpostId(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/type-id")

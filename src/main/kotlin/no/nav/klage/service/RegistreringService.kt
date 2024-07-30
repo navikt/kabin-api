@@ -119,8 +119,8 @@ class RegistreringService(
         return registrering.toRegistreringView()
     }
 
-    fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): RegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 journalpostId = input.journalpostId
 
@@ -149,16 +149,12 @@ class RegistreringService(
                 svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
             }
+
+        return registrering.toRegistreringView()
     }
 
     fun setTypeId(registreringId: UUID, input: TypeIdInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
-            .also {
-                if (it.finished != null) {
-                    throw IllegalUpdateException("Registrering er allerede ferdigstilt")
-                }
-            }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
@@ -167,13 +163,7 @@ class RegistreringService(
     }
 
     fun setMulighet(registreringId: UUID, input: MulighetInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
-            .also {
-                if (it.finished != null) {
-                    throw IllegalUpdateException("Registrering er allerede ferdigstilt")
-                }
-            }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 mulighetId = input.mulighetId
                 mulighetFagsystem = Fagsystem.of(input.fagsystemId)
@@ -181,34 +171,21 @@ class RegistreringService(
     }
 
     fun setMottattVedtaksinstans(registreringId: UUID, input: MottattVedtaksinstansInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
-            .also {
-                if (it.finished != null) {
-                    throw IllegalUpdateException("Registrering er allerede ferdigstilt")
-                }
-            }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 mottattVedtaksinstans = input.mottattVedtaksinstans
             }
     }
 
     fun setMottattKlageinstans(registreringId: UUID, input: MottattKlageinstansInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
-            .also {
-                if (it.finished != null) {
-                    throw IllegalUpdateException("Registrering er allerede ferdigstilt")
-                }
-            }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 mottattKlageinstans = input.mottattKlageinstans
             }
     }
 
     fun setBehandlingstid(registreringId: UUID, input: BehandlingstidInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 behandlingstidUnits = input.units
                 behandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
@@ -216,16 +193,14 @@ class RegistreringService(
     }
 
     fun setHjemmelIdList(registreringId: UUID, input: HjemmelIdListInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 hjemmelIdList = input.hjemmelIdList
             }
     }
 
     fun setYtelseId(registreringId: UUID, input: YtelseIdInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 ytelse = input.ytelseId?.let { ytelseId ->
                     Ytelse.of(ytelseId)
@@ -234,8 +209,7 @@ class RegistreringService(
     }
 
     fun setFullmektig(registreringId: UUID, input: PartIdInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 fullmektig = PartId(
                     value = input.id,
@@ -253,8 +227,7 @@ class RegistreringService(
     }
 
     fun setKlager(registreringId: UUID, input: PartIdInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 klager = PartId(
                     value = input.id,
@@ -272,8 +245,7 @@ class RegistreringService(
     }
 
     fun setAvsender(registreringId: UUID, input: PartIdInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 avsender = PartId(
                     value = input.id,
@@ -291,64 +263,56 @@ class RegistreringService(
     }
 
     fun setSaksbehandlerIdent(registreringId: UUID, input: SaksbehandlerIdentInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 saksbehandlerIdent = input.saksbehandlerIdent
             }
     }
 
     fun setOppgaveId(registreringId: UUID, input: OppgaveIdInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 oppgaveId = input.oppgaveId
             }
     }
 
     fun setSendSvarbrev(registreringId: UUID, input: SendSvarbrevInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 sendSvarbrev = input.send
             }
     }
 
     fun setSvarbrevOverrideCustomText(registreringId: UUID, input: SvarbrevOverrideCustomTextInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevCustomText = input.overrideCustomText
             }
     }
 
     fun setSvarbrevOverrideBehandlingstid(registreringId: UUID, input: SvarbrevOverrideBehandlingstidInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
             }
     }
 
     fun setSvarbrevTitle(registreringId: UUID, input: SvarbrevTitleInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevTitle = input.title
             }
     }
 
     fun setSvarbrevCustomText(registreringId: UUID, input: SvarbrevCustomTextInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevCustomText = input.customText
             }
     }
 
     fun setSvarbrevBehandlingstid(registreringId: UUID, input: BehandlingstidInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevBehandlingstidUnits = input.units
                 svarbrevBehandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
@@ -356,16 +320,14 @@ class RegistreringService(
     }
 
     fun setSvarbrevFullmektigFritekst(registreringId: UUID, input: SvarbrevFullmektigFritekstInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevFullmektigFritekst = input.fullmektigFritekst
             }
     }
 
     fun setSvarbrevReceivers(registreringId: UUID, input: SvarbrevReceiversInput) {
-        registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+        getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevReceivers.clear()
                 svarbrevReceivers.addAll(input.receivers.map { receiver ->
