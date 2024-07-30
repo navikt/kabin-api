@@ -439,7 +439,7 @@ class RegistreringController(
 
         return ankeService.getAnkemuligheter(input = input).find {
             it.id == registrering.mulighet.id && it.fagsystemId == registrering.mulighet.fagsystemId
-        } ?: throw MulighetNotFoundException("Ankemulighet not found")
+        } ?: throw MulighetNotFoundException("Ankemulighet ikke funnet.")
     }
 
 }
