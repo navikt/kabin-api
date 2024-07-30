@@ -154,39 +154,39 @@ class RegistreringController(
     fun updateMottattVedtaksinstans(
         @PathVariable id: UUID,
         @RequestBody input: MottattVedtaksinstansInput
-    ) {
+    ): MottattVedtaksinstansChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateMottattVedtaksinstans.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setMottattVedtaksinstans(registreringId = id, input = input)
+        return registreringService.setMottattVedtaksinstans(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/mottatt-klageinstans")
     fun updateMottattKlageinstans(
         @PathVariable id: UUID,
         @RequestBody input: MottattKlageinstansInput
-    ) {
+    ): MottattKlageinstansChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateMottattKlageinstans.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setMottattKlageinstans(registreringId = id, input = input)
+        return registreringService.setMottattKlageinstans(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/behandlingstid")
     fun updateBehandlingstid(
         @PathVariable id: UUID,
         @RequestBody input: BehandlingstidInput
-    ) {
+    ): BehandlingstidChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateBehandlingstid.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setBehandlingstid(registreringId = id, input = input)
+        return registreringService.setBehandlingstid(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/hjemmel-id-list")
@@ -206,13 +206,13 @@ class RegistreringController(
     fun updateYtelseId(
         @PathVariable id: UUID,
         @RequestBody input: YtelseIdInput
-    ) {
+    ): YtelseChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateYtelseId.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setYtelseId(registreringId = id, input = input)
+        return registreringService.setYtelseId(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/fullmektig")

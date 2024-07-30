@@ -1,5 +1,6 @@
 package no.nav.klage.api.controller.view
 
+import no.nav.klage.api.controller.view.MulighetChangeRegistreringView.SvarbrevView.RecipientView
 import no.nav.klage.domain.entities.HandlingEnum
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -21,8 +22,8 @@ data class FullRegistreringView(
 ) {
 
     data class OverstyringerView(
-        val mottattVedtaksinstans: String?,
-        val mottattKlageinstans: String?,
+        val mottattVedtaksinstans: LocalDate?,
+        val mottattKlageinstans: LocalDate?,
         val behandlingstid: BehandlingstidView,
         val calculatedFrist: LocalDate?,
         val hjemmelIdList: List<String>,
@@ -71,9 +72,10 @@ data class TypeChangeRegistreringView(
 ) {
 
     data class OverstyringerView(
-        val mottattVedtaksinstans: String? = null,
-        val mottattKlageinstans: String? = null,
+        val mottattVedtaksinstans: LocalDate? = null,
+        val mottattKlageinstans: LocalDate? = null,
         val behandlingstid: BehandlingstidView? = null,
+        val calculatedFrist: LocalDate? = null,
         val hjemmelIdList: List<String> = emptyList(),
         val ytelseId: String? = null,
         val fullmektig: PartViewWithUtsendingskanal? = null,
@@ -128,9 +130,10 @@ data class MulighetChangeRegistreringView(
 ) {
 
     data class OverstyringerView(
-        val mottattVedtaksinstans: String? = null,
-        val mottattKlageinstans: String? = null,
+        val mottattVedtaksinstans: LocalDate? = null,
+        val mottattKlageinstans: LocalDate? = null,
         val behandlingstid: BehandlingstidView? = null,
+        val calculatedFrist: LocalDate? = null,
         val hjemmelIdList: List<String> = emptyList(),
         val ytelseId: String? = null,
         val fullmektig: PartViewWithUtsendingskanal? = null,
@@ -171,3 +174,57 @@ data class FerdigstiltRegistreringView(
     val finished: LocalDateTime,
     val behandlingId: UUID,
 )
+
+data class MottattVedtaksinstansChangeRegistreringView(
+    val id: UUID,
+    val overstyringer: OverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class OverstyringerView(
+        val mottattVedtaksinstans: LocalDate?,
+    )
+}
+
+data class MottattKlageinstansChangeRegistreringView(
+    val id: UUID,
+    val overstyringer: OverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class OverstyringerView(
+        val mottattKlageinstans: LocalDate?,
+        val calculatedFrist: LocalDate?,
+    )
+}
+
+data class BehandlingstidChangeRegistreringView(
+    val id: UUID,
+    val overstyringer: OverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class OverstyringerView(
+        val behandlingstid: BehandlingstidView,
+        val calculatedFrist: LocalDate?,
+    )
+}
+
+data class YtelseChangeRegistreringView(
+    val id: UUID,
+    val overstyringer: OverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class OverstyringerView(
+        val ytelseId: String?,
+        val saksbehandlerIdent: String?,
+    )
+}
+
+data class SvarbrevBehandlingstidChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevView(
+        val behandlingstid: BehandlingstidView?,
+        val calculatedFrist: LocalDate?,
+    )
+}

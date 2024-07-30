@@ -1,6 +1,7 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.OverstyringerView
 import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
@@ -213,32 +214,73 @@ class RegistreringService(
             }.toMulighetChangeRegistreringView()
     }
 
-    fun setMottattVedtaksinstans(registreringId: UUID, input: MottattVedtaksinstansInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setMottattVedtaksinstans(
+        registreringId: UUID,
+        input: MottattVedtaksinstansInput
+    ): MottattVedtaksinstansChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 mottattVedtaksinstans = input.mottattVedtaksinstans
                 modified = LocalDateTime.now()
             }
+        return MottattVedtaksinstansChangeRegistreringView(
+            id = registrering.id,
+            overstyringer = OverstyringerView(
+                mottattVedtaksinstans = registrering.mottattVedtaksinstans,
+            ),
+            modified = registrering.modified,
+        )
     }
 
-    fun setMottattKlageinstans(registreringId: UUID, input: MottattKlageinstansInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setMottattKlageinstans(
+        registreringId: UUID,
+        input: MottattKlageinstansInput
+    ): MottattKlageinstansChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 mottattKlageinstans = input.mottattKlageinstans
                 modified = LocalDateTime.now()
-                //side calc frist
             }
+        return MottattKlageinstansChangeRegistreringView(
+            id = registrering.id,
+            overstyringer = MottattKlageinstansChangeRegistreringView.OverstyringerView(
+                mottattKlageinstans = registrering.mottattKlageinstans,
+                calculatedFrist = if (registrering.mottattKlageinstans != null) {
+                    calculateFrist(
+                        fromDate = registrering.mottattKlageinstans!!,
+                        units = registrering.behandlingstidUnits.toLong(),
+                        unitType = registrering.behandlingstidUnitType,
+                    )
+                } else null
+            ),
+            modified = registrering.modified,
+        )
     }
 
-    fun setBehandlingstid(registreringId: UUID, input: BehandlingstidInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setBehandlingstid(registreringId: UUID, input: BehandlingstidInput): BehandlingstidChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 behandlingstidUnits = input.units
                 behandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
                 modified = LocalDateTime.now()
-
-                //side calc frist
             }
+        return BehandlingstidChangeRegistreringView(
+            id = registrering.id,
+            overstyringer = BehandlingstidChangeRegistreringView.OverstyringerView(
+                behandlingstid = BehandlingstidView(
+                    unitTypeId = registrering.behandlingstidUnitType.id,
+                    units = registrering.behandlingstidUnits
+                ),
+                calculatedFrist = if (registrering.mottattKlageinstans != null) {
+                    calculateFrist(
+                        fromDate = registrering.mottattKlageinstans!!,
+                        units = registrering.behandlingstidUnits.toLong(),
+                        unitType = registrering.behandlingstidUnitType
+                    )
+                } else null
+            ),
+            modified = registrering.modified,
+        )
     }
 
     fun setHjemmelIdList(registreringId: UUID, input: HjemmelIdListInput) {
@@ -246,20 +288,29 @@ class RegistreringService(
             .apply {
                 hjemmelIdList = input.hjemmelIdList
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
-    fun setYtelseId(registreringId: UUID, input: YtelseIdInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setYtelseId(registreringId: UUID, input: YtelseIdInput): YtelseChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 ytelse = input.ytelseId?.let { ytelseId ->
                     Ytelse.of(ytelseId)
                 }
                 modified = LocalDateTime.now()
-                //only hjemler are affected, may saksbehandler?
+                //TODO: hjemler are affected, maybe saksbehandler?
+                //For now, just empty them.
+                hjemmelIdList = listOf()
+                saksbehandlerIdent = null
             }
+        return YtelseChangeRegistreringView(
+            id = registrering.id,
+            overstyringer = YtelseChangeRegistreringView.OverstyringerView(
+                ytelseId = registrering.ytelse?.id,
+                saksbehandlerIdent = registrering.saksbehandlerIdent,
+            ),
+            modified = registrering.modified,
+        )
     }
 
     fun setFullmektig(registreringId: UUID, input: PartIdInput?) {
@@ -330,7 +381,6 @@ class RegistreringService(
 
                 //if they are receivers of svarbrev, they will be affected
             }
-
     }
 
     fun setSaksbehandlerIdent(registreringId: UUID, input: SaksbehandlerIdentInput) {
@@ -338,8 +388,6 @@ class RegistreringService(
             .apply {
                 saksbehandlerIdent = input.saksbehandlerIdent
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
@@ -348,8 +396,6 @@ class RegistreringService(
             .apply {
                 oppgaveId = input.oppgaveId
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
@@ -358,8 +404,6 @@ class RegistreringService(
             .apply {
                 sendSvarbrev = input.send
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
@@ -368,8 +412,6 @@ class RegistreringService(
             .apply {
                 overrideSvarbrevCustomText = input.overrideCustomText
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
@@ -378,8 +420,6 @@ class RegistreringService(
             .apply {
                 overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
@@ -388,8 +428,6 @@ class RegistreringService(
             .apply {
                 svarbrevTitle = input.title
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
@@ -398,20 +436,33 @@ class RegistreringService(
             .apply {
                 svarbrevCustomText = input.customText
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
-    fun setSvarbrevBehandlingstid(registreringId: UUID, input: BehandlingstidInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setSvarbrevBehandlingstid(registreringId: UUID, input: BehandlingstidInput): SvarbrevBehandlingstidChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevBehandlingstidUnits = input.units
                 svarbrevBehandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
                 modified = LocalDateTime.now()
-
-                //calculated frist
             }
+        return SvarbrevBehandlingstidChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevBehandlingstidChangeRegistreringView.SvarbrevView(
+                behandlingstid = BehandlingstidView(
+                    unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
+                    units = registrering.svarbrevBehandlingstidUnits!!
+                ),
+                calculatedFrist = if (registrering.mottattKlageinstans != null) {
+                    calculateFrist(
+                        fromDate = registrering.mottattKlageinstans!!,
+                        units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
+                        unitType = registrering.svarbrevBehandlingstidUnitType!!
+                    )
+                } else null
+            ),
+            modified = registrering.modified,
+        )
     }
 
     fun setSvarbrevFullmektigFritekst(registreringId: UUID, input: SvarbrevFullmektigFritekstInput) {
@@ -419,8 +470,6 @@ class RegistreringService(
             .apply {
                 svarbrevFullmektigFritekst = input.fullmektigFritekst
                 modified = LocalDateTime.now()
-
-                //no side effect
             }
     }
 
@@ -497,14 +546,13 @@ class RegistreringService(
             )
         } else null,
         overstyringer = FullRegistreringView.OverstyringerView(
-            mottattVedtaksinstans = mottattVedtaksinstans?.toString(),
-            mottattKlageinstans = mottattKlageinstans?.toString(),
+            mottattVedtaksinstans = mottattVedtaksinstans,
+            mottattKlageinstans = mottattKlageinstans,
             behandlingstid =
-                BehandlingstidView(
-                    unitTypeId = behandlingstidUnitType.id,
-                    units = behandlingstidUnits
-                )
-            ,
+            BehandlingstidView(
+                unitTypeId = behandlingstidUnitType.id,
+                units = behandlingstidUnits
+            ),
             calculatedFrist = if (mottattKlageinstans != null) {
                 calculateFrist(
                     fromDate = mottattKlageinstans!!,
