@@ -32,7 +32,7 @@ class RegistreringController(
     }
 
     @PostMapping
-    fun createRegistrering(): CreateRegistreringView {
+    fun createRegistrering(): FullRegistreringView {
         logMethodDetails(
             methodName = ::createRegistrering.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),

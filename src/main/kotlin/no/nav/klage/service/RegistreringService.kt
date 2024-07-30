@@ -25,7 +25,7 @@ class RegistreringService(
     private val tokenUtil: TokenUtil,
 ) {
 
-    fun createRegistrering(): CreateRegistreringView {
+    fun createRegistrering(): FullRegistreringView {
         val registrering = registreringRepository.save(
             Registrering(
                 createdBy = tokenUtil.getCurrentIdent(),
@@ -40,8 +40,8 @@ class RegistreringService(
                 mulighetFagsystem = null,
                 mottattVedtaksinstans = null,
                 mottattKlageinstans = null,
-                behandlingstidUnits = null,
-                behandlingstidUnitType = null,
+                behandlingstidUnits = 12,
+                behandlingstidUnitType = TimeUnitType.WEEKS,
                 hjemmelIdList = listOf(),
                 ytelse = null,
                 saksbehandlerIdent = null,
@@ -58,11 +58,7 @@ class RegistreringService(
                 finished = null,
             )
         )
-        return CreateRegistreringView(
-            id = registrering.id,
-            created = registrering.created,
-            createdBy = registrering.createdBy,
-        )
+        return registrering.toRegistreringView()
     }
 
     fun getRegistrering(registreringId: UUID): FullRegistreringView {
@@ -105,8 +101,6 @@ class RegistreringService(
                 mulighetFagsystem = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
-                behandlingstidUnits = null
-                behandlingstidUnitType = null
                 hjemmelIdList = listOf()
                 klager = null
                 fullmektig = null
@@ -138,8 +132,6 @@ class RegistreringService(
                 mulighetFagsystem = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
-                behandlingstidUnits = null
-                behandlingstidUnitType = null
                 hjemmelIdList = listOf()
                 klager = null
                 fullmektig = null
@@ -172,8 +164,6 @@ class RegistreringService(
                 mulighetFagsystem = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
-                behandlingstidUnits = null
-                behandlingstidUnitType = null
                 hjemmelIdList = listOf()
                 klager = null
                 fullmektig = null
@@ -204,8 +194,6 @@ class RegistreringService(
                 ytelse = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
-                behandlingstidUnits = null
-                behandlingstidUnitType = null
                 hjemmelIdList = listOf()
                 klager = null
                 fullmektig = null
@@ -510,17 +498,17 @@ class RegistreringService(
         overstyringer = FullRegistreringView.OverstyringerView(
             mottattVedtaksinstans = mottattVedtaksinstans?.toString(),
             mottattKlageinstans = mottattKlageinstans?.toString(),
-            behandlingstid = if (behandlingstidUnits != null) {
+            behandlingstid =
                 BehandlingstidView(
-                    unitTypeId = behandlingstidUnitType!!.id,
-                    units = behandlingstidUnits!!
+                    unitTypeId = behandlingstidUnitType.id,
+                    units = behandlingstidUnits
                 )
-            } else null,
-            calculatedFrist = if (mottattKlageinstans != null && behandlingstidUnits != null) {
+            ,
+            calculatedFrist = if (mottattKlageinstans != null) {
                 calculateFrist(
                     fromDate = mottattKlageinstans!!,
-                    units = behandlingstidUnits!!.toLong(),
-                    unitType = behandlingstidUnitType!!
+                    units = behandlingstidUnits.toLong(),
+                    unitType = behandlingstidUnitType
                 )
             } else null,
             hjemmelIdList = hjemmelIdList,

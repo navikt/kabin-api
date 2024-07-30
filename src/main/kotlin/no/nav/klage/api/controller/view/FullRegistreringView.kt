@@ -22,7 +22,7 @@ data class FullRegistreringView(
     data class OverstyringerView(
         val mottattVedtaksinstans: String?,
         val mottattKlageinstans: String?,
-        val behandlingstid: BehandlingstidView?,
+        val behandlingstid: BehandlingstidView,
         val calculatedFrist: LocalDate?,
         val hjemmelIdList: List<String>,
         val ytelseId: String?,
@@ -164,9 +164,3 @@ data class MulighetChangeRegistreringView(
         }
     }
 }
-
-data class CreateRegistreringView(
-    val id: UUID,
-    val created: LocalDateTime,
-    val createdBy: String,
-)

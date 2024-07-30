@@ -60,10 +60,10 @@ class Registrering(
     @Column(name = "mottatt_klageinstans")
     var mottattKlageinstans: LocalDate?,
     @Column(name = "behandlingstid_units")
-    var behandlingstidUnits: Int?,
+    var behandlingstidUnits: Int,
     @Column(name = "behandlingstid_unit_type_id")
     @Convert(converter = TimeUnitTypeConverter::class)
-    var behandlingstidUnitType: TimeUnitType?,
+    var behandlingstidUnitType: TimeUnitType,
     @Convert(converter = StringListConverter::class)
     @Column(name = "hjemmel_id_list")
     var hjemmelIdList: List<String>,
