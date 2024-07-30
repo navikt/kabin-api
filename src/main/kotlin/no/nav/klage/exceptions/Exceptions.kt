@@ -20,3 +20,5 @@ class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg
 class RegistreringNotFoundException(msg: String) : RuntimeException(msg)
 
 class MissingAccessException(msg: String) : RuntimeException(msg)
+
+class MulighetNotFoundException(msg: String) : RuntimeException(msg)

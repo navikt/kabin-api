@@ -2,6 +2,9 @@ package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.exceptions.MulighetNotFoundException
+import no.nav.klage.service.AnkeService
+import no.nav.klage.service.KlageService
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -17,6 +20,8 @@ import java.util.*
 class RegistreringController(
     private val registreringService: RegistreringService,
     private val tokenUtil: TokenUtil,
+    private val klageService: KlageService,
+    private val ankeService: AnkeService,
 ) {
 
     companion object {
@@ -388,6 +393,44 @@ class RegistreringController(
             logger = logger,
         )
         TODO()
+    }
+
+    @GetMapping("/{id}/klagemulighet")
+    fun getKlagemulighet(
+        @PathVariable id: UUID,
+    ): Klagemulighet {
+        logMethodDetails(
+            methodName = ::getKlagemulighet.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        val registrering = registreringService.getRegistrering(id)
+
+        val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
+
+        return klageService.getKlagemuligheter(input = input).find {
+            it.id == registrering.mulighet!!.id && it.fagsystemId == registrering.mulighet.fagsystemId
+        } ?: throw MulighetNotFoundException("Klagemulighet not found")
+    }
+
+    @GetMapping("/{id}/ankemulighet")
+    fun getAnkemulighet(
+        @PathVariable id: UUID,
+    ): Ankemulighet {
+        logMethodDetails(
+            methodName = ::getAnkemulighet.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        val registrering = registreringService.getRegistrering(id)
+
+        val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
+
+        return ankeService.getAnkemuligheter(input = input).find {
+            it.id == registrering.mulighet!!.id && it.fagsystemId == registrering.mulighet.fagsystemId
+        } ?: throw MulighetNotFoundException("Ankemulighet not found")
     }
 
 }
