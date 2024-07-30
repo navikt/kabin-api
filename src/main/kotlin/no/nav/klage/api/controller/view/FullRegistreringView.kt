@@ -31,7 +31,7 @@ data class FullRegistreringView(
         val klager: PartViewWithUtsendingskanal?,
         val avsender: PartViewWithUtsendingskanal?,
         val saksbehandlerIdent: String?,
-        val oppgaveId: String?
+        val oppgaveId: Int?
     )
 
     data class SvarbrevView(
@@ -137,7 +137,7 @@ data class MulighetChangeRegistreringView(
         val klager: PartViewWithUtsendingskanal? = null,
         val avsender: PartViewWithUtsendingskanal? = null,
         val saksbehandlerIdent: String? = null,
-        val oppgaveId: String? = null
+        val oppgaveId: Int? = null
     )
 
     data class SvarbrevView(
