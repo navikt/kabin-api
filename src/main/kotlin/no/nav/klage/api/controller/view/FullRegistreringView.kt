@@ -164,3 +164,9 @@ data class MulighetChangeRegistreringView(
         }
     }
 }
+
+data class CreateRegistreringView(
+    val id: UUID,
+    val created: LocalDateTime,
+    val createdBy: String,
+)

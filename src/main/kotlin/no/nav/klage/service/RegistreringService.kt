@@ -25,8 +25,8 @@ class RegistreringService(
     private val tokenUtil: TokenUtil,
 ) {
 
-    fun createRegistrering() {
-        registreringRepository.save(
+    fun createRegistrering(): CreateRegistreringView {
+        val registrering = registreringRepository.save(
             Registrering(
                 createdBy = tokenUtil.getCurrentIdent(),
                 //defaults
@@ -57,6 +57,11 @@ class RegistreringService(
                 overrideSvarbrevBehandlingstid = null,
                 finished = null,
             )
+        )
+        return CreateRegistreringView(
+            id = registrering.id,
+            created = registrering.created,
+            createdBy = registrering.createdBy,
         )
     }
 
