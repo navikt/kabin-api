@@ -60,10 +60,11 @@ class CommonController(
             input.varsletBehandlingstidUnitType!!
         }
 
-        return when(inputType) {
-            TimeUnitType.WEEKS -> input.fromDate.plusWeeks(input.varsletBehandlingstidUnits.toLong())
-            TimeUnitType.MONTHS -> input.fromDate.plusMonths(input.varsletBehandlingstidUnits.toLong())
-        }
+        return no.nav.klage.util.calculateFrist(
+            fromDate = input.fromDate,
+            units = input.varsletBehandlingstidUnits.toLong(),
+            unitType = inputType,
+        )
     }
 
     @PostMapping("/willcreatenewjournalpost")

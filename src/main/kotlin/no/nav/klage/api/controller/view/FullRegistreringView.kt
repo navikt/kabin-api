@@ -1,6 +1,7 @@
 package no.nav.klage.api.controller.view
 
 import no.nav.klage.domain.entities.HandlingEnum
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -22,6 +23,7 @@ data class FullRegistreringView(
         val mottattVedtaksinstans: String?,
         val mottattKlageinstans: String?,
         val behandlingstid: BehandlingstidView?,
+        val calculatedFrist: LocalDate?,
         val hjemmelIdList: List<String>,
         val ytelseId: String?,
         val fullmektig: PartViewWithUtsendingskanal?,
@@ -34,6 +36,7 @@ data class FullRegistreringView(
     data class SvarbrevView(
         val send: Boolean?,
         val behandlingstid: BehandlingstidView?,
+        val calculatedFrist: LocalDate?,
         val fullmektigFritekst: String?,
         val receivers: List<RecipientView>,
         val title: String?,

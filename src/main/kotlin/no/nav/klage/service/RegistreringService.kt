@@ -11,6 +11,7 @@ import no.nav.klage.exceptions.RegistreringNotFoundException
 import no.nav.klage.kodeverk.*
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.calculateFrist
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -231,6 +232,7 @@ class RegistreringService(
             .apply {
                 mottattKlageinstans = input.mottattKlageinstans
                 modified = LocalDateTime.now()
+                //side calc frist
             }
     }
 
@@ -240,6 +242,8 @@ class RegistreringService(
                 behandlingstidUnits = input.units
                 behandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
                 modified = LocalDateTime.now()
+
+                //side calc frist
             }
     }
 
@@ -248,6 +252,8 @@ class RegistreringService(
             .apply {
                 hjemmelIdList = input.hjemmelIdList
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
@@ -258,6 +264,7 @@ class RegistreringService(
                     Ytelse.of(ytelseId)
                 }
                 modified = LocalDateTime.now()
+                //only hjemler are affected, may saksbehandler?
             }
     }
 
@@ -279,6 +286,9 @@ class RegistreringService(
                     )
                 }
                 modified = LocalDateTime.now()
+
+                //if they are receivers of svarbrev, they will be affected
+                //svarbrevFullmektigFritekst affected
             }
     }
 
@@ -300,6 +310,8 @@ class RegistreringService(
                     )
                 }
                 modified = LocalDateTime.now()
+
+                //if they are receivers of svarbrev, they will be affected
             }
     }
 
@@ -321,7 +333,10 @@ class RegistreringService(
                     )
                 }
                 modified = LocalDateTime.now()
+
+                //if they are receivers of svarbrev, they will be affected
             }
+
     }
 
     fun setSaksbehandlerIdent(registreringId: UUID, input: SaksbehandlerIdentInput) {
@@ -329,6 +344,8 @@ class RegistreringService(
             .apply {
                 saksbehandlerIdent = input.saksbehandlerIdent
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
@@ -337,6 +354,8 @@ class RegistreringService(
             .apply {
                 oppgaveId = input.oppgaveId
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
@@ -345,6 +364,8 @@ class RegistreringService(
             .apply {
                 sendSvarbrev = input.send
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
@@ -353,6 +374,8 @@ class RegistreringService(
             .apply {
                 overrideSvarbrevCustomText = input.overrideCustomText
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
@@ -361,6 +384,8 @@ class RegistreringService(
             .apply {
                 overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
@@ -369,6 +394,8 @@ class RegistreringService(
             .apply {
                 svarbrevTitle = input.title
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
@@ -377,6 +404,8 @@ class RegistreringService(
             .apply {
                 svarbrevCustomText = input.customText
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
@@ -386,6 +415,8 @@ class RegistreringService(
                 svarbrevBehandlingstidUnits = input.units
                 svarbrevBehandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
                 modified = LocalDateTime.now()
+
+                //calculated frist
             }
     }
 
@@ -394,9 +425,13 @@ class RegistreringService(
             .apply {
                 svarbrevFullmektigFritekst = input.fullmektigFritekst
                 modified = LocalDateTime.now()
+
+                //no side effect
             }
     }
 
+    //TODO: add one for each receiver, crud.
+    //use internal id for update/delete
     fun setSvarbrevReceivers(registreringId: UUID, input: SvarbrevReceiversInput) {
         getRegistreringForUpdate(registreringId)
             .apply {
@@ -476,6 +511,13 @@ class RegistreringService(
                     units = behandlingstidUnits!!
                 )
             } else null,
+            calculatedFrist = if (mottattKlageinstans != null && behandlingstidUnits != null) {
+                calculateFrist(
+                    fromDate = mottattKlageinstans!!,
+                    units = behandlingstidUnits!!.toLong(),
+                    unitType = behandlingstidUnitType!!
+                )
+            } else null,
             hjemmelIdList = hjemmelIdList,
             ytelseId = ytelse?.id,
             fullmektig = partViewWithUtsendingskanal(identifikator = fullmektig?.value),
@@ -512,6 +554,13 @@ class RegistreringService(
             customText = svarbrevCustomText,
             overrideCustomText = overrideSvarbrevCustomText ?: false,
             overrideBehandlingstid = overrideSvarbrevBehandlingstid ?: false,
+            calculatedFrist = if (mottattKlageinstans != null && svarbrevBehandlingstidUnits != null) {
+                calculateFrist(
+                    fromDate = mottattKlageinstans!!,
+                    units = svarbrevBehandlingstidUnits!!.toLong(),
+                    unitType = svarbrevBehandlingstidUnitType!!
+                )
+            } else null,
         ),
         created = created,
         modified = modified,
