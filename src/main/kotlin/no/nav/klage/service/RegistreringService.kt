@@ -59,7 +59,7 @@ class RegistreringService(
         )
     }
 
-    fun getRegistrering(registreringId: UUID): RegistreringView {
+    fun getRegistrering(registreringId: UUID): FullRegistreringView {
         return registreringRepository.findById(registreringId)
             .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
             .toRegistreringView()
@@ -67,7 +67,7 @@ class RegistreringService(
 
     fun getFerdigeRegistreringer(
         sidenDager: Int?,
-    ): List<RegistreringView> {
+    ): List<FullRegistreringView> {
         return registreringRepository.findFerdigeRegistreringer(
             navIdent = tokenUtil.getCurrentIdent(),
             finishedFrom = LocalDateTime.now().minusDays(sidenDager?.toLong() ?: 31)
@@ -75,13 +75,13 @@ class RegistreringService(
     }
 
     fun getUferdigeRegistreringer(
-    ): List<RegistreringView> {
+    ): List<FullRegistreringView> {
         return registreringRepository.findUferdigeRegistreringer(
             navIdent = tokenUtil.getCurrentIdent(),
         ).map { it.toRegistreringView() }
     }
 
-    fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): RegistreringView {
+    fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 sakenGjelder = input.sakenGjelderValue?.let { sakenGjelderValue ->
@@ -90,6 +90,7 @@ class RegistreringService(
                         type = PartIdType.PERSON
                     )
                 }
+                modified = LocalDateTime.now()
                 //empty the properties that no longer make sense if sakenGjelder changes.
                 journalpostId = null
                 ytelse = null
@@ -119,11 +120,11 @@ class RegistreringService(
         return registrering.toRegistreringView()
     }
 
-    fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): RegistreringView {
+    fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 journalpostId = input.journalpostId
-
+                modified = LocalDateTime.now()
                 //empty the properties that no longer make sense if journalpostId changes.
                 ytelse = null
                 type = null
@@ -153,13 +154,14 @@ class RegistreringService(
         return registrering.toRegistreringView()
     }
 
-    fun setTypeId(registreringId: UUID, input: TypeIdInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setTypeId(registreringId: UUID, input: TypeIdInput): TypeChangeRegistreringView {
+        return getRegistreringForUpdate(registreringId)
             .apply {
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
                 }
-            }
+                modified = LocalDateTime.now()
+            }.toTypeChangeRegistreringView()
     }
 
     fun setMulighet(registreringId: UUID, input: MulighetInput) {
@@ -167,6 +169,7 @@ class RegistreringService(
             .apply {
                 mulighetId = input.mulighetId
                 mulighetFagsystem = Fagsystem.of(input.fagsystemId)
+                modified = LocalDateTime.now()
             }
     }
 
@@ -174,6 +177,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 mottattVedtaksinstans = input.mottattVedtaksinstans
+                modified = LocalDateTime.now()
             }
     }
 
@@ -181,6 +185,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 mottattKlageinstans = input.mottattKlageinstans
+                modified = LocalDateTime.now()
             }
     }
 
@@ -189,6 +194,7 @@ class RegistreringService(
             .apply {
                 behandlingstidUnits = input.units
                 behandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
+                modified = LocalDateTime.now()
             }
     }
 
@@ -196,6 +202,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 hjemmelIdList = input.hjemmelIdList
+                modified = LocalDateTime.now()
             }
     }
 
@@ -205,60 +212,70 @@ class RegistreringService(
                 ytelse = input.ytelseId?.let { ytelseId ->
                     Ytelse.of(ytelseId)
                 }
+                modified = LocalDateTime.now()
             }
     }
 
-    fun setFullmektig(registreringId: UUID, input: PartIdInput) {
+    fun setFullmektig(registreringId: UUID, input: PartIdInput?) {
         getRegistreringForUpdate(registreringId)
             .apply {
-                fullmektig = PartId(
-                    value = input.id,
-                    type = when (input.type) {
-                        PartType.FNR -> {
-                            PartIdType.PERSON
-                        }
+                fullmektig = input?.let {
+                    PartId(
+                        value = input.id,
+                        type = when (input.type) {
+                            PartType.FNR -> {
+                                PartIdType.PERSON
+                            }
 
-                        PartType.ORGNR -> {
-                            PartIdType.VIRKSOMHET
+                            PartType.ORGNR -> {
+                                PartIdType.VIRKSOMHET
+                            }
                         }
-                    }
-                )
+                    )
+                }
+                modified = LocalDateTime.now()
             }
     }
 
-    fun setKlager(registreringId: UUID, input: PartIdInput) {
+    fun setKlager(registreringId: UUID, input: PartIdInput?) {
         getRegistreringForUpdate(registreringId)
             .apply {
-                klager = PartId(
-                    value = input.id,
-                    type = when (input.type) {
-                        PartType.FNR -> {
-                            PartIdType.PERSON
-                        }
+                klager = input?.let {
+                    PartId(
+                        value = input.id,
+                        type = when (input.type) {
+                            PartType.FNR -> {
+                                PartIdType.PERSON
+                            }
 
-                        PartType.ORGNR -> {
-                            PartIdType.VIRKSOMHET
+                            PartType.ORGNR -> {
+                                PartIdType.VIRKSOMHET
+                            }
                         }
-                    }
-                )
+                    )
+                }
+                modified = LocalDateTime.now()
             }
     }
 
-    fun setAvsender(registreringId: UUID, input: PartIdInput) {
+    fun setAvsender(registreringId: UUID, input: PartIdInput?) {
         getRegistreringForUpdate(registreringId)
             .apply {
-                avsender = PartId(
-                    value = input.id,
-                    type = when (input.type) {
-                        PartType.FNR -> {
-                            PartIdType.PERSON
-                        }
+                avsender = input?.let {
+                    PartId(
+                        value = input.id,
+                        type = when (input.type) {
+                            PartType.FNR -> {
+                                PartIdType.PERSON
+                            }
 
-                        PartType.ORGNR -> {
-                            PartIdType.VIRKSOMHET
+                            PartType.ORGNR -> {
+                                PartIdType.VIRKSOMHET
+                            }
                         }
-                    }
-                )
+                    )
+                }
+                modified = LocalDateTime.now()
             }
     }
 
@@ -266,6 +283,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 saksbehandlerIdent = input.saksbehandlerIdent
+                modified = LocalDateTime.now()
             }
     }
 
@@ -273,6 +291,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 oppgaveId = input.oppgaveId
+                modified = LocalDateTime.now()
             }
     }
 
@@ -280,6 +299,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 sendSvarbrev = input.send
+                modified = LocalDateTime.now()
             }
     }
 
@@ -287,6 +307,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevCustomText = input.overrideCustomText
+                modified = LocalDateTime.now()
             }
     }
 
@@ -294,6 +315,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
+                modified = LocalDateTime.now()
             }
     }
 
@@ -301,6 +323,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevTitle = input.title
+                modified = LocalDateTime.now()
             }
     }
 
@@ -308,6 +331,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevCustomText = input.customText
+                modified = LocalDateTime.now()
             }
     }
 
@@ -316,6 +340,7 @@ class RegistreringService(
             .apply {
                 svarbrevBehandlingstidUnits = input.units
                 svarbrevBehandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
+                modified = LocalDateTime.now()
             }
     }
 
@@ -323,6 +348,7 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevFullmektigFritekst = input.fullmektigFritekst
+                modified = LocalDateTime.now()
             }
     }
 
@@ -356,25 +382,36 @@ class RegistreringService(
                         }
                     )
                 })
+                modified = LocalDateTime.now()
             }
     }
 
-    private fun Registrering.toRegistreringView() = RegistreringView(
+    private fun Registrering.toTypeChangeRegistreringView(): TypeChangeRegistreringView {
+        return TypeChangeRegistreringView(
+            id = id,
+            typeId = type?.id,
+            overstyringer = TypeChangeRegistreringView.OverstyringerView(),
+            svarbrev = TypeChangeRegistreringView.SvarbrevView(),
+            modified = modified,
+        )
+    }
+
+    private fun Registrering.toRegistreringView() = FullRegistreringView(
         id = id,
         journalpostId = journalpostId,
         sakenGjelderValue = sakenGjelder?.value,
         typeId = type?.id,
         mulighet = if (mulighetId != null) {
-            RegistreringView.MulighetView(
+            FullRegistreringView.MulighetView(
                 id = mulighetId!!,
                 fagsystemId = mulighetFagsystem!!.id
             )
         } else null,
-        overstyringer = RegistreringView.OverstyringerView(
+        overstyringer = FullRegistreringView.OverstyringerView(
             mottattVedtaksinstans = mottattVedtaksinstans?.toString(),
             mottattKlageinstans = mottattKlageinstans?.toString(),
             behandlingstid = if (behandlingstidUnits != null) {
-                RegistreringView.BehandlingstidView(
+                FullRegistreringView.BehandlingstidView(
                     unitTypeId = behandlingstidUnitType!!.id,
                     units = behandlingstidUnits!!
                 )
@@ -387,21 +424,21 @@ class RegistreringService(
             saksbehandlerIdent = saksbehandlerIdent,
             oppgaveId = oppgaveId,
         ),
-        svarbrev = RegistreringView.SvarbrevView(
+        svarbrev = FullRegistreringView.SvarbrevView(
             send = sendSvarbrev,
             behandlingstid = if (svarbrevBehandlingstidUnits != null) {
-                RegistreringView.BehandlingstidView(
+                FullRegistreringView.BehandlingstidView(
                     unitTypeId = svarbrevBehandlingstidUnitType!!.id,
                     units = svarbrevBehandlingstidUnits!!
                 )
             } else null,
             fullmektigFritekst = svarbrevFullmektigFritekst,
             receivers = svarbrevReceivers.map { receiver ->
-                RegistreringView.SvarbrevView.RecipientView(
+                FullRegistreringView.SvarbrevView.RecipientView(
                     part = partViewWithUtsendingskanal(identifikator = receiver.part!!.value)!!,
                     handling = receiver.handling,
                     overriddenAddress = receiver.overriddenAddress?.let { address ->
-                        RegistreringView.SvarbrevView.RecipientView.AddressView(
+                        FullRegistreringView.SvarbrevView.RecipientView.AddressView(
                             adresselinje1 = address.adresselinje1,
                             adresselinje2 = address.adresselinje2,
                             adresselinje3 = address.adresselinje3,

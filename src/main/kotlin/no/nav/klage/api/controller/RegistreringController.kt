@@ -44,7 +44,7 @@ class RegistreringController(
     @GetMapping("/ferdige")
     fun getRegistreringerFerdige(
         @RequestParam(required = false) sidenDager: Int?,
-    ): List<RegistreringView> {
+    ): List<FullRegistreringView> {
         logMethodDetails(
             methodName = ::getRegistreringerFerdige.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -58,7 +58,7 @@ class RegistreringController(
 
     @GetMapping("/uferdige")
     fun getRegistreringerUferdige(
-    ): List<RegistreringView> {
+    ): List<FullRegistreringView> {
         logMethodDetails(
             methodName = ::getRegistreringerUferdige.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -71,7 +71,7 @@ class RegistreringController(
     @GetMapping("/{id}")
     fun getRegistrering(
         @PathVariable id: UUID,
-    ): RegistreringView {
+    ): FullRegistreringView {
         logMethodDetails(
             methodName = ::getRegistrering.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -102,7 +102,7 @@ class RegistreringController(
     fun updateSakenGjelderValue(
         @PathVariable id: UUID,
         @RequestBody input: SakenGjelderValueInput
-    ): RegistreringView {
+    ): FullRegistreringView {
         logMethodDetails(
             methodName = ::updateSakenGjelderValue.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -115,7 +115,7 @@ class RegistreringController(
     fun updateJournalpostId(
         @PathVariable id: UUID,
         @RequestBody input: JournalpostIdInput
-    ): RegistreringView {
+    ): FullRegistreringView {
         logMethodDetails(
             methodName = ::updateJournalpostId.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -128,13 +128,13 @@ class RegistreringController(
     fun updateTypeId(
         @PathVariable id: UUID,
         @RequestBody input: TypeIdInput
-    ) {
+    ): TypeChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateTypeId.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setTypeId(registreringId = id, input = input)
+        return registreringService.setTypeId(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/mulighet")
@@ -218,7 +218,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/fullmektig")
     fun updateFullmektig(
         @PathVariable id: UUID,
-        @RequestBody input: PartIdInput
+        @RequestBody input: PartIdInput?
     ) {
         logMethodDetails(
             methodName = ::updateFullmektig.name,
@@ -231,7 +231,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/klager")
     fun updateKlager(
         @PathVariable id: UUID,
-        @RequestBody input: PartIdInput
+        @RequestBody input: PartIdInput?
     ) {
         logMethodDetails(
             methodName = ::updateKlager.name,
@@ -244,7 +244,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/avsender")
     fun updateAvsender(
         @PathVariable id: UUID,
-        @RequestBody input: PartIdInput
+        @RequestBody input: PartIdInput?
     ) {
         logMethodDetails(
             methodName = ::updateAvsender.name,
