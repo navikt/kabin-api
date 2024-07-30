@@ -15,6 +15,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.*
 
 @ActiveProfiles("local")
 @DataJpaTest
@@ -94,6 +95,7 @@ class RegistreringRepositoryTest {
                 ),
                 createdBy = "S123456",
                 finished = LocalDateTime.now(),
+                behandlingId = UUID.randomUUID(),
             )
         )
 
@@ -217,6 +219,7 @@ class RegistreringRepositoryTest {
                 ),
                 createdBy = "S223456",
                 finished = LocalDateTime.now(),
+                behandlingId = UUID.randomUUID(),
             )
         )
 
@@ -287,6 +290,7 @@ class RegistreringRepositoryTest {
                 ),
                 createdBy = "S223456",
                 finished = null,
+                behandlingId = null,
             )
         )
 

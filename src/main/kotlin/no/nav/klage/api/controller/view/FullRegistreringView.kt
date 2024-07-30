@@ -17,6 +17,7 @@ data class FullRegistreringView(
     val modified: LocalDateTime,
     val createdBy: String,
     val finished: LocalDateTime?,
+    val behandlingId: UUID?,
 ) {
 
     data class OverstyringerView(

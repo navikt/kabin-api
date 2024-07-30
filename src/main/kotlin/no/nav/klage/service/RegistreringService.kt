@@ -56,6 +56,7 @@ class RegistreringService(
                 overrideSvarbrevCustomText = null,
                 overrideSvarbrevBehandlingstid = null,
                 finished = null,
+                behandlingId = null,
             )
         )
         return registrering.toRegistreringView()
@@ -559,6 +560,7 @@ class RegistreringService(
         modified = modified,
         createdBy = createdBy,
         finished = finished,
+        behandlingId = behandlingId,
     )
 
     fun deleteRegistrering(registreringId: UUID) {

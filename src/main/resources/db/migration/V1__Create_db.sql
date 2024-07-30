@@ -48,7 +48,8 @@ CREATE TABLE klage.registrering
     created                              TIMESTAMP        NOT NULL,
     modified                             TIMESTAMP        NOT NULL,
     created_by                           TEXT             NOT NULL,
-    finished                             TIMESTAMP
+    finished                             TIMESTAMP,
+    behandling_id                        UUID
 );
 
 CREATE TABLE klage.svarbrev_receiver
