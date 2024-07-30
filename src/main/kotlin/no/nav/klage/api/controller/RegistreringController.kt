@@ -96,13 +96,13 @@ class RegistreringController(
     fun updateSakenGjelderValue(
         @PathVariable id: UUID,
         @RequestBody input: SakenGjelderValueInput
-    ) {
+    ): RegistreringView {
         logMethodDetails(
             methodName = ::updateSakenGjelderValue.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSakenGjelderValue(registreringId = id, input = input)
+        return registreringService.setSakenGjelderValue(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/journalpost-id")

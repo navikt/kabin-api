@@ -46,6 +46,8 @@ data class RegistreringView(
         val fullmektigFritekst: String?,
         val receivers: List<RecipientView>,
         val title: String?,
+        val overrideCustomText: Boolean,
+        val overrideBehandlingstid: Boolean,
         val customText: String?
     ) {
         data class RecipientView(

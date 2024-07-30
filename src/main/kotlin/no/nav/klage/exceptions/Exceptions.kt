@@ -18,3 +18,5 @@ class IllegalInputException(override val message: String): RuntimeException(mess
 class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)
 
 class RegistreringNotFoundException(msg: String) : RuntimeException(msg)
+
+class MissingAccessException(msg: String) : RuntimeException(msg)

@@ -67,6 +67,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
+    fun handleMissingAccessException(
+        ex: MissingAccessException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.FORBIDDEN, ex)
+
+    @ExceptionHandler
     fun handleIllegalUpdateException(
         ex: IllegalUpdateException,
         request: NativeWebRequest
