@@ -112,3 +112,11 @@ data class SvarbrevReceiversInput(
         )
     }
 }
+
+data class SvarbrevOverrideBehandlingstidInput(
+    val overrideBehandlingstid: Boolean,
+)
+
+data class SvarbrevOverrideCustomTextInput(
+    val overrideCustomText: Boolean,
+)

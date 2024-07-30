@@ -123,6 +123,31 @@ class RegistreringService(
         getRegistreringForUpdate(registreringId)
             .apply {
                 journalpostId = input.journalpostId
+
+                //empty the properties that no longer make sense if journalpostId changes.
+                ytelse = null
+                type = null
+                mulighetId = null
+                mulighetFagsystem = null
+                mottattVedtaksinstans = null
+                mottattKlageinstans = null
+                behandlingstidUnits = null
+                behandlingstidUnitType = null
+                hjemmelIdList = listOf()
+                klager = null
+                fullmektig = null
+                avsender = null
+                saksbehandlerIdent = null
+                oppgaveId = null
+                sendSvarbrev = null
+                overrideSvarbrevBehandlingstid = null
+                overrideSvarbrevCustomText = null
+                svarbrevTitle = null
+                svarbrevCustomText = null
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                svarbrevFullmektigFritekst = null
+                svarbrevReceivers.clear()
             }
     }
 
@@ -286,6 +311,22 @@ class RegistreringService(
             .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
             .apply {
                 sendSvarbrev = input.send
+            }
+    }
+
+    fun setSvarbrevOverrideCustomText(registreringId: UUID, input: SvarbrevOverrideCustomTextInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                overrideSvarbrevCustomText = input.overrideCustomText
+            }
+    }
+
+    fun setSvarbrevOverrideBehandlingstid(registreringId: UUID, input: SvarbrevOverrideBehandlingstidInput) {
+        registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .apply {
+                overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
             }
     }
 

@@ -287,6 +287,32 @@ class RegistreringController(
         registreringService.setSendSvarbrev(registreringId = id, input = input)
     }
 
+    @PutMapping("/{id}/svarbrev/override-custom-text")
+    fun updateOverrideSvarbrevCustomText(
+        @PathVariable id: UUID,
+        @RequestBody input: SvarbrevOverrideCustomTextInput
+    ) {
+        logMethodDetails(
+            methodName = ::updateOverrideSvarbrevCustomText.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        registreringService.setSvarbrevOverrideCustomText(registreringId = id, input = input)
+    }
+
+    @PutMapping("/{id}/svarbrev/override-behandlingstid")
+    fun updateOverrideSvarbrevBehandlingstid(
+        @PathVariable id: UUID,
+        @RequestBody input: SvarbrevOverrideBehandlingstidInput
+    ) {
+        logMethodDetails(
+            methodName = ::updateOverrideSvarbrevBehandlingstid.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        registreringService.setSvarbrevOverrideBehandlingstid(registreringId = id, input = input)
+    }
+
     @PutMapping("/{id}/svarbrev/behandlingstid")
     fun updateSvarbrevBehandlingstid(
         @PathVariable id: UUID,
