@@ -74,14 +74,14 @@ class RegistreringService(
         return registreringRepository.findFerdigeRegistreringer(
             navIdent = tokenUtil.getCurrentIdent(),
             finishedFrom = LocalDateTime.now().minusDays(sidenDager?.toLong() ?: 31)
-        ).map { it.toRegistreringView() }
+        ).map { it.toRegistreringView() }.sortedByDescending { it.finished }
     }
 
     fun getUferdigeRegistreringer(
     ): List<FullRegistreringView> {
         return registreringRepository.findUferdigeRegistreringer(
             navIdent = tokenUtil.getCurrentIdent(),
-        ).map { it.toRegistreringView() }
+        ).map { it.toRegistreringView() }.sortedByDescending { it.created }
     }
 
     fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): FullRegistreringView {
