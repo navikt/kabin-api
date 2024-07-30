@@ -161,16 +161,61 @@ class RegistreringService(
                     Type.of(typeId)
                 }
                 modified = LocalDateTime.now()
+                //empty the properties that no longer make sense if typeId changes.
+                mulighetId = null
+                mulighetFagsystem = null
+                mottattVedtaksinstans = null
+                mottattKlageinstans = null
+                behandlingstidUnits = null
+                behandlingstidUnitType = null
+                hjemmelIdList = listOf()
+                klager = null
+                fullmektig = null
+                avsender = null
+                saksbehandlerIdent = null
+                oppgaveId = null
+                sendSvarbrev = null
+                overrideSvarbrevBehandlingstid = null
+                overrideSvarbrevCustomText = null
+                svarbrevTitle = null
+                svarbrevCustomText = null
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                svarbrevFullmektigFritekst = null
+                svarbrevReceivers.clear()
+
             }.toTypeChangeRegistreringView()
     }
 
-    fun setMulighet(registreringId: UUID, input: MulighetInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
+        return getRegistreringForUpdate(registreringId)
             .apply {
                 mulighetId = input.mulighetId
                 mulighetFagsystem = Fagsystem.of(input.fagsystemId)
                 modified = LocalDateTime.now()
-            }
+
+                //empty the properties that no longer make sense if mulighet changes.
+                ytelse = null
+                mottattVedtaksinstans = null
+                mottattKlageinstans = null
+                behandlingstidUnits = null
+                behandlingstidUnitType = null
+                hjemmelIdList = listOf()
+                klager = null
+                fullmektig = null
+                avsender = null
+                saksbehandlerIdent = null
+                oppgaveId = null
+                sendSvarbrev = null
+                overrideSvarbrevBehandlingstid = null
+                overrideSvarbrevCustomText = null
+                svarbrevTitle = null
+                svarbrevCustomText = null
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                svarbrevFullmektigFritekst = null
+                svarbrevReceivers.clear()
+            }.toMulighetChangeRegistreringView()
     }
 
     fun setMottattVedtaksinstans(registreringId: UUID, input: MottattVedtaksinstansInput) {
@@ -396,13 +441,28 @@ class RegistreringService(
         )
     }
 
+    private fun Registrering.toMulighetChangeRegistreringView(): MulighetChangeRegistreringView {
+        return MulighetChangeRegistreringView(
+            id = id,
+            mulighet = if (mulighetId != null) {
+                MulighetView(
+                    id = mulighetId!!,
+                    fagsystemId = mulighetFagsystem!!.id
+                )
+            } else null,
+            overstyringer = MulighetChangeRegistreringView.OverstyringerView(),
+            svarbrev = MulighetChangeRegistreringView.SvarbrevView(),
+            modified = modified,
+        )
+    }
+
     private fun Registrering.toRegistreringView() = FullRegistreringView(
         id = id,
         journalpostId = journalpostId,
         sakenGjelderValue = sakenGjelder?.value,
         typeId = type?.id,
         mulighet = if (mulighetId != null) {
-            FullRegistreringView.MulighetView(
+            MulighetView(
                 id = mulighetId!!,
                 fagsystemId = mulighetFagsystem!!.id
             )
@@ -411,7 +471,7 @@ class RegistreringService(
             mottattVedtaksinstans = mottattVedtaksinstans?.toString(),
             mottattKlageinstans = mottattKlageinstans?.toString(),
             behandlingstid = if (behandlingstidUnits != null) {
-                FullRegistreringView.BehandlingstidView(
+                BehandlingstidView(
                     unitTypeId = behandlingstidUnitType!!.id,
                     units = behandlingstidUnits!!
                 )
@@ -427,7 +487,7 @@ class RegistreringService(
         svarbrev = FullRegistreringView.SvarbrevView(
             send = sendSvarbrev,
             behandlingstid = if (svarbrevBehandlingstidUnits != null) {
-                FullRegistreringView.BehandlingstidView(
+                BehandlingstidView(
                     unitTypeId = svarbrevBehandlingstidUnitType!!.id,
                     units = svarbrevBehandlingstidUnits!!
                 )

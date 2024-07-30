@@ -141,13 +141,13 @@ class RegistreringController(
     fun updateMulighet(
         @PathVariable id: UUID,
         @RequestBody input: MulighetInput
-    ) {
+    ): MulighetChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateMulighet.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setMulighet(registreringId = id, input = input)
+        return registreringService.setMulighet(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/mottatt-vedtaksinstans")
