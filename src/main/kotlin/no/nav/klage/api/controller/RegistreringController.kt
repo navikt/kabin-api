@@ -2,6 +2,7 @@ package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.exceptions.IllegalInputException
 import no.nav.klage.exceptions.MulighetNotFoundException
 import no.nav.klage.service.AnkeService
 import no.nav.klage.service.KlageService
@@ -407,11 +408,15 @@ class RegistreringController(
 
         val registrering = registreringService.getRegistrering(id)
 
+        if (registrering.mulighet == null) {
+            throw IllegalInputException("Mulighet er ikke satt på registreringen.")
+        }
+
         val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
 
         return klageService.getKlagemuligheter(input = input).find {
-            it.id == registrering.mulighet!!.id && it.fagsystemId == registrering.mulighet.fagsystemId
-        } ?: throw MulighetNotFoundException("Klagemulighet not found")
+            it.id == registrering.mulighet.id && it.fagsystemId == registrering.mulighet.fagsystemId
+        } ?: throw MulighetNotFoundException("Klagemulighet ikke funnet.")
     }
 
     @GetMapping("/{id}/ankemulighet")
@@ -428,8 +433,12 @@ class RegistreringController(
 
         val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
 
+        if (registrering.mulighet == null) {
+            throw IllegalInputException("Mulighet er ikke satt på registreringen.")
+        }
+
         return ankeService.getAnkemuligheter(input = input).find {
-            it.id == registrering.mulighet!!.id && it.fagsystemId == registrering.mulighet.fagsystemId
+            it.id == registrering.mulighet.id && it.fagsystemId == registrering.mulighet.fagsystemId
         } ?: throw MulighetNotFoundException("Ankemulighet not found")
     }
 
