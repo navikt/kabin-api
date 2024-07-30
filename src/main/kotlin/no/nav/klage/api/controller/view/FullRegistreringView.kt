@@ -165,3 +165,9 @@ data class MulighetChangeRegistreringView(
         }
     }
 }
+
+data class FerdigstiltRegistreringView(
+    val id: UUID,
+    val finished: LocalDateTime,
+    val behandlingId: UUID,
+)

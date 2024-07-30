@@ -387,7 +387,7 @@ class RegistreringController(
     @PostMapping("/{id}/ferdigstill")
     fun finishRegistrering(
         @PathVariable id: UUID,
-    ) {
+    ): FerdigstiltRegistreringView {
         logMethodDetails(
             methodName = ::finishRegistrering.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
