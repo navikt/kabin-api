@@ -1,5 +1,6 @@
 package no.nav.klage.service
 
+import no.nav.klage.api.controller.view.DokumentReferanse
 import no.nav.klage.api.controller.view.DokumenterResponse
 import no.nav.klage.api.controller.view.LogiskVedleggResponse
 import no.nav.klage.clients.dokarkiv.DokArkivClient
@@ -58,6 +59,13 @@ class DocumentService(
         } else {
             return DokumenterResponse(dokumenter = emptyList())
         }
+    }
+
+    fun fetchDokument(
+       journalpostId: String,
+    ): DokumentReferanse {
+        val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId)!!
+        return dokumentMapper.mapJournalpostToDokumentReferanse(journalpost)
     }
 
     fun getArkivertDokument(journalpostId: String, dokumentInfoId: String): ArkivertDokument {
