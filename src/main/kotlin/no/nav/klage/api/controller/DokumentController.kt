@@ -51,7 +51,7 @@ class DokumentController(
     @Operation(
         summary = "Hent gitt dokument/journalpost"
     )
-    @PostMapping("/arkivertedokumenter/{journalpostId}", produces = ["application/json"])
+    @GetMapping("/arkivertedokumenter/{journalpostId}", produces = ["application/json"])
     fun fetchDokument(
         @PathVariable journalpostId: String,
         @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
