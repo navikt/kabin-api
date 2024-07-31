@@ -1,7 +1,8 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.OverstyringerView
+import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
+import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
@@ -225,7 +226,7 @@ class RegistreringService(
             }
         return MottattVedtaksinstansChangeRegistreringView(
             id = registrering.id,
-            overstyringer = OverstyringerView(
+            overstyringer = MottattVedtaksinstansChangeRegistreringOverstyringerView(
                 mottattVedtaksinstans = registrering.mottattVedtaksinstans,
             ),
             modified = registrering.modified,
@@ -243,7 +244,7 @@ class RegistreringService(
             }
         return MottattKlageinstansChangeRegistreringView(
             id = registrering.id,
-            overstyringer = MottattKlageinstansChangeRegistreringView.OverstyringerView(
+            overstyringer = MottattKlageinstansChangeRegistreringView.MottattKlageinstansChangeRegistreringOverstyringerView(
                 mottattKlageinstans = registrering.mottattKlageinstans,
                 calculatedFrist = if (registrering.mottattKlageinstans != null) {
                     calculateFrist(
@@ -266,7 +267,7 @@ class RegistreringService(
             }
         return BehandlingstidChangeRegistreringView(
             id = registrering.id,
-            overstyringer = BehandlingstidChangeRegistreringView.OverstyringerView(
+            overstyringer = BehandlingstidChangeRegistreringOverstyringerView(
                 behandlingstid = BehandlingstidView(
                     unitTypeId = registrering.behandlingstidUnitType.id,
                     units = registrering.behandlingstidUnits
@@ -305,7 +306,7 @@ class RegistreringService(
             }
         return YtelseChangeRegistreringView(
             id = registrering.id,
-            overstyringer = YtelseChangeRegistreringView.OverstyringerView(
+            overstyringer = YtelseChangeRegistreringView.YtelseChangeRegistreringOverstyringerView(
                 ytelseId = registrering.ytelse?.id,
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
             ),
@@ -313,11 +314,28 @@ class RegistreringService(
         )
     }
 
-    fun setFullmektig(registreringId: UUID, input: PartIdInput?) {
-        getRegistreringForUpdate(registreringId)
+    fun setFullmektig(registreringId: UUID, input: PartIdInput?): FullmektigChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                fullmektig = input?.let {
-                    PartId(
+                //cases
+                //1. fullmektig is set to the same value as before
+                if (fullmektig?.value == input?.id) {
+                    return@apply
+                }
+                //handle receivers for all cases
+                handleReceivers(
+                    unchangedRegistrering = this,
+                    input = input,
+                    partISaken = PartISaken.FULLMEKTIG
+                )
+
+                //2. fullmektig is set to null
+                if (input == null) {
+                    fullmektig = null
+                    svarbrevFullmektigFritekst = null
+                } else {
+                    //3. fullmektig is set to a new value
+                    fullmektig = PartId(
                         value = input.id,
                         type = when (input.type) {
                             PartType.FNR -> {
@@ -329,12 +347,48 @@ class RegistreringService(
                             }
                         }
                     )
+                    val part = kabalApiClient.searchPart(SearchPartInput(identifikator = input.id))
+                    svarbrevFullmektigFritekst = part.name
                 }
                 modified = LocalDateTime.now()
-
-                //if they are receivers of svarbrev, they will be affected
-                //svarbrevFullmektigFritekst affected
             }
+        return FullmektigChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = FullmektigChangeRegistreringView.FullmektigChangeSvarbrevView(
+                fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
+                receivers = emptyList()
+            ),
+            overstyringer = FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
+                fullmektig = registrering.fullmektig?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
+            ),
+            modified = registrering.modified,
+        )
+    }
+
+    fun handleReceivers(unchangedRegistrering: Registrering, input: PartIdInput?, partISaken: PartISaken) {
+//        val existingParts = setOf(
+//            unchangedRegistrering.sakenGjelder?.value,
+//            unchangedRegistrering.klager?.value,
+//            unchangedRegistrering.avsender?.value,
+//            unchangedRegistrering.fullmektig?.value
+//        )
+//
+//        val receivers = unchangedRegistrering.svarbrevReceivers
+//
+//        if (input == null) {
+//
+//
+//        }
+//
+        TODO()
+
+    }
+
+    enum class PartISaken {
+        SAKEN_GJELDER,
+        KLAGER,
+        AVSENDER,
+        FULLMEKTIG,
     }
 
     fun setKlager(registreringId: UUID, input: PartIdInput?) {
@@ -448,7 +502,7 @@ class RegistreringService(
             }
         return SvarbrevBehandlingstidChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevBehandlingstidChangeRegistreringView.SvarbrevView(
+            svarbrev = SvarbrevBehandlingstidChangeRegistreringView.SvarbrevBehandlingstidChangeRegistreringSvarbrevView(
                 behandlingstid = BehandlingstidView(
                     unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
                     units = registrering.svarbrevBehandlingstidUnits!!
@@ -513,8 +567,8 @@ class RegistreringService(
         return TypeChangeRegistreringView(
             id = id,
             typeId = type?.id,
-            overstyringer = TypeChangeRegistreringView.OverstyringerView(),
-            svarbrev = TypeChangeRegistreringView.SvarbrevView(),
+            overstyringer = TypeChangeRegistreringView.TypeChangeRegistreringOverstyringerView(),
+            svarbrev = TypeChangeRegistreringView.TypeChangeRegistreringSvarbrevView(),
             modified = modified,
         )
     }
@@ -528,8 +582,8 @@ class RegistreringService(
                     fagsystemId = mulighetFagsystem!!.id
                 )
             } else null,
-            overstyringer = MulighetChangeRegistreringView.OverstyringerView(),
-            svarbrev = MulighetChangeRegistreringView.SvarbrevView(),
+            overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(),
+            svarbrev = MulighetChangeRegistreringView.MulighetChangeRegistreringSvarbrevView(),
             modified = modified,
         )
     }
@@ -545,7 +599,7 @@ class RegistreringService(
                 fagsystemId = mulighetFagsystem!!.id
             )
         } else null,
-        overstyringer = FullRegistreringView.OverstyringerView(
+        overstyringer = FullRegistreringView.FullRegistreringOverstyringerView(
             mottattVedtaksinstans = mottattVedtaksinstans,
             mottattKlageinstans = mottattKlageinstans,
             behandlingstid =
@@ -568,7 +622,7 @@ class RegistreringService(
             saksbehandlerIdent = saksbehandlerIdent,
             oppgaveId = oppgaveId,
         ),
-        svarbrev = FullRegistreringView.SvarbrevView(
+        svarbrev = FullRegistreringView.FullRegistreringSvarbrevView(
             send = sendSvarbrev,
             behandlingstid = if (svarbrevBehandlingstidUnits != null) {
                 BehandlingstidView(
@@ -578,11 +632,12 @@ class RegistreringService(
             } else null,
             fullmektigFritekst = svarbrevFullmektigFritekst,
             receivers = svarbrevReceivers.map { receiver ->
-                FullRegistreringView.SvarbrevView.RecipientView(
+                RecipientView(
+                    id = receiver.id,
                     part = partViewWithUtsendingskanal(identifikator = receiver.part!!.value)!!,
                     handling = receiver.handling,
                     overriddenAddress = receiver.overriddenAddress?.let { address ->
-                        FullRegistreringView.SvarbrevView.RecipientView.AddressView(
+                        RecipientView.AddressView(
                             adresselinje1 = address.adresselinje1,
                             adresselinje2 = address.adresselinje2,
                             adresselinje3 = address.adresselinje3,
@@ -613,6 +668,12 @@ class RegistreringService(
 
     fun deleteRegistrering(registreringId: UUID) {
         registreringRepository.deleteById(registreringId)
+    }
+
+    fun validateRegistrering(registreringId: UUID) {
+        val registrering = registreringRepository.findById(registreringId)
+            .orElseThrow { throw RegistreringNotFoundException("Registrering ikke funnet.") }
+        TODO()
     }
 
     private fun Registrering.partViewWithUtsendingskanal(identifikator: String?) =

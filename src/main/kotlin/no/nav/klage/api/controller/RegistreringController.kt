@@ -98,6 +98,21 @@ class RegistreringController(
         )
     }
 
+    @GetMapping("/{id}/validate")
+    fun validateRegistrering(
+        @PathVariable id: UUID,
+    ) {
+        logMethodDetails(
+            methodName = ::getRegistrering.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        registreringService.validateRegistrering(
+            registreringId = id
+        )
+    }
+
     @PutMapping("/{id}/saken-gjelder-value")
     fun updateSakenGjelderValue(
         @PathVariable id: UUID,
@@ -219,13 +234,13 @@ class RegistreringController(
     fun updateFullmektig(
         @PathVariable id: UUID,
         @RequestBody input: PartIdInput?
-    ) {
+    ): FullmektigChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateFullmektig.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setFullmektig(registreringId = id, input = input)
+        return registreringService.setFullmektig(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/klager")

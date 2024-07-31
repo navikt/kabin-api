@@ -11,8 +11,8 @@ data class FullRegistreringView(
     val journalpostId: String?,
     val typeId: String?,
     val mulighet: MulighetView?,
-    val overstyringer: OverstyringerView,
-    val svarbrev: SvarbrevView,
+    val overstyringer: FullRegistreringOverstyringerView,
+    val svarbrev: FullRegistreringSvarbrevView,
     val created: LocalDateTime,
     val modified: LocalDateTime,
     val createdBy: String,
@@ -20,7 +20,7 @@ data class FullRegistreringView(
     val behandlingId: UUID?,
 ) {
 
-    data class OverstyringerView(
+    data class FullRegistreringOverstyringerView(
         val mottattVedtaksinstans: LocalDate?,
         val mottattKlageinstans: LocalDate?,
         val behandlingstid: BehandlingstidView,
@@ -34,7 +34,7 @@ data class FullRegistreringView(
         val oppgaveId: Int?
     )
 
-    data class SvarbrevView(
+    data class FullRegistreringSvarbrevView(
         val send: Boolean?,
         val behandlingstid: BehandlingstidView?,
         val calculatedFrist: LocalDate?,
@@ -44,33 +44,19 @@ data class FullRegistreringView(
         val overrideCustomText: Boolean,
         val overrideBehandlingstid: Boolean,
         val customText: String?
-    ) {
-        data class RecipientView(
-            val part: PartViewWithUtsendingskanal,
-            val handling: HandlingEnum,
-            val overriddenAddress: AddressView?
-        ) {
-            data class AddressView(
-                val adresselinje1: String?,
-                val adresselinje2: String?,
-                val adresselinje3: String?,
-                val landkode: String?,
-                val postnummer: String?
-            )
-        }
-    }
+    )
 }
 
 data class TypeChangeRegistreringView(
     val id: UUID,
     val typeId: String?,
     val mulighet: MulighetView? = null,
-    val overstyringer: OverstyringerView,
-    val svarbrev: SvarbrevView,
+    val overstyringer: TypeChangeRegistreringOverstyringerView,
+    val svarbrev: TypeChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
 ) {
 
-    data class OverstyringerView(
+    data class TypeChangeRegistreringOverstyringerView(
         val mottattVedtaksinstans: LocalDate? = null,
         val mottattKlageinstans: LocalDate? = null,
         val behandlingstid: BehandlingstidView? = null,
@@ -84,7 +70,7 @@ data class TypeChangeRegistreringView(
         val oppgaveId: String? = null
     )
 
-    data class SvarbrevView(
+    data class TypeChangeRegistreringSvarbrevView(
         val send: Boolean? = null,
         val behandlingstid: BehandlingstidView? = null,
         val fullmektigFritekst: String? = null,
@@ -93,21 +79,7 @@ data class TypeChangeRegistreringView(
         val overrideCustomText: Boolean = false,
         val overrideBehandlingstid: Boolean = false,
         val customText: String? = null,
-    ) {
-        data class RecipientView(
-            val part: PartViewWithUtsendingskanal,
-            val handling: HandlingEnum,
-            val overriddenAddress: AddressView?
-        ) {
-            data class AddressView(
-                val adresselinje1: String?,
-                val adresselinje2: String?,
-                val adresselinje3: String?,
-                val landkode: String?,
-                val postnummer: String?
-            )
-        }
-    }
+    )
 }
 
 data class MulighetView(
@@ -123,12 +95,12 @@ data class BehandlingstidView(
 data class MulighetChangeRegistreringView(
     val id: UUID,
     val mulighet: MulighetView?,
-    val overstyringer: OverstyringerView,
-    val svarbrev: SvarbrevView,
+    val overstyringer: MulighetChangeRegistreringOverstyringerView,
+    val svarbrev: MulighetChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
 ) {
 
-    data class OverstyringerView(
+    data class MulighetChangeRegistreringOverstyringerView(
         val mottattVedtaksinstans: LocalDate? = null,
         val mottattKlageinstans: LocalDate? = null,
         val behandlingstid: BehandlingstidView? = null,
@@ -142,7 +114,7 @@ data class MulighetChangeRegistreringView(
         val oppgaveId: Int? = null
     )
 
-    data class SvarbrevView(
+    data class MulighetChangeRegistreringSvarbrevView(
         val send: Boolean? = null,
         val behandlingstid: BehandlingstidView? = null,
         val fullmektigFritekst: String? = null,
@@ -151,45 +123,47 @@ data class MulighetChangeRegistreringView(
         val overrideCustomText: Boolean = false,
         val overrideBehandlingstid: Boolean = false,
         val customText: String? = null,
-    ) {
-        data class RecipientView(
-            val part: PartViewWithUtsendingskanal,
-            val handling: HandlingEnum,
-            val overriddenAddress: AddressView?
-        ) {
-            data class AddressView(
-                val adresselinje1: String?,
-                val adresselinje2: String?,
-                val adresselinje3: String?,
-                val landkode: String?,
-                val postnummer: String?
-            )
-        }
-    }
+    )
+}
+
+data class RecipientView(
+    val id: UUID,
+    val part: PartViewWithUtsendingskanal,
+    val handling: HandlingEnum,
+    val overriddenAddress: AddressView?
+) {
+    data class AddressView(
+        val adresselinje1: String?,
+        val adresselinje2: String?,
+        val adresselinje3: String?,
+        val landkode: String?,
+        val postnummer: String?
+    )
 }
 
 data class FerdigstiltRegistreringView(
     val id: UUID,
     val finished: LocalDateTime,
+    val modified: LocalDateTime,
     val behandlingId: UUID,
 )
 
 data class MottattVedtaksinstansChangeRegistreringView(
     val id: UUID,
-    val overstyringer: OverstyringerView,
+    val overstyringer: MottattVedtaksinstansChangeRegistreringOverstyringerView,
     val modified: LocalDateTime,
 ) {
-    data class OverstyringerView(
+    data class MottattVedtaksinstansChangeRegistreringOverstyringerView(
         val mottattVedtaksinstans: LocalDate?,
     )
 }
 
 data class MottattKlageinstansChangeRegistreringView(
     val id: UUID,
-    val overstyringer: OverstyringerView,
+    val overstyringer: MottattKlageinstansChangeRegistreringOverstyringerView,
     val modified: LocalDateTime,
 ) {
-    data class OverstyringerView(
+    data class MottattKlageinstansChangeRegistreringOverstyringerView(
         val mottattKlageinstans: LocalDate?,
         val calculatedFrist: LocalDate?,
     )
@@ -197,10 +171,10 @@ data class MottattKlageinstansChangeRegistreringView(
 
 data class BehandlingstidChangeRegistreringView(
     val id: UUID,
-    val overstyringer: OverstyringerView,
+    val overstyringer: BehandlingstidChangeRegistreringOverstyringerView,
     val modified: LocalDateTime,
 ) {
-    data class OverstyringerView(
+    data class BehandlingstidChangeRegistreringOverstyringerView(
         val behandlingstid: BehandlingstidView,
         val calculatedFrist: LocalDate?,
     )
@@ -208,10 +182,10 @@ data class BehandlingstidChangeRegistreringView(
 
 data class YtelseChangeRegistreringView(
     val id: UUID,
-    val overstyringer: OverstyringerView,
+    val overstyringer: YtelseChangeRegistreringOverstyringerView,
     val modified: LocalDateTime,
 ) {
-    data class OverstyringerView(
+    data class YtelseChangeRegistreringOverstyringerView(
         val ytelseId: String?,
         val saksbehandlerIdent: String?,
     )
@@ -219,11 +193,27 @@ data class YtelseChangeRegistreringView(
 
 data class SvarbrevBehandlingstidChangeRegistreringView(
     val id: UUID,
-    val svarbrev: SvarbrevView,
+    val svarbrev: SvarbrevBehandlingstidChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
 ) {
-    data class SvarbrevView(
+    data class SvarbrevBehandlingstidChangeRegistreringSvarbrevView(
         val behandlingstid: BehandlingstidView?,
         val calculatedFrist: LocalDate?,
+    )
+}
+
+data class FullmektigChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: FullmektigChangeSvarbrevView,
+    val overstyringer: FullmektigChangeRegistreringOverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class FullmektigChangeRegistreringOverstyringerView(
+        val fullmektig: PartViewWithUtsendingskanal?,
+    )
+
+    data class FullmektigChangeSvarbrevView(
+        val fullmektigFritekst: String?,
+        val receivers: List<RecipientView>,
     )
 }
