@@ -65,7 +65,7 @@ class RegistreringService(
 
     fun getRegistrering(registreringId: UUID): FullRegistreringView {
         return registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .orElseThrow { throw RegistreringNotFoundException("Registrering ikke funnet.") }
             .toRegistreringView()
     }
 
@@ -628,13 +628,13 @@ class RegistreringService(
 
     private fun getRegistreringForUpdate(registreringId: UUID): Registrering {
         return registreringRepository.findById(registreringId)
-            .orElseThrow { throw RegistreringNotFoundException("Registrering not found") }
+            .orElseThrow { throw RegistreringNotFoundException("Registrering ikke funnet.") }
             .also {
                 if (it.createdBy != tokenUtil.getCurrentIdent()) {
-                    throw MissingAccessException("Registreringen tilhører ikke deg")
+                    throw MissingAccessException("Registreringen tilhører ikke deg.")
                 }
                 if (it.finished != null) {
-                    throw IllegalUpdateException("Registreringen er allerede ferdigstilt")
+                    throw IllegalUpdateException("Registreringen er allerede ferdigstilt.")
                 }
             }
     }

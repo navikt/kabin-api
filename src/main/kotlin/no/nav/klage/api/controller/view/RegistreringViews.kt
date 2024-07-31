@@ -1,6 +1,5 @@
 package no.nav.klage.api.controller.view
 
-import no.nav.klage.api.controller.view.MulighetChangeRegistreringView.SvarbrevView.RecipientView
 import no.nav.klage.domain.entities.HandlingEnum
 import java.time.LocalDate
 import java.time.LocalDateTime
