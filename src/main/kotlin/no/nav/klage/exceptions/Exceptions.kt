@@ -15,6 +15,8 @@ class IllegalUpdateException(override val message: String): RuntimeException(mes
 
 class ReceiverAlreadyExistException(override val message: String): RuntimeException(message)
 
+class ReceiverNotFoundException(override val message: String): RuntimeException(message)
+
 class IllegalInputException(override val message: String): RuntimeException(message)
 
 class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)

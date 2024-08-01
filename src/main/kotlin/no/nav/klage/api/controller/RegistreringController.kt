@@ -403,14 +403,18 @@ class RegistreringController(
     fun updateSvarbrevReceiver(
         @PathVariable id: UUID,
         @PathVariable svarbrevReceiverId: UUID,
-        @RequestBody input: SvarbrevRecipientInput
+        @RequestBody input: ModifySvarbrevRecipientInput
     ) {
         logMethodDetails(
             methodName = ::updateSvarbrevReceiver.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.addSvarbrevReceiver(registreringId = id, input = input)
+        registreringService.modifySvarbrevReceiver(
+            registreringId = id,
+            svarbrevReceiverId = svarbrevReceiverId,
+            input = input
+        )
     }
 
     @DeleteMapping("/{id}/svarbrev/receivers/{svarbrevReceiverId}")

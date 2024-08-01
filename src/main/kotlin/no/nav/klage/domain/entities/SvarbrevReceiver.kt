@@ -19,9 +19,9 @@ class SvarbrevReceiver(
     //TODO: should be kodeverk?
     @Column(name = "handling")
     @Enumerated(EnumType.STRING)
-    val handling: HandlingEnum,
+    var handling: HandlingEnum,
     @Embedded
-    val overriddenAddress: Address?
+    var overriddenAddress: Address?
 )
 
 enum class HandlingEnum {

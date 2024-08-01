@@ -7,10 +7,7 @@ import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.SvarbrevReceiver
-import no.nav.klage.exceptions.IllegalUpdateException
-import no.nav.klage.exceptions.MissingAccessException
-import no.nav.klage.exceptions.ReceiverAlreadyExistException
-import no.nav.klage.exceptions.RegistreringNotFoundException
+import no.nav.klage.exceptions.*
 import no.nav.klage.kodeverk.*
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
@@ -716,6 +713,40 @@ class RegistreringService(
                         }
                     )
                 )
+                modified = LocalDateTime.now()
+            }
+        return SvarbrevReceiverChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
+                receivers = registrering.svarbrevReceivers.map { receiver ->
+                    receiver.toRecipientView(registrering)
+                }
+            ),
+            modified = registrering.modified,
+        )
+    }
+
+    fun modifySvarbrevReceiver(
+        registreringId: UUID,
+        svarbrevReceiverId: UUID,
+        input: ModifySvarbrevRecipientInput
+    ): SvarbrevReceiverChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+            .apply {
+                val receiver = svarbrevReceivers.find { it.id == svarbrevReceiverId }
+                    ?: throw ReceiverNotFoundException("Mottaker ikke funnet.")
+                receiver.apply {
+                    handling = input.handling
+                    overriddenAddress = input.overriddenAddress?.let { address ->
+                        no.nav.klage.domain.entities.Address(
+                            adresselinje1 = address.adresselinje1,
+                            adresselinje2 = address.adresselinje2,
+                            adresselinje3 = address.adresselinje3,
+                            landkode = address.landkode,
+                            postnummer = address.postnummer,
+                        )
+                    }
+                }
                 modified = LocalDateTime.now()
             }
         return SvarbrevReceiverChangeRegistreringView(

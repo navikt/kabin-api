@@ -6,13 +6,13 @@ import jakarta.persistence.Embeddable
 @Embeddable
 data class Address(
     @Column(name = "adresselinje1")
-    val adresselinje1: String?,
+    var adresselinje1: String?,
     @Column(name = "adresselinje2")
-    val adresselinje2: String?,
+    var adresselinje2: String?,
     @Column(name = "adresselinje3")
-    val adresselinje3: String?,
+    var adresselinje3: String?,
     @Column(name = "postnummer")
-    val postnummer: String?,
+    var postnummer: String?,
     @Column(name = "landkode")
-    val landkode: String?
+    var landkode: String?
 )
