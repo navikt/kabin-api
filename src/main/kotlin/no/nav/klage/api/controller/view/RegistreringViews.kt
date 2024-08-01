@@ -105,7 +105,7 @@ data class MulighetChangeRegistreringView(
         val behandlingstid: BehandlingstidView? = null,
         val calculatedFrist: LocalDate? = null,
         val hjemmelIdList: List<String> = emptyList(),
-        val ytelseId: String? = null,
+        val ytelseId: String?,
         val fullmektig: PartViewWithUtsendingskanal? = null,
         val klager: PartViewWithUtsendingskanal? = null,
         val avsender: PartViewWithUtsendingskanal? = null,

@@ -824,7 +824,9 @@ class RegistreringService(
                     fagsystemId = mulighetFagsystem!!.id
                 )
             } else null,
-            overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(),
+            overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(
+                ytelseId = ytelse?.id,
+            ),
             svarbrev = MulighetChangeRegistreringView.MulighetChangeRegistreringSvarbrevView(),
             modified = modified,
         )
