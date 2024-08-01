@@ -338,26 +338,26 @@ class RegistreringController(
     fun updateSvarbrevBehandlingstid(
         @PathVariable id: UUID,
         @RequestBody input: BehandlingstidInput
-    ) {
+    ): SvarbrevBehandlingstidChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevBehandlingstid.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSvarbrevBehandlingstid(registreringId = id, input = input)
+        return registreringService.setSvarbrevBehandlingstid(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/fullmektig-fritekst")
     fun updateSvarbrevFullmektigFritekst(
         @PathVariable id: UUID,
         @RequestBody input: SvarbrevFullmektigFritekstInput
-    ) {
+    ): SvarbrevFullmektigFritekstChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevFullmektigFritekst.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSvarbrevFullmektigFritekst(registreringId = id, input = input)
+        return registreringService.setSvarbrevFullmektigFritekst(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/custom-text")
@@ -404,13 +404,13 @@ class RegistreringController(
         @PathVariable id: UUID,
         @PathVariable svarbrevReceiverId: UUID,
         @RequestBody input: ModifySvarbrevRecipientInput
-    ) {
+    ): SvarbrevReceiverChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevReceiver.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.modifySvarbrevReceiver(
+        return registreringService.modifySvarbrevReceiver(
             registreringId = id,
             svarbrevReceiverId = svarbrevReceiverId,
             input = input

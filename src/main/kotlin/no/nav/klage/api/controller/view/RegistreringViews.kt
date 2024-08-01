@@ -335,3 +335,13 @@ data class SvarbrevReceiverChangeRegistreringView(
         val receivers: List<RecipientView>,
     )
 }
+
+data class SvarbrevFullmektigFritekstChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevFullmektigFritekstChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevFullmektigFritekstChangeRegistreringSvarbrevView(
+        val fullmektigFritekst: String?,
+    )
+}

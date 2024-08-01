@@ -23,6 +23,8 @@ class RegistreringService(
     private val registreringRepository: RegistreringRepository,
     private val kabalApiClient: KabalApiClient,
     private val tokenUtil: TokenUtil,
+    private val klageService: KlageService,
+    private val ankeService: AnkeService,
 ) {
 
     fun createRegistrering(): FullRegistreringView {
@@ -186,10 +188,10 @@ class RegistreringService(
             .apply {
                 mulighetId = input.mulighetId
                 mulighetFagsystem = Fagsystem.of(input.fagsystemId)
+                ytelse = getYtelseOrNull(this)
                 modified = LocalDateTime.now()
 
                 //empty the properties that no longer make sense if mulighet changes.
-                ytelse = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
                 hjemmelIdList = listOf()
@@ -207,6 +209,37 @@ class RegistreringService(
                 svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
             }.toMulighetChangeRegistreringView()
+    }
+
+    private fun getYtelseOrNull(registrering: Registrering): Ytelse? {
+        if (registrering.type == null) {
+            return null
+        }
+
+        val input = IdnummerInput(idnummer = registrering.sakenGjelder!!.value)
+
+        val temaId = if (registrering.type == Type.KLAGE) {
+            val mulighet = klageService.getKlagemuligheter(input = input).find {
+                it.id == registrering.mulighetId && it.fagsystemId == registrering.mulighetFagsystem!!.id
+            }
+            mulighet?.temaId
+        } else if (registrering.type == Type.ANKE) {
+            val mulighet = ankeService.getAnkemuligheter(input = input).find {
+                it.id == registrering
+                    .mulighetId && it.fagsystemId == registrering.mulighetFagsystem!!.id
+            }
+            mulighet?.temaId
+        } else null
+
+        if (temaId == null) {
+            return null
+        }
+
+        val possibleYtelser = Ytelse.entries.filter { it.toTema().id == temaId }
+
+        return if (possibleYtelser.size == 1) {
+            possibleYtelser.first()
+        } else null
     }
 
     fun setMottattVedtaksinstans(
@@ -294,6 +327,8 @@ class RegistreringService(
     }
 
     fun setYtelseId(registreringId: UUID, input: YtelseIdInput): YtelseChangeRegistreringView {
+        //svarbrev settings
+
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 ytelse = input.ytelseId?.let { ytelseId ->
@@ -654,12 +689,24 @@ class RegistreringService(
         )
     }
 
-    fun setSvarbrevFullmektigFritekst(registreringId: UUID, input: SvarbrevFullmektigFritekstInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setSvarbrevFullmektigFritekst(registreringId: UUID, input: SvarbrevFullmektigFritekstInput): SvarbrevFullmektigFritekstChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                svarbrevFullmektigFritekst = input.fullmektigFritekst
+                val fritekst = if (!input.fullmektigFritekst.isNullOrBlank()) {
+                    input.fullmektigFritekst
+                } else {
+                    null
+                }
+                svarbrevFullmektigFritekst = fritekst
                 modified = LocalDateTime.now()
             }
+        return SvarbrevFullmektigFritekstChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevFullmektigFritekstChangeRegistreringView.SvarbrevFullmektigFritekstChangeRegistreringSvarbrevView(
+                fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
+            ),
+            modified = registrering.modified,
+        )
     }
 
     fun deleteSvarbrevReceiver(registreringId: UUID, svarbrevReceiverId: UUID): SvarbrevReceiverChangeRegistreringView {

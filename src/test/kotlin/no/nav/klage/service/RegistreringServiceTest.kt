@@ -43,11 +43,7 @@ class ModifySvarbrevReiceversTest {
 
     @Test
     fun `add fullmektig same id as klager`() {
-        val registreringService = RegistreringService(
-            registreringRepository = mockk(),
-            tokenUtil = mockk(),
-            kabalApiClient = mockk(),
-        )
+        val registreringService = getRegistreringService()
 
         val registrering = getRegistrering()
         registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
@@ -96,11 +92,7 @@ class ModifySvarbrevReiceversTest {
 
     @Test
     fun `remove fullmektig as the only one`() {
-        val registreringService = RegistreringService(
-            registreringRepository = mockk(),
-            tokenUtil = mockk(),
-            kabalApiClient = mockk(),
-        )
+        val registreringService = getRegistreringService()
 
         val registrering = getRegistrering()
         registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
@@ -118,11 +110,7 @@ class ModifySvarbrevReiceversTest {
 
     @Test
     fun `remove klager as the only one`() {
-        val registreringService = RegistreringService(
-            registreringRepository = mockk(),
-            tokenUtil = mockk(),
-            kabalApiClient = mockk(),
-        )
+        val registreringService = getRegistreringService()
 
         val registrering = getRegistrering()
         registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
@@ -140,11 +128,7 @@ class ModifySvarbrevReiceversTest {
 
     @Test
     fun `remove avsender as the only one`() {
-        val registreringService = RegistreringService(
-            registreringRepository = mockk(),
-            tokenUtil = mockk(),
-            kabalApiClient = mockk(),
-        )
+        val registreringService = getRegistreringService()
 
         val registrering = getRegistrering()
         registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
@@ -162,11 +146,7 @@ class ModifySvarbrevReiceversTest {
 
     @Test
     fun `remove fullmektig when same as klager`() {
-        val registreringService = RegistreringService(
-            registreringRepository = mockk(),
-            tokenUtil = mockk(),
-            kabalApiClient = mockk(),
-        )
+        val registreringService = getRegistreringService()
 
         val registrering = getRegistrering()
         registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
@@ -185,11 +165,7 @@ class ModifySvarbrevReiceversTest {
 
     @Test
     fun `remove avsender when same as klager`() {
-        val registreringService = RegistreringService(
-            registreringRepository = mockk(),
-            tokenUtil = mockk(),
-            kabalApiClient = mockk(),
-        )
+        val registreringService = getRegistreringService()
 
         val registrering = getRegistrering()
         registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
@@ -204,6 +180,17 @@ class ModifySvarbrevReiceversTest {
         )
 
         assertThat(registrering.svarbrevReceivers).hasSize(1)
+    }
+
+    private fun getRegistreringService(): RegistreringService {
+        val registreringService = RegistreringService(
+            registreringRepository = mockk(),
+            tokenUtil = mockk(),
+            kabalApiClient = mockk(),
+            klageService = mockk(),
+            ankeService = mockk(),
+        )
+        return registreringService
     }
 
     private fun getSvarbrevRecipient(value: String): SvarbrevReceiver {
