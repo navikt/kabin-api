@@ -230,3 +230,18 @@ data class KlagerChangeRegistreringView(
         val receivers: List<RecipientView>,
     )
 }
+
+data class AvsenderChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: AvsenderChangeRegistreringViewSvarbrevView,
+    val overstyringer: AvsenderChangeRegistreringViewRegistreringOverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class AvsenderChangeRegistreringViewRegistreringOverstyringerView(
+        val avsender: PartViewWithUtsendingskanal?,
+    )
+
+    data class AvsenderChangeRegistreringViewSvarbrevView(
+        val receivers: List<RecipientView>,
+    )
+}

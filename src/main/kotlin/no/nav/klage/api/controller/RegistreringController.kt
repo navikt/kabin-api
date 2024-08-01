@@ -260,13 +260,13 @@ class RegistreringController(
     fun updateAvsender(
         @PathVariable id: UUID,
         @RequestBody input: PartIdInput?
-    ) {
+    ): AvsenderChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateAvsender.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setAvsender(registreringId = id, input = input)
+        return registreringService.setAvsender(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/saksbehandler-ident")

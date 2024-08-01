@@ -466,11 +466,27 @@ class RegistreringService(
         }
     )
 
-    fun setAvsender(registreringId: UUID, input: PartIdInput?) {
-        getRegistreringForUpdate(registreringId)
+    fun setAvsender(registreringId: UUID, input: PartIdInput?): AvsenderChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                avsender = input?.let {
-                    PartId(
+                //cases
+                //1. avsender is set to the same value as before
+                if (avsender?.value == input?.id) {
+                    return@apply
+                }
+                //handle receivers for all cases
+                handleReceiversWhenAddingPart(
+                    unchangedRegistrering = this,
+                    partIdInput = input,
+                    partISaken = PartISaken.AVSENDER
+                )
+
+                //2. avsender is set to null
+                if (input == null) {
+                    avsender = null
+                } else {
+                    //3. avsender is set to a new value
+                    avsender = PartId(
                         value = input.id,
                         type = when (input.type) {
                             PartType.FNR -> {
@@ -484,9 +500,20 @@ class RegistreringService(
                     )
                 }
                 modified = LocalDateTime.now()
-
-                //if they are receivers of svarbrev, they will be affected
             }
+        return AvsenderChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewSvarbrevView(
+                receivers = registrering.svarbrevReceivers.map { receiver ->
+                    receiver.toRecipientView(registrering)
+                }
+            ),
+            overstyringer = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewRegistreringOverstyringerView(
+                avsender = registrering.avsender?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
+            ),
+            modified = registrering.modified,
+        )
+
     }
 
     fun setSaksbehandlerIdent(registreringId: UUID, input: SaksbehandlerIdentInput) {
