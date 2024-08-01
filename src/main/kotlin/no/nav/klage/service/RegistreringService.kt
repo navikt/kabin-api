@@ -9,6 +9,7 @@ import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.exceptions.IllegalUpdateException
 import no.nav.klage.exceptions.MissingAccessException
+import no.nav.klage.exceptions.ReceiverAlreadyExistException
 import no.nav.klage.exceptions.RegistreringNotFoundException
 import no.nav.klage.kodeverk.*
 import no.nav.klage.repository.RegistreringRepository
@@ -687,7 +688,7 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 if (svarbrevReceivers.any { it.part.value == input.part.id }) {
-                    throw IllegalUpdateException("Mottaker finnes allerede.")
+                    throw ReceiverAlreadyExistException("Mottaker finnes allerede.")
                 }
                 svarbrevReceivers.add(
                     SvarbrevReceiver(
