@@ -53,6 +53,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
+    fun handleMulighetNotFoundException(
+        ex: MulighetNotFoundException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.NOT_FOUND, ex)
+
+    @ExceptionHandler
     fun handleOppgaveClientException(
         ex: OppgaveClientException,
         request: NativeWebRequest

@@ -455,7 +455,7 @@ class RegistreringController(
         val registrering = registreringService.getRegistrering(id)
 
         if (registrering.mulighet == null) {
-            throw IllegalInputException("Mulighet er ikke satt på registreringen.")
+            throw IllegalInputException("Mulighet er ikke satt på registreringen, så derfor finnes ikke klagemulighet.")
         }
 
         val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
@@ -480,7 +480,7 @@ class RegistreringController(
         val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
 
         if (registrering.mulighet == null) {
-            throw IllegalInputException("Mulighet er ikke satt på registreringen.")
+            throw IllegalInputException("Mulighet er ikke satt på registreringen, så derfor finnes ikke ankemulighet.")
         }
 
         return ankeService.getAnkemuligheter(input = input).find {
