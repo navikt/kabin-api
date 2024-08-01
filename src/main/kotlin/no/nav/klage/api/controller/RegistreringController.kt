@@ -152,6 +152,7 @@ class RegistreringController(
         return registreringService.setTypeId(registreringId = id, input = input)
     }
 
+    //TODO: Takes a lot of time b/c current implementation
     @PutMapping("/{id}/mulighet")
     fun updateMulighet(
         @PathVariable id: UUID,
