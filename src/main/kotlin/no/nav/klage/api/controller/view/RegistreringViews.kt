@@ -215,3 +215,18 @@ data class FullmektigChangeRegistreringView(
         val receivers: List<RecipientView>,
     )
 }
+
+data class KlagerChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: KlagerChangeRegistreringViewSvarbrevView,
+    val overstyringer: KlagerChangeRegistreringViewRegistreringOverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class KlagerChangeRegistreringViewRegistreringOverstyringerView(
+        val klager: PartViewWithUtsendingskanal?,
+    )
+
+    data class KlagerChangeRegistreringViewSvarbrevView(
+        val receivers: List<RecipientView>,
+    )
+}

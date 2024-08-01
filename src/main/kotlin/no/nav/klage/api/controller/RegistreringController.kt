@@ -247,13 +247,13 @@ class RegistreringController(
     fun updateKlager(
         @PathVariable id: UUID,
         @RequestBody input: PartIdInput?
-    ) {
+    ): KlagerChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateKlager.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setKlager(registreringId = id, input = input)
+        return registreringService.setKlager(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/avsender")

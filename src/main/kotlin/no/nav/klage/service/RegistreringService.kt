@@ -353,20 +353,7 @@ class RegistreringService(
             svarbrev = FullmektigChangeRegistreringView.FullmektigChangeSvarbrevView(
                 fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
                 receivers = registrering.svarbrevReceivers.map { receiver ->
-                    RecipientView(
-                        id = receiver.id,
-                        part = registrering.partViewWithUtsendingskanal(identifikator = receiver.part.value)!!,
-                        handling = receiver.handling,
-                        overriddenAddress = receiver.overriddenAddress?.let { address ->
-                            RecipientView.AddressView(
-                                adresselinje1 = address.adresselinje1,
-                                adresselinje2 = address.adresselinje2,
-                                adresselinje3 = address.adresselinje3,
-                                landkode = address.landkode,
-                                postnummer = address.postnummer,
-                            )
-                        }
-                    )
+                    receiver.toRecipientView(registrering)
                 }
             ),
             overstyringer = FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
@@ -413,11 +400,27 @@ class RegistreringService(
         FULLMEKTIG,
     }
 
-    fun setKlager(registreringId: UUID, input: PartIdInput?) {
-        getRegistreringForUpdate(registreringId)
+    fun setKlager(registreringId: UUID, input: PartIdInput?): KlagerChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                klager = input?.let {
-                    PartId(
+                //cases
+                //1. klager is set to the same value as before
+                if (klager?.value == input?.id) {
+                    return@apply
+                }
+                //handle receivers for all cases
+                handleReceiversWhenAddingPart(
+                    unchangedRegistrering = this,
+                    partIdInput = input,
+                    partISaken = PartISaken.KLAGER
+                )
+
+                //2. klager is set to null
+                if (input == null) {
+                    klager = null
+                } else {
+                    //3. klager is set to a new value
+                    klager = PartId(
                         value = input.id,
                         type = when (input.type) {
                             PartType.FNR -> {
@@ -431,10 +434,37 @@ class RegistreringService(
                     )
                 }
                 modified = LocalDateTime.now()
-
-                //if they are receivers of svarbrev, they will be affected
             }
+        return KlagerChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = KlagerChangeRegistreringView.KlagerChangeRegistreringViewSvarbrevView(
+                receivers = registrering.svarbrevReceivers.map { receiver ->
+                    receiver.toRecipientView(registrering)
+                }
+            ),
+            overstyringer = KlagerChangeRegistreringView.KlagerChangeRegistreringViewRegistreringOverstyringerView(
+                klager = registrering.klager?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
+            ),
+            modified = registrering.modified,
+        )
     }
+
+    private fun SvarbrevReceiver.toRecipientView(
+        registrering: Registrering
+    ) = RecipientView(
+        id = id,
+        part = registrering.partViewWithUtsendingskanal(identifikator = part.value)!!,
+        handling = handling,
+        overriddenAddress = overriddenAddress?.let { address ->
+            RecipientView.AddressView(
+                adresselinje1 = address.adresselinje1,
+                adresselinje2 = address.adresselinje2,
+                adresselinje3 = address.adresselinje3,
+                landkode = address.landkode,
+                postnummer = address.postnummer,
+            )
+        }
+    )
 
     fun setAvsender(registreringId: UUID, input: PartIdInput?) {
         getRegistreringForUpdate(registreringId)
@@ -654,20 +684,7 @@ class RegistreringService(
             } else null,
             fullmektigFritekst = svarbrevFullmektigFritekst,
             receivers = svarbrevReceivers.map { receiver ->
-                RecipientView(
-                    id = receiver.id,
-                    part = partViewWithUtsendingskanal(identifikator = receiver.part.value)!!,
-                    handling = receiver.handling,
-                    overriddenAddress = receiver.overriddenAddress?.let { address ->
-                        RecipientView.AddressView(
-                            adresselinje1 = address.adresselinje1,
-                            adresselinje2 = address.adresselinje2,
-                            adresselinje3 = address.adresselinje3,
-                            landkode = address.landkode,
-                            postnummer = address.postnummer,
-                        )
-                    }
-                )
+                receiver.toRecipientView(this)
             },
             title = svarbrevTitle,
             customText = svarbrevCustomText,
