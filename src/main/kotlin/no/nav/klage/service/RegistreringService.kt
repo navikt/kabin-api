@@ -4,7 +4,6 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.kabalapi.KabalApiClient
-import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.SvarbrevReceiver
@@ -320,7 +319,7 @@ class RegistreringService(
                     return@apply
                 }
                 //handle receivers for all cases
-                handleReceivers(
+                handleReceiversWhenAddingPart(
                     unchangedRegistrering = this,
                     partIdInput = input,
                     partISaken = PartISaken.FULLMEKTIG
@@ -377,31 +376,13 @@ class RegistreringService(
         )
     }
 
-    fun handleReceivers(unchangedRegistrering: Registrering, partIdInput: PartIdInput?, partISaken: PartISaken) {
+    fun handleReceiversWhenAddingPart(unchangedRegistrering: Registrering, partIdInput: PartIdInput?, partISaken: PartISaken) {
         val svarbrevReceivers = unchangedRegistrering.svarbrevReceivers
         if (partIdInput != null) {
             if (svarbrevReceivers.any { it.part.value == partIdInput.id }) {
                 //if the receiver is already in the list, we don't need to do anything.
                 return
             }
-            svarbrevReceivers.add(
-                SvarbrevReceiver(
-                    part = PartId(
-                        value = partIdInput.id,
-                        type = when (partIdInput.type) {
-                            PartType.FNR -> {
-                                PartIdType.PERSON
-                            }
-
-                            PartType.ORGNR -> {
-                                PartIdType.VIRKSOMHET
-                            }
-                        }
-                    ),
-                    handling = HandlingEnum.AUTO,
-                    overriddenAddress = null
-                )
-            )
         } else {
             val existingParts = listOf(
                 unchangedRegistrering.sakenGjelder?.value,
