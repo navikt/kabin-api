@@ -245,3 +245,33 @@ data class AvsenderChangeRegistreringView(
         val receivers: List<RecipientView>,
     )
 }
+
+data class SaksbehandlerIdentChangeRegistreringView(
+    val id: UUID,
+    val overstyringer: SaksbehandlerIdentChangeRegistreringOverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class SaksbehandlerIdentChangeRegistreringOverstyringerView(
+        val saksbehandlerIdent: String?,
+    )
+}
+
+data class OppgaveIdChangeRegistreringView(
+    val id: UUID,
+    val overstyringer: OppgaveIdChangeRegistreringOverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class OppgaveIdChangeRegistreringOverstyringerView(
+        val oppgaveId: Int?,
+    )
+}
+
+data class SendSvarbrevChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SendSvarbrevChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SendSvarbrevChangeRegistreringSvarbrevView(
+        val send: Boolean,
+    )
+}

@@ -273,39 +273,39 @@ class RegistreringController(
     fun updateSaksbehandlerIdent(
         @PathVariable id: UUID,
         @RequestBody input: SaksbehandlerIdentInput
-    ) {
+    ): SaksbehandlerIdentChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSaksbehandlerIdent.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSaksbehandlerIdent(registreringId = id, input = input)
+        return registreringService.setSaksbehandlerIdent(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/oppgave-id")
     fun updateOppgaveId(
         @PathVariable id: UUID,
         @RequestBody input: OppgaveIdInput
-    ) {
+    ): OppgaveIdChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateOppgaveId.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setOppgaveId(registreringId = id, input = input)
+        return registreringService.setOppgaveId(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/send")
     fun updateSendSvarbrev(
         @PathVariable id: UUID,
         @RequestBody input: SendSvarbrevInput
-    ) {
+    ): SendSvarbrevChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSendSvarbrev.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSendSvarbrev(registreringId = id, input = input)
+        return registreringService.setSendSvarbrev(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/override-custom-text")

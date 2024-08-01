@@ -516,28 +516,51 @@ class RegistreringService(
 
     }
 
-    fun setSaksbehandlerIdent(registreringId: UUID, input: SaksbehandlerIdentInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setSaksbehandlerIdent(registreringId: UUID, input: SaksbehandlerIdentInput): SaksbehandlerIdentChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 saksbehandlerIdent = input.saksbehandlerIdent
                 modified = LocalDateTime.now()
             }
+        return SaksbehandlerIdentChangeRegistreringView(
+            id = registrering.id,
+            overstyringer = SaksbehandlerIdentChangeRegistreringView.SaksbehandlerIdentChangeRegistreringOverstyringerView(
+                saksbehandlerIdent = registrering.saksbehandlerIdent,
+            ),
+            modified = registrering.modified,
+        )
     }
 
-    fun setOppgaveId(registreringId: UUID, input: OppgaveIdInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setOppgaveId(registreringId: UUID, input: OppgaveIdInput): OppgaveIdChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 oppgaveId = input.oppgaveId
                 modified = LocalDateTime.now()
             }
+
+        return OppgaveIdChangeRegistreringView(
+            id = registrering.id,
+            overstyringer = OppgaveIdChangeRegistreringView.OppgaveIdChangeRegistreringOverstyringerView(
+                oppgaveId = registrering.oppgaveId,
+            ),
+            modified = registrering.modified,
+        )
     }
 
-    fun setSendSvarbrev(registreringId: UUID, input: SendSvarbrevInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setSendSvarbrev(registreringId: UUID, input: SendSvarbrevInput): SendSvarbrevChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 sendSvarbrev = input.send
                 modified = LocalDateTime.now()
             }
+
+        return SendSvarbrevChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SendSvarbrevChangeRegistreringView.SendSvarbrevChangeRegistreringSvarbrevView(
+                send = registrering.sendSvarbrev!!,
+            ),
+            modified = registrering.modified,
+        )
     }
 
     fun setSvarbrevOverrideCustomText(registreringId: UUID, input: SvarbrevOverrideCustomTextInput) {
