@@ -563,36 +563,64 @@ class RegistreringService(
         )
     }
 
-    fun setSvarbrevOverrideCustomText(registreringId: UUID, input: SvarbrevOverrideCustomTextInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setSvarbrevOverrideCustomText(registreringId: UUID, input: SvarbrevOverrideCustomTextInput): SvarbrevOverrideCustomTextChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevCustomText = input.overrideCustomText
                 modified = LocalDateTime.now()
             }
+        return SvarbrevOverrideCustomTextChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevOverrideCustomTextChangeRegistreringView.SvarbrevOverrideCustomTextChangeRegistreringSvarbrevView(
+                overrideCustomText = registrering.overrideSvarbrevCustomText!!,
+            ),
+            modified = registrering.modified,
+        )
     }
 
-    fun setSvarbrevOverrideBehandlingstid(registreringId: UUID, input: SvarbrevOverrideBehandlingstidInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setSvarbrevOverrideBehandlingstid(registreringId: UUID, input: SvarbrevOverrideBehandlingstidInput): SvarbrevOverrideBehandlingstidChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
                 modified = LocalDateTime.now()
             }
+        return SvarbrevOverrideBehandlingstidChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevOverrideBehandlingstidChangeRegistreringView.SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView(
+                overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid!!,
+            ),
+            modified = registrering.modified,
+        )
     }
 
-    fun setSvarbrevTitle(registreringId: UUID, input: SvarbrevTitleInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setSvarbrevTitle(registreringId: UUID, input: SvarbrevTitleInput): SvarbrevTitleChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevTitle = input.title
                 modified = LocalDateTime.now()
             }
+        return SvarbrevTitleChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevTitleChangeRegistreringView.SvarbrevTitleChangeRegistreringSvarbrevView(
+                title = registrering.svarbrevTitle,
+            ),
+            modified = registrering.modified,
+        )
     }
 
-    fun setSvarbrevCustomText(registreringId: UUID, input: SvarbrevCustomTextInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setSvarbrevCustomText(registreringId: UUID, input: SvarbrevCustomTextInput): SvarbrevCustomTextChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevCustomText = input.customText
                 modified = LocalDateTime.now()
             }
+        return SvarbrevCustomTextChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevCustomTextChangeRegistreringView.SvarbrevCustomTextChangeRegistreringSvarbrevView(
+                customText = registrering.svarbrevCustomText!!,
+            ),
+            modified = registrering.modified,
+        )
     }
 
     fun setSvarbrevBehandlingstid(registreringId: UUID, input: BehandlingstidInput): SvarbrevBehandlingstidChangeRegistreringView {

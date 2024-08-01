@@ -91,7 +91,7 @@ data class SendSvarbrevInput(val send: Boolean)
 
 data class SvarbrevFullmektigFritekstInput(val fullmektigFritekst: String?)
 
-data class SvarbrevCustomTextInput(val customText: String?)
+data class SvarbrevCustomTextInput(val customText: String)
 
 data class SvarbrevTitleInput(val title: String)
 

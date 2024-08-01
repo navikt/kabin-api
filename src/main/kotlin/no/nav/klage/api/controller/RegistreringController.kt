@@ -312,26 +312,26 @@ class RegistreringController(
     fun updateOverrideSvarbrevCustomText(
         @PathVariable id: UUID,
         @RequestBody input: SvarbrevOverrideCustomTextInput
-    ) {
+    ): SvarbrevOverrideCustomTextChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateOverrideSvarbrevCustomText.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSvarbrevOverrideCustomText(registreringId = id, input = input)
+        return registreringService.setSvarbrevOverrideCustomText(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/override-behandlingstid")
     fun updateOverrideSvarbrevBehandlingstid(
         @PathVariable id: UUID,
         @RequestBody input: SvarbrevOverrideBehandlingstidInput
-    ) {
+    ): SvarbrevOverrideBehandlingstidChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateOverrideSvarbrevBehandlingstid.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSvarbrevOverrideBehandlingstid(registreringId = id, input = input)
+        return registreringService.setSvarbrevOverrideBehandlingstid(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/behandlingstid")
@@ -364,26 +364,26 @@ class RegistreringController(
     fun updateSvarbrevCustomText(
         @PathVariable id: UUID,
         @RequestBody input: SvarbrevCustomTextInput
-    ) {
+    ): SvarbrevCustomTextChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevCustomText.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSvarbrevCustomText(registreringId = id, input = input)
+        return registreringService.setSvarbrevCustomText(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/title")
     fun updateSvarbrevTitle(
         @PathVariable id: UUID,
         @RequestBody input: SvarbrevTitleInput
-    ) {
+    ): SvarbrevTitleChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevTitle.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSvarbrevTitle(registreringId = id, input = input)
+        return registreringService.setSvarbrevTitle(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/receivers")

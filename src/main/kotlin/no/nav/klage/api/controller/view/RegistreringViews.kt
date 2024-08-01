@@ -275,3 +275,43 @@ data class SendSvarbrevChangeRegistreringView(
         val send: Boolean,
     )
 }
+
+data class SvarbrevOverrideCustomTextChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevOverrideCustomTextChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevOverrideCustomTextChangeRegistreringSvarbrevView(
+        val overrideCustomText: Boolean,
+    )
+}
+
+data class SvarbrevOverrideBehandlingstidChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView(
+        val overrideBehandlingstid: Boolean,
+    )
+}
+
+data class SvarbrevTitleChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevTitleChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevTitleChangeRegistreringSvarbrevView(
+        val title: String,
+    )
+}
+
+data class SvarbrevCustomTextChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevCustomTextChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevCustomTextChangeRegistreringSvarbrevView(
+        val customText: String,
+    )
+}
