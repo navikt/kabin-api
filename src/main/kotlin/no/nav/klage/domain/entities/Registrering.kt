@@ -77,7 +77,7 @@ class Registrering(
     @Column(name = "send_svarbrev")
     var sendSvarbrev: Boolean?,
     @Column(name = "svarbrev_title")
-    var svarbrevTitle: String?,
+    var svarbrevTitle: String,
     @Column(name = "override_svarbrev_custom_text")
     var overrideSvarbrevCustomText: Boolean?,
     @Column(name = "svarbrev_custom_text")

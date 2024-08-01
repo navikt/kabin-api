@@ -4,6 +4,7 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.SvarbrevReceiver
@@ -49,7 +50,7 @@ class RegistreringService(
                 saksbehandlerIdent = null,
                 oppgaveId = null,
                 sendSvarbrev = null,
-                svarbrevTitle = null,
+                svarbrevTitle = "NAV orienterer om saksbehandlingen",
                 svarbrevCustomText = null,
                 svarbrevBehandlingstidUnits = null,
                 svarbrevBehandlingstidUnitType = null,
@@ -113,7 +114,6 @@ class RegistreringService(
                 sendSvarbrev = null
                 overrideSvarbrevBehandlingstid = null
                 overrideSvarbrevCustomText = null
-                svarbrevTitle = null
                 svarbrevCustomText = null
                 svarbrevBehandlingstidUnits = null
                 svarbrevBehandlingstidUnitType = null
@@ -144,7 +144,6 @@ class RegistreringService(
                 sendSvarbrev = null
                 overrideSvarbrevBehandlingstid = null
                 overrideSvarbrevCustomText = null
-                svarbrevTitle = null
                 svarbrevCustomText = null
                 svarbrevBehandlingstidUnits = null
                 svarbrevBehandlingstidUnitType = null
@@ -176,7 +175,6 @@ class RegistreringService(
                 sendSvarbrev = null
                 overrideSvarbrevBehandlingstid = null
                 overrideSvarbrevCustomText = null
-                svarbrevTitle = null
                 svarbrevCustomText = null
                 svarbrevBehandlingstidUnits = null
                 svarbrevBehandlingstidUnitType = null
@@ -206,7 +204,6 @@ class RegistreringService(
                 sendSvarbrev = null
                 overrideSvarbrevBehandlingstid = null
                 overrideSvarbrevCustomText = null
-                svarbrevTitle = null
                 svarbrevCustomText = null
                 svarbrevBehandlingstidUnits = null
                 svarbrevBehandlingstidUnitType = null
@@ -325,7 +322,7 @@ class RegistreringService(
                 //handle receivers for all cases
                 handleReceivers(
                     unchangedRegistrering = this,
-                    input = input,
+                    partIdInput = input,
                     partISaken = PartISaken.FULLMEKTIG
                 )
 
@@ -356,7 +353,22 @@ class RegistreringService(
             id = registrering.id,
             svarbrev = FullmektigChangeRegistreringView.FullmektigChangeSvarbrevView(
                 fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
-                receivers = emptyList()
+                receivers = registrering.svarbrevReceivers.map { receiver ->
+                    RecipientView(
+                        id = receiver.id,
+                        part = registrering.partViewWithUtsendingskanal(identifikator = receiver.part.value)!!,
+                        handling = receiver.handling,
+                        overriddenAddress = receiver.overriddenAddress?.let { address ->
+                            RecipientView.AddressView(
+                                adresselinje1 = address.adresselinje1,
+                                adresselinje2 = address.adresselinje2,
+                                adresselinje3 = address.adresselinje3,
+                                landkode = address.landkode,
+                                postnummer = address.postnummer,
+                            )
+                        }
+                    )
+                }
             ),
             overstyringer = FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
                 fullmektig = registrering.fullmektig?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
@@ -365,23 +377,52 @@ class RegistreringService(
         )
     }
 
-    fun handleReceivers(unchangedRegistrering: Registrering, input: PartIdInput?, partISaken: PartISaken) {
-//        val existingParts = setOf(
-//            unchangedRegistrering.sakenGjelder?.value,
-//            unchangedRegistrering.klager?.value,
-//            unchangedRegistrering.avsender?.value,
-//            unchangedRegistrering.fullmektig?.value
-//        )
-//
-//        val receivers = unchangedRegistrering.svarbrevReceivers
-//
-//        if (input == null) {
-//
-//
-//        }
-//
-        TODO()
+    fun handleReceivers(unchangedRegistrering: Registrering, partIdInput: PartIdInput?, partISaken: PartISaken) {
+        val svarbrevReceivers = unchangedRegistrering.svarbrevReceivers
+        if (partIdInput != null) {
+            if (svarbrevReceivers.any { it.part.value == partIdInput.id }) {
+                //if the receiver is already in the list, we don't need to do anything.
+                return
+            }
+            svarbrevReceivers.add(
+                SvarbrevReceiver(
+                    part = PartId(
+                        value = partIdInput.id,
+                        type = when (partIdInput.type) {
+                            PartType.FNR -> {
+                                PartIdType.PERSON
+                            }
 
+                            PartType.ORGNR -> {
+                                PartIdType.VIRKSOMHET
+                            }
+                        }
+                    ),
+                    handling = HandlingEnum.AUTO,
+                    overriddenAddress = null
+                )
+            )
+        } else {
+            val existingParts = listOf(
+                unchangedRegistrering.sakenGjelder?.value,
+                unchangedRegistrering.klager?.value,
+                unchangedRegistrering.avsender?.value,
+                unchangedRegistrering.fullmektig?.value
+            )
+
+            //if the receiver is in the list, we remove it.
+            when {
+                partISaken == PartISaken.FULLMEKTIG && existingParts.count { it == unchangedRegistrering.fullmektig?.value } == 1 -> {
+                    svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.fullmektig?.value }
+                }
+                partISaken == PartISaken.KLAGER && existingParts.count { it == unchangedRegistrering.klager?.value } == 1 -> {
+                    svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.klager?.value }
+                }
+                partISaken == PartISaken.AVSENDER && existingParts.count { it == unchangedRegistrering.avsender?.value } == 1 -> {
+                    svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.avsender?.value }
+                }
+            }
+        }
     }
 
     enum class PartISaken {
@@ -634,7 +675,7 @@ class RegistreringService(
             receivers = svarbrevReceivers.map { receiver ->
                 RecipientView(
                     id = receiver.id,
-                    part = partViewWithUtsendingskanal(identifikator = receiver.part!!.value)!!,
+                    part = partViewWithUtsendingskanal(identifikator = receiver.part.value)!!,
                     handling = receiver.handling,
                     overriddenAddress = receiver.overriddenAddress?.let { address ->
                         RecipientView.AddressView(

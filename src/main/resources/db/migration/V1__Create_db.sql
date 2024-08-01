@@ -39,7 +39,7 @@ CREATE TABLE klage.registrering
     oppgave_id                           INT,
     send_svarbrev                        BOOLEAN,
     override_svarbrev_custom_text        BOOLEAN,
-    svarbrev_title                       TEXT,
+    svarbrev_title                       TEXT             NOT NULL,
     svarbrev_custom_text                 TEXT,
     override_svarbrev_behandlingstid     BOOLEAN,
     svarbrev_behandlingstid_units        INT,
