@@ -664,17 +664,36 @@ class RegistreringService(
             }
     }
 
-    //TODO: add one for each receiver, crud.
-    //use internal id for update/delete
-    fun setSvarbrevReceivers(registreringId: UUID, input: SvarbrevReceiversInput) {
-        getRegistreringForUpdate(registreringId)
+    fun deleteSvarbrevReceiver(registreringId: UUID, svarbrevReceiverId: UUID): SvarbrevReceiverChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                svarbrevReceivers.clear()
-                svarbrevReceivers.addAll(input.receivers.map { receiver ->
+
+                //TODO more logic
+                svarbrevReceivers.removeIf { it.id == svarbrevReceiverId }
+                modified = LocalDateTime.now()
+            }
+        return SvarbrevReceiverChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
+                receivers = registrering.svarbrevReceivers.map { receiver ->
+                    receiver.toRecipientView(registrering)
+                }
+            ),
+            modified = registrering.modified,
+        )
+    }
+
+    fun addSvarbrevReceiver(registreringId: UUID, input: SvarbrevRecipientInput): SvarbrevReceiverChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+            .apply {
+                if (svarbrevReceivers.any { it.part.value == input.part.id }) {
+                    throw IllegalUpdateException("Mottaker finnes allerede.")
+                }
+                svarbrevReceivers.add(
                     SvarbrevReceiver(
                         part = PartId(
-                            value = receiver.part.id,
-                            type = when (receiver.part.type) {
+                            value = input.part.id,
+                            type = when (input.part.type) {
                                 PartType.FNR -> {
                                     PartIdType.PERSON
                                 }
@@ -684,8 +703,8 @@ class RegistreringService(
                                 }
                             }
                         ),
-                        handling = receiver.handling,
-                        overriddenAddress = receiver.overriddenAddress?.let { address ->
+                        handling = input.handling,
+                        overriddenAddress = input.overriddenAddress?.let { address ->
                             no.nav.klage.domain.entities.Address(
                                 adresselinje1 = address.adresselinje1,
                                 adresselinje2 = address.adresselinje2,
@@ -695,9 +714,18 @@ class RegistreringService(
                             )
                         }
                     )
-                })
+                )
                 modified = LocalDateTime.now()
             }
+        return SvarbrevReceiverChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
+                receivers = registrering.svarbrevReceivers.map { receiver ->
+                    receiver.toRecipientView(registrering)
+                }
+            ),
+            modified = registrering.modified,
+        )
     }
 
     private fun Registrering.toTypeChangeRegistreringView(): TypeChangeRegistreringView {

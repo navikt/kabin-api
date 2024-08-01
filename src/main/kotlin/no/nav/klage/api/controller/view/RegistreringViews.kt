@@ -325,3 +325,13 @@ data class HjemmelIdListChangeRegistreringView(
         val hjemmelIdList: List<String>,
     )
 }
+
+data class SvarbrevReceiverChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevReceiverChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevReceiverChangeRegistreringSvarbrevView(
+        val receivers: List<RecipientView>,
+    )
+}

@@ -386,17 +386,44 @@ class RegistreringController(
         return registreringService.setSvarbrevTitle(registreringId = id, input = input)
     }
 
-    @PutMapping("/{id}/svarbrev/receivers")
+    @PostMapping("/{id}/svarbrev/receivers")
     fun updateSvarbrevReceivers(
         @PathVariable id: UUID,
-        @RequestBody input: SvarbrevReceiversInput
-    ) {
+        @RequestBody input: SvarbrevRecipientInput
+    ): SvarbrevReceiverChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevReceivers.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setSvarbrevReceivers(registreringId = id, input = input)
+        return registreringService.addSvarbrevReceiver(registreringId = id, input = input)
+    }
+
+    @PutMapping("/{id}/svarbrev/receivers/{svarbrevReceiverId}")
+    fun updateSvarbrevReceiver(
+        @PathVariable id: UUID,
+        @PathVariable svarbrevReceiverId: UUID,
+        @RequestBody input: SvarbrevRecipientInput
+    ) {
+        logMethodDetails(
+            methodName = ::updateSvarbrevReceiver.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        registreringService.addSvarbrevReceiver(registreringId = id, input = input)
+    }
+
+    @DeleteMapping("/{id}/svarbrev/receivers/{svarbrevReceiverId}")
+    fun deleteSvarbrevReceiver(
+        @PathVariable id: UUID,
+        @PathVariable svarbrevReceiverId: UUID,
+    ): SvarbrevReceiverChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::deleteSvarbrevReceiver.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.deleteSvarbrevReceiver(registreringId = id, svarbrevReceiverId = svarbrevReceiverId)
     }
 
     @PostMapping("/{id}/ferdigstill")

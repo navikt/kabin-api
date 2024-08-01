@@ -95,22 +95,18 @@ data class SvarbrevCustomTextInput(val customText: String)
 
 data class SvarbrevTitleInput(val title: String)
 
-data class SvarbrevReceiversInput(
-    val receivers: List<SvarbrevRecipientInput>
+data class SvarbrevRecipientInput(
+    val part: PartIdInput,
+    val handling: HandlingEnum,
+    val overriddenAddress: AddressInput?
 ) {
-    data class SvarbrevRecipientInput(
-        val part: PartIdInput,
-        val handling: HandlingEnum,
-        val overriddenAddress: AddressInput?
-    ) {
-        data class AddressInput(
-            val adresselinje1: String?,
-            val adresselinje2: String?,
-            val adresselinje3: String?,
-            val landkode: String?,
-            val postnummer: String?,
-        )
-    }
+    data class AddressInput(
+        val adresselinje1: String?,
+        val adresselinje2: String?,
+        val adresselinje3: String?,
+        val landkode: String?,
+        val postnummer: String?,
+    )
 }
 
 data class SvarbrevOverrideBehandlingstidInput(
