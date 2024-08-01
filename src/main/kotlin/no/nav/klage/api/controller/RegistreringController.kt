@@ -208,13 +208,13 @@ class RegistreringController(
     fun updateHjemmelIdList(
         @PathVariable id: UUID,
         @RequestBody input: HjemmelIdListInput
-    ) {
+    ): HjemmelIdListChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateHjemmelIdList.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        registreringService.setHjemmelIdList(registreringId = id, input = input)
+        return registreringService.setHjemmelIdList(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/ytelse-id")

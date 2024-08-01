@@ -315,3 +315,13 @@ data class SvarbrevCustomTextChangeRegistreringView(
         val customText: String,
     )
 }
+
+data class HjemmelIdListChangeRegistreringView(
+    val id: UUID,
+    val overstyringer: HjemmelIdListChangeRegistreringOverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class HjemmelIdListChangeRegistreringOverstyringerView(
+        val hjemmelIdList: List<String>,
+    )
+}

@@ -280,12 +280,19 @@ class RegistreringService(
         )
     }
 
-    fun setHjemmelIdList(registreringId: UUID, input: HjemmelIdListInput) {
-        getRegistreringForUpdate(registreringId)
+    fun setHjemmelIdList(registreringId: UUID, input: HjemmelIdListInput): HjemmelIdListChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 hjemmelIdList = input.hjemmelIdList
                 modified = LocalDateTime.now()
             }
+        return HjemmelIdListChangeRegistreringView(
+            id = registrering.id,
+            overstyringer = HjemmelIdListChangeRegistreringView.HjemmelIdListChangeRegistreringOverstyringerView(
+                hjemmelIdList = registrering.hjemmelIdList,
+            ),
+            modified = registrering.modified,
+        )
     }
 
     fun setYtelseId(registreringId: UUID, input: YtelseIdInput): YtelseChangeRegistreringView {
