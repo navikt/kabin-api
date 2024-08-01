@@ -228,6 +228,9 @@ class RegistreringService(
                 it.id == registrering
                     .mulighetId && it.fagsystemId == registrering.mulighetFagsystem!!.id
             }
+            if (mulighet?.ytelseId != null) {
+                return Ytelse.of(mulighet.ytelseId)
+            }
             mulighet?.temaId
         } else null
 
