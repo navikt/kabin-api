@@ -665,8 +665,6 @@ class RegistreringService(
     fun deleteSvarbrevReceiver(registreringId: UUID, svarbrevReceiverId: UUID): SvarbrevReceiverChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-
-                //TODO more logic
                 svarbrevReceivers.removeIf { it.id == svarbrevReceiverId }
                 modified = LocalDateTime.now()
             }
