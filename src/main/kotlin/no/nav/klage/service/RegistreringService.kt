@@ -25,6 +25,7 @@ class RegistreringService(
     private val tokenUtil: TokenUtil,
     private val klageService: KlageService,
     private val ankeService: AnkeService,
+    private val documentService: DocumentService,
 ) {
 
     fun createRegistrering(): FullRegistreringView {
@@ -127,13 +128,22 @@ class RegistreringService(
             .apply {
                 journalpostId = input.journalpostId
                 modified = LocalDateTime.now()
+
+                if (input.journalpostId != null) {
+                    val document = documentService.fetchDokument(
+                        journalpostId = input.journalpostId
+                    )
+                    mottattKlageinstans = document.datoOpprettet.toLocalDate()
+                } else {
+                    mottattKlageinstans = null
+                }
+
                 //empty the properties that no longer make sense if journalpostId changes.
                 ytelse = null
                 type = null
                 mulighetId = null
                 mulighetFagsystem = null
                 mottattVedtaksinstans = null
-                mottattKlageinstans = null
                 hjemmelIdList = listOf()
                 klager = null
                 fullmektig = null
@@ -615,6 +625,7 @@ class RegistreringService(
         )
     }
 
+    //TODO get svarbrevSettings
     fun setSvarbrevOverrideCustomText(
         registreringId: UUID,
         input: SvarbrevOverrideCustomTextInput
@@ -633,6 +644,7 @@ class RegistreringService(
         )
     }
 
+    //TODO get svarbrevSettings
     fun setSvarbrevOverrideBehandlingstid(
         registreringId: UUID,
         input: SvarbrevOverrideBehandlingstidInput
