@@ -440,7 +440,7 @@ class RegistreringController(
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        TODO()
+        return registreringService.finishRegistrering(registreringId = id)
     }
 
     @GetMapping("/{id}/klagemulighet")

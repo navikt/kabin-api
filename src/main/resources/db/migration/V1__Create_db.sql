@@ -36,7 +36,7 @@ CREATE TABLE klage.registrering
     hjemmel_id_list                      TEXT,
     ytelse_id                            TEXT,
     saksbehandler_ident                  TEXT,
-    oppgave_id                           INT,
+    oppgave_id                           BIGINT,
     send_svarbrev                        BOOLEAN,
     override_svarbrev_custom_text        BOOLEAN,
     svarbrev_title                       TEXT             NOT NULL,

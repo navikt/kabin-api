@@ -73,7 +73,7 @@ class Registrering(
     @Column(name = "saksbehandler_ident")
     var saksbehandlerIdent: String?,
     @Column(name = "oppgave_id")
-    var oppgaveId: Int?,
+    var oppgaveId: Long?,
     @Column(name = "send_svarbrev")
     var sendSvarbrev: Boolean?,
     @Column(name = "svarbrev_title")

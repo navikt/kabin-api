@@ -406,7 +406,11 @@ class RegistreringService(
         )
     }
 
-    fun handleReceiversWhenAddingPart(unchangedRegistrering: Registrering, partIdInput: PartIdInput?, partISaken: PartISaken) {
+    fun handleReceiversWhenAddingPart(
+        unchangedRegistrering: Registrering,
+        partIdInput: PartIdInput?,
+        partISaken: PartISaken
+    ) {
         val svarbrevReceivers = unchangedRegistrering.svarbrevReceivers
         if (partIdInput != null) {
             if (svarbrevReceivers.any { it.part.value == partIdInput.id }) {
@@ -426,9 +430,11 @@ class RegistreringService(
                 partISaken == PartISaken.FULLMEKTIG && existingParts.count { it == unchangedRegistrering.fullmektig?.value } == 1 -> {
                     svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.fullmektig?.value }
                 }
+
                 partISaken == PartISaken.KLAGER && existingParts.count { it == unchangedRegistrering.klager?.value } == 1 -> {
                     svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.klager?.value }
                 }
+
                 partISaken == PartISaken.AVSENDER && existingParts.count { it == unchangedRegistrering.avsender?.value } == 1 -> {
                     svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.avsender?.value }
                 }
@@ -559,7 +565,10 @@ class RegistreringService(
 
     }
 
-    fun setSaksbehandlerIdent(registreringId: UUID, input: SaksbehandlerIdentInput): SaksbehandlerIdentChangeRegistreringView {
+    fun setSaksbehandlerIdent(
+        registreringId: UUID,
+        input: SaksbehandlerIdentInput
+    ): SaksbehandlerIdentChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 saksbehandlerIdent = input.saksbehandlerIdent
@@ -606,7 +615,10 @@ class RegistreringService(
         )
     }
 
-    fun setSvarbrevOverrideCustomText(registreringId: UUID, input: SvarbrevOverrideCustomTextInput): SvarbrevOverrideCustomTextChangeRegistreringView {
+    fun setSvarbrevOverrideCustomText(
+        registreringId: UUID,
+        input: SvarbrevOverrideCustomTextInput
+    ): SvarbrevOverrideCustomTextChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevCustomText = input.overrideCustomText
@@ -621,7 +633,10 @@ class RegistreringService(
         )
     }
 
-    fun setSvarbrevOverrideBehandlingstid(registreringId: UUID, input: SvarbrevOverrideBehandlingstidInput): SvarbrevOverrideBehandlingstidChangeRegistreringView {
+    fun setSvarbrevOverrideBehandlingstid(
+        registreringId: UUID,
+        input: SvarbrevOverrideBehandlingstidInput
+    ): SvarbrevOverrideBehandlingstidChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
@@ -651,7 +666,10 @@ class RegistreringService(
         )
     }
 
-    fun setSvarbrevCustomText(registreringId: UUID, input: SvarbrevCustomTextInput): SvarbrevCustomTextChangeRegistreringView {
+    fun setSvarbrevCustomText(
+        registreringId: UUID,
+        input: SvarbrevCustomTextInput
+    ): SvarbrevCustomTextChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevCustomText = input.customText
@@ -666,7 +684,10 @@ class RegistreringService(
         )
     }
 
-    fun setSvarbrevBehandlingstid(registreringId: UUID, input: BehandlingstidInput): SvarbrevBehandlingstidChangeRegistreringView {
+    fun setSvarbrevBehandlingstid(
+        registreringId: UUID,
+        input: BehandlingstidInput
+    ): SvarbrevBehandlingstidChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 svarbrevBehandlingstidUnits = input.units
@@ -692,7 +713,10 @@ class RegistreringService(
         )
     }
 
-    fun setSvarbrevFullmektigFritekst(registreringId: UUID, input: SvarbrevFullmektigFritekstInput): SvarbrevFullmektigFritekstChangeRegistreringView {
+    fun setSvarbrevFullmektigFritekst(
+        registreringId: UUID,
+        input: SvarbrevFullmektigFritekstInput
+    ): SvarbrevFullmektigFritekstChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 val fritekst = if (!input.fullmektigFritekst.isNullOrBlank()) {
@@ -729,7 +753,10 @@ class RegistreringService(
         )
     }
 
-    fun addSvarbrevReceiver(registreringId: UUID, input: SvarbrevRecipientInput): SvarbrevReceiverChangeRegistreringView {
+    fun addSvarbrevReceiver(
+        registreringId: UUID,
+        input: SvarbrevRecipientInput
+    ): SvarbrevReceiverChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 if (svarbrevReceivers.any { it.part.value == input.part.id }) {
@@ -932,6 +959,96 @@ class RegistreringService(
                     throw IllegalUpdateException("Registreringen er allerede ferdigstilt.")
                 }
             }
+    }
+
+    fun finishRegistrering(registreringId: UUID): FerdigstiltRegistreringView {
+        //TODO: validate
+
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        val response: CreatedBehandlingResponse = if (registrering.type == Type.ANKE) {
+            ankeService.createAnke(
+                CreateAnkeInputView(
+                    mottattKlageinstans = registrering.mottattKlageinstans!!,
+                    behandlingstidUnits = registrering.behandlingstidUnits,
+                    behandlingstidUnitType = registrering.behandlingstidUnitType,
+                    behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
+                    klager = registrering.klager.toPartIdInput(),
+                    fullmektig = registrering.fullmektig.toPartIdInput(),
+                    journalpostId = registrering.journalpostId,
+                    ytelseId = registrering.ytelse!!.id,
+                    hjemmelIdList = registrering.hjemmelIdList,
+                    avsender = registrering.avsender.toPartIdInput(),
+                    saksbehandlerIdent = registrering.saksbehandlerIdent,
+                    svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
+                    vedtak = Vedtak(
+                        id = registrering.mulighetId!!,
+                        sourceId = registrering.mulighetFagsystem!!.id,
+                    ),
+                    oppgaveId = registrering.oppgaveId!!,
+                )
+            )
+        } else {
+            TODO()
+        }
+
+        val now = LocalDateTime.now()
+        registrering.behandlingId = response.behandlingId
+        registrering.finished = now
+        registrering.modified = now
+
+        return FerdigstiltRegistreringView(
+            id = registrering.id,
+            modified = registrering.modified,
+            finished = registrering.finished!!,
+            behandlingId = registrering.behandlingId!!,
+        )
+
+    }
+
+    private fun Registrering.toSvarbrevWithReceiverInput(): SvarbrevWithReceiverInput? {
+        val svarbrevSettings = kabalApiClient.getSvarbrevSettings(ytelseId = ytelse!!.id, typeId = type!!.id)
+
+        if (svarbrevReceivers.isEmpty()) {
+            return null
+        }
+
+        return SvarbrevWithReceiverInput(
+            title = svarbrevTitle,
+            customText = if (overrideSvarbrevCustomText == true) svarbrevCustomText else svarbrevSettings.customText,
+            receivers = svarbrevReceivers.map { receiver ->
+                SvarbrevWithReceiverInput.Receiver(
+                    id = receiver.part.value,
+                    handling = SvarbrevWithReceiverInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                    overriddenAddress = receiver.overriddenAddress?.let { address ->
+                        SvarbrevWithReceiverInput.Receiver.AddressInput(
+                            adresselinje1 = address.adresselinje1,
+                            adresselinje2 = address.adresselinje2,
+                            adresselinje3 = address.adresselinje3,
+                            landkode = address.landkode!!,
+                            postnummer = address.postnummer,
+                        )
+                    }
+                )
+            },
+            fullmektigFritekst = svarbrevFullmektigFritekst,
+            varsletBehandlingstidUnits = if (overrideSvarbrevBehandlingstid == true) svarbrevBehandlingstidUnits!! else svarbrevSettings.behandlingstidUnits,
+            varsletBehandlingstidUnitType = if (overrideSvarbrevBehandlingstid == true) svarbrevBehandlingstidUnitType!! else svarbrevSettings.behandlingstidUnitType,
+            varsletBehandlingstidUnitTypeId = if (overrideSvarbrevBehandlingstid == true) svarbrevBehandlingstidUnitType!!.id else svarbrevSettings.behandlingstidUnitType.id,
+        )
+    }
+
+    private fun PartId?.toPartIdInput(): PartIdInput? {
+        if (this == null) {
+            return null
+        }
+        return PartIdInput(
+            id = value,
+            type = when (type) {
+                PartIdType.PERSON -> PartType.FNR
+                PartIdType.VIRKSOMHET -> PartType.ORGNR
+            }
+        )
     }
 
 }

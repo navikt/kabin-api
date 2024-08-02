@@ -208,4 +208,9 @@ class KabalApiService(
     fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {
         return kabalApiClient.getCompletedBehandling(behandlingId)
     }
+
+    fun getSvarbrevSettings(ytelseId: String, typeId: String): SvarbrevSettingsView {
+        return kabalApiClient.getSvarbrevSettings(ytelseId = ytelseId, typeId = typeId)
+    }
+
 }

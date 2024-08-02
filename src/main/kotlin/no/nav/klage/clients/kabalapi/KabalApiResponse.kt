@@ -6,6 +6,7 @@ import no.nav.klage.api.controller.view.Svarbrev
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -447,4 +448,23 @@ data class DokumentReferanse(
         )
     }
 
+}
+
+data class SvarbrevSettingsView(
+    val id: UUID,
+    val ytelseId: String,
+    val typeId: String,
+    val behandlingstidUnits: Int,
+    val behandlingstidUnitType: TimeUnitType,
+    val behandlingstidUnitTypeId: String,
+    val customText: String?,
+    val shouldSend: Boolean,
+    val created: LocalDateTime,
+    val modified: LocalDateTime,
+    val modifiedBy: SaksbehandlerView,
+) {
+    data class SaksbehandlerView(
+        val navIdent: String,
+        val navn: String
+    )
 }

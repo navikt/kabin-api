@@ -85,7 +85,7 @@ data class YtelseIdInput(val ytelseId: String?)
 
 data class SaksbehandlerIdentInput(val saksbehandlerIdent: String?)
 
-data class OppgaveIdInput(val oppgaveId: Int?)
+data class OppgaveIdInput(val oppgaveId: Long?)
 
 data class SendSvarbrevInput(val send: Boolean)
 
