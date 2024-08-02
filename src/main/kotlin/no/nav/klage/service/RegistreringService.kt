@@ -999,30 +999,30 @@ class RegistreringService(
     }
 
     fun finishRegistrering(registreringId: UUID): FerdigstiltRegistreringView {
-        //TODO: validate
-
         val registrering = getRegistreringForUpdate(registreringId)
 
         val response: CreatedBehandlingResponse = if (registrering.type == Type.ANKE) {
             ankeService.createAnke(
                 CreateAnkeInputView(
-                    mottattKlageinstans = registrering.mottattKlageinstans!!,
+                    mottattKlageinstans = registrering.mottattKlageinstans,
                     behandlingstidUnits = registrering.behandlingstidUnits,
                     behandlingstidUnitType = registrering.behandlingstidUnitType,
                     behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
                     klager = registrering.klager.toPartIdInput(),
                     fullmektig = registrering.fullmektig.toPartIdInput(),
                     journalpostId = registrering.journalpostId,
-                    ytelseId = registrering.ytelse!!.id,
+                    ytelseId = registrering.ytelse?.id,
                     hjemmelIdList = registrering.hjemmelIdList,
                     avsender = registrering.avsender.toPartIdInput(),
                     saksbehandlerIdent = registrering.saksbehandlerIdent,
                     svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
-                    vedtak = Vedtak(
-                        id = registrering.mulighetId!!,
-                        sourceId = registrering.mulighetFagsystem!!.id,
-                    ),
-                    oppgaveId = registrering.oppgaveId!!,
+                    vedtak = if (registrering.mulighetId != null && registrering.mulighetFagsystem != null) {
+                        Vedtak(
+                            id = registrering.mulighetId!!,
+                            sourceId = registrering.mulighetFagsystem!!.id,
+                        )
+                    } else null,
+                    oppgaveId = registrering.oppgaveId,
                 )
             )
         } else {
