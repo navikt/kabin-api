@@ -189,6 +189,7 @@ class ModifySvarbrevReiceversTest {
             kabalApiClient = mockk(),
             klageService = mockk(),
             ankeService = mockk(),
+            documentService = mockk(),
         )
         return registreringService
     }
