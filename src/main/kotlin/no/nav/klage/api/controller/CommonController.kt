@@ -67,23 +67,6 @@ class CommonController(
         )
     }
 
-    @PostMapping("/willcreatenewjournalpost")
-    fun willCreateNewJournalpost(
-        @RequestBody input: WillCreateNewJournalpostInput,
-    ): Boolean {
-        logMethodDetails(
-            methodName = ::calculateFrist.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-
-        return dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-            journalpostId = input.journalpostId,
-            fagsakId = input.fagsakId,
-            fagsystemId = input.fagsystemId,
-        )
-    }
-
     @PostMapping("/searchoppgave")
     fun searchOppgaveList(
         @RequestBody input: GetOppgaveListInput,

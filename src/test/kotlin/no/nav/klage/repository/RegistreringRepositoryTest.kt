@@ -97,6 +97,7 @@ class RegistreringRepositoryTest {
                 createdBy = "S123456",
                 finished = LocalDateTime.now(),
                 behandlingId = UUID.randomUUID(),
+                willCreateNewJournalpost = false,
             )
         )
 
@@ -222,6 +223,7 @@ class RegistreringRepositoryTest {
                 createdBy = "S223456",
                 finished = LocalDateTime.now(),
                 behandlingId = UUID.randomUUID(),
+                willCreateNewJournalpost = false,
             )
         )
 
@@ -294,6 +296,7 @@ class RegistreringRepositoryTest {
                 createdBy = "S223456",
                 finished = null,
                 behandlingId = null,
+                willCreateNewJournalpost = false,
             )
         )
 

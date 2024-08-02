@@ -462,7 +462,7 @@ class RegistreringController(
         val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
 
         return klageService.getKlagemuligheter(input = input).find {
-            it.id == registrering.mulighet.id && it.fagsystemId == registrering.mulighet.originalFagsystemId
+            it.id == registrering.mulighet.id && it.originalFagsystemId == registrering.mulighet.originalFagsystemId
         } ?: throw MulighetNotFoundException("Klagemulighet ikke funnet.")
     }
 

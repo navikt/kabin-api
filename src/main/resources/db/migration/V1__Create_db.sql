@@ -39,10 +39,10 @@ CREATE TABLE klage.registrering
     saksbehandler_ident                  TEXT,
     oppgave_id                           BIGINT,
     send_svarbrev                        BOOLEAN,
-    override_svarbrev_custom_text        BOOLEAN,
+    override_svarbrev_custom_text        BOOLEAN          NOT NULL DEFAULT FALSE,
     svarbrev_title                       TEXT             NOT NULL,
     svarbrev_custom_text                 TEXT,
-    override_svarbrev_behandlingstid     BOOLEAN,
+    override_svarbrev_behandlingstid     BOOLEAN          NOT NULL DEFAULT FALSE,
     svarbrev_behandlingstid_units        INT,
     svarbrev_behandlingstid_unit_type_id TEXT,
     svarbrev_fullmektig_fritekst         TEXT,
@@ -50,7 +50,8 @@ CREATE TABLE klage.registrering
     modified                             TIMESTAMP        NOT NULL,
     created_by                           TEXT             NOT NULL,
     finished                             TIMESTAMP,
-    behandling_id                        UUID
+    behandling_id                        UUID,
+    will_create_new_journalpost          BOOLEAN          NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE klage.svarbrev_receiver

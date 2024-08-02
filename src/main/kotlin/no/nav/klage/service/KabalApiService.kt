@@ -64,6 +64,7 @@ class KabalApiService(
                 fullmektig = it.fullmektig?.partViewWithUtsendingskanal(),
                 fagsakId = it.fagsakId,
                 fagsystemId = it.fagsystemId,
+                originalFagsystemId = it.fagsystemId,
                 previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
                     it.tildeltSaksbehandlerNavn?.let { it2 ->
                         PreviousSaksbehandler(
@@ -73,6 +74,7 @@ class KabalApiService(
                     }
                 },
                 sourceId = MulighetSource.KABAL.fagsystem.id,
+                currentFagsystemId = MulighetSource.KABAL.fagsystem.id,
                 typeId = it.typeId,
                 sourceOfExistingAnkebehandling = it.sourceOfExistingAnkebehandling.map { existingAnkebehandling ->
                     ExistingAnkebehandling(

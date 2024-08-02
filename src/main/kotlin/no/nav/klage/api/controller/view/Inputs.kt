@@ -30,12 +30,6 @@ data class GetOppgaveListInput(
     val temaId: String?,
 )
 
-data class WillCreateNewJournalpostInput(
-    val journalpostId: String,
-    val fagsakId: String,
-    val fagsystemId: String,
-)
-
 data class SearchUsedJournalpostIdInput(
     val fnr: String,
 )

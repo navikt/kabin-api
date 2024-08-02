@@ -190,6 +190,7 @@ class ModifySvarbrevReiceversTest {
             klageService = mockk(),
             ankeService = mockk(),
             documentService = mockk(),
+            dokArkivService = mockk(),
         )
         return registreringService
     }
@@ -236,6 +237,7 @@ class ModifySvarbrevReiceversTest {
             createdBy = "S123456",
             finished = LocalDateTime.now(),
             behandlingId = UUID.randomUUID(),
+            willCreateNewJournalpost = false,
         )
     }
 }

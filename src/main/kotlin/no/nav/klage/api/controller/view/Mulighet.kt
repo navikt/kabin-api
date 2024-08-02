@@ -8,6 +8,7 @@ data class Ankemulighet(
     val id: String,
     //where the "mulighet" comes from. Kabal or Infotrygd (or other).
     val sourceId: String,
+    var currentFagsystemId: String?,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
@@ -18,6 +19,7 @@ data class Ankemulighet(
     val fullmektig: PartViewWithUtsendingskanal?,
     val fagsakId: String,
     val fagsystemId: String,
+    var originalFagsystemId: String?,
     val previousSaksbehandler: PreviousSaksbehandler?,
     val typeId: String?,
 )
@@ -39,7 +41,7 @@ data class Klagemulighet(
     val vedtakDate: LocalDate,
     val sakenGjelder: PartViewWithUtsendingskanal,
     val fagsakId: String,
-    val fagsystemId: String,
+    val originalFagsystemId: String,
     val klageBehandlendeEnhet: String,
-    val sourceId: String,
+    val currentFagystemId: String,
 )

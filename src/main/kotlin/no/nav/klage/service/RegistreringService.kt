@@ -26,6 +26,7 @@ class RegistreringService(
     private val klageService: KlageService,
     private val ankeService: AnkeService,
     private val documentService: DocumentService,
+    private val dokArkivService: DokArkivService,
 ) {
 
     fun createRegistrering(): FullRegistreringView {
@@ -57,10 +58,11 @@ class RegistreringService(
                 svarbrevBehandlingstidUnitType = null,
                 svarbrevFullmektigFritekst = null,
                 svarbrevReceivers = mutableSetOf(),
-                overrideSvarbrevCustomText = null,
-                overrideSvarbrevBehandlingstid = null,
+                overrideSvarbrevCustomText = false,
+                overrideSvarbrevBehandlingstid = false,
                 finished = null,
                 behandlingId = null,
+                willCreateNewJournalpost = false,
             )
         )
         return registrering.toRegistreringView()
@@ -113,13 +115,14 @@ class RegistreringService(
                 saksbehandlerIdent = null
                 oppgaveId = null
                 sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = null
-                overrideSvarbrevCustomText = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
                 svarbrevCustomText = null
                 svarbrevBehandlingstidUnits = null
                 svarbrevBehandlingstidUnitType = null
                 svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
+                willCreateNewJournalpost = false
             }
         return registrering.toRegistreringView()
     }
@@ -152,13 +155,14 @@ class RegistreringService(
                 saksbehandlerIdent = null
                 oppgaveId = null
                 sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = null
-                overrideSvarbrevCustomText = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
                 svarbrevCustomText = null
                 svarbrevBehandlingstidUnits = null
                 svarbrevBehandlingstidUnitType = null
                 svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
+                willCreateNewJournalpost = false
             }
 
         return registrering.toRegistreringView()
@@ -183,13 +187,14 @@ class RegistreringService(
                 saksbehandlerIdent = null
                 oppgaveId = null
                 sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = null
-                overrideSvarbrevCustomText = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
                 svarbrevCustomText = null
                 svarbrevBehandlingstidUnits = null
                 svarbrevBehandlingstidUnitType = null
                 svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
+                willCreateNewJournalpost = false
 
             }.toTypeChangeRegistreringView()
     }
@@ -203,6 +208,12 @@ class RegistreringService(
                 ytelse = getYtelseOrNull(this)
                 modified = LocalDateTime.now()
 
+                willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                    journalpostId = this.journalpostId!!,
+                    fagsakId = this.mulighetId!!,
+                    fagsystemId = this.mulighetOriginalFagsystem!!.id,
+                )
+
                 //empty the properties that no longer make sense if mulighet changes.
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
@@ -213,8 +224,8 @@ class RegistreringService(
                 saksbehandlerIdent = null
                 oppgaveId = null
                 sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = null
-                overrideSvarbrevCustomText = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
                 svarbrevCustomText = null
                 svarbrevBehandlingstidUnits = null
                 svarbrevBehandlingstidUnitType = null
@@ -232,7 +243,7 @@ class RegistreringService(
 
         val temaId = if (registrering.type == Type.KLAGE) {
             val mulighet = klageService.getKlagemuligheter(input = input).find {
-                it.id == registrering.mulighetId && it.fagsystemId == registrering.mulighetOriginalFagsystem!!.id
+                it.id == registrering.mulighetId && it.originalFagsystemId == registrering.mulighetOriginalFagsystem!!.id
             }
             mulighet?.temaId
         } else if (registrering.type == Type.ANKE) {
@@ -881,6 +892,7 @@ class RegistreringService(
             overstyringer = TypeChangeRegistreringView.TypeChangeRegistreringOverstyringerView(),
             svarbrev = TypeChangeRegistreringView.TypeChangeRegistreringSvarbrevView(),
             modified = modified,
+            willCreateNewJournalpost = willCreateNewJournalpost,
         )
     }
 
@@ -899,6 +911,7 @@ class RegistreringService(
             ),
             svarbrev = MulighetChangeRegistreringView.MulighetChangeRegistreringSvarbrevView(),
             modified = modified,
+            willCreateNewJournalpost = willCreateNewJournalpost,
         )
     }
 
@@ -966,6 +979,7 @@ class RegistreringService(
         createdBy = createdBy,
         finished = finished,
         behandlingId = behandlingId,
+        willCreateNewJournalpost = willCreateNewJournalpost,
     )
 
     fun deleteRegistrering(registreringId: UUID) {

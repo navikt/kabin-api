@@ -18,6 +18,7 @@ data class FullRegistreringView(
     val createdBy: String,
     val finished: LocalDateTime?,
     val behandlingId: UUID?,
+    val willCreateNewJournalpost: Boolean,
 ) {
 
     data class FullRegistreringOverstyringerView(
@@ -54,6 +55,7 @@ data class TypeChangeRegistreringView(
     val overstyringer: TypeChangeRegistreringOverstyringerView,
     val svarbrev: TypeChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
+    val willCreateNewJournalpost: Boolean,
 ) {
 
     data class TypeChangeRegistreringOverstyringerView(
@@ -98,6 +100,7 @@ data class MulighetChangeRegistreringView(
     val overstyringer: MulighetChangeRegistreringOverstyringerView,
     val svarbrev: MulighetChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
+    val willCreateNewJournalpost: Boolean,
 ) {
 
     data class MulighetChangeRegistreringOverstyringerView(
