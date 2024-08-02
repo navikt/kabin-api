@@ -625,7 +625,6 @@ class RegistreringService(
         )
     }
 
-    //TODO get svarbrevSettings
     fun setSvarbrevOverrideCustomText(
         registreringId: UUID,
         input: SvarbrevOverrideCustomTextInput
@@ -633,18 +632,25 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevCustomText = input.overrideCustomText
+
+                val svarbrevSettings = getSvarbrevSettings()
+
+                if (!input.overrideCustomText) {
+                    svarbrevCustomText = svarbrevSettings.customText
+                }
+
                 modified = LocalDateTime.now()
             }
         return SvarbrevOverrideCustomTextChangeRegistreringView(
             id = registrering.id,
             svarbrev = SvarbrevOverrideCustomTextChangeRegistreringView.SvarbrevOverrideCustomTextChangeRegistreringSvarbrevView(
                 overrideCustomText = registrering.overrideSvarbrevCustomText!!,
+                customText = registrering.svarbrevCustomText,
             ),
             modified = registrering.modified,
         )
     }
 
-    //TODO get svarbrevSettings
     fun setSvarbrevOverrideBehandlingstid(
         registreringId: UUID,
         input: SvarbrevOverrideBehandlingstidInput
@@ -652,16 +658,35 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
+
+                val svarbrevSettings = getSvarbrevSettings()
+
+                if (!input.overrideBehandlingstid) {
+                    svarbrevBehandlingstidUnits = svarbrevSettings.behandlingstidUnits
+                    svarbrevBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType
+                }
+
                 modified = LocalDateTime.now()
             }
         return SvarbrevOverrideBehandlingstidChangeRegistreringView(
             id = registrering.id,
             svarbrev = SvarbrevOverrideBehandlingstidChangeRegistreringView.SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView(
                 overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid!!,
+                behandlingstid = if (registrering.svarbrevBehandlingstidUnits != null) {
+                    BehandlingstidView(
+                        unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
+                        units = registrering.svarbrevBehandlingstidUnits!!
+                    )
+                } else null,
             ),
             modified = registrering.modified,
         )
     }
+
+    private fun Registrering.getSvarbrevSettings() = kabalApiClient.getSvarbrevSettings(
+        ytelseId = ytelse!!.id,
+        typeId = type!!.id
+    )
 
     fun setSvarbrevTitle(registreringId: UUID, input: SvarbrevTitleInput): SvarbrevTitleChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
@@ -1019,7 +1044,7 @@ class RegistreringService(
     }
 
     private fun Registrering.toSvarbrevWithReceiverInput(): SvarbrevWithReceiverInput? {
-        val svarbrevSettings = kabalApiClient.getSvarbrevSettings(ytelseId = ytelse!!.id, typeId = type!!.id)
+        val svarbrevSettings = getSvarbrevSettings()
 
         if (svarbrevReceivers.isEmpty()) {
             return null

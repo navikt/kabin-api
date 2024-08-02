@@ -283,6 +283,7 @@ data class SvarbrevOverrideCustomTextChangeRegistreringView(
 ) {
     data class SvarbrevOverrideCustomTextChangeRegistreringSvarbrevView(
         val overrideCustomText: Boolean,
+        val customText: String?,
     )
 }
 
@@ -293,6 +294,7 @@ data class SvarbrevOverrideBehandlingstidChangeRegistreringView(
 ) {
     data class SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView(
         val overrideBehandlingstid: Boolean,
+        val behandlingstid: BehandlingstidView?,
     )
 }
 
