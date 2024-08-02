@@ -1051,7 +1051,7 @@ class RegistreringService(
                 )
             )
         } else {
-            throw IllegalArgumentException("Registreringen er av en type som ikke støttes.")
+            throw IllegalInputException("Registreringen er av en type som ikke støttes: ${registrering.type}.")
         }
 
         val now = LocalDateTime.now()
