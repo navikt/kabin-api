@@ -46,7 +46,8 @@ class RegistreringRepositoryTest {
                 journalpostId = "123456789",
                 type = Type.KLAGE,
                 mulighetId = "123",
-                mulighetFagsystem = Fagsystem.KABAL,
+                mulighetOriginalFagsystem = Fagsystem.FS36,
+                mulighetCurrentFagsystem = Fagsystem.KABAL,
                 mottattVedtaksinstans = LocalDate.now(),
                 mottattKlageinstans = LocalDate.now(),
                 behandlingstidUnits = 12,
@@ -112,7 +113,7 @@ class RegistreringRepositoryTest {
         assertThat(registreringFromDb.journalpostId).isEqualTo(registrering.journalpostId)
         assertThat(registreringFromDb.type).isEqualTo(registrering.type)
         assertThat(registreringFromDb.mulighetId).isEqualTo(registrering.mulighetId)
-        assertThat(registreringFromDb.mulighetFagsystem).isEqualTo(registrering.mulighetFagsystem)
+        assertThat(registreringFromDb.mulighetOriginalFagsystem).isEqualTo(registrering.mulighetOriginalFagsystem)
         assertThat(registreringFromDb.mottattVedtaksinstans).isEqualTo(registrering.mottattVedtaksinstans)
         assertThat(registreringFromDb.mottattKlageinstans).isEqualTo(registrering.mottattKlageinstans)
         assertThat(registreringFromDb.behandlingstidUnits).isEqualTo(registrering.behandlingstidUnits)
@@ -170,7 +171,8 @@ class RegistreringRepositoryTest {
                 journalpostId = "123456789",
                 type = Type.KLAGE,
                 mulighetId = "123",
-                mulighetFagsystem = Fagsystem.KABAL,
+                mulighetOriginalFagsystem = Fagsystem.FS36,
+                mulighetCurrentFagsystem = Fagsystem.KABAL,
                 mottattVedtaksinstans = LocalDate.now(),
                 mottattKlageinstans = LocalDate.now(),
                 behandlingstidUnits = 12,
@@ -241,7 +243,8 @@ class RegistreringRepositoryTest {
                 journalpostId = "123456789",
                 type = Type.KLAGE,
                 mulighetId = "123",
-                mulighetFagsystem = Fagsystem.KABAL,
+                mulighetOriginalFagsystem = Fagsystem.FS36,
+                mulighetCurrentFagsystem = Fagsystem.KABAL,
                 mottattVedtaksinstans = LocalDate.now(),
                 mottattKlageinstans = LocalDate.now(),
                 behandlingstidUnits = 12,

@@ -71,7 +71,11 @@ data class JournalpostIdInput(val journalpostId: String?)
 
 data class TypeIdInput(val typeId: String?)
 
-data class MulighetInput(val mulighetId: String, val fagsystemId: String)
+data class MulighetInput(
+    val mulighetId: String,
+    val originalFagsystemId: String,
+    val currentFagsystemId: String,
+)
 
 data class MottattVedtaksinstansInput(val mottattVedtaksinstans: LocalDate)
 

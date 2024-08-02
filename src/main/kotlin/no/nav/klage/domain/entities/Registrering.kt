@@ -53,8 +53,11 @@ class Registrering(
     @Column(name = "mulighet_id")
     var mulighetId: String?,
     @Convert(converter = FagsystemConverter::class)
-    @Column(name = "mulighet_fagsystem_id")
-    var mulighetFagsystem: Fagsystem?,
+    @Column(name = "mulighet_original_fagsystem_id")
+    var mulighetOriginalFagsystem: Fagsystem?,
+    @Convert(converter = FagsystemConverter::class)
+    @Column(name = "mulighet_current_fagsystem_id")
+    var mulighetCurrentFagsystem: Fagsystem?,
     @Column(name = "mottatt_vedtaksinstans")
     var mottattVedtaksinstans: LocalDate?,
     @Column(name = "mottatt_klageinstans")
@@ -120,7 +123,7 @@ class Registrering(
     }
 
     override fun toString(): String {
-        return "Registrering(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, type=$type, mulighetId=$mulighetId, mulighetFagsystem=$mulighetFagsystem, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$oppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle=$svarbrevTitle, overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId)"
+        return "Registrering(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, type=$type, mulighetId=$mulighetId, mulighetFagsystem=$mulighetOriginalFagsystem, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$oppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle=$svarbrevTitle, overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId)"
     }
 
 }

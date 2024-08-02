@@ -40,7 +40,8 @@ class RegistreringService(
                 journalpostId = null,
                 type = null,
                 mulighetId = null,
-                mulighetFagsystem = null,
+                mulighetOriginalFagsystem = null,
+                mulighetCurrentFagsystem = null,
                 mottattVedtaksinstans = null,
                 mottattKlageinstans = null,
                 behandlingstidUnits = 12,
@@ -102,7 +103,7 @@ class RegistreringService(
                 ytelse = null
                 type = null
                 mulighetId = null
-                mulighetFagsystem = null
+                mulighetOriginalFagsystem = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
                 hjemmelIdList = listOf()
@@ -142,7 +143,7 @@ class RegistreringService(
                 ytelse = null
                 type = null
                 mulighetId = null
-                mulighetFagsystem = null
+                mulighetOriginalFagsystem = null
                 mottattVedtaksinstans = null
                 hjemmelIdList = listOf()
                 klager = null
@@ -172,7 +173,7 @@ class RegistreringService(
                 modified = LocalDateTime.now()
                 //empty the properties that no longer make sense if typeId changes.
                 mulighetId = null
-                mulighetFagsystem = null
+                mulighetOriginalFagsystem = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
                 hjemmelIdList = listOf()
@@ -197,7 +198,8 @@ class RegistreringService(
         return getRegistreringForUpdate(registreringId)
             .apply {
                 mulighetId = input.mulighetId
-                mulighetFagsystem = Fagsystem.of(input.fagsystemId)
+                mulighetOriginalFagsystem = Fagsystem.of(input.originalFagsystemId)
+                mulighetCurrentFagsystem = Fagsystem.of(input.currentFagsystemId)
                 ytelse = getYtelseOrNull(this)
                 modified = LocalDateTime.now()
 
@@ -230,13 +232,13 @@ class RegistreringService(
 
         val temaId = if (registrering.type == Type.KLAGE) {
             val mulighet = klageService.getKlagemuligheter(input = input).find {
-                it.id == registrering.mulighetId && it.fagsystemId == registrering.mulighetFagsystem!!.id
+                it.id == registrering.mulighetId && it.fagsystemId == registrering.mulighetOriginalFagsystem!!.id
             }
             mulighet?.temaId
         } else if (registrering.type == Type.ANKE) {
             val mulighet = ankeService.getAnkemuligheter(input = input).find {
                 it.id == registrering
-                    .mulighetId && it.fagsystemId == registrering.mulighetFagsystem!!.id
+                    .mulighetId && it.fagsystemId == registrering.mulighetOriginalFagsystem!!.id
             }
             if (mulighet?.ytelseId != null) {
                 return Ytelse.of(mulighet.ytelseId)
@@ -888,7 +890,8 @@ class RegistreringService(
             mulighet = if (mulighetId != null) {
                 MulighetView(
                     id = mulighetId!!,
-                    fagsystemId = mulighetFagsystem!!.id
+                    originalFagsystemId = mulighetOriginalFagsystem!!.id,
+                    currentFagsystemId = mulighetCurrentFagsystem!!.id,
                 )
             } else null,
             overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(
@@ -907,7 +910,8 @@ class RegistreringService(
         mulighet = if (mulighetId != null) {
             MulighetView(
                 id = mulighetId!!,
-                fagsystemId = mulighetFagsystem!!.id
+                originalFagsystemId = mulighetOriginalFagsystem!!.id,
+                currentFagsystemId = mulighetCurrentFagsystem!!.id,
             )
         } else null,
         overstyringer = FullRegistreringView.FullRegistreringOverstyringerView(
@@ -1016,10 +1020,10 @@ class RegistreringService(
                     avsender = registrering.avsender.toPartIdInput(),
                     saksbehandlerIdent = registrering.saksbehandlerIdent,
                     svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
-                    vedtak = if (registrering.mulighetId != null && registrering.mulighetFagsystem != null) {
+                    vedtak = if (registrering.mulighetId != null && registrering.mulighetCurrentFagsystem != null) {
                         Vedtak(
                             id = registrering.mulighetId!!,
-                            sourceId = registrering.mulighetFagsystem!!.id,
+                            sourceId = registrering.mulighetCurrentFagsystem!!.id,
                         )
                     } else null,
                     oppgaveId = registrering.oppgaveId,
@@ -1041,10 +1045,10 @@ class RegistreringService(
                     avsender = registrering.avsender.toPartIdInput(),
                     saksbehandlerIdent = registrering.saksbehandlerIdent,
                     svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
-                    vedtak = if (registrering.mulighetId != null && registrering.mulighetFagsystem != null) {
+                    vedtak = if (registrering.mulighetId != null && registrering.mulighetOriginalFagsystem != null) {
                         Vedtak(
                             id = registrering.mulighetId!!,
-                            sourceId = registrering.mulighetFagsystem!!.id,
+                            sourceId = registrering.mulighetOriginalFagsystem!!.id,
                         )
                     } else null,
                     oppgaveId = registrering.oppgaveId,

@@ -83,7 +83,8 @@ data class TypeChangeRegistreringView(
 
 data class MulighetView(
     val id: String,
-    val fagsystemId: String,
+    val originalFagsystemId: String,
+    val currentFagsystemId: String,
 )
 
 data class BehandlingstidView(
