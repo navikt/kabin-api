@@ -177,7 +177,7 @@ class KabalApiClient(
 
     fun getSvarbrevSettings(ytelseId: String, typeId: String): SvarbrevSettingsView {
         return kabalApiWebClient.get()
-            .uri { it.path("/api/svarbrev-settings/ytelser/{ytelseId}/typer/{typeId}").build(ytelseId, typeId) }
+            .uri { it.path("/svarbrev-settings/ytelser/{ytelseId}/typer/{typeId}").build(ytelseId, typeId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
