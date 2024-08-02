@@ -1025,8 +1025,33 @@ class RegistreringService(
                     oppgaveId = registrering.oppgaveId,
                 )
             )
+        } else if (registrering.type == Type.KLAGE) {
+            klageService.createKlage(
+                CreateKlageInputView(
+                    mottattKlageinstans = registrering.mottattKlageinstans,
+                    mottattVedtaksinstans = registrering.mottattVedtaksinstans,
+                    behandlingstidUnits = registrering.behandlingstidUnits,
+                    behandlingstidUnitType = registrering.behandlingstidUnitType,
+                    behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
+                    klager = registrering.klager.toPartIdInput(),
+                    fullmektig = registrering.fullmektig.toPartIdInput(),
+                    journalpostId = registrering.journalpostId,
+                    ytelseId = registrering.ytelse?.id,
+                    hjemmelIdList = registrering.hjemmelIdList,
+                    avsender = registrering.avsender.toPartIdInput(),
+                    saksbehandlerIdent = registrering.saksbehandlerIdent,
+                    svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
+                    vedtak = if (registrering.mulighetId != null && registrering.mulighetFagsystem != null) {
+                        Vedtak(
+                            id = registrering.mulighetId!!,
+                            sourceId = registrering.mulighetFagsystem!!.id,
+                        )
+                    } else null,
+                    oppgaveId = registrering.oppgaveId,
+                )
+            )
         } else {
-            TODO()
+            throw IllegalArgumentException("Registreringen er av en type som ikke støttes.")
         }
 
         val now = LocalDateTime.now()
