@@ -99,7 +99,7 @@ class KlageService(
                             ytelseId = Ytelse.entries.find { y -> y.toTema().navn == it.tema }!!.id,
                         )
                     ).partViewWithUtsendingskanal(),
-                    currentFagystemId = MulighetSource.INFOTRYGD.fagsystem.id,
+                    currentFagsystemId = MulighetSource.INFOTRYGD.fagsystem.id,
                 )
             }
     }

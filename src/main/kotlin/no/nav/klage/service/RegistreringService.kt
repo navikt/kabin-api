@@ -466,7 +466,6 @@ class RegistreringService(
     }
 
     enum class PartISaken {
-        SAKEN_GJELDER,
         KLAGER,
         AVSENDER,
         FULLMEKTIG,

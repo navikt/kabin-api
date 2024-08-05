@@ -43,5 +43,5 @@ data class Klagemulighet(
     val fagsakId: String,
     val originalFagsystemId: String,
     val klageBehandlendeEnhet: String,
-    val currentFagystemId: String,
+    val currentFagsystemId: String,
 )
