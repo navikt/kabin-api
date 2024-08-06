@@ -133,36 +133,39 @@ class RegistreringService(
                 journalpostId = input.journalpostId
                 modified = LocalDateTime.now()
 
-                if (input.journalpostId != null) {
-                    val document = documentService.fetchDokument(
-                        journalpostId = input.journalpostId
-                    )
-                    mottattKlageinstans = document.datoOpprettet.toLocalDate()
-                } else {
-                    mottattKlageinstans = null
-                }
+                val document = documentService.fetchDokument(
+                    journalpostId = input.journalpostId
+                )
+                mottattKlageinstans = document.datoOpprettet.toLocalDate()
+                mottattVedtaksinstans = document.datoOpprettet.toLocalDate()
 
                 //empty the properties that no longer make sense if journalpostId changes.
-                ytelse = null
-                type = null
-                mulighetId = null
-                mulighetOriginalFagsystem = null
-                mottattVedtaksinstans = null
-                hjemmelIdList = listOf()
-                klager = null
-                fullmektig = null
+//                ytelse = null
+//                type = null
+//                mulighetId = null
+//                mulighetOriginalFagsystem = null
+//                hjemmelIdList = listOf()
+//                klager = null
+//                fullmektig = null
+                //TODO depends on previous value
                 avsender = null
-                saksbehandlerIdent = null
-                oppgaveId = null
-                sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = false
-                overrideSvarbrevCustomText = false
-                svarbrevCustomText = null
-                svarbrevBehandlingstidUnits = null
-                svarbrevBehandlingstidUnitType = null
-                svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
-                willCreateNewJournalpost = false
+//                saksbehandlerIdent = null
+//                oppgaveId = null
+//                sendSvarbrev = null
+//                overrideSvarbrevBehandlingstid = false
+//                overrideSvarbrevCustomText = false
+//                svarbrevCustomText = null
+//                svarbrevBehandlingstidUnits = null
+//                svarbrevBehandlingstidUnitType = null
+//                svarbrevFullmektigFritekst = null
+                if (mulighetId != null) {
+                    willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                        journalpostId = journalpostId!!,
+                        fagsakId = mulighetId!!,
+                        fagsystemId = mulighetOriginalFagsystem!!.id,
+                    )
+                }
             }
 
         return registrering.toRegistreringView()
@@ -178,11 +181,13 @@ class RegistreringService(
                 //empty the properties that no longer make sense if typeId changes.
                 mulighetId = null
                 mulighetOriginalFagsystem = null
-                mottattVedtaksinstans = null
-                mottattKlageinstans = null
-                hjemmelIdList = listOf()
+//                mottattVedtaksinstans = null
+//                hjemmelIdList = listOf()
+                //TODO depends
                 klager = null
-                fullmektig = null
+                //TODO depends on mulighet
+//                fullmektig = null
+                //TODO depends
                 avsender = null
                 saksbehandlerIdent = null
                 oppgaveId = null
@@ -219,7 +224,7 @@ class RegistreringService(
                 mottattKlageinstans = null
                 hjemmelIdList = listOf()
                 klager = null
-                fullmektig = null
+//                fullmektig = null
                 avsender = null
                 saksbehandlerIdent = null
                 oppgaveId = null

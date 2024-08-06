@@ -61,7 +61,7 @@ fun PartIdInput?.toOversendtPartId(): OversendtPartId? {
 
 data class SakenGjelderValueInput(val sakenGjelderValue: String?)
 
-data class JournalpostIdInput(val journalpostId: String?)
+data class JournalpostIdInput(val journalpostId: String)
 
 data class TypeIdInput(val typeId: String?)
 
