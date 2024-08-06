@@ -381,30 +381,30 @@ class RegistreringService(
         )
     }
 
-    fun setFullmektig(registreringId: UUID, input: PartIdInput?): FullmektigChangeRegistreringView {
+    fun setFullmektig(registreringId: UUID, input: FullmektigInput): FullmektigChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 //cases
                 //1. fullmektig is set to the same value as before
-                if (fullmektig?.value == input?.id) {
+                if (fullmektig?.value == input.fullmektig?.id) {
                     return@apply
                 }
                 //handle receivers for all cases
                 handleReceiversWhenAddingPart(
                     unchangedRegistrering = this,
-                    partIdInput = input,
+                    partIdInput = input.fullmektig,
                     partISaken = PartISaken.FULLMEKTIG
                 )
 
                 //2. fullmektig is set to null
-                if (input == null) {
+                if (input.fullmektig == null) {
                     fullmektig = null
                     svarbrevFullmektigFritekst = null
                 } else {
                     //3. fullmektig is set to a new value
                     fullmektig = PartId(
-                        value = input.id,
-                        type = when (input.type) {
+                        value = input.fullmektig.id,
+                        type = when (input.fullmektig.type) {
                             PartType.FNR -> {
                                 PartIdType.PERSON
                             }
@@ -414,7 +414,7 @@ class RegistreringService(
                             }
                         }
                     )
-                    val part = kabalApiClient.searchPart(SearchPartInput(identifikator = input.id))
+                    val part = kabalApiClient.searchPart(SearchPartInput(identifikator = input.fullmektig.id))
                     svarbrevFullmektigFritekst = part.name
                 }
                 modified = LocalDateTime.now()
@@ -476,29 +476,29 @@ class RegistreringService(
         FULLMEKTIG,
     }
 
-    fun setKlager(registreringId: UUID, input: PartIdInput?): KlagerChangeRegistreringView {
+    fun setKlager(registreringId: UUID, input: KlagerInput): KlagerChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 //cases
                 //1. klager is set to the same value as before
-                if (klager?.value == input?.id) {
+                if (klager?.value == input.klager?.id) {
                     return@apply
                 }
                 //handle receivers for all cases
                 handleReceiversWhenAddingPart(
                     unchangedRegistrering = this,
-                    partIdInput = input,
+                    partIdInput = input.klager,
                     partISaken = PartISaken.KLAGER
                 )
 
                 //2. klager is set to null
-                if (input == null) {
+                if (input.klager == null) {
                     klager = null
                 } else {
                     //3. klager is set to a new value
                     klager = PartId(
-                        value = input.id,
-                        type = when (input.type) {
+                        value = input.klager.id,
+                        type = when (input.klager.type) {
                             PartType.FNR -> {
                                 PartIdType.PERSON
                             }
@@ -542,29 +542,29 @@ class RegistreringService(
         }
     )
 
-    fun setAvsender(registreringId: UUID, input: PartIdInput?): AvsenderChangeRegistreringView {
+    fun setAvsender(registreringId: UUID, input: AvsenderInput): AvsenderChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 //cases
                 //1. avsender is set to the same value as before
-                if (avsender?.value == input?.id) {
+                if (avsender?.value == input.avsender?.id) {
                     return@apply
                 }
                 //handle receivers for all cases
                 handleReceiversWhenAddingPart(
                     unchangedRegistrering = this,
-                    partIdInput = input,
+                    partIdInput = input.avsender,
                     partISaken = PartISaken.AVSENDER
                 )
 
                 //2. avsender is set to null
-                if (input == null) {
+                if (input.avsender == null) {
                     avsender = null
                 } else {
                     //3. avsender is set to a new value
                     avsender = PartId(
-                        value = input.id,
-                        type = when (input.type) {
+                        value = input.avsender.id,
+                        type = when (input.avsender.type) {
                             PartType.FNR -> {
                                 PartIdType.PERSON
                             }

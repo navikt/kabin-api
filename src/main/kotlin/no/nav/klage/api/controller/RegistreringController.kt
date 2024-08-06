@@ -234,7 +234,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/fullmektig")
     fun updateFullmektig(
         @PathVariable id: UUID,
-        @RequestBody input: PartIdInput?
+        @RequestBody input: FullmektigInput
     ): FullmektigChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateFullmektig.name,
@@ -247,7 +247,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/klager")
     fun updateKlager(
         @PathVariable id: UUID,
-        @RequestBody input: PartIdInput?
+        @RequestBody input: KlagerInput
     ): KlagerChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateKlager.name,
@@ -260,7 +260,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/avsender")
     fun updateAvsender(
         @PathVariable id: UUID,
-        @RequestBody input: PartIdInput?
+        @RequestBody input: AvsenderInput
     ): AvsenderChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateAvsender.name,

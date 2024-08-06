@@ -118,3 +118,15 @@ data class SvarbrevOverrideBehandlingstidInput(
 data class SvarbrevOverrideCustomTextInput(
     val overrideCustomText: Boolean,
 )
+
+data class FullmektigInput(
+    val fullmektig: PartIdInput?,
+)
+
+data class AvsenderInput(
+    val avsender: PartIdInput?,
+)
+
+data class KlagerInput(
+    val klager: PartIdInput?,
+)
