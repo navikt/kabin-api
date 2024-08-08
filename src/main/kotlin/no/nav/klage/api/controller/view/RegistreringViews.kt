@@ -185,11 +185,22 @@ data class BehandlingstidChangeRegistreringView(
 data class YtelseChangeRegistreringView(
     val id: UUID,
     val overstyringer: YtelseChangeRegistreringOverstyringerView,
+    val svarbrev: YtelseChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
 ) {
     data class YtelseChangeRegistreringOverstyringerView(
         val ytelseId: String?,
         val saksbehandlerIdent: String?,
+    )
+
+    data class YtelseChangeRegistreringSvarbrevView(
+        val send: Boolean?,
+        val behandlingstid: BehandlingstidView?,
+        val fullmektigFritekst: String?,
+        val receivers: List<RecipientView>,
+        val overrideCustomText: Boolean,
+        val overrideBehandlingstid: Boolean,
+        val customText: String?,
     )
 }
 

@@ -436,15 +436,15 @@ class RegistreringService(
     }
 
     fun setYtelseId(registreringId: UUID, input: YtelseIdInput): YtelseChangeRegistreringView {
-        //svarbrev settings
-
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 ytelse = input.ytelseId?.let { ytelseId ->
                     Ytelse.of(ytelseId)
                 }
                 modified = LocalDateTime.now()
-                //TODO: hjemler are affected, maybe saksbehandler?
+
+                setSvarbrevSettings()
+
                 //For now, just empty them.
                 hjemmelIdList = listOf()
                 saksbehandlerIdent = null
@@ -454,6 +454,22 @@ class RegistreringService(
             overstyringer = YtelseChangeRegistreringView.YtelseChangeRegistreringOverstyringerView(
                 ytelseId = registrering.ytelse?.id,
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
+            ),
+            svarbrev = YtelseChangeRegistreringView.YtelseChangeRegistreringSvarbrevView(
+                send = registrering.sendSvarbrev,
+                behandlingstid = if (registrering.svarbrevBehandlingstidUnits != null) {
+                    BehandlingstidView(
+                        unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
+                        units = registrering.svarbrevBehandlingstidUnits!!
+                    )
+                } else null,
+                fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
+                receivers = registrering.svarbrevReceivers.map { receiver ->
+                    receiver.toRecipientView(registrering)
+                },
+                overrideCustomText = registrering.overrideSvarbrevCustomText,
+                overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
+                customText = registrering.svarbrevCustomText,
             ),
             modified = registrering.modified,
         )
