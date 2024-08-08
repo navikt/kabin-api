@@ -104,27 +104,27 @@ data class MulighetChangeRegistreringView(
 ) {
 
     data class MulighetChangeRegistreringOverstyringerView(
-        val mottattVedtaksinstans: LocalDate? = null,
-        val mottattKlageinstans: LocalDate? = null,
-        val behandlingstid: BehandlingstidView? = null,
-        val calculatedFrist: LocalDate? = null,
-        val hjemmelIdList: List<String> = emptyList(),
+        val mottattVedtaksinstans: LocalDate?,
+        val mottattKlageinstans: LocalDate?,
+        val behandlingstid: BehandlingstidView?,
+        val calculatedFrist: LocalDate?,
+        val hjemmelIdList: List<String>,
         val ytelseId: String?,
-        val fullmektig: PartViewWithUtsendingskanal? = null,
-        val klager: PartViewWithUtsendingskanal? = null,
-        val avsender: PartViewWithUtsendingskanal? = null,
-        val saksbehandlerIdent: String? = null,
-        val oppgaveId: Long? = null
+        val fullmektig: PartViewWithUtsendingskanal?,
+        val klager: PartViewWithUtsendingskanal?,
+        val avsender: PartViewWithUtsendingskanal?,
+        val saksbehandlerIdent: String?,
+        val oppgaveId: Long?
     )
 
     data class MulighetChangeRegistreringSvarbrevView(
-        val send: Boolean? = null,
-        val behandlingstid: BehandlingstidView? = null,
-        val fullmektigFritekst: String? = null,
-        val receivers: List<RecipientView> = emptyList(),
-        val overrideCustomText: Boolean = false,
-        val overrideBehandlingstid: Boolean = false,
-        val customText: String? = null,
+        val send: Boolean?,
+        val behandlingstid: BehandlingstidView?,
+        val fullmektigFritekst: String?,
+        val receivers: List<RecipientView>,
+        val overrideCustomText: Boolean,
+        val overrideBehandlingstid: Boolean,
+        val customText: String?,
     )
 }
 

@@ -32,13 +32,15 @@ class RegistreringController(
     }
 
     @PostMapping
-    fun createRegistrering(): FullRegistreringView {
+    fun createRegistrering(
+        @RequestBody input: SakenGjelderValueInput
+    ): FullRegistreringView {
         logMethodDetails(
             methodName = ::createRegistrering.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.createRegistrering()
+        return registreringService.createRegistrering(input = input)
     }
 
     @GetMapping("/ferdige")

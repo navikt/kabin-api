@@ -5,24 +5,24 @@ import java.time.LocalDateTime
 import java.util.*
 
 data class Ankemulighet(
-    val id: String,
+    override val id: String,
+    override var currentFagsystemId: String,
+    override val temaId: String,
+    override val vedtakDate: LocalDate?,
+    override val sakenGjelder: PartViewWithUtsendingskanal,
+    override val fagsakId: String,
+    override var originalFagsystemId: String,
     //where the "mulighet" comes from. Kabal or Infotrygd (or other).
     val sourceId: String,
-    var currentFagsystemId: String?,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
-    val temaId: String,
-    val vedtakDate: LocalDate?,
-    val sakenGjelder: PartViewWithUtsendingskanal,
     val klager: PartViewWithUtsendingskanal?,
     val fullmektig: PartViewWithUtsendingskanal?,
-    val fagsakId: String,
     val fagsystemId: String,
-    var originalFagsystemId: String?,
     val previousSaksbehandler: PreviousSaksbehandler?,
     val typeId: String?,
-)
+): Mulighet
 
 data class ExistingAnkebehandling(
     val id: UUID,
@@ -36,12 +36,22 @@ data class PreviousSaksbehandler(
 )
 
 data class Klagemulighet(
-    val id: String,
-    val temaId: String,
-    val vedtakDate: LocalDate,
-    val sakenGjelder: PartViewWithUtsendingskanal,
-    val fagsakId: String,
-    val originalFagsystemId: String,
+    override val id: String,
+    override val temaId: String,
+    override val vedtakDate: LocalDate,
+    override val sakenGjelder: PartViewWithUtsendingskanal,
+    override val fagsakId: String,
+    override val originalFagsystemId: String,
+    override val currentFagsystemId: String,
     val klageBehandlendeEnhet: String,
-    val currentFagsystemId: String,
-)
+): Mulighet
+
+interface Mulighet {
+    val id: String
+    val temaId: String
+    val vedtakDate: LocalDate?
+    val sakenGjelder: PartViewWithUtsendingskanal
+    val fagsakId: String
+    val originalFagsystemId: String
+    val currentFagsystemId: String
+}
