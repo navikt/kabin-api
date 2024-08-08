@@ -464,9 +464,7 @@ class RegistreringService(
                     )
                 } else null,
                 fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
-                receivers = registrering.svarbrevReceivers.map { receiver ->
-                    receiver.toRecipientView(registrering)
-                }.sortedBy { it.part.name },
+                receivers = mapTorecipientViews(registrering),
                 overrideCustomText = registrering.overrideSvarbrevCustomText,
                 overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
                 customText = registrering.svarbrevCustomText,
@@ -517,9 +515,7 @@ class RegistreringService(
             id = registrering.id,
             svarbrev = FullmektigChangeRegistreringView.FullmektigChangeSvarbrevView(
                 fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
-                receivers = registrering.svarbrevReceivers.map { receiver ->
-                    receiver.toRecipientView(registrering)
-                }.sortedBy { it.part.name }
+                receivers = mapTorecipientViews(registrering)
             ),
             overstyringer = FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
                 fullmektig = registrering.fullmektig?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
@@ -608,9 +604,7 @@ class RegistreringService(
         return KlagerChangeRegistreringView(
             id = registrering.id,
             svarbrev = KlagerChangeRegistreringView.KlagerChangeRegistreringViewSvarbrevView(
-                receivers = registrering.svarbrevReceivers.map { receiver ->
-                    receiver.toRecipientView(registrering)
-                }.sortedBy { it.part.name }
+                receivers = mapTorecipientViews(registrering)
             ),
             overstyringer = KlagerChangeRegistreringView.KlagerChangeRegistreringViewRegistreringOverstyringerView(
                 klager = registrering.klager?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
@@ -674,9 +668,7 @@ class RegistreringService(
         return AvsenderChangeRegistreringView(
             id = registrering.id,
             svarbrev = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewSvarbrevView(
-                receivers = registrering.svarbrevReceivers.map { receiver ->
-                    receiver.toRecipientView(registrering)
-                }.sortedBy { it.part.name }
+                receivers = mapTorecipientViews(registrering)
             ),
             overstyringer = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewRegistreringOverstyringerView(
                 avsender = registrering.avsender?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
@@ -893,9 +885,7 @@ class RegistreringService(
         return SvarbrevReceiverChangeRegistreringView(
             id = registrering.id,
             svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
-                receivers = registrering.svarbrevReceivers.map { receiver ->
-                    receiver.toRecipientView(registrering)
-                }.sortedBy { it.part.name }
+                receivers = mapTorecipientViews(registrering)
             ),
             modified = registrering.modified,
         )
@@ -941,9 +931,7 @@ class RegistreringService(
         return SvarbrevReceiverChangeRegistreringView(
             id = registrering.id,
             svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
-                receivers = registrering.svarbrevReceivers.map { receiver ->
-                    receiver.toRecipientView(registrering)
-                }.sortedBy { it.part.name }
+                receivers = mapTorecipientViews(registrering)
             ),
             modified = registrering.modified,
         )
@@ -975,13 +963,16 @@ class RegistreringService(
         return SvarbrevReceiverChangeRegistreringView(
             id = registrering.id,
             svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
-                receivers = registrering.svarbrevReceivers.map { receiver ->
-                    receiver.toRecipientView(registrering)
-                }.sortedBy { it.part.name }
+                receivers = mapTorecipientViews(registrering)
             ),
             modified = registrering.modified,
         )
     }
+
+    private fun mapTorecipientViews(registrering: Registrering) =
+        registrering.svarbrevReceivers.map { receiver ->
+            receiver.toRecipientView(registrering)
+        }.sortedBy { it.part.name }
 
     private fun Registrering.toTypeChangeRegistreringView(): TypeChangeRegistreringView {
         return TypeChangeRegistreringView(
@@ -1036,9 +1027,7 @@ class RegistreringService(
                     )
                 } else null,
                 fullmektigFritekst = svarbrevFullmektigFritekst,
-                receivers = svarbrevReceivers.map { receiver ->
-                    receiver.toRecipientView(this)
-                }.sortedBy { it.part.name },
+                receivers = mapTorecipientViews(this),
                 overrideCustomText = overrideSvarbrevCustomText,
                 overrideBehandlingstid = overrideSvarbrevBehandlingstid,
                 customText = svarbrevCustomText,
@@ -1092,9 +1081,7 @@ class RegistreringService(
                 )
             } else null,
             fullmektigFritekst = svarbrevFullmektigFritekst,
-            receivers = svarbrevReceivers.map { receiver ->
-                receiver.toRecipientView(this)
-            }.sortedBy { it.part.name },
+            receivers = mapTorecipientViews(this),
             title = svarbrevTitle,
             customText = svarbrevCustomText,
             overrideCustomText = overrideSvarbrevCustomText ?: false,
@@ -1116,6 +1103,8 @@ class RegistreringService(
     )
 
     fun deleteRegistrering(registreringId: UUID) {
+        //check rights
+        getRegistreringForUpdate(registreringId)
         registreringRepository.deleteById(registreringId)
     }
 
