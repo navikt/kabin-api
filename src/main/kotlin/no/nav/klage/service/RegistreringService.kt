@@ -466,7 +466,7 @@ class RegistreringService(
                 fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
                 receivers = registrering.svarbrevReceivers.map { receiver ->
                     receiver.toRecipientView(registrering)
-                },
+                }.sortedBy { it.part.name },
                 overrideCustomText = registrering.overrideSvarbrevCustomText,
                 overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
                 customText = registrering.svarbrevCustomText,
@@ -519,7 +519,7 @@ class RegistreringService(
                 fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
                 receivers = registrering.svarbrevReceivers.map { receiver ->
                     receiver.toRecipientView(registrering)
-                }
+                }.sortedBy { it.part.name }
             ),
             overstyringer = FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
                 fullmektig = registrering.fullmektig?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
@@ -610,7 +610,7 @@ class RegistreringService(
             svarbrev = KlagerChangeRegistreringView.KlagerChangeRegistreringViewSvarbrevView(
                 receivers = registrering.svarbrevReceivers.map { receiver ->
                     receiver.toRecipientView(registrering)
-                }
+                }.sortedBy { it.part.name }
             ),
             overstyringer = KlagerChangeRegistreringView.KlagerChangeRegistreringViewRegistreringOverstyringerView(
                 klager = registrering.klager?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
@@ -676,7 +676,7 @@ class RegistreringService(
             svarbrev = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewSvarbrevView(
                 receivers = registrering.svarbrevReceivers.map { receiver ->
                     receiver.toRecipientView(registrering)
-                }
+                }.sortedBy { it.part.name }
             ),
             overstyringer = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewRegistreringOverstyringerView(
                 avsender = registrering.avsender?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
@@ -895,7 +895,7 @@ class RegistreringService(
             svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
                 receivers = registrering.svarbrevReceivers.map { receiver ->
                     receiver.toRecipientView(registrering)
-                }
+                }.sortedBy { it.part.name }
             ),
             modified = registrering.modified,
         )
@@ -943,7 +943,7 @@ class RegistreringService(
             svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
                 receivers = registrering.svarbrevReceivers.map { receiver ->
                     receiver.toRecipientView(registrering)
-                }
+                }.sortedBy { it.part.name }
             ),
             modified = registrering.modified,
         )
@@ -977,7 +977,7 @@ class RegistreringService(
             svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
                 receivers = registrering.svarbrevReceivers.map { receiver ->
                     receiver.toRecipientView(registrering)
-                }
+                }.sortedBy { it.part.name }
             ),
             modified = registrering.modified,
         )
@@ -1038,7 +1038,7 @@ class RegistreringService(
                 fullmektigFritekst = svarbrevFullmektigFritekst,
                 receivers = svarbrevReceivers.map { receiver ->
                     receiver.toRecipientView(this)
-                },
+                }.sortedBy { it.part.name },
                 overrideCustomText = overrideSvarbrevCustomText,
                 overrideBehandlingstid = overrideSvarbrevBehandlingstid,
                 customText = svarbrevCustomText,
@@ -1094,7 +1094,7 @@ class RegistreringService(
             fullmektigFritekst = svarbrevFullmektigFritekst,
             receivers = svarbrevReceivers.map { receiver ->
                 receiver.toRecipientView(this)
-            },
+            }.sortedBy { it.part.name },
             title = svarbrevTitle,
             customText = svarbrevCustomText,
             overrideCustomText = overrideSvarbrevCustomText ?: false,
@@ -1228,7 +1228,7 @@ class RegistreringService(
 
         return SvarbrevWithReceiverInput(
             title = svarbrevTitle,
-            customText = if (overrideSvarbrevCustomText == true) svarbrevCustomText else svarbrevSettings.customText,
+            customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
             receivers = svarbrevReceivers.map { receiver ->
                 SvarbrevWithReceiverInput.Receiver(
                     id = receiver.part.value,
@@ -1245,9 +1245,9 @@ class RegistreringService(
                 )
             },
             fullmektigFritekst = svarbrevFullmektigFritekst,
-            varsletBehandlingstidUnits = if (overrideSvarbrevBehandlingstid == true) svarbrevBehandlingstidUnits!! else svarbrevSettings.behandlingstidUnits,
-            varsletBehandlingstidUnitType = if (overrideSvarbrevBehandlingstid == true) svarbrevBehandlingstidUnitType!! else svarbrevSettings.behandlingstidUnitType,
-            varsletBehandlingstidUnitTypeId = if (overrideSvarbrevBehandlingstid == true) svarbrevBehandlingstidUnitType!!.id else svarbrevSettings.behandlingstidUnitType.id,
+            varsletBehandlingstidUnits = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnits!! else svarbrevSettings.behandlingstidUnits,
+            varsletBehandlingstidUnitType = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnitType!! else svarbrevSettings.behandlingstidUnitType,
+            varsletBehandlingstidUnitTypeId = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnitType!!.id else svarbrevSettings.behandlingstidUnitType.id,
         )
     }
 
