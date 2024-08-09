@@ -19,7 +19,7 @@ class SvarbrevReceiver(
     //TODO: should be kodeverk?
     @Column(name = "handling")
     @Enumerated(EnumType.STRING)
-    var handling: HandlingEnum,
+    var handling: HandlingEnum?,
     @Embedded
     var overriddenAddress: Address?
 )

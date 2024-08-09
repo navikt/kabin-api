@@ -28,9 +28,9 @@ data class FullRegistreringView(
         val calculatedFrist: LocalDate?,
         val hjemmelIdList: List<String>,
         val ytelseId: String?,
-        val fullmektig: PartViewWithUtsendingskanal?,
-        val klager: PartViewWithUtsendingskanal?,
-        val avsender: PartViewWithUtsendingskanal?,
+        val fullmektig: PartViewWithOptionalUtsendingskanal?,
+        val klager: PartViewWithOptionalUtsendingskanal?,
+        val avsender: PartViewWithOptionalUtsendingskanal?,
         val saksbehandlerIdent: String?,
         val oppgaveId: Long?
     )
@@ -110,9 +110,9 @@ data class MulighetChangeRegistreringView(
         val calculatedFrist: LocalDate?,
         val hjemmelIdList: List<String>,
         val ytelseId: String?,
-        val fullmektig: PartViewWithUtsendingskanal?,
-        val klager: PartViewWithUtsendingskanal?,
-        val avsender: PartViewWithUtsendingskanal?,
+        val fullmektig: PartViewWithOptionalUtsendingskanal?,
+        val klager: PartViewWithOptionalUtsendingskanal?,
+        val avsender: PartViewWithOptionalUtsendingskanal?,
         val saksbehandlerIdent: String?,
         val oppgaveId: Long?
     )
@@ -130,8 +130,8 @@ data class MulighetChangeRegistreringView(
 
 data class RecipientView(
     val id: UUID,
-    val part: PartViewWithUtsendingskanal,
-    val handling: HandlingEnum,
+    val part: PartViewWithOptionalUtsendingskanal,
+    val handling: HandlingEnum?,
     val overriddenAddress: AddressView?
 ) {
     data class AddressView(
@@ -222,7 +222,7 @@ data class FullmektigChangeRegistreringView(
     val modified: LocalDateTime,
 ) {
     data class FullmektigChangeRegistreringOverstyringerView(
-        val fullmektig: PartViewWithUtsendingskanal?,
+        val fullmektig: PartViewWithOptionalUtsendingskanal?,
     )
 
     data class FullmektigChangeSvarbrevView(
@@ -238,7 +238,7 @@ data class KlagerChangeRegistreringView(
     val modified: LocalDateTime,
 ) {
     data class KlagerChangeRegistreringViewRegistreringOverstyringerView(
-        val klager: PartViewWithUtsendingskanal?,
+        val klager: PartViewWithOptionalUtsendingskanal?,
     )
 
     data class KlagerChangeRegistreringViewSvarbrevView(
@@ -253,7 +253,7 @@ data class AvsenderChangeRegistreringView(
     val modified: LocalDateTime,
 ) {
     data class AvsenderChangeRegistreringViewRegistreringOverstyringerView(
-        val avsender: PartViewWithUtsendingskanal?,
+        val avsender: PartViewWithOptionalUtsendingskanal?,
     )
 
     data class AvsenderChangeRegistreringViewSvarbrevView(
@@ -310,6 +310,7 @@ data class SvarbrevOverrideBehandlingstidChangeRegistreringView(
     data class SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView(
         val overrideBehandlingstid: Boolean,
         val behandlingstid: BehandlingstidView?,
+        val calculatedFrist: LocalDate?,
     )
 }
 

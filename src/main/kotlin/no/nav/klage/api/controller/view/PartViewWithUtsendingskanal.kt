@@ -23,6 +23,17 @@ data class PartViewWithUtsendingskanal(
     val utsendingskanal: Utsendingskanal,
 )
 
+data class PartViewWithOptionalUtsendingskanal(
+    val id: String,
+    val name: String,
+    val type: PartType,
+    val available: Boolean,
+    val language: String?,
+    val statusList: List<PartStatus>,
+    val address: Address?,
+    val utsendingskanal: Utsendingskanal?,
+)
+
 enum class PartType {
     FNR, ORGNR
 }

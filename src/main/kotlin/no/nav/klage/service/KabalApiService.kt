@@ -144,7 +144,7 @@ class KabalApiService(
                 receivers = svarbrevInput.receivers.map { receiver ->
                     SvarbrevInput.Receiver(
                         id = receiver.id,
-                        handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                        handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling!!.name),
                         overriddenAddress = receiver.overriddenAddress?.let { address ->
                             SvarbrevInput.Receiver.AddressInput(
                                 adresselinje1 = address.adresselinje1,

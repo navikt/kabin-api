@@ -518,7 +518,7 @@ class RegistreringService(
                 receivers = mapTorecipientViews(registrering)
             ),
             overstyringer = FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
-                fullmektig = registrering.fullmektig?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
+                fullmektig = registrering.fullmektig?.let { registrering.partViewWithOptionalUtsendingskanal(identifikator = it.value) }
             ),
             modified = registrering.modified,
         )
@@ -607,7 +607,7 @@ class RegistreringService(
                 receivers = mapTorecipientViews(registrering)
             ),
             overstyringer = KlagerChangeRegistreringView.KlagerChangeRegistreringViewRegistreringOverstyringerView(
-                klager = registrering.klager?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
+                klager = registrering.klager?.let { registrering.partViewWithOptionalUtsendingskanal(identifikator = it.value) }
             ),
             modified = registrering.modified,
         )
@@ -617,7 +617,7 @@ class RegistreringService(
         registrering: Registrering
     ) = RecipientView(
         id = id,
-        part = registrering.partViewWithUtsendingskanal(identifikator = part.value)!!,
+        part = registrering.partViewWithOptionalUtsendingskanal(identifikator = part.value),
         handling = handling,
         overriddenAddress = overriddenAddress?.let { address ->
             RecipientView.AddressView(
@@ -671,7 +671,7 @@ class RegistreringService(
                 receivers = mapTorecipientViews(registrering)
             ),
             overstyringer = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewRegistreringOverstyringerView(
-                avsender = registrering.avsender?.let { registrering.partViewWithUtsendingskanal(identifikator = it.value) }
+                avsender = registrering.avsender?.let { registrering.partViewWithOptionalUtsendingskanal(identifikator = it.value) }
             ),
             modified = registrering.modified,
         )
@@ -781,6 +781,13 @@ class RegistreringService(
                         units = registrering.svarbrevBehandlingstidUnits!!
                     )
                 } else null,
+                calculatedFrist = if (registrering.mottattKlageinstans != null && registrering.svarbrevBehandlingstidUnits != null) {
+                    calculateFrist(
+                        fromDate = registrering.mottattKlageinstans!!,
+                        units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
+                        unitType = registrering.svarbrevBehandlingstidUnitType!!
+                    )
+                } else null
             ),
             modified = registrering.modified,
         )
@@ -1011,9 +1018,9 @@ class RegistreringService(
                     )
                 } else null,
                 hjemmelIdList = hjemmelIdList,
-                fullmektig = partViewWithUtsendingskanal(identifikator = fullmektig?.value),
-                klager = partViewWithUtsendingskanal(identifikator = klager?.value),
-                avsender = partViewWithUtsendingskanal(identifikator = avsender?.value),
+                fullmektig = fullmektig?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value) },
+                klager = klager?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value) },
+                avsender = avsender?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value) },
                 saksbehandlerIdent = saksbehandlerIdent,
                 oppgaveId = oppgaveId,
 
@@ -1066,9 +1073,9 @@ class RegistreringService(
             } else null,
             hjemmelIdList = hjemmelIdList,
             ytelseId = ytelse?.id,
-            fullmektig = partViewWithUtsendingskanal(identifikator = fullmektig?.value),
-            klager = partViewWithUtsendingskanal(identifikator = klager?.value),
-            avsender = partViewWithUtsendingskanal(identifikator = avsender?.value),
+            fullmektig = fullmektig?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value) },
+            klager = klager?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value) },
+            avsender = avsender?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value) },
             saksbehandlerIdent = saksbehandlerIdent,
             oppgaveId = oppgaveId,
         ),
@@ -1114,16 +1121,76 @@ class RegistreringService(
         TODO()
     }
 
-    private fun Registrering.partViewWithUtsendingskanal(identifikator: String?) =
-        if (identifikator != null && ytelse != null) {
+    private fun Registrering.partViewWithOptionalUtsendingskanal(identifikator: String): PartViewWithOptionalUtsendingskanal =
+        if (ytelse != null) {
             kabalApiClient.searchPartWithUtsendingskanal(
                 searchPartInput = SearchPartWithUtsendingskanalInput(
                     identifikator = identifikator,
                     sakenGjelderId = sakenGjelder!!.value,
                     ytelseId = ytelse!!.id
                 )
-            ).partViewWithUtsendingskanal()
-        } else null
+            ).partViewWithOptionalUtsendingskanal()
+        } else {
+            kabalApiClient.searchPart(
+                searchPartInput = SearchPartInput(
+                    identifikator = identifikator,
+                )
+            ).partViewWithOptionalUtsendingskanal()
+        }
+
+    private fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal {
+        return PartViewWithOptionalUtsendingskanal(
+            id = id,
+            type = no.nav.klage.api.controller.view.PartType.valueOf(type.name),
+            name = name,
+            available = available,
+            statusList = statusList.map { partStatus ->
+                PartStatus(
+                    status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
+                    date = partStatus.date,
+                )
+            },
+            address = address?.let {
+                Address(
+                    adresselinje1 = it.adresselinje1,
+                    adresselinje2 = it.adresselinje2,
+                    adresselinje3 = it.adresselinje3,
+                    landkode = it.landkode,
+                    postnummer = it.postnummer,
+                    poststed = it.poststed,
+                )
+            },
+            language = language,
+            utsendingskanal = utsendingskanal,
+        )
+    }
+
+    private fun no.nav.klage.clients.kabalapi.PartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal {
+        return PartViewWithOptionalUtsendingskanal(
+            id = id,
+            type = no.nav.klage.api.controller.view.PartType.valueOf(type.name),
+            name = name,
+            available = available,
+            statusList = statusList.map { partStatus ->
+                PartStatus(
+                    status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
+                    date = partStatus.date,
+                )
+            },
+            address = address?.let {
+                Address(
+                    adresselinje1 = it.adresselinje1,
+                    adresselinje2 = it.adresselinje2,
+                    adresselinje3 = it.adresselinje3,
+                    landkode = it.landkode,
+                    postnummer = it.postnummer,
+                    poststed = it.poststed,
+                )
+            },
+            language = language,
+            utsendingskanal = null,
+        )
+    }
 
     private fun getRegistreringForUpdate(registreringId: UUID): Registrering {
         return registreringRepository.findById(registreringId)
@@ -1221,7 +1288,7 @@ class RegistreringService(
             receivers = svarbrevReceivers.map { receiver ->
                 SvarbrevWithReceiverInput.Receiver(
                     id = receiver.part.value,
-                    handling = SvarbrevWithReceiverInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                    handling = receiver.handling?.let { SvarbrevWithReceiverInput.Receiver.HandlingEnum.valueOf(it.name) },
                     overriddenAddress = receiver.overriddenAddress?.let { address ->
                         SvarbrevWithReceiverInput.Receiver.AddressInput(
                             adresselinje1 = address.adresselinje1,
