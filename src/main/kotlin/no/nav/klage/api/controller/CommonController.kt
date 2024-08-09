@@ -60,26 +60,10 @@ class CommonController(
             input.varsletBehandlingstidUnitType!!
         }
 
-        return when(inputType) {
-            TimeUnitType.WEEKS -> input.fromDate.plusWeeks(input.varsletBehandlingstidUnits.toLong())
-            TimeUnitType.MONTHS -> input.fromDate.plusMonths(input.varsletBehandlingstidUnits.toLong())
-        }
-    }
-
-    @PostMapping("/willcreatenewjournalpost")
-    fun willCreateNewJournalpost(
-        @RequestBody input: WillCreateNewJournalpostInput,
-    ): Boolean {
-        logMethodDetails(
-            methodName = ::calculateFrist.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-
-        return dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-            journalpostId = input.journalpostId,
-            fagsakId = input.fagsakId,
-            fagsystemId = input.fagsystemId,
+        return no.nav.klage.util.calculateFrist(
+            fromDate = input.fromDate,
+            units = input.varsletBehandlingstidUnits.toLong(),
+            unitType = inputType,
         )
     }
 

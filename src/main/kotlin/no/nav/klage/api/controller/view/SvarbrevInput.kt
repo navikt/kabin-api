@@ -14,7 +14,7 @@ data class SvarbrevWithReceiverInput(
 
     data class Receiver(
         val id: String,
-        val handling: HandlingEnum,
+        val handling: HandlingEnum?,
         val overriddenAddress: AddressInput?,
     ) {
         data class AddressInput(

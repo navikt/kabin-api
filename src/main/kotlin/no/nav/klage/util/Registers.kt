@@ -8,7 +8,7 @@ enum class MulighetSource(val fagsystem: Fagsystem){
 
     companion object {
         fun of(fagsystem: Fagsystem): MulighetSource {
-            return values().firstOrNull { it.fagsystem == fagsystem }
+            return entries.firstOrNull { it.fagsystem == fagsystem }
                 ?: throw IllegalArgumentException("No AnkemulighetSource with fagsystem $fagsystem exists")
         }
     }

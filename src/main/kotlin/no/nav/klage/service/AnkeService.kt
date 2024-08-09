@@ -106,13 +106,14 @@ class AnkeService(
                     fullmektig = null,
                     fagsakId = it.fagsakId,
                     fagsystemId = Fagsystem.IT01.id,
+                    originalFagsystemId = Fagsystem.IT01.id,
                     previousSaksbehandler = null,
                     sourceId = MulighetSource.INFOTRYGD.fagsystem.id,
+                    currentFagsystemId = MulighetSource.INFOTRYGD.fagsystem.id,
                     typeId = Type.ANKE.id,
                     sourceOfExistingAnkebehandling = emptyList(),
                 )
             }
-
     }
 
     fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatusView {

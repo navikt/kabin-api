@@ -1,7 +1,7 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.CreateAnkeInputView
-import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalInnstillingerClient
@@ -71,7 +71,7 @@ class DokArkivService(
 
     private fun updateAvsenderInJournalpost(
         journalpostId: String,
-        avsender: PartId,
+        avsender: PartIdInput,
     ) {
         val requestInput = getUpdateAvsenderMottakerInJournalpostRequest(avsender)
 
@@ -81,7 +81,7 @@ class DokArkivService(
         )
     }
 
-    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartId): UpdateAvsenderMottakerInJournalpostRequest {
+    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartIdInput): UpdateAvsenderMottakerInJournalpostRequest {
         val avsenderPart = kabalApiService.searchPart(
             searchPartInput = SearchPartInput(identifikator = avsender.id)
         )
@@ -146,7 +146,7 @@ class DokArkivService(
     fun handleJournalpostBasedOnInfotrygdSak(
         journalpostId: String,
         eksternBehandlingId: String,
-        avsender: PartId?,
+        avsender: PartIdInput?,
         type: Type,
     ): String {
         val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
@@ -191,7 +191,7 @@ class DokArkivService(
     fun handleJournalpostBasedOnKabalKlagebehandling(
         journalpostId: String,
         klagebehandlingId: UUID,
-        avsender: PartId?,
+        avsender: PartIdInput?,
     ): String {
         val completedBehandling =
             kabalApiService.getCompletedBehandling(behandlingId = klagebehandlingId)
@@ -208,7 +208,7 @@ class DokArkivService(
 
     private fun handleJournalpost(
         journalpostId: String,
-        avsender: PartId?,
+        avsender: PartIdInput?,
         tema: Tema,
         bruker: Bruker,
         sakInFagsystem: Sak,

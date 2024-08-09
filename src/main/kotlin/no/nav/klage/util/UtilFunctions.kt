@@ -4,6 +4,8 @@ import no.nav.klage.clients.saf.graphql.Datotype
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
+import no.nav.klage.kodeverk.TimeUnitType
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 fun canChangeAvsenderInJournalpost(
@@ -20,4 +22,15 @@ fun canChangeAvsenderInJournalpost(
             && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true
 
     return !cannotChangeForInngaaende
+}
+
+fun calculateFrist(
+    fromDate: LocalDate,
+    units: Long,
+    unitType: TimeUnitType
+): LocalDate {
+    return when(unitType) {
+        TimeUnitType.WEEKS -> fromDate.plusWeeks(units)
+        TimeUnitType.MONTHS -> fromDate.plusMonths(units)
+    }
 }

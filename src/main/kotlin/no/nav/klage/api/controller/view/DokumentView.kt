@@ -5,9 +5,6 @@ import java.time.LocalDateTime
 
 data class DokumenterResponse(
     val dokumenter: List<DokumentReferanse>,
-    val pageReference: String? = null,
-    val antall: Int,
-    val totaltAntall: Int
 )
 
 data class DokumentReferanse(

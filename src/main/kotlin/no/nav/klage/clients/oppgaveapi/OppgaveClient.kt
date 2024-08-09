@@ -1,6 +1,6 @@
 package no.nav.klage.clients.oppgaveapi
 
-import brave.Tracer
+import io.opentelemetry.api.trace.Span
 import no.nav.klage.config.CacheWithJCacheConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.TokenUtil
@@ -18,7 +18,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 @Component
 class OppgaveClient(
     private val oppgaveWebClient: WebClient,
-    private val tracer: Tracer,
     private val tokenUtil: TokenUtil,
     @Value("\${spring.application.name}") private val applicationName: String,
 ) {
@@ -48,7 +47,7 @@ class OppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
                     )
-                    .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<OppgaveResponse>()
@@ -81,7 +80,7 @@ class OppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
                     )
-                    .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<OppgaveResponse>()
@@ -102,7 +101,7 @@ class OppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
                 )
-                .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .bodyValue(ferdigstillOppgaveRequest)
                 .retrieve()
@@ -121,7 +120,7 @@ class OppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
                 )
-                .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveApiRecord>()
@@ -140,7 +139,7 @@ class OppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
                 )
-                .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveApiRecord>()
@@ -161,7 +160,7 @@ class OppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
                     )
-                    .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<Gjelder>>()
@@ -184,7 +183,7 @@ class OppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()}"
                     )
-                    .header("X-Correlation-ID", tracer.currentSpan().context().traceIdString())
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<OppgavetypeResponse>>()

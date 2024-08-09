@@ -6,13 +6,15 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
-import no.nav.klage.util.*
+import no.nav.klage.util.AuditLogger
+import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.getLogger
+import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
@@ -32,8 +34,6 @@ class DokumentController(
     @PostMapping("/arkivertedokumenter", produces = ["application/json"])
     fun fetchDokumenter(
         @RequestBody input: IdnummerInput,
-        @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
-        @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
         @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
     ): DokumenterResponse {
         logMethodDetails(
@@ -45,17 +45,26 @@ class DokumentController(
         return documentService.fetchDokumentlisteForBruker(
             idnummer = input.idnummer,
             temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
-            pageSize = pageSize,
-            previousPageRef = previousPageRef
-        ).also {
-            auditLogger.log(
-                AuditLogEvent(
-                    navIdent = tokenUtil.getCurrentIdent(),
-                    personFnr = input.idnummer,
-                    message = "Søkt opp person for å opprette klage/anke."
-                )
-            )
-        }
+        )
+    }
+
+    @Operation(
+        summary = "Hent gitt dokument/journalpost"
+    )
+    @GetMapping("/arkivertedokumenter/{journalpostId}", produces = ["application/json"])
+    fun fetchDokument(
+        @PathVariable journalpostId: String,
+        @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
+    ): DokumentReferanse {
+        logMethodDetails(
+            methodName = ::fetchDokument.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        return documentService.fetchDokument(
+            journalpostId = journalpostId,
+        )
     }
 
     @Operation(

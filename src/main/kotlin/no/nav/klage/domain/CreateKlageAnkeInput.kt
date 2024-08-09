@@ -1,6 +1,6 @@
 package no.nav.klage.domain
 
-import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.SvarbrevWithReceiverInput
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.util.MulighetSource
@@ -12,12 +12,12 @@ data class CreateAnkeInput(
     val mottattKlageinstans: LocalDate,
     val behandlingstidUnits: Int,
     val behandlingstidUnitType: TimeUnitType,
-    val klager: PartId,
-    val fullmektig: PartId?,
+    val klager: PartIdInput,
+    val fullmektig: PartIdInput?,
     val ankeDocumentJournalpostId: String,
     val ytelseId: String?,
     val hjemmelIdList: List<String>,
-    val avsender: PartId?,
+    val avsender: PartIdInput?,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevWithReceiverInput?,
     val oppgaveId: Long?
@@ -29,12 +29,12 @@ data class CreateKlageInput(
     val mottattKlageinstans: LocalDate,
     val behandlingstidUnits: Int,
     val behandlingstidUnitType: TimeUnitType,
-    val klager: PartId,
-    val fullmektig: PartId?,
+    val klager: PartIdInput,
+    val fullmektig: PartIdInput?,
     val klageJournalpostId: String,
     val ytelseId: String,
     val hjemmelIdList: List<String>,
-    val avsender: PartId?,
+    val avsender: PartIdInput?,
     val saksbehandlerIdent: String?,
     val oppgaveId: Long?,
     val svarbrevInput: SvarbrevWithReceiverInput?,

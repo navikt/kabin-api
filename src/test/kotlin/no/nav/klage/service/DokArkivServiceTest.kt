@@ -3,7 +3,7 @@ package no.nav.klage.service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
@@ -163,7 +163,7 @@ class DokArkivServiceTest {
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
-                avsender = PartId(
+                avsender = PartIdInput(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 ),
@@ -288,7 +288,7 @@ class DokArkivServiceTest {
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
-                avsender = PartId(
+                avsender = PartIdInput(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 ),
@@ -391,7 +391,7 @@ class DokArkivServiceTest {
             val resultingJournalpost = dokArkivService.handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = JOURNALPOST_ID,
                 klagebehandlingId = UUID.randomUUID(),
-                avsender = PartId(
+                avsender = PartIdInput(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
                     id = FNR
                 ),

@@ -64,6 +64,7 @@ class KabalApiService(
                 fullmektig = it.fullmektig?.partViewWithUtsendingskanal(),
                 fagsakId = it.fagsakId,
                 fagsystemId = it.fagsystemId,
+                originalFagsystemId = it.fagsystemId,
                 previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
                     it.tildeltSaksbehandlerNavn?.let { it2 ->
                         PreviousSaksbehandler(
@@ -73,6 +74,7 @@ class KabalApiService(
                     }
                 },
                 sourceId = MulighetSource.KABAL.fagsystem.id,
+                currentFagsystemId = MulighetSource.KABAL.fagsystem.id,
                 typeId = it.typeId,
                 sourceOfExistingAnkebehandling = it.sourceOfExistingAnkebehandling.map { existingAnkebehandling ->
                     ExistingAnkebehandling(
@@ -142,7 +144,7 @@ class KabalApiService(
                 receivers = svarbrevInput.receivers.map { receiver ->
                     SvarbrevInput.Receiver(
                         id = receiver.id,
-                        handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                        handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling!!.name),
                         overriddenAddress = receiver.overriddenAddress?.let { address ->
                             SvarbrevInput.Receiver.AddressInput(
                                 adresselinje1 = address.adresselinje1,
@@ -208,4 +210,9 @@ class KabalApiService(
     fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {
         return kabalApiClient.getCompletedBehandling(behandlingId)
     }
+
+    fun getSvarbrevSettings(ytelseId: String, typeId: String): SvarbrevSettingsView {
+        return kabalApiClient.getSvarbrevSettings(ytelseId = ytelseId, typeId = typeId)
+    }
+
 }
