@@ -7,7 +7,10 @@ import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.SvarbrevReceiver
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -214,9 +217,7 @@ class ModifySvarbrevReiceversTest {
             avsender = null,
             journalpostId = "123456789",
             type = Type.KLAGE,
-            mulighetId = "123",
-            mulighetOriginalFagsystem = Fagsystem.FS36,
-            mulighetCurrentFagsystem = Fagsystem.KABAL,
+            mulighetId = null,
             mottattVedtaksinstans = LocalDate.now(),
             mottattKlageinstans = LocalDate.now(),
             behandlingstidUnits = 12,
@@ -238,6 +239,7 @@ class ModifySvarbrevReiceversTest {
             finished = LocalDateTime.now(),
             behandlingId = UUID.randomUUID(),
             willCreateNewJournalpost = false,
+            muligheterFetched = null,
         )
     }
 }

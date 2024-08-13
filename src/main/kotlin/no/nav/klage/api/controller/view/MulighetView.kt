@@ -4,25 +4,22 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-data class Ankemulighet(
-    override val id: String,
+data class AnkemulighetView(
+    override val id: UUID,
     override var currentFagsystemId: String,
     override val temaId: String,
     override val vedtakDate: LocalDate?,
     override val sakenGjelder: PartViewWithUtsendingskanal,
     override val fagsakId: String,
     override var originalFagsystemId: String,
-    //where the "mulighet" comes from. Kabal or Infotrygd (or other).
-    val sourceId: String,
+    override val typeId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
     val klager: PartViewWithUtsendingskanal?,
     val fullmektig: PartViewWithUtsendingskanal?,
-    val fagsystemId: String,
     val previousSaksbehandler: PreviousSaksbehandler?,
-    val typeId: String?,
-): Mulighet
+): MulighetView
 
 data class ExistingAnkebehandling(
     val id: UUID,
@@ -35,23 +32,30 @@ data class PreviousSaksbehandler(
     val navn: String,
 )
 
-data class Klagemulighet(
-    override val id: String,
+data class KlagemulighetView(
+    override val id: UUID,
     override val temaId: String,
     override val vedtakDate: LocalDate,
     override val sakenGjelder: PartViewWithUtsendingskanal,
     override val fagsakId: String,
     override val originalFagsystemId: String,
     override val currentFagsystemId: String,
+    override val typeId: String,
     val klageBehandlendeEnhet: String,
-): Mulighet
+): MulighetView
 
-interface Mulighet {
-    val id: String
+interface MulighetView {
+    val id: UUID
     val temaId: String
     val vedtakDate: LocalDate?
     val sakenGjelder: PartViewWithUtsendingskanal
     val fagsakId: String
     val originalFagsystemId: String
     val currentFagsystemId: String
+    val typeId: String
 }
+
+data class Muligheter(
+    val klagemuligheter: List<KlagemulighetView>,
+    val ankemuligheter: List<AnkemulighetView>,
+)

@@ -2,8 +2,6 @@ package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
-import no.nav.klage.exceptions.IllegalInputException
-import no.nav.klage.exceptions.MulighetNotFoundException
 import no.nav.klage.service.AnkeService
 import no.nav.klage.service.KlageService
 import no.nav.klage.service.RegistreringService
@@ -116,7 +114,7 @@ class RegistreringController(
     }
 
     @PutMapping("/{id}/saken-gjelder-value")
-    fun updateSakenGjelderValue(
+    suspend fun updateSakenGjelderValue(
         @PathVariable id: UUID,
         @RequestBody input: SakenGjelderValueInput
     ): FullRegistreringView {
@@ -154,9 +152,8 @@ class RegistreringController(
         return registreringService.setTypeId(registreringId = id, input = input)
     }
 
-    //TODO: Takes a lot of time b/c current implementation
     @PutMapping("/{id}/mulighet")
-    fun updateMulighet(
+    suspend fun updateMulighet(
         @PathVariable id: UUID,
         @RequestBody input: MulighetInput
     ): MulighetChangeRegistreringView {
@@ -445,50 +442,17 @@ class RegistreringController(
         return registreringService.finishRegistrering(registreringId = id)
     }
 
-    @GetMapping("/{id}/klagemulighet")
-    fun getKlagemulighet(
+    @GetMapping("/{id}/muligheter", produces = ["application/json"])
+    suspend fun getMuligheter(
         @PathVariable id: UUID,
-    ): Klagemulighet {
+    ): Muligheter {
         logMethodDetails(
-            methodName = ::getKlagemulighet.name,
+            methodName = ::getMuligheter.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
-        val registrering = registreringService.getRegistrering(id)
-
-        if (registrering.mulighet == null) {
-            throw IllegalInputException("Mulighet er ikke satt på registreringen, så derfor finnes ikke klagemulighet.")
-        }
-
-        val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
-
-        return klageService.getKlagemuligheter(input = input).find {
-            it.id == registrering.mulighet.id && it.originalFagsystemId == registrering.mulighet.originalFagsystemId
-        } ?: throw MulighetNotFoundException("Klagemulighet ikke funnet.")
-    }
-
-    @GetMapping("/{id}/ankemulighet")
-    fun getAnkemulighet(
-        @PathVariable id: UUID,
-    ): Ankemulighet {
-        logMethodDetails(
-            methodName = ::getAnkemulighet.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-
-        val registrering = registreringService.getRegistrering(id)
-
-        val input = IdnummerInput(idnummer = registrering.sakenGjelderValue!!)
-
-        if (registrering.mulighet == null) {
-            throw IllegalInputException("Mulighet er ikke satt på registreringen, så derfor finnes ikke ankemulighet.")
-        }
-
-        return ankeService.getAnkemuligheter(input = input).find {
-            it.id == registrering.mulighet.id && it.fagsystemId == registrering.mulighet.originalFagsystemId
-        } ?: throw MulighetNotFoundException("Ankemulighet ikke funnet.")
+        return registreringService.getMuligheter(registreringId = id)
     }
 
 }

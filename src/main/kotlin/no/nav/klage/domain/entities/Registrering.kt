@@ -51,13 +51,7 @@ class Registrering(
     @Column(name = "type_id")
     var type: Type?,
     @Column(name = "mulighet_id")
-    var mulighetId: String?,
-    @Convert(converter = FagsystemConverter::class)
-    @Column(name = "mulighet_original_fagsystem_id")
-    var mulighetOriginalFagsystem: Fagsystem?,
-    @Convert(converter = FagsystemConverter::class)
-    @Column(name = "mulighet_current_fagsystem_id")
-    var mulighetCurrentFagsystem: Fagsystem?,
+    var mulighetId: UUID?,
     @Column(name = "mottatt_vedtaksinstans")
     var mottattVedtaksinstans: LocalDate?,
     @Column(name = "mottatt_klageinstans")
@@ -109,6 +103,11 @@ class Registrering(
     var behandlingId: UUID?,
     @Column(name = "will_create_new_journalpost")
     var willCreateNewJournalpost: Boolean,
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JoinColumn(name = "registrering_id", referencedColumnName = "id", nullable = false)
+    val muligheter: MutableSet<Mulighet> = mutableSetOf(),
+    @Column(name = "muligheter_fetched")
+    var muligheterFetched: LocalDateTime?,
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -125,7 +124,7 @@ class Registrering(
     }
 
     override fun toString(): String {
-        return "Registrering(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, type=$type, mulighetId=$mulighetId, mulighetOriginalFagsystem=$mulighetOriginalFagsystem, mulighetCurrentFagsystem=$mulighetCurrentFagsystem, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$oppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost)"
+        return "Registrering(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, type=$type, mulighetId=$mulighetId, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$oppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost, muligheter=$muligheter, muligheterFetched=$muligheterFetched)"
     }
 
 }

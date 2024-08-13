@@ -1,9 +1,14 @@
 package no.nav.klage.api.controller
 
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateAnkeInputView
+import no.nav.klage.api.controller.view.CreatedAnkebehandlingStatusView
+import no.nav.klage.api.controller.view.CreatedBehandlingResponse
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.AnkeService
-import no.nav.klage.util.*
+import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.getLogger
+import no.nav.klage.util.getSecureLogger
+import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -31,17 +36,6 @@ class AnkeController(
 
         secureLogger.debug("createAnke called with: {}", input)
         return ankeService.createAnke(input)
-    }
-
-    @PostMapping("/ankemuligheter", produces = ["application/json"])
-    fun getAnkemuligheterByIdnummer(@RequestBody input: IdnummerInput): List<Ankemulighet> {
-        logMethodDetails(
-            methodName = ::getAnkemuligheterByIdnummer.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-
-        return ankeService.getAnkemuligheter(input = input)
     }
 
     @GetMapping("/anker/{behandlingId}/status")

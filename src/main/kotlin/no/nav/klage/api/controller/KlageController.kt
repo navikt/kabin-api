@@ -1,9 +1,14 @@
 package no.nav.klage.api.controller
 
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateKlageInputView
+import no.nav.klage.api.controller.view.CreatedBehandlingResponse
+import no.nav.klage.api.controller.view.CreatedKlagebehandlingStatusView
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.KlageService
-import no.nav.klage.util.*
+import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.getLogger
+import no.nav.klage.util.getSecureLogger
+import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -32,17 +37,6 @@ class KlageController(
         secureLogger.debug("createklage called with: {}", input)
 
         return klageService.createKlage(input = input)
-    }
-
-    @PostMapping("/klagemuligheter", produces = ["application/json"])
-    fun getCompletedKlagebehandlingerInVedtaksinstansByIdnummer(@RequestBody input: IdnummerInput): List<Klagemulighet> {
-        logMethodDetails(
-            methodName = ::getCompletedKlagebehandlingerInVedtaksinstansByIdnummer.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-
-        return klageService.getKlagemuligheter(input)
     }
 
     @GetMapping("/klager/{behandlingId}/status")

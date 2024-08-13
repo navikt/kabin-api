@@ -1,11 +1,16 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateKlageInputView
+import no.nav.klage.api.controller.view.CreatedBehandlingResponse
+import no.nav.klage.api.controller.view.CreatedKlagebehandlingStatusView
+import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateKlageInput
-import no.nav.klage.kodeverk.*
-import no.nav.klage.util.MulighetSource
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -72,7 +77,7 @@ class KlageService(
         return behandlingId
     }
 
-    fun getKlagemuligheter(input: IdnummerInput): List<Klagemulighet> {
+    suspend fun getKlagemuligheterFromInfotrygd(input: IdnummerInput): List<SakFromKlanke> {
         val resultsFromInfotrygd = klageFssProxyService.getKlagemuligheter(input = input)
         return resultsFromInfotrygd
             .filter {
@@ -80,26 +85,6 @@ class KlageService(
                     fagsystem = Fagsystem.IT01,
                     kildereferanse = it.sakId,
                     type = Type.KLAGE,
-                )
-            }
-            .map {
-                Klagemulighet(
-                    id = it.sakId,
-                    temaId = Tema.fromNavn(it.tema).id,
-                    vedtakDate = it.vedtaksdato,
-                    fagsakId = it.fagsakId,
-                    //TODO: Tilpass når vi får flere fagsystemer.
-                    originalFagsystemId = Fagsystem.IT01.id,
-                    klageBehandlendeEnhet = it.enhetsnummer,
-                    sakenGjelder = kabalApiService.searchPartWithUtsendingskanal(
-                        SearchPartWithUtsendingskanalInput(
-                            identifikator = it.fnr,
-                            sakenGjelderId = it.fnr,
-                            //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
-                            ytelseId = Ytelse.entries.find { y -> y.toTema().navn == it.tema }!!.id,
-                        )
-                    ).partViewWithUtsendingskanal(),
-                    currentFagsystemId = MulighetSource.INFOTRYGD.fagsystem.id,
                 )
             }
     }

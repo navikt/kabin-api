@@ -5,6 +5,7 @@ import no.nav.klage.clients.kabalapi.OversendtPartIdType
 import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
+import java.util.*
 
 data class IdnummerInput(val idnummer: String)
 
@@ -66,9 +67,7 @@ data class JournalpostIdInput(val journalpostId: String)
 data class TypeIdInput(val typeId: String?)
 
 data class MulighetInput(
-    val mulighetId: String,
-    val originalFagsystemId: String,
-    val currentFagsystemId: String,
+    val mulighetId: UUID,
 )
 
 data class MottattVedtaksinstansInput(val mottattVedtaksinstans: LocalDate)
@@ -109,6 +108,7 @@ data class AddressInput(
     val adresselinje3: String?,
     val landkode: String?,
     val postnummer: String?,
+    val poststed: String?,
 )
 
 data class SvarbrevOverrideBehandlingstidInput(

@@ -1,7 +1,6 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
@@ -11,8 +10,6 @@ import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -51,40 +48,8 @@ class KabalApiService(
         return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
     }
 
-    fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
-        return kabalApiClient.getAnkemuligheterByIdnummer(input).map {
-            Ankemulighet(
-                id = it.behandlingId.toString(),
-                ytelseId = it.ytelseId,
-                hjemmelIdList = it.hjemmelIdList,
-                temaId = Ytelse.of(it.ytelseId).toTema().id,
-                vedtakDate = it.vedtakDate.toLocalDate(),
-                sakenGjelder = it.sakenGjelder.partViewWithUtsendingskanal(),
-                klager = it.klager.partViewWithUtsendingskanal(),
-                fullmektig = it.fullmektig?.partViewWithUtsendingskanal(),
-                fagsakId = it.fagsakId,
-                fagsystemId = it.fagsystemId,
-                originalFagsystemId = it.fagsystemId,
-                previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
-                    it.tildeltSaksbehandlerNavn?.let { it2 ->
-                        PreviousSaksbehandler(
-                            navIdent = it1,
-                            navn = it2,
-                        )
-                    }
-                },
-                sourceId = MulighetSource.KABAL.fagsystem.id,
-                currentFagsystemId = MulighetSource.KABAL.fagsystem.id,
-                typeId = it.typeId,
-                sourceOfExistingAnkebehandling = it.sourceOfExistingAnkebehandling.map { existingAnkebehandling ->
-                    ExistingAnkebehandling(
-                        id = existingAnkebehandling.id,
-                        created = existingAnkebehandling.created,
-                        completed = existingAnkebehandling.completed,
-                    )
-                },
-            )
-        }
+    fun getAnkemuligheter(input: IdnummerInput): List<AnkemulighetFromKabal> {
+        return kabalApiClient.getAnkemuligheterByIdnummer(input)
     }
 
     fun createAnkeInKabalFromCompleteInput(

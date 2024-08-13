@@ -37,6 +37,101 @@ class RegistreringRepositoryTest {
 
     @Test
     fun `store all values in registrering works`() {
+        val klagemulighet = Mulighet(
+            sakenGjelder = PartWithUtsendingskanal(
+                part = PartId(
+                    type = PartIdType.PERSON,
+                    value = "12345678910"
+                ),
+                address = Address(
+                    adresselinje1 = "addressLine1",
+                    adresselinje2 = "addressLine2",
+                    adresselinje3 = "addressLine3",
+                    postnummer = "1234",
+                    poststed = "Oslo",
+                    landkode = "NO",
+                ),
+                name = "Ollie Walters",
+                available = true,
+                language = "NO",
+                utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO
+            ),
+            klager = PartWithUtsendingskanal(
+                part = PartId(
+                    type = PartIdType.PERSON,
+                    value = "22345678911"
+                ),
+                address = Address(
+                    adresselinje1 = "addressLine1",
+                    adresselinje2 = "addressLine2",
+                    adresselinje3 = "addressLine3",
+                    postnummer = "1234",
+                    poststed = "Oslo",
+                    landkode = "NO",
+                ),
+                name = "Ollie Walters Klager",
+                available = true,
+                language = "NO",
+                utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO
+            ),
+            fullmektig = PartWithUtsendingskanal(
+                part = PartId(
+                    type = PartIdType.PERSON,
+                    value = "32345678912"
+                ),
+                address = Address(
+                    adresselinje1 = "addressLine1",
+                    adresselinje2 = "addressLine2",
+                    adresselinje3 = "addressLine3",
+                    postnummer = "1234",
+                    poststed = "Oslo",
+                    landkode = "NO",
+                ),
+                name = "Ollie Walters Fullmektig",
+                available = true,
+                language = "NO",
+                utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO
+            ),
+            currentFagsystem = Fagsystem.KABAL,
+            originalFagsystem = Fagsystem.FS36,
+            fagsakId = "ceteros",
+            tema = Tema.FOR,
+            vedtakDate = null,
+            ytelse = Ytelse.FOR_FOR,
+            hjemmelIdList = listOf("123", "456"),
+            previousSaksbehandlerIdent = "S123456",
+            previousSaksbehandlerName = "Sakbehandler Navn",
+            type = Type.ANKE,
+            klageBehandlendeEnhet = "4200",
+            currentFagystemTechnicalId = UUID.randomUUID().toString(),
+            sourceOfExistingAnkebehandling = mutableSetOf(
+                ExistingAnkebehandling(
+                    ankebehandlingId = UUID.randomUUID(),
+                    created = LocalDateTime.now(),
+                    completed = LocalDateTime.now().plusDays(1)
+                )
+            ),
+            sakenGjelderStatusList = mutableSetOf(
+                PartStatus(
+                    status = PartStatus.Status.FORTROLIG,
+                    date = LocalDate.now()
+                )
+            ),
+            klagerStatusList = mutableSetOf(
+                PartStatus(
+                    status = PartStatus.Status.DELETED,
+                    date = LocalDate.now()
+                )
+            ),
+            fullmektigStatusList = mutableSetOf(
+                PartStatus(
+                    status = PartStatus.Status.DEAD,
+                    date = LocalDate.now()
+                )
+            )
+
+        )
+
         val registrering = testEntityManager.persistAndFlush(
             Registrering(
                 sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678910"),
@@ -45,9 +140,7 @@ class RegistreringRepositoryTest {
                 avsender = PartId(type = PartIdType.PERSON, value = "42345678910"),
                 journalpostId = "123456789",
                 type = Type.KLAGE,
-                mulighetId = "123",
-                mulighetOriginalFagsystem = Fagsystem.FS36,
-                mulighetCurrentFagsystem = Fagsystem.KABAL,
+                mulighetId = klagemulighet.id,
                 mottattVedtaksinstans = LocalDate.now(),
                 mottattKlageinstans = LocalDate.now(),
                 behandlingstidUnits = 12,
@@ -76,6 +169,7 @@ class RegistreringRepositoryTest {
                             adresselinje2 = "addressLine2",
                             adresselinje3 = "addressLine3",
                             postnummer = "1234",
+                            poststed = "Oslo",
                             landkode = "NO"
                         )
                     ),
@@ -90,6 +184,7 @@ class RegistreringRepositoryTest {
                             adresselinje2 = "rsdtdstst",
                             adresselinje3 = "addressdthdthdthsLine3",
                             postnummer = "0123",
+                            poststed = "Oslo",
                             landkode = "NO"
                         )
                     )
@@ -98,6 +193,8 @@ class RegistreringRepositoryTest {
                 finished = LocalDateTime.now(),
                 behandlingId = UUID.randomUUID(),
                 willCreateNewJournalpost = false,
+                muligheterFetched = LocalDateTime.now(),
+                muligheter = mutableSetOf(klagemulighet)
             )
         )
 
@@ -114,7 +211,6 @@ class RegistreringRepositoryTest {
         assertThat(registreringFromDb.journalpostId).isEqualTo(registrering.journalpostId)
         assertThat(registreringFromDb.type).isEqualTo(registrering.type)
         assertThat(registreringFromDb.mulighetId).isEqualTo(registrering.mulighetId)
-        assertThat(registreringFromDb.mulighetOriginalFagsystem).isEqualTo(registrering.mulighetOriginalFagsystem)
         assertThat(registreringFromDb.mottattVedtaksinstans).isEqualTo(registrering.mottattVedtaksinstans)
         assertThat(registreringFromDb.mottattKlageinstans).isEqualTo(registrering.mottattKlageinstans)
         assertThat(registreringFromDb.behandlingstidUnits).isEqualTo(registrering.behandlingstidUnits)
@@ -159,6 +255,15 @@ class RegistreringRepositoryTest {
         assertThat(secondSvarbrevReceiver.overriddenAddress!!.adresselinje1).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.adresselinje1)
         assertThat(secondSvarbrevReceiver.overriddenAddress!!.postnummer).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.postnummer)
         assertThat(secondSvarbrevReceiver.overriddenAddress!!.landkode).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.landkode)
+
+        //assert muligheter
+        assertThat(registreringFromDb.muligheterFetched?.truncatedTo(ChronoUnit.MILLIS)!!).isEqualTo(
+            registrering.muligheterFetched?.truncatedTo(
+                ChronoUnit.MILLIS
+            )
+        )
+        assertThat(registreringFromDb.muligheter).hasSize(1)
+        assertThat(registreringFromDb.muligheter.first().id).isEqualTo(klagemulighet.id)
     }
 
     @Test
@@ -171,9 +276,7 @@ class RegistreringRepositoryTest {
                 avsender = PartId(type = PartIdType.PERSON, value = "42345678910"),
                 journalpostId = "123456789",
                 type = Type.KLAGE,
-                mulighetId = "123",
-                mulighetOriginalFagsystem = Fagsystem.FS36,
-                mulighetCurrentFagsystem = Fagsystem.KABAL,
+                mulighetId = UUID.randomUUID(),
                 mottattVedtaksinstans = LocalDate.now(),
                 mottattKlageinstans = LocalDate.now(),
                 behandlingstidUnits = 12,
@@ -202,6 +305,7 @@ class RegistreringRepositoryTest {
                             adresselinje2 = "addressLine2",
                             adresselinje3 = "addressLine3",
                             postnummer = "1234",
+                            poststed = "Oslo",
                             landkode = "NO"
                         )
                     ),
@@ -216,6 +320,7 @@ class RegistreringRepositoryTest {
                             adresselinje2 = "rsdtdstst",
                             adresselinje3 = "addressdthdthdthsLine3",
                             postnummer = "0123",
+                            poststed = "Oslo",
                             landkode = "NO"
                         )
                     )
@@ -224,12 +329,16 @@ class RegistreringRepositoryTest {
                 finished = LocalDateTime.now(),
                 behandlingId = UUID.randomUUID(),
                 willCreateNewJournalpost = false,
+                muligheterFetched = LocalDateTime.now(),
             )
         )
 
         testEntityManager.clear()
 
-        val registreringerFromDb = registreringRepository.findFerdigeRegistreringer(navIdent = "S223456", finishedFrom = LocalDateTime.now().minusDays(1))
+        val registreringerFromDb = registreringRepository.findFerdigeRegistreringer(
+            navIdent = "S223456",
+            finishedFrom = LocalDateTime.now().minusDays(1)
+        )
 
         assertThat(registreringerFromDb).hasSize(1)
     }
@@ -244,9 +353,7 @@ class RegistreringRepositoryTest {
                 avsender = PartId(type = PartIdType.PERSON, value = "42345678910"),
                 journalpostId = "123456789",
                 type = Type.KLAGE,
-                mulighetId = "123",
-                mulighetOriginalFagsystem = Fagsystem.FS36,
-                mulighetCurrentFagsystem = Fagsystem.KABAL,
+                mulighetId = UUID.randomUUID(),
                 mottattVedtaksinstans = LocalDate.now(),
                 mottattKlageinstans = LocalDate.now(),
                 behandlingstidUnits = 12,
@@ -275,6 +382,7 @@ class RegistreringRepositoryTest {
                             adresselinje2 = "addressLine2",
                             adresselinje3 = "addressLine3",
                             postnummer = "1234",
+                            poststed = "Oslo",
                             landkode = "NO"
                         )
                     ),
@@ -289,6 +397,7 @@ class RegistreringRepositoryTest {
                             adresselinje2 = "rsdtdstst",
                             adresselinje3 = "addressdthdthdthsLine3",
                             postnummer = "0123",
+                            poststed = "Oslo",
                             landkode = "NO"
                         )
                     )
@@ -297,6 +406,7 @@ class RegistreringRepositoryTest {
                 finished = null,
                 behandlingId = null,
                 willCreateNewJournalpost = false,
+                muligheterFetched = LocalDateTime.now(),
             )
         )
 
@@ -306,5 +416,6 @@ class RegistreringRepositoryTest {
 
         assertThat(registreringerFromDb).hasSize(1)
     }
+
 
 }

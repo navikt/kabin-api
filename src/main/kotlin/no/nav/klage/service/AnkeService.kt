@@ -1,10 +1,16 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateAnkeInputView
+import no.nav.klage.api.controller.view.CreatedAnkebehandlingStatusView
+import no.nav.klage.api.controller.view.CreatedBehandlingResponse
+import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.clients.SakFromKlanke
+import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateAnkeInput
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
@@ -68,52 +74,14 @@ class AnkeService(
         return behandlingId
     }
 
-    fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
-        val ankemuligheterFromInfotrygd = getAnkemuligheterFromInfotrygd(input)
-        val ankemuligheterFromKabal =
-            kabalApiService.getAnkemuligheter(input)
+    suspend fun getAnkemuligheterFromKabal(input: IdnummerInput): List<AnkemulighetFromKabal> {
+        val ankemuligheterFromKabal = kabalApiService.getAnkemuligheter(input)
 
-        return ankemuligheterFromInfotrygd + ankemuligheterFromKabal
+        return ankemuligheterFromKabal
     }
 
-    private fun getAnkemuligheterFromInfotrygd(input: IdnummerInput): List<Ankemulighet> {
-        val resultsFromInfotrygd = klageFssProxyService.getAnkemuligheter(input = input)
-
-        return resultsFromInfotrygd
-            .filter {
-                !kabalApiService.mulighetIsDuplicate(
-                    fagsystem = Fagsystem.IT01,
-                    kildereferanse = it.sakId,
-                    type = Type.ANKE,
-                )
-            }
-            .map {
-                Ankemulighet(
-                    id = it.sakId,
-                    ytelseId = null,
-                    hjemmelIdList = null,
-                    temaId = Tema.fromNavn(it.tema).id,
-                    vedtakDate = null,
-                    sakenGjelder = kabalApiService.searchPartWithUtsendingskanal(
-                        SearchPartWithUtsendingskanalInput(
-                            identifikator = it.fnr,
-                            sakenGjelderId = it.fnr,
-                            //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
-                            ytelseId = Ytelse.entries.find { y -> y.toTema().navn == it.tema }!!.id,
-                        )
-                    ).partViewWithUtsendingskanal(),
-                    klager = null,
-                    fullmektig = null,
-                    fagsakId = it.fagsakId,
-                    fagsystemId = Fagsystem.IT01.id,
-                    originalFagsystemId = Fagsystem.IT01.id,
-                    previousSaksbehandler = null,
-                    sourceId = MulighetSource.INFOTRYGD.fagsystem.id,
-                    currentFagsystemId = MulighetSource.INFOTRYGD.fagsystem.id,
-                    typeId = Type.ANKE.id,
-                    sourceOfExistingAnkebehandling = emptyList(),
-                )
-            }
+    suspend fun getAnkemuligheterFromInfotrygd(input: IdnummerInput): List<SakFromKlanke> {
+        return klageFssProxyService.getAnkemuligheter(input = input)
     }
 
     fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatusView {

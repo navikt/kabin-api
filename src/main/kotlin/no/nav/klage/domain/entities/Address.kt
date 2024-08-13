@@ -13,6 +13,8 @@ data class Address(
     var adresselinje3: String?,
     @Column(name = "postnummer")
     var postnummer: String?,
+    @Column(name = "poststed")
+    var poststed: String?,
     @Column(name = "landkode")
     var landkode: String?
 )

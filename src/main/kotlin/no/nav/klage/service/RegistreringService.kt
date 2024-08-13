@@ -1,13 +1,20 @@
 package no.nav.klage.service
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.Address
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
 import no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType
+import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
+import no.nav.klage.clients.SakFromKlanke
+import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
 import no.nav.klage.clients.kabalapi.KabalApiClient
-import no.nav.klage.domain.entities.PartId
-import no.nav.klage.domain.entities.Registrering
-import no.nav.klage.domain.entities.SvarbrevReceiver
+import no.nav.klage.clients.kabalapi.PartView
+import no.nav.klage.domain.entities.*
+import no.nav.klage.domain.entities.PartStatus
 import no.nav.klage.exceptions.*
 import no.nav.klage.kodeverk.*
 import no.nav.klage.repository.RegistreringRepository
@@ -47,8 +54,6 @@ class RegistreringService(
                 journalpostId = null,
                 type = null,
                 mulighetId = null,
-                mulighetOriginalFagsystem = null,
-                mulighetCurrentFagsystem = null,
                 mottattVedtaksinstans = null,
                 mottattKlageinstans = null,
                 behandlingstidUnits = 12,
@@ -69,6 +74,7 @@ class RegistreringService(
                 finished = null,
                 behandlingId = null,
                 willCreateNewJournalpost = false,
+                muligheterFetched = null,
             )
         )
         return registrering.toRegistreringView()
@@ -96,7 +102,7 @@ class RegistreringService(
         ).map { it.toRegistreringView() }.sortedByDescending { it.created }
     }
 
-    fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): FullRegistreringView {
+    suspend fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 sakenGjelder = input.sakenGjelderValue?.let { sakenGjelderValue ->
@@ -106,12 +112,14 @@ class RegistreringService(
                     )
                 }
                 modified = LocalDateTime.now()
+
+                reinitializeMuligheter()
+
                 //empty the properties that no longer make sense if sakenGjelder changes.
                 journalpostId = null
                 ytelse = null
                 type = null
                 mulighetId = null
-                mulighetOriginalFagsystem = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
                 hjemmelIdList = listOf()
@@ -129,6 +137,8 @@ class RegistreringService(
                 svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
                 willCreateNewJournalpost = false
+                muligheter.clear()
+                muligheterFetched = null
             }
         return registrering.toRegistreringView()
     }
@@ -153,7 +163,7 @@ class RegistreringService(
                 fullmektig = null
 
                 //TODO: Behold hvis klager kom fra muligheten.
-                //It is quite expensive to fetch mulighet, so we are waiting with this.
+                //Still correct? It is quite expensive to fetch mulighet, so we are waiting with this.
                 klager = null
 
                 //FIXME: Handle parts and receivers
@@ -175,10 +185,12 @@ class RegistreringService(
                     }
 
                 if (mulighetId != null) {
+                    val mulighet = muligheter.find { it.id == mulighetId }
+                        ?: throw MulighetNotFoundException("Valgt mulighet ikke funnet. Id: $mulighetId")
                     willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
                         journalpostId = journalpostId!!,
-                        fagsakId = mulighetId!!,
-                        fagsystemId = mulighetOriginalFagsystem!!.id,
+                        fagsakId = mulighet.fagsakId,
+                        fagsystemId = mulighet.originalFagsystem.id,
                     )
                 }
             }
@@ -200,7 +212,7 @@ class RegistreringService(
                 }
 
                 mulighetId = null
-                mulighetOriginalFagsystem = null
+
                 ytelse = null
                 hjemmelIdList = listOf()
 
@@ -223,19 +235,60 @@ class RegistreringService(
             }.toTypeChangeRegistreringView()
     }
 
-    fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
+    suspend fun Registrering.reinitializeMuligheter() {
+        muligheter.clear()
+        coroutineScope {
+            val klagerFromInfotrygd = async {
+                try {
+                    klageService.getKlagemuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
+                } catch (e: Exception) {
+                    if (type == Type.KLAGE) {
+                        throw e
+                    } else {
+                        emptyList()
+                    }
+                }
+            }
+            val ankerFromInfotrygd = async {
+                try {
+                    ankeService.getAnkemuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
+                } catch (e: Exception) {
+                    if (type == Type.ANKE) {
+                        throw e
+                    } else {
+                        emptyList()
+                    }
+                }
+            }
+            val ankerFromKabal =
+                async { ankeService.getAnkemuligheterFromKabal(IdnummerInput(idnummer = sakenGjelder!!.value)) }
+
+            val muligheterAsync = mutableListOf(klagerFromInfotrygd, ankerFromInfotrygd, ankerFromKabal).awaitAll()
+
+            muligheterAsync.subList(0, 2).flatten().forEach { mulighetFromInfotrygd ->
+                mulighetFromInfotrygd as SakFromKlanke
+                muligheter.add(mulighetFromInfotrygd.toMulighet())
+            }
+
+            muligheterAsync.last().forEach { mulighetFromKabal ->
+                mulighetFromKabal as AnkemulighetFromKabal
+                muligheter.add(mulighetFromKabal.toMulighet())
+            }
+        }
+
+        muligheterFetched = LocalDateTime.now()
+    }
+
+    suspend fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
         return getRegistreringForUpdate(registreringId)
             .apply {
-//                val previousMulighet = getMulighetOrNull()
-
                 mulighetId = input.mulighetId
-                mulighetOriginalFagsystem = Fagsystem.of(input.originalFagsystemId)
-                mulighetCurrentFagsystem = Fagsystem.of(input.currentFagsystemId)
 
-                val currentMulighet = getMulighetOrNull() ?: throw MulighetNotFoundException("Mulighet ikke funnet.")
+                val newMulighet = muligheter.find { it.id == input.mulighetId }
+                    ?: throw MulighetNotFoundException("Mulighet ikke funnet.")
 
                 val previousYtelse = ytelse
-                val currentYtelseCandidates = getYtelseOrNull(currentMulighet)
+                val currentYtelseCandidates = getYtelseOrNull(newMulighet)
                 if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
                     //don't change ytelse if it is still valid.
                 } else if (currentYtelseCandidates.size == 1) {
@@ -245,7 +298,8 @@ class RegistreringService(
                 }
 
                 if ((previousYtelse != null && ytelse != null && previousYtelse != ytelse)
-                    || (previousYtelse == null && ytelse != null)) {
+                    || (previousYtelse == null && ytelse != null)
+                ) {
                     //set svarbrev settings (and reset old) for the new ytelse
                     setSvarbrevSettings()
                     svarbrevReceivers.clear()
@@ -270,29 +324,18 @@ class RegistreringService(
                 }
 
                 if (type == Type.KLAGE) {
-                    currentMulighet as Klagemulighet
-                    mottattKlageinstans = currentMulighet.vedtakDate
+                    mottattKlageinstans = newMulighet.vedtakDate
                 } else if (type == Type.ANKE) {
-                    currentMulighet as Ankemulighet
-
                     //FIXME: Handle parts and receivers
-                    klager = if (currentMulighet.klager != null) {
-                        PartId(
-                            value = currentMulighet.klager.id,
-                            type = when (currentMulighet.klager.type) {
-                                PartType.FNR -> PartIdType.PERSON
-                                PartType.ORGNR -> PartIdType.VIRKSOMHET
-                            }
-                        )
-                    } else null
+                    klager = newMulighet.klager?.part
                 }
 
                 modified = LocalDateTime.now()
 
                 willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
                     journalpostId = this.journalpostId!!,
-                    fagsakId = this.mulighetId!!,
-                    fagsystemId = this.mulighetOriginalFagsystem!!.id,
+                    fagsakId = newMulighet.fagsakId,
+                    fagsystemId = newMulighet.originalFagsystem.id,
                 )
 
                 //What about fullmektig?
@@ -309,44 +352,15 @@ class RegistreringService(
         overrideSvarbrevCustomText = false
     }
 
-    private fun Registrering.getMulighetOrNull(): Mulighet? {
-        return when (type) {
-            Type.KLAGE -> {
-                getKlagemulighet(this)
-            }
-
-            Type.ANKE -> {
-                getAnkemulighet(this)
-            }
-
-            Type.ANKE_I_TRYGDERETTEN -> TODO()
-            null -> TODO()
-        }
-    }
-
-    private fun getKlagemulighet(registrering: Registrering): Klagemulighet? {
-        val input = IdnummerInput(idnummer = registrering.sakenGjelder!!.value)
-        return klageService.getKlagemuligheter(input = input).find {
-            it.id == registrering.mulighetId && it.originalFagsystemId == registrering.mulighetOriginalFagsystem!!.id
-        }
-    }
-
-    private fun getAnkemulighet(registrering: Registrering): Ankemulighet? {
-        val input = IdnummerInput(idnummer = registrering.sakenGjelder!!.value)
-        return ankeService.getAnkemuligheter(input = input).find {
-            it.id == registrering.mulighetId && it.fagsystemId == registrering.mulighetOriginalFagsystem!!.id
-        }
-    }
-
     private fun getYtelseOrNull(mulighet: Mulighet?): List<Ytelse> {
         if (mulighet == null) {
             return emptyList()
         }
 
-        if (mulighet is Ankemulighet && mulighet.ytelseId != null) {
-            return listOf(Ytelse.of(mulighet.ytelseId))
+        if (mulighet.ytelse != null) {
+            return listOf(mulighet.ytelse)
         } else {
-            val possibleYtelser = Ytelse.entries.filter { it.toTema().id == mulighet.temaId }
+            val possibleYtelser = Ytelse.entries.filter { it.toTema() == mulighet.tema }
             return possibleYtelser
         }
     }
@@ -518,7 +532,11 @@ class RegistreringService(
                 receivers = mapTorecipientViews(registrering)
             ),
             overstyringer = FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
-                fullmektig = registrering.fullmektig?.let { registrering.partViewWithOptionalUtsendingskanal(identifikator = it.value) }
+                fullmektig = registrering.fullmektig?.let {
+                    registrering.partViewWithOptionalUtsendingskanal(
+                        identifikator = it.value
+                    )
+                }
             ),
             modified = registrering.modified,
         )
@@ -929,6 +947,7 @@ class RegistreringService(
                                 adresselinje3 = address.adresselinje3,
                                 landkode = address.landkode,
                                 postnummer = address.postnummer,
+                                poststed = address.poststed,
                             )
                         }
                     )
@@ -962,6 +981,7 @@ class RegistreringService(
                             adresselinje3 = address.adresselinje3,
                             landkode = address.landkode,
                             postnummer = address.postnummer,
+                            poststed = address.poststed,
                         )
                     }
                 }
@@ -995,13 +1015,11 @@ class RegistreringService(
     private fun Registrering.toMulighetChangeRegistreringView(): MulighetChangeRegistreringView {
         return MulighetChangeRegistreringView(
             id = id,
-            mulighet = if (mulighetId != null) {
-                MulighetView(
-                    id = mulighetId!!,
-                    originalFagsystemId = mulighetOriginalFagsystem!!.id,
-                    currentFagsystemId = mulighetCurrentFagsystem!!.id,
+            mulighet = mulighetId?.let {
+                MulighetIdView(
+                    id = it,
                 )
-            } else null,
+            },
             overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(
                 ytelseId = ytelse?.id,
                 mottattVedtaksinstans = mottattVedtaksinstans,
@@ -1024,7 +1042,7 @@ class RegistreringService(
                 saksbehandlerIdent = saksbehandlerIdent,
                 oppgaveId = oppgaveId,
 
-            ),
+                ),
             svarbrev = MulighetChangeRegistreringView.MulighetChangeRegistreringSvarbrevView(
                 send = sendSvarbrev,
                 behandlingstid = if (svarbrevBehandlingstidUnits != null) {
@@ -1049,13 +1067,11 @@ class RegistreringService(
         journalpostId = journalpostId,
         sakenGjelderValue = sakenGjelder?.value,
         typeId = type?.id,
-        mulighet = if (mulighetId != null) {
-            MulighetView(
-                id = mulighetId!!,
-                originalFagsystemId = mulighetOriginalFagsystem!!.id,
-                currentFagsystemId = mulighetCurrentFagsystem!!.id,
+        mulighet = mulighetId?.let {
+            MulighetIdView(
+                id = it,
             )
-        } else null,
+        },
         overstyringer = FullRegistreringView.FullRegistreringOverstyringerView(
             mottattVedtaksinstans = mottattVedtaksinstans,
             mottattKlageinstans = mottattKlageinstans,
@@ -1091,8 +1107,8 @@ class RegistreringService(
             receivers = mapTorecipientViews(this),
             title = svarbrevTitle,
             customText = svarbrevCustomText,
-            overrideCustomText = overrideSvarbrevCustomText ?: false,
-            overrideBehandlingstid = overrideSvarbrevBehandlingstid ?: false,
+            overrideCustomText = overrideSvarbrevCustomText,
+            overrideBehandlingstid = overrideSvarbrevBehandlingstid,
             calculatedFrist = if (mottattKlageinstans != null && svarbrevBehandlingstidUnits != null) {
                 calculateFrist(
                     fromDate = mottattKlageinstans!!,
@@ -1107,6 +1123,12 @@ class RegistreringService(
         finished = finished,
         behandlingId = behandlingId,
         willCreateNewJournalpost = willCreateNewJournalpost,
+        klagemuligheter = muligheter.map { mulighet ->
+            mulighet.toKlagemulighetView()
+        },
+        ankemuligheter = muligheter.map { mulighet ->
+            mulighet.toAnkemulighetView()
+        },
     )
 
     fun deleteRegistrering(registreringId: UUID) {
@@ -1141,11 +1163,11 @@ class RegistreringService(
     private fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal {
         return PartViewWithOptionalUtsendingskanal(
             id = id,
-            type = no.nav.klage.api.controller.view.PartType.valueOf(type.name),
+            type = PartType.valueOf(type.name),
             name = name,
             available = available,
             statusList = statusList.map { partStatus ->
-                PartStatus(
+                no.nav.klage.api.controller.view.PartStatus(
                     status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
                     date = partStatus.date,
                 )
@@ -1165,14 +1187,14 @@ class RegistreringService(
         )
     }
 
-    private fun no.nav.klage.clients.kabalapi.PartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal {
+    private fun PartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal {
         return PartViewWithOptionalUtsendingskanal(
             id = id,
-            type = no.nav.klage.api.controller.view.PartType.valueOf(type.name),
+            type = PartType.valueOf(type.name),
             name = name,
             available = available,
             statusList = statusList.map { partStatus ->
-                PartStatus(
+                no.nav.klage.api.controller.view.PartStatus(
                     status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
                     date = partStatus.date,
                 )
@@ -1208,57 +1230,61 @@ class RegistreringService(
     fun finishRegistrering(registreringId: UUID): FerdigstiltRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        val response: CreatedBehandlingResponse = if (registrering.type == Type.ANKE) {
-            ankeService.createAnke(
-                CreateAnkeInputView(
-                    mottattKlageinstans = registrering.mottattKlageinstans,
-                    behandlingstidUnits = registrering.behandlingstidUnits,
-                    behandlingstidUnitType = registrering.behandlingstidUnitType,
-                    behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
-                    klager = registrering.klager.toPartIdInput(),
-                    fullmektig = registrering.fullmektig.toPartIdInput(),
-                    journalpostId = registrering.journalpostId,
-                    ytelseId = registrering.ytelse?.id,
-                    hjemmelIdList = registrering.hjemmelIdList,
-                    avsender = registrering.avsender.toPartIdInput(),
-                    saksbehandlerIdent = registrering.saksbehandlerIdent,
-                    svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
-                    vedtak = if (registrering.mulighetId != null && registrering.mulighetCurrentFagsystem != null) {
-                        Vedtak(
-                            id = registrering.mulighetId!!,
-                            sourceId = registrering.mulighetCurrentFagsystem!!.id,
-                        )
-                    } else null,
-                    oppgaveId = registrering.oppgaveId,
+        val mulighet = registrering.mulighetId?.let { mulighetId ->
+            registrering.muligheter.find { it.id == mulighetId }
+        } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+
+        val response: CreatedBehandlingResponse = when (registrering.type) {
+            Type.ANKE -> {
+                ankeService.createAnke(
+                    CreateAnkeInputView(
+                        mottattKlageinstans = registrering.mottattKlageinstans,
+                        behandlingstidUnits = registrering.behandlingstidUnits,
+                        behandlingstidUnitType = registrering.behandlingstidUnitType,
+                        behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
+                        klager = registrering.klager.toPartIdInput(),
+                        fullmektig = registrering.fullmektig.toPartIdInput(),
+                        journalpostId = registrering.journalpostId,
+                        ytelseId = registrering.ytelse?.id,
+                        hjemmelIdList = registrering.hjemmelIdList,
+                        avsender = registrering.avsender.toPartIdInput(),
+                        saksbehandlerIdent = registrering.saksbehandlerIdent,
+                        svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
+                        vedtak = Vedtak(
+                            id = mulighet.currentFagystemTechnicalId,
+                            sourceId = mulighet.currentFagsystem.id,
+                        ),
+                        oppgaveId = registrering.oppgaveId,
+                    )
                 )
-            )
-        } else if (registrering.type == Type.KLAGE) {
-            klageService.createKlage(
-                CreateKlageInputView(
-                    mottattKlageinstans = registrering.mottattKlageinstans,
-                    mottattVedtaksinstans = registrering.mottattVedtaksinstans,
-                    behandlingstidUnits = registrering.behandlingstidUnits,
-                    behandlingstidUnitType = registrering.behandlingstidUnitType,
-                    behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
-                    klager = registrering.klager.toPartIdInput(),
-                    fullmektig = registrering.fullmektig.toPartIdInput(),
-                    journalpostId = registrering.journalpostId,
-                    ytelseId = registrering.ytelse?.id,
-                    hjemmelIdList = registrering.hjemmelIdList,
-                    avsender = registrering.avsender.toPartIdInput(),
-                    saksbehandlerIdent = registrering.saksbehandlerIdent,
-                    svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
-                    vedtak = if (registrering.mulighetId != null && registrering.mulighetOriginalFagsystem != null) {
-                        Vedtak(
-                            id = registrering.mulighetId!!,
-                            sourceId = registrering.mulighetOriginalFagsystem!!.id,
-                        )
-                    } else null,
-                    oppgaveId = registrering.oppgaveId,
+            }
+            Type.KLAGE -> {
+                klageService.createKlage(
+                    CreateKlageInputView(
+                        mottattKlageinstans = registrering.mottattKlageinstans,
+                        mottattVedtaksinstans = registrering.mottattVedtaksinstans,
+                        behandlingstidUnits = registrering.behandlingstidUnits,
+                        behandlingstidUnitType = registrering.behandlingstidUnitType,
+                        behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
+                        klager = registrering.klager.toPartIdInput(),
+                        fullmektig = registrering.fullmektig.toPartIdInput(),
+                        journalpostId = registrering.journalpostId,
+                        ytelseId = registrering.ytelse?.id,
+                        hjemmelIdList = registrering.hjemmelIdList,
+                        avsender = registrering.avsender.toPartIdInput(),
+                        saksbehandlerIdent = registrering.saksbehandlerIdent,
+                        svarbrevInput = registrering.toSvarbrevWithReceiverInput(),
+                        vedtak = Vedtak(
+                            id = mulighet.currentFagystemTechnicalId,
+                            sourceId = mulighet.currentFagsystem.id,
+                        ),
+                        oppgaveId = registrering.oppgaveId,
+                    )
                 )
-            )
-        } else {
-            throw IllegalInputException("Registreringen er av en type som ikke støttes: ${registrering.type}.")
+            }
+            else -> {
+                throw IllegalInputException("Registreringen er av en type som ikke støttes: ${registrering.type}.")
+            }
         }
 
         val now = LocalDateTime.now()
@@ -1272,7 +1298,6 @@ class RegistreringService(
             finished = registrering.finished!!,
             behandlingId = registrering.behandlingId!!,
         )
-
     }
 
     private fun Registrering.toSvarbrevWithReceiverInput(): SvarbrevWithReceiverInput? {
@@ -1320,4 +1345,220 @@ class RegistreringService(
         )
     }
 
+    suspend fun getMuligheter(registreringId: UUID): Muligheter {
+        val registrering = getRegistreringForUpdate(registreringId)
+        if (registrering.muligheter.isEmpty()) {
+            registrering.reinitializeMuligheter()
+        }
+        val (klagemuligheter, ankemuligheter) = registrering.muligheter.partition { it.type == Type.KLAGE }
+
+        val klagemuligheterView = klagemuligheter.map { klagemulighet ->
+            KlagemulighetView(
+                id = klagemulighet.id,
+                temaId = klagemulighet.tema.id,
+                vedtakDate = klagemulighet.vedtakDate!!,
+                sakenGjelder = klagemulighet.sakenGjelder.toPartViewWithUtsendingskanal(klagemulighet.sakenGjelderStatusList)!!,
+                fagsakId = klagemulighet.fagsakId,
+                originalFagsystemId = klagemulighet.originalFagsystem.id,
+                currentFagsystemId = klagemulighet.currentFagsystem.id,
+                typeId = klagemulighet.type.id,
+                klageBehandlendeEnhet = klagemulighet.klageBehandlendeEnhet!!,
+            )
+        }
+
+        val ankemuligheterView = ankemuligheter.map { ankemulighet ->
+            AnkemulighetView(
+                id = ankemulighet.id,
+                temaId = ankemulighet.tema.id,
+                vedtakDate = ankemulighet.vedtakDate!!,
+                sakenGjelder = ankemulighet.sakenGjelder.toPartViewWithUtsendingskanal(ankemulighet.sakenGjelderStatusList)!!,
+                fagsakId = ankemulighet.fagsakId,
+                originalFagsystemId = ankemulighet.originalFagsystem.id,
+                currentFagsystemId = ankemulighet.currentFagsystem.id,
+                typeId = ankemulighet.type.id,
+                sourceOfExistingAnkebehandling = ankemulighet.sourceOfExistingAnkebehandling.map {
+                    ExistingAnkebehandling(
+                        id = it.id,
+                        created = it.created,
+                        completed = it.completed,
+                    )
+                },
+                ytelseId = ankemulighet.ytelse?.id,
+                hjemmelIdList = ankemulighet.hjemmelIdList,
+                klager = ankemulighet.klager.toPartViewWithUtsendingskanal(ankemulighet.klagerStatusList),
+                fullmektig = ankemulighet.fullmektig.toPartViewWithUtsendingskanal(ankemulighet.fullmektigStatusList),
+                previousSaksbehandler = if (ankemulighet.previousSaksbehandlerIdent != null) {
+                    PreviousSaksbehandler(
+                        navIdent = ankemulighet.previousSaksbehandlerIdent,
+                        navn = ankemulighet.previousSaksbehandlerName
+                            ?: "navn mangler for ${ankemulighet.previousSaksbehandlerIdent}",
+                    )
+                } else null,
+            )
+        }
+
+        return Muligheter(
+            klagemuligheter = klagemuligheterView,
+            ankemuligheter = ankemuligheterView,
+        )
+    }
+
+    private fun PartWithUtsendingskanal?.toPartViewWithUtsendingskanal(partStatusList: Set<PartStatus>): PartViewWithUtsendingskanal? {
+        return this?.let {
+            return PartViewWithUtsendingskanal(
+                id = part.value,
+                type = when (part.type) {
+                    PartIdType.PERSON -> PartType.FNR
+                    PartIdType.VIRKSOMHET -> PartType.ORGNR
+                },
+                name = name,
+                available = available ?: false,
+                statusList = partStatusList.map { partStatus ->
+                    no.nav.klage.api.controller.view.PartStatus(
+                        status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
+                        date = partStatus.date,
+                    )
+                },
+                address = address?.let {
+                    Address(
+                        adresselinje1 = it.adresselinje1,
+                        adresselinje2 = it.adresselinje2,
+                        adresselinje3 = it.adresselinje3,
+                        landkode = it.landkode!!,
+                        postnummer = it.postnummer,
+                        poststed = it.poststed,
+                    )
+                },
+                language = language,
+                utsendingskanal = Utsendingskanal.valueOf(utsendingskanal!!.name),
+            )
+        }
+    }
+
+    private fun AnkemulighetFromKabal.toMulighet(): Mulighet {
+        val ytelse = Ytelse.of(ytelseId)
+        return Mulighet(
+            type = Type.ANKE,
+            tema = ytelse.toTema(),
+            vedtakDate = vedtakDate.toLocalDate(),
+            sakenGjelder = sakenGjelder.toPartWithUtsendingskanal()!!,
+            fagsakId = fagsakId,
+            originalFagsystem = fagsystem,
+            currentFagsystem = Fagsystem.KABAL,
+            ytelse = ytelse,
+            hjemmelIdList = hjemmelIdList,
+            klager = klager.toPartWithUtsendingskanal(),
+            fullmektig = fullmektig.toPartWithUtsendingskanal(),
+            previousSaksbehandlerIdent = tildeltSaksbehandlerIdent,
+            previousSaksbehandlerName = tildeltSaksbehandlerNavn,
+            sourceOfExistingAnkebehandling = sourceOfExistingAnkebehandling.map {
+                no.nav.klage.domain.entities.ExistingAnkebehandling(
+                    ankebehandlingId = it.id,
+                    created = it.created,
+                    completed = it.completed,
+                )
+            }.toMutableSet(),
+            klageBehandlendeEnhet = null,
+            currentFagystemTechnicalId = behandlingId.toString(),
+        )
+    }
+
+    private fun SakFromKlanke.toMulighet(): Mulighet {
+        return Mulighet(
+            type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE,
+            tema = Tema.valueOf(tema),
+            vedtakDate = vedtaksdato,
+            sakenGjelder = kabalApiClient.searchPartWithUtsendingskanal(
+                SearchPartWithUtsendingskanalInput(
+                    identifikator = fnr,
+                    sakenGjelderId = fnr,
+                    //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
+                    ytelseId = Ytelse.entries.find { y -> y.toTema().navn == tema }!!.id,
+                )
+            ).toPartWithUtsendingskanal()!!,
+            fagsakId = fagsakId,
+            originalFagsystem = Fagsystem.IT01,
+            currentFagsystem = Fagsystem.IT01,
+            ytelse = null,
+            klager = null,
+            fullmektig = null,
+            klageBehandlendeEnhet = enhetsnummer,
+            currentFagystemTechnicalId = sakId,
+            previousSaksbehandlerIdent = null,
+            previousSaksbehandlerName = null,
+            hjemmelIdList = emptyList(),
+        )
+    }
+
+    private fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal?.toPartWithUtsendingskanal(): PartWithUtsendingskanal? {
+        return this?.let {
+            PartWithUtsendingskanal(
+                part = PartId(
+                    value = id,
+                    type = when (type) {
+                        no.nav.klage.clients.kabalapi.PartType.FNR -> PartIdType.PERSON
+                        no.nav.klage.clients.kabalapi.PartType.ORGNR -> PartIdType.VIRKSOMHET
+                    },
+                ),
+                name = name,
+                available = available,
+                address = address?.let {
+                    no.nav.klage.domain.entities.Address(
+                        adresselinje1 = it.adresselinje1,
+                        adresselinje2 = it.adresselinje2,
+                        adresselinje3 = it.adresselinje3,
+                        landkode = it.landkode,
+                        postnummer = it.postnummer,
+                        poststed = it.poststed,
+                    )
+                },
+                language = language,
+                utsendingskanal = no.nav.klage.domain.entities.PartWithUtsendingskanal.Utsendingskanal.valueOf(
+                    utsendingskanal.name
+                ),
+            )
+        }
+    }
+
+    private fun Mulighet.toKlagemulighetView() =
+        KlagemulighetView(
+            id = id,
+            temaId = tema.id,
+            vedtakDate = vedtakDate!!,
+            sakenGjelder = sakenGjelder.toPartViewWithUtsendingskanal(sakenGjelderStatusList)!!,
+            fagsakId = fagsakId,
+            originalFagsystemId = originalFagsystem.id,
+            currentFagsystemId = currentFagsystem.id,
+            typeId = type.id,
+            klageBehandlendeEnhet = klageBehandlendeEnhet!!,
+        )
+
+    private fun Mulighet.toAnkemulighetView(): AnkemulighetView =
+        AnkemulighetView(
+            id = id,
+            temaId = tema.id,
+            vedtakDate = vedtakDate!!,
+            sakenGjelder = sakenGjelder.toPartViewWithUtsendingskanal(sakenGjelderStatusList)!!,
+            fagsakId = fagsakId,
+            originalFagsystemId = originalFagsystem.id,
+            currentFagsystemId = currentFagsystem.id,
+            typeId = type.id,
+            sourceOfExistingAnkebehandling = sourceOfExistingAnkebehandling.map {
+                ExistingAnkebehandling(
+                    id = it.ankebehandlingId,
+                    created = it.created,
+                    completed = it.completed,
+                )
+            },
+            ytelseId = ytelse?.id,
+            hjemmelIdList = hjemmelIdList,
+            klager = klager.toPartViewWithUtsendingskanal(klagerStatusList),
+            fullmektig = fullmektig.toPartViewWithUtsendingskanal(fullmektigStatusList),
+            previousSaksbehandler = previousSaksbehandlerIdent?.let {
+                PreviousSaksbehandler(
+                    navIdent = it,
+                    navn = previousSaksbehandlerName ?: "navn mangler for $it",
+                )
+            },
+        )
 }

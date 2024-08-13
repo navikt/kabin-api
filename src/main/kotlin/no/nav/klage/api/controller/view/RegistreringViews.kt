@@ -10,7 +10,7 @@ data class FullRegistreringView(
     val sakenGjelderValue: String?,
     val journalpostId: String?,
     val typeId: String?,
-    val mulighet: MulighetView?,
+    val mulighet: MulighetIdView?,
     val overstyringer: FullRegistreringOverstyringerView,
     val svarbrev: FullRegistreringSvarbrevView,
     val created: LocalDateTime,
@@ -19,6 +19,8 @@ data class FullRegistreringView(
     val finished: LocalDateTime?,
     val behandlingId: UUID?,
     val willCreateNewJournalpost: Boolean,
+    val klagemuligheter: List<KlagemulighetView>,
+    val ankemuligheter: List<AnkemulighetView>,
 ) {
 
     data class FullRegistreringOverstyringerView(
@@ -51,7 +53,7 @@ data class FullRegistreringView(
 data class TypeChangeRegistreringView(
     val id: UUID,
     val typeId: String?,
-    val mulighet: MulighetView? = null,
+    val mulighet: MulighetIdView? = null,
     val overstyringer: TypeChangeRegistreringOverstyringerView,
     val svarbrev: TypeChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
@@ -83,10 +85,8 @@ data class TypeChangeRegistreringView(
     )
 }
 
-data class MulighetView(
-    val id: String,
-    val originalFagsystemId: String,
-    val currentFagsystemId: String,
+data class MulighetIdView(
+    val id: UUID,
 )
 
 data class BehandlingstidView(
@@ -96,7 +96,7 @@ data class BehandlingstidView(
 
 data class MulighetChangeRegistreringView(
     val id: UUID,
-    val mulighet: MulighetView?,
+    val mulighet: MulighetIdView?,
     val overstyringer: MulighetChangeRegistreringOverstyringerView,
     val svarbrev: MulighetChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
