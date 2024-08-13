@@ -16,6 +16,7 @@ import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.util.*
 
 @Service
@@ -74,13 +75,13 @@ class AnkeService(
         return behandlingId
     }
 
-    suspend fun getAnkemuligheterFromKabal(input: IdnummerInput): List<AnkemulighetFromKabal> {
+    fun getAnkemuligheterFromKabal(input: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
         val ankemuligheterFromKabal = kabalApiService.getAnkemuligheter(input)
 
         return ankemuligheterFromKabal
     }
 
-    suspend fun getAnkemuligheterFromInfotrygd(input: IdnummerInput): List<SakFromKlanke> {
+    fun getAnkemuligheterFromInfotrygd(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         return klageFssProxyService.getAnkemuligheter(input = input)
     }
 

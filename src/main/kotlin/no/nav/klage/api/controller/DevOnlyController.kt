@@ -3,7 +3,6 @@ package no.nav.klage.api.controller
 import io.swagger.v3.oas.annotations.Hidden
 import no.nav.klage.api.controller.view.OppgaveView
 import no.nav.klage.clients.KlageFssProxyClient
-import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.oppgaveapi.Gjelder
 import no.nav.klage.config.SecurityConfiguration
@@ -13,7 +12,9 @@ import no.nav.klage.util.TokenUtil
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RestController
 
 @Profile("dev-gcp")
 @RestController
@@ -24,13 +25,6 @@ class DevOnlyController(
     private val tokenUtil: TokenUtil,
     private val oppgaveService: OppgaveService,
 ) {
-
-    @PostMapping("/klanke/search")
-    fun searchKlanke(
-        @RequestBody input: KlankeSearchInput
-    ): List<SakFromKlanke> {
-        return klageFssProxyClient.searchKlanke(input)
-    }
 
     @GetMapping("/klanke/sak/{sakId}")
     fun getSakFromKlankeAppAccess(

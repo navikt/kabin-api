@@ -16,6 +16,13 @@ data class CreatedBehandlingResponse(
     val behandlingId: UUID,
 )
 
+data class BehandlingIsDuplicateResponse(
+    val fagsystemId: String,
+    val kildereferanse: String,
+    val typeId: String,
+    val duplicate: Boolean,
+)
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CompletedBehandling(
     val behandlingId: UUID,

@@ -1,8 +1,5 @@
 package no.nav.klage.service
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.Address
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
@@ -11,6 +8,7 @@ import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
+import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.domain.entities.*
@@ -20,8 +18,11 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.calculateFrist
+import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
+import reactor.core.scheduler.Schedulers
 import java.time.LocalDateTime
 import java.util.*
 
@@ -36,6 +37,11 @@ class RegistreringService(
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
 ) {
+
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+    }
 
     fun createRegistrering(input: SakenGjelderValueInput): FullRegistreringView {
         val registrering = registreringRepository.save(
@@ -102,7 +108,7 @@ class RegistreringService(
         ).map { it.toRegistreringView() }.sortedByDescending { it.created }
     }
 
-    suspend fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): FullRegistreringView {
+    fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 sakenGjelder = input.sakenGjelderValue?.let { sakenGjelderValue ->
@@ -235,51 +241,78 @@ class RegistreringService(
             }.toTypeChangeRegistreringView()
     }
 
-    suspend fun Registrering.reinitializeMuligheter() {
+    fun Registrering.reinitializeMuligheter() {
         muligheter.clear()
-        coroutineScope {
-            val klagerFromInfotrygd = async {
-                try {
-                    klageService.getKlagemuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
-                } catch (e: Exception) {
-                    if (type == Type.KLAGE) {
-                        throw e
-                    } else {
-                        emptyList()
+
+        val klagemuligheterFromInfotrygd =
+            klageService.getKlagemuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
+        val klageTilbakebetalingMuligheterFromInfotrygd =
+            klageService.getKlageTilbakebetalingMuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
+        val ankemuligheterFromInfotrygd =
+            ankeService.getAnkemuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
+
+        val ankemuligheterFromKabal =
+            ankeService.getAnkemuligheterFromKabal(IdnummerInput(idnummer = sakenGjelder!!.value))
+
+        val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
+        val muligheterFromKabal = mutableListOf<AnkemulighetFromKabal>()
+
+        var start = System.currentTimeMillis()
+
+        Flux.merge(
+            klagemuligheterFromInfotrygd,
+            klageTilbakebetalingMuligheterFromInfotrygd,
+            ankemuligheterFromInfotrygd,
+            ankemuligheterFromKabal,
+        ).parallel()
+            .runOn(Schedulers.parallel())
+            .doOnNext { mulighetList ->
+                mulighetList.forEach { mulighet ->
+                    if (mulighet is SakFromKlanke) {
+                        muligheterFromInfotrygd.add(mulighet)
+                    } else if (mulighet is AnkemulighetFromKabal) {
+                        muligheterFromKabal.add(mulighet)
                     }
                 }
             }
-            val ankerFromInfotrygd = async {
-                try {
-                    ankeService.getAnkemuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
-                } catch (e: Exception) {
-                    if (type == Type.ANKE) {
-                        throw e
-                    } else {
-                        emptyList()
-                    }
-                }
+            .sequential()
+            .blockLast()
+
+        logger.debug("Time to merge muligheter: " + (System.currentTimeMillis() - start))
+
+        start = System.currentTimeMillis()
+
+        val behandlingIsDuplicateResponses = Flux.fromIterable(muligheterFromInfotrygd)
+            .parallel()
+            .runOn(Schedulers.parallel())
+            .flatMap { mulighetFromInfotrygd ->
+                kabalApiClient.checkBehandlingDuplicateInKabal(
+                    input = BehandlingIsDuplicateInput(
+                        fagsystemId = Fagsystem.IT01.id,
+                        kildereferanse = mulighetFromInfotrygd.sakId,
+                        typeId = if (mulighetFromInfotrygd.sakstype.startsWith("KLAGE")) Type.KLAGE.id else Type.ANKE.id
+                    )
+                )
             }
-            val ankerFromKabal =
-                async { ankeService.getAnkemuligheterFromKabal(IdnummerInput(idnummer = sakenGjelder!!.value)) }
+            .sequential()
+            .toIterable()
 
-            val muligheterAsync = mutableListOf(klagerFromInfotrygd, ankerFromInfotrygd, ankerFromKabal).awaitAll()
+        logger.debug("Time to check duplicates: " + (System.currentTimeMillis() - start))
 
-            muligheterAsync.subList(0, 2).flatten().forEach { mulighetFromInfotrygd ->
-                mulighetFromInfotrygd as SakFromKlanke
-                muligheter.add(mulighetFromInfotrygd.toMulighet())
+        muligheter.addAll(muligheterFromInfotrygd
+            .filter { mulighetFromInfotrygd ->
+                !behandlingIsDuplicateResponses.first {
+                    //enough?
+                    it.kildereferanse == mulighetFromInfotrygd.sakId
+                }.duplicate
             }
+            .map { it.toMulighet() })
 
-            muligheterAsync.last().forEach { mulighetFromKabal ->
-                mulighetFromKabal as AnkemulighetFromKabal
-                muligheter.add(mulighetFromKabal.toMulighet())
-            }
-        }
-
+        muligheter.addAll(muligheterFromKabal.map { it.toMulighet() })
         muligheterFetched = LocalDateTime.now()
     }
 
-    suspend fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
+    fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
         return getRegistreringForUpdate(registreringId)
             .apply {
                 mulighetId = input.mulighetId
@@ -1258,6 +1291,7 @@ class RegistreringService(
                     )
                 )
             }
+
             Type.KLAGE -> {
                 klageService.createKlage(
                     CreateKlageInputView(
@@ -1282,6 +1316,7 @@ class RegistreringService(
                     )
                 )
             }
+
             else -> {
                 throw IllegalInputException("Registreringen er av en type som ikke støttes: ${registrering.type}.")
             }
@@ -1345,7 +1380,7 @@ class RegistreringService(
         )
     }
 
-    suspend fun getMuligheter(registreringId: UUID): Muligheter {
+    fun getMuligheter(registreringId: UUID): Muligheter {
         val registrering = getRegistreringForUpdate(registreringId)
         if (registrering.muligheter.isEmpty()) {
             registrering.reinitializeMuligheter()

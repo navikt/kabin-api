@@ -9,9 +9,9 @@ import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.time.LocalDate
 import java.util.*
 
@@ -22,16 +22,6 @@ class KabalApiService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-    }
-
-    fun mulighetIsDuplicate(fagsystem: Fagsystem, kildereferanse: String, type: Type): Boolean {
-        return kabalApiClient.checkBehandlingDuplicateInKabal(
-            input = BehandlingIsDuplicateInput(
-                fagsystemId = fagsystem.id,
-                kildereferanse = kildereferanse,
-                typeId = type.id
-            )
-        )
     }
 
     fun oppgaveIsDuplicate(oppgaveId: Long): Boolean {
@@ -48,7 +38,7 @@ class KabalApiService(
         return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
     }
 
-    fun getAnkemuligheter(input: IdnummerInput): List<AnkemulighetFromKabal> {
+    fun getAnkemuligheter(input: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
         return kabalApiClient.getAnkemuligheterByIdnummer(input)
     }
 

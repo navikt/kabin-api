@@ -8,13 +8,13 @@ import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateKlageInput
-import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.util.*
 
 @Service
@@ -77,16 +77,14 @@ class KlageService(
         return behandlingId
     }
 
-    suspend fun getKlagemuligheterFromInfotrygd(input: IdnummerInput): List<SakFromKlanke> {
+    fun getKlagemuligheterFromInfotrygd(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         val resultsFromInfotrygd = klageFssProxyService.getKlagemuligheter(input = input)
         return resultsFromInfotrygd
-            .filter {
-                !kabalApiService.mulighetIsDuplicate(
-                    fagsystem = Fagsystem.IT01,
-                    kildereferanse = it.sakId,
-                    type = Type.KLAGE,
-                )
-            }
+    }
+
+    fun getKlageTilbakebetalingMuligheterFromInfotrygd(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+        val resultsFromInfotrygd = klageFssProxyService.getKlageTilbakebetalingMuligheter(input = input)
+        return resultsFromInfotrygd
     }
 
     fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatusView {

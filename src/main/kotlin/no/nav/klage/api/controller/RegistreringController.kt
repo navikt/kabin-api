@@ -114,7 +114,7 @@ class RegistreringController(
     }
 
     @PutMapping("/{id}/saken-gjelder-value")
-    suspend fun updateSakenGjelderValue(
+    fun updateSakenGjelderValue(
         @PathVariable id: UUID,
         @RequestBody input: SakenGjelderValueInput
     ): FullRegistreringView {
@@ -153,7 +153,7 @@ class RegistreringController(
     }
 
     @PutMapping("/{id}/mulighet")
-    suspend fun updateMulighet(
+    fun updateMulighet(
         @PathVariable id: UUID,
         @RequestBody input: MulighetInput
     ): MulighetChangeRegistreringView {
@@ -443,7 +443,7 @@ class RegistreringController(
     }
 
     @GetMapping("/{id}/muligheter", produces = ["application/json"])
-    suspend fun getMuligheter(
+    fun getMuligheter(
         @PathVariable id: UUID,
     ): Muligheter {
         logMethodDetails(

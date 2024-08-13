@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 import java.util.*
 
 @Component
@@ -22,7 +23,7 @@ class KabalApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput): Boolean {
+    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput): Mono<BehandlingIsDuplicateResponse> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/behandlingisduplicate").build() }
             .header(
@@ -31,8 +32,7 @@ class KabalApiClient(
             )
             .bodyValue(input)
             .retrieve()
-            .bodyToMono<Boolean>()
-            .block() ?: throw RuntimeException("No response")
+            .bodyToMono<BehandlingIsDuplicateResponse>()
     }
 
     fun checkOppgaveDuplicateInKabal(input: OppgaveIsDuplicateInput): Boolean {
@@ -74,7 +74,7 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): List<AnkemulighetFromKabal> {
+    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/ankemuligheter").build() }
             .header(
@@ -84,7 +84,6 @@ class KabalApiClient(
             .bodyValue(idnummerInput)
             .retrieve()
             .bodyToMono<List<AnkemulighetFromKabal>>()
-            .block() ?: throw RuntimeException("Didn't get any ankemuligheter")
     }
 
     fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {
