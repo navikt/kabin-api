@@ -79,7 +79,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/ankemuligheter").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getMaskinTilMaskinAccessTokenWithKabalApiScope()}"
             )
             .bodyValue(idnummerInput)
             .retrieve()

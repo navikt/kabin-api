@@ -143,8 +143,6 @@ class RegistreringService(
                 svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
                 willCreateNewJournalpost = false
-                muligheter.clear()
-                muligheterFetched = null
             }
         return registrering.toRegistreringView()
     }
@@ -1165,6 +1163,7 @@ class RegistreringService(
         ankemuligheter = muligheter.map { mulighet ->
             mulighet.toAnkemulighetView()
         },
+        muligheterFetched = muligheterFetched,
     )
 
     fun deleteRegistrering(registreringId: UUID) {
@@ -1438,6 +1437,7 @@ class RegistreringService(
         return Muligheter(
             klagemuligheter = klagemuligheterView,
             ankemuligheter = ankemuligheterView,
+            muligheterFetched = registrering.muligheterFetched!!,
         )
     }
 
