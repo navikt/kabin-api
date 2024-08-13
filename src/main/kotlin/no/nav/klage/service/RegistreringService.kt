@@ -1157,7 +1157,7 @@ class RegistreringService(
         finished = finished,
         behandlingId = behandlingId,
         willCreateNewJournalpost = willCreateNewJournalpost,
-        klagemuligheter = muligheter.map { mulighet ->
+        klagemuligheter = muligheter.filter { it.type == Type.KLAGE }.map { mulighet ->
             mulighet.toKlagemulighetView()
         },
         ankemuligheter = muligheter.map { mulighet ->
@@ -1390,48 +1390,11 @@ class RegistreringService(
         val (klagemuligheter, ankemuligheter) = registrering.muligheter.partition { it.type == Type.KLAGE }
 
         val klagemuligheterView = klagemuligheter.map { klagemulighet ->
-            KlagemulighetView(
-                id = klagemulighet.id,
-                temaId = klagemulighet.tema.id,
-                vedtakDate = klagemulighet.vedtakDate!!,
-                sakenGjelder = klagemulighet.sakenGjelder.toPartViewWithUtsendingskanal(klagemulighet.sakenGjelderStatusList)!!,
-                fagsakId = klagemulighet.fagsakId,
-                originalFagsystemId = klagemulighet.originalFagsystem.id,
-                currentFagsystemId = klagemulighet.currentFagsystem.id,
-                typeId = klagemulighet.type.id,
-                klageBehandlendeEnhet = klagemulighet.klageBehandlendeEnhet!!,
-            )
+            klagemulighet.toKlagemulighetView()
         }
 
         val ankemuligheterView = ankemuligheter.map { ankemulighet ->
-            AnkemulighetView(
-                id = ankemulighet.id,
-                temaId = ankemulighet.tema.id,
-                vedtakDate = ankemulighet.vedtakDate!!,
-                sakenGjelder = ankemulighet.sakenGjelder.toPartViewWithUtsendingskanal(ankemulighet.sakenGjelderStatusList)!!,
-                fagsakId = ankemulighet.fagsakId,
-                originalFagsystemId = ankemulighet.originalFagsystem.id,
-                currentFagsystemId = ankemulighet.currentFagsystem.id,
-                typeId = ankemulighet.type.id,
-                sourceOfExistingAnkebehandling = ankemulighet.sourceOfExistingAnkebehandling.map {
-                    ExistingAnkebehandling(
-                        id = it.id,
-                        created = it.created,
-                        completed = it.completed,
-                    )
-                },
-                ytelseId = ankemulighet.ytelse?.id,
-                hjemmelIdList = ankemulighet.hjemmelIdList,
-                klager = ankemulighet.klager.toPartViewWithUtsendingskanal(ankemulighet.klagerStatusList),
-                fullmektig = ankemulighet.fullmektig.toPartViewWithUtsendingskanal(ankemulighet.fullmektigStatusList),
-                previousSaksbehandler = if (ankemulighet.previousSaksbehandlerIdent != null) {
-                    PreviousSaksbehandler(
-                        navIdent = ankemulighet.previousSaksbehandlerIdent,
-                        navn = ankemulighet.previousSaksbehandlerName
-                            ?: "navn mangler for ${ankemulighet.previousSaksbehandlerIdent}",
-                    )
-                } else null,
-            )
+            ankemulighet.toAnkemulighetView()
         }
 
         return Muligheter(

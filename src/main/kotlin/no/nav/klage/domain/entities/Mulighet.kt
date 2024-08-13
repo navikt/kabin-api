@@ -3,6 +3,7 @@ package no.nav.klage.domain.entities
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.*
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -92,7 +93,7 @@ class Mulighet(
     val currentFagystemTechnicalId: String,
 
     @Column(name = "created")
-    val created: LocalDate = LocalDate.now(),
+    val created: LocalDateTime = LocalDateTime.now(),
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)
