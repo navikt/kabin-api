@@ -299,6 +299,9 @@ class RegistreringService(
 
         logger.debug("Time to check duplicates: " + (System.currentTimeMillis() - start))
 
+        logger.debug("Found ${muligheterFromInfotrygd.size} muligheter from Infotrygd.")
+        logger.debug("Found ${muligheterFromKabal.size} muligheter from Kabal.")
+
         muligheter.addAll(muligheterFromInfotrygd
             .filter { mulighetFromInfotrygd ->
                 !behandlingIsDuplicateResponses.first {
