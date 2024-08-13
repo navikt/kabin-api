@@ -28,7 +28,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/behandlingisduplicate").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getMaskinTilMaskinAccessTokenWithKabalApiScope()}"
             )
             .bodyValue(input)
             .retrieve()
