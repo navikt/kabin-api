@@ -8,6 +8,7 @@ import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateKlageInput
+import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.ValidationUtil
@@ -32,11 +33,11 @@ class KlageService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun createKlage(input: CreateKlageInputView): CreatedBehandlingResponse {
+    fun createKlage(input: CreateKlageInputView, klagemulighet: Mulighet): CreatedBehandlingResponse {
         val processedInput = validationUtil.validateCreateKlageInputView(input)
         val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
             journalpostId = processedInput.klageJournalpostId,
-            eksternBehandlingId = processedInput.eksternBehandlingId,
+            mulighet = klagemulighet,
             avsender = input.avsender,
             type = Type.KLAGE,
         )
@@ -49,6 +50,7 @@ class KlageService(
     }
 
     private fun createKlageFromInfotrygdSak(input: CreateKlageInput): UUID {
+        //TODO, get from cache?
         val sakFromKlanke = klageFssProxyService.getSak(sakId = input.eksternBehandlingId)
         val frist = when(input.behandlingstidUnitType) {
             TimeUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
@@ -77,14 +79,12 @@ class KlageService(
         return behandlingId
     }
 
-    fun getKlagemuligheterFromInfotrygd(input: IdnummerInput): Mono<List<SakFromKlanke>> {
-        val resultsFromInfotrygd = klageFssProxyService.getKlagemuligheter(input = input)
-        return resultsFromInfotrygd
+    fun getKlagemuligheterFromInfotrygdAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+        return klageFssProxyService.getKlagemuligheterAsMono(input = input)
     }
 
-    fun getKlageTilbakebetalingMuligheterFromInfotrygd(input: IdnummerInput): Mono<List<SakFromKlanke>> {
-        val resultsFromInfotrygd = klageFssProxyService.getKlageTilbakebetalingMuligheter(input = input)
-        return resultsFromInfotrygd
+    fun getKlageTilbakebetalingMuligheterFromInfotrygdAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+        return klageFssProxyService.getKlageTilbakebetalingMuligheterAsMono(input = input)
     }
 
     fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatusView {

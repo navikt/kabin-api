@@ -245,11 +245,11 @@ class RegistreringService(
 
         val input = IdnummerInput(idnummer = sakenGjelder!!.value)
 
-        val klagemuligheterFromInfotrygd = klageService.getKlagemuligheterFromInfotrygd(input)
-        val klageTilbakebetalingMuligheterFromInfotrygd = klageService.getKlageTilbakebetalingMuligheterFromInfotrygd(input)
-        val ankemuligheterFromInfotrygd = ankeService.getAnkemuligheterFromInfotrygd(input)
+        val klagemuligheterFromInfotrygdMono = klageService.getKlagemuligheterFromInfotrygdAsMono(input)
+        val klageTilbakebetalingMuligheterFromInfotrygdMono = klageService.getKlageTilbakebetalingMuligheterFromInfotrygdAsMono(input)
+        val ankemuligheterFromInfotrygdMono = ankeService.getAnkemuligheterFromInfotrygdAsMono(input)
 
-        val ankemuligheterFromKabal = ankeService.getAnkemuligheterFromKabal(input)
+        val ankemuligheterFromKabalMono = ankeService.getAnkemuligheterFromKabalAsMono(input)
 
         val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
         val muligheterFromKabal = mutableListOf<AnkemulighetFromKabal>()
@@ -258,10 +258,10 @@ class RegistreringService(
         var mulighetStart = System.currentTimeMillis()
 
         Flux.merge(
-            klagemuligheterFromInfotrygd,
-            klageTilbakebetalingMuligheterFromInfotrygd,
-            ankemuligheterFromInfotrygd,
-            ankemuligheterFromKabal,
+            klagemuligheterFromInfotrygdMono,
+            klageTilbakebetalingMuligheterFromInfotrygdMono,
+            ankemuligheterFromInfotrygdMono,
+            ankemuligheterFromKabalMono,
         ).parallel()
             .runOn(Schedulers.parallel())
             .doOnNext { mulighetList ->
@@ -1279,7 +1279,7 @@ class RegistreringService(
         val response: CreatedBehandlingResponse = when (registrering.type) {
             Type.ANKE -> {
                 ankeService.createAnke(
-                    CreateAnkeInputView(
+                    input = CreateAnkeInputView(
                         mottattKlageinstans = registrering.mottattKlageinstans,
                         behandlingstidUnits = registrering.behandlingstidUnits,
                         behandlingstidUnitType = registrering.behandlingstidUnitType,
@@ -1297,13 +1297,14 @@ class RegistreringService(
                             sourceId = mulighet.currentFagsystem.id,
                         ),
                         oppgaveId = registrering.oppgaveId,
-                    )
+                    ),
+                    ankemulighet = mulighet,
                 )
             }
 
             Type.KLAGE -> {
                 klageService.createKlage(
-                    CreateKlageInputView(
+                    input = CreateKlageInputView(
                         mottattKlageinstans = registrering.mottattKlageinstans,
                         mottattVedtaksinstans = registrering.mottattVedtaksinstans,
                         behandlingstidUnits = registrering.behandlingstidUnits,
@@ -1322,7 +1323,8 @@ class RegistreringService(
                             sourceId = mulighet.currentFagsystem.id,
                         ),
                         oppgaveId = registrering.oppgaveId,
-                    )
+                    ),
+                    klagemulighet = mulighet,
                 )
             }
 
@@ -1466,7 +1468,7 @@ class RegistreringService(
                     completed = it.completed,
                 )
             }.toMutableSet(),
-            klageBehandlendeEnhet = null,
+            klageBehandlendeEnhet = klageBehandlendeEnhet,
             currentFagystemTechnicalId = behandlingId.toString(),
         )
     }

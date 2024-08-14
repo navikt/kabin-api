@@ -24,19 +24,19 @@ class KlageFssProxyService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getAnkemuligheter(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+    fun getAnkemuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         return if (klageFssProxyClient.checkAccess().access) {
             klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"))
         } else Mono.empty()
     }
 
-    fun getKlagemuligheter(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+    fun getKlagemuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         //Deliberately fail if missing access.
         val klageSaker = klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"))
         return klageSaker
     }
 
-    fun getKlageTilbakebetalingMuligheter(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+    fun getKlageTilbakebetalingMuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         //Deliberately fail if missing access.
         val klageTilbakebetalingSaker = klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE_TILBAKEBETALING"))
         return klageTilbakebetalingSaker

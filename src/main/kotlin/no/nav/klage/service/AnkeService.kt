@@ -9,6 +9,7 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateAnkeInput
+import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.util.MulighetSource
@@ -33,9 +34,12 @@ class AnkeService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun createAnke(input: CreateAnkeInputView): CreatedBehandlingResponse {
+    fun createAnke(input: CreateAnkeInputView, ankemulighet: Mulighet): CreatedBehandlingResponse {
         val processedInput = validationUtil.validateCreateAnkeInputView(input)
-        val journalpostId = dokArkivService.handleJournalpostBasedOnAnkeInput(processedInput)
+        val journalpostId = dokArkivService.handleJournalpostBasedOnAnkeInput(
+            input = processedInput,
+            ankemulighet = ankemulighet
+        )
         val finalInput = processedInput.copy(ankeDocumentJournalpostId = journalpostId)
 
         return CreatedBehandlingResponse(
@@ -75,14 +79,12 @@ class AnkeService(
         return behandlingId
     }
 
-    fun getAnkemuligheterFromKabal(input: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
-        val ankemuligheterFromKabal = kabalApiService.getAnkemuligheter(input)
-
-        return ankemuligheterFromKabal
+    fun getAnkemuligheterFromKabalAsMono(input: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
+        return kabalApiService.getAnkemuligheterAsMono(input)
     }
 
-    fun getAnkemuligheterFromInfotrygd(input: IdnummerInput): Mono<List<SakFromKlanke>> {
-        return klageFssProxyService.getAnkemuligheter(input = input)
+    fun getAnkemuligheterFromInfotrygdAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+        return klageFssProxyService.getAnkemuligheterAsMono(input)
     }
 
     fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatusView {

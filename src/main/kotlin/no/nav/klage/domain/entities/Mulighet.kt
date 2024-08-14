@@ -87,7 +87,7 @@ class Mulighet(
     @Column(name = "type_id")
     val type: Type,
     @Column(name = "klage_behandlende_enhet")
-    val klageBehandlendeEnhet: String?,
+    val klageBehandlendeEnhet: String,
     /** sakId from Infotrygd or behandlingId from Kabal */
     @Column(name = "current_fagystem_technical_id")
     val currentFagystemTechnicalId: String,
