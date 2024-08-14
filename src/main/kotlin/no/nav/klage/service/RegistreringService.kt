@@ -1160,7 +1160,7 @@ class RegistreringService(
         klagemuligheter = muligheter.filter { it.type == Type.KLAGE }.map { mulighet ->
             mulighet.toKlagemulighetView()
         },
-        ankemuligheter = muligheter.map { mulighet ->
+        ankemuligheter = muligheter.filter { it.type == Type.ANKE }.map { mulighet ->
             mulighet.toAnkemulighetView()
         },
         muligheterFetched = muligheterFetched,
