@@ -240,22 +240,22 @@ class RegistreringService(
     }
 
     fun Registrering.reinitializeMuligheter() {
+        //Simple solution for now. Could potentially keep chosen mulighet, if it is still valid, and update accordingly.
         muligheter.clear()
 
-        val klagemuligheterFromInfotrygd =
-            klageService.getKlagemuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
-        val klageTilbakebetalingMuligheterFromInfotrygd =
-            klageService.getKlageTilbakebetalingMuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
-        val ankemuligheterFromInfotrygd =
-            ankeService.getAnkemuligheterFromInfotrygd(IdnummerInput(idnummer = sakenGjelder!!.value))
+        val input = IdnummerInput(idnummer = sakenGjelder!!.value)
 
-        val ankemuligheterFromKabal =
-            ankeService.getAnkemuligheterFromKabal(IdnummerInput(idnummer = sakenGjelder!!.value))
+        val klagemuligheterFromInfotrygd = klageService.getKlagemuligheterFromInfotrygd(input)
+        val klageTilbakebetalingMuligheterFromInfotrygd = klageService.getKlageTilbakebetalingMuligheterFromInfotrygd(input)
+        val ankemuligheterFromInfotrygd = ankeService.getAnkemuligheterFromInfotrygd(input)
+
+        val ankemuligheterFromKabal = ankeService.getAnkemuligheterFromKabal(input)
 
         val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
         val muligheterFromKabal = mutableListOf<AnkemulighetFromKabal>()
 
         var start = System.currentTimeMillis()
+        var mulighetStart = System.currentTimeMillis()
 
         Flux.merge(
             klagemuligheterFromInfotrygd,
@@ -265,6 +265,8 @@ class RegistreringService(
         ).parallel()
             .runOn(Schedulers.parallel())
             .doOnNext { mulighetList ->
+                logger.debug("Time to fetch mulighet: " + (System.currentTimeMillis() - mulighetStart))
+                mulighetStart = System.currentTimeMillis()
                 mulighetList.forEach { mulighet ->
                     if (mulighet is SakFromKlanke) {
                         muligheterFromInfotrygd.add(mulighet)
@@ -280,10 +282,14 @@ class RegistreringService(
 
         start = System.currentTimeMillis()
 
+        var duplicateCheckStart = System.currentTimeMillis()
+
         val behandlingIsDuplicateResponses = Flux.fromIterable(muligheterFromInfotrygd)
             .parallel()
             .runOn(Schedulers.parallel())
             .flatMap { mulighetFromInfotrygd ->
+                logger.debug("Time to check duplicate: " + (System.currentTimeMillis() - duplicateCheckStart))
+                duplicateCheckStart = System.currentTimeMillis()
                 kabalApiClient.checkBehandlingDuplicateInKabal(
                     input = BehandlingIsDuplicateInput(
                         fagsystemId = Fagsystem.IT01.id,
@@ -300,16 +306,17 @@ class RegistreringService(
         logger.debug("Found ${muligheterFromInfotrygd.size} muligheter from Infotrygd.")
         logger.debug("Found ${muligheterFromKabal.size} muligheter from Kabal.")
 
-        muligheter.addAll(muligheterFromInfotrygd
+        val filteredInfotrygdMuligheter = muligheterFromInfotrygd
             .filter { mulighetFromInfotrygd ->
                 !behandlingIsDuplicateResponses.first {
                     //enough?
                     it.kildereferanse == mulighetFromInfotrygd.sakId
                 }.duplicate
             }
-            .map { it.toMulighet() })
 
+        muligheter.addAll(filteredInfotrygdMuligheter.map { it.toMulighet() })
         muligheter.addAll(muligheterFromKabal.map { it.toMulighet() })
+
         muligheterFetched = LocalDateTime.now()
     }
 
