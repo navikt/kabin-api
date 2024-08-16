@@ -53,7 +53,7 @@ class ModifySvarbrevReiceversTest {
         registrering.klager = PartId(type = PartIdType.PERSON, value = "123")
         registrering.svarbrevReceivers.add(getSvarbrevRecipient("123"))
 
-        registreringService.handleReceiversWhenAddingPart(
+        registreringService.handleReceiversWhenChangingPart(
             unchangedRegistrering = registrering,
             partIdInput = PartIdInput(
                 type = PartType.FNR,
@@ -102,7 +102,7 @@ class ModifySvarbrevReiceversTest {
         registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "fullmektig")
         registrering.svarbrevReceivers.add(getSvarbrevRecipient("fullmektig"))
 
-        registreringService.handleReceiversWhenAddingPart(
+        registreringService.handleReceiversWhenChangingPart(
             unchangedRegistrering = registrering,
             partIdInput = null,
             partISaken = RegistreringService.PartISaken.FULLMEKTIG
@@ -120,7 +120,7 @@ class ModifySvarbrevReiceversTest {
         registrering.klager = PartId(type = PartIdType.PERSON, value = "klager")
         registrering.svarbrevReceivers.add(getSvarbrevRecipient("klager"))
 
-        registreringService.handleReceiversWhenAddingPart(
+        registreringService.handleReceiversWhenChangingPart(
             unchangedRegistrering = registrering,
             partIdInput = null,
             partISaken = RegistreringService.PartISaken.KLAGER
@@ -138,7 +138,7 @@ class ModifySvarbrevReiceversTest {
         registrering.avsender = PartId(type = PartIdType.PERSON, value = "avsender")
         registrering.svarbrevReceivers.add(getSvarbrevRecipient("avsender"))
 
-        registreringService.handleReceiversWhenAddingPart(
+        registreringService.handleReceiversWhenChangingPart(
             unchangedRegistrering = registrering,
             partIdInput = null,
             partISaken = RegistreringService.PartISaken.AVSENDER
@@ -157,7 +157,7 @@ class ModifySvarbrevReiceversTest {
         registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "123")
         registrering.svarbrevReceivers.add(getSvarbrevRecipient("123"))
 
-        registreringService.handleReceiversWhenAddingPart(
+        registreringService.handleReceiversWhenChangingPart(
             unchangedRegistrering = registrering,
             partIdInput = null,
             partISaken = RegistreringService.PartISaken.FULLMEKTIG
@@ -176,7 +176,7 @@ class ModifySvarbrevReiceversTest {
         registrering.avsender = PartId(type = PartIdType.PERSON, value = "123")
         registrering.svarbrevReceivers.add(getSvarbrevRecipient("123"))
 
-        registreringService.handleReceiversWhenAddingPart(
+        registreringService.handleReceiversWhenChangingPart(
             unchangedRegistrering = registrering,
             partIdInput = null,
             partISaken = RegistreringService.PartISaken.AVSENDER

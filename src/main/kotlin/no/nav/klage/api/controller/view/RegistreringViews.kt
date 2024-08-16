@@ -76,13 +76,13 @@ data class TypeChangeRegistreringView(
     )
 
     data class TypeChangeRegistreringSvarbrevView(
-        val send: Boolean? = null,
-        val behandlingstid: BehandlingstidView? = null,
-        val fullmektigFritekst: String? = null,
+        val send: Boolean?,
+        val behandlingstid: BehandlingstidView?,
+        val fullmektigFritekst: String?,
         val receivers: List<RecipientView> = emptyList(),
-        val overrideCustomText: Boolean = false,
-        val overrideBehandlingstid: Boolean = false,
-        val customText: String? = null,
+        val overrideCustomText: Boolean,
+        val overrideBehandlingstid: Boolean,
+        val customText: String?,
     )
 }
 
