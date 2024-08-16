@@ -168,10 +168,19 @@ class RegistreringService(
                     journalpostId = input.journalpostId
                 )
 
-                if (type == Type.KLAGE) {
-                    mottattVedtaksinstans = document.datoOpprettet.toLocalDate()
-                } else if (type == Type.ANKE) {
-                    mottattKlageinstans = document.datoOpprettet.toLocalDate()
+                when (type) {
+                    Type.KLAGE -> {
+                        mottattVedtaksinstans = document.datoOpprettet.toLocalDate()
+                    }
+                    Type.ANKE -> {
+                        mottattKlageinstans = document.datoOpprettet.toLocalDate()
+                    }
+                    null -> {
+                        mottattVedtaksinstans = document.datoOpprettet.toLocalDate()
+                        mottattKlageinstans = document.datoOpprettet.toLocalDate()
+                    }
+
+                    else -> {} //do nothing
                 }
 
                 //empty the properties that no longer make sense if journalpostId changes.
