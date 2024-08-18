@@ -98,21 +98,6 @@ class RegistreringController(
         )
     }
 
-    @GetMapping("/{id}/validate")
-    fun validateRegistrering(
-        @PathVariable id: UUID,
-    ) {
-        logMethodDetails(
-            methodName = ::getRegistrering.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-
-        registreringService.validateRegistrering(
-            registreringId = id
-        )
-    }
-
     @PutMapping("/{id}/saken-gjelder-value")
     fun updateSakenGjelderValue(
         @PathVariable id: UUID,
