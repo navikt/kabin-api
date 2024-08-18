@@ -2,8 +2,6 @@ package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
-import no.nav.klage.service.AnkeService
-import no.nav.klage.service.KlageService
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -19,8 +17,6 @@ import java.util.*
 class RegistreringController(
     private val registreringService: RegistreringService,
     private val tokenUtil: TokenUtil,
-    private val klageService: KlageService,
-    private val ankeService: AnkeService,
 ) {
 
     companion object {
