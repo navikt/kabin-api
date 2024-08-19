@@ -18,7 +18,10 @@ fun SvarbrevReceiver.toRecipientView(
     kabalApiClient: KabalApiClient,
 ) = RecipientView(
     id = id,
-    part = registrering.partViewWithOptionalUtsendingskanal(identifikator = part.value, kabalApiClient = kabalApiClient),
+    part = registrering.partViewWithOptionalUtsendingskanal(
+        identifikator = part.value,
+        kabalApiClient = kabalApiClient
+    ),
     handling = handling,
     overriddenAddress = overriddenAddress?.let { address ->
         RecipientView.AddressView(
@@ -84,13 +87,27 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiClient: KabalApiClient
                 )
             } else null,
             hjemmelIdList = hjemmelIdList,
-            fullmektig = fullmektig?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value, kabalApiClient = kabalApiClient) },
-            klager = klager?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value, kabalApiClient = kabalApiClient) },
-            avsender = avsender?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value, kabalApiClient = kabalApiClient) },
+            fullmektig = fullmektig?.let {
+                partViewWithOptionalUtsendingskanal(
+                    identifikator = it.value,
+                    kabalApiClient = kabalApiClient
+                )
+            },
+            klager = klager?.let {
+                partViewWithOptionalUtsendingskanal(
+                    identifikator = it.value,
+                    kabalApiClient = kabalApiClient
+                )
+            },
+            avsender = avsender?.let {
+                partViewWithOptionalUtsendingskanal(
+                    identifikator = it.value,
+                    kabalApiClient = kabalApiClient
+                )
+            },
             saksbehandlerIdent = saksbehandlerIdent,
             oppgaveId = oppgaveId,
-
-            ),
+        ),
         svarbrev = MulighetChangeRegistreringView.MulighetChangeRegistreringSvarbrevView(
             send = sendSvarbrev,
             behandlingstid = if (svarbrevBehandlingstidUnits != null) {
@@ -137,9 +154,24 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
         } else null,
         hjemmelIdList = hjemmelIdList,
         ytelseId = ytelse?.id,
-        fullmektig = fullmektig?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value, kabalApiClient = kabalApiClient) },
-        klager = klager?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value, kabalApiClient = kabalApiClient) },
-        avsender = avsender?.let { partViewWithOptionalUtsendingskanal(identifikator = it.value, kabalApiClient = kabalApiClient) },
+        fullmektig = fullmektig?.let {
+            partViewWithOptionalUtsendingskanal(
+                identifikator = it.value,
+                kabalApiClient = kabalApiClient
+            )
+        },
+        klager = klager?.let {
+            partViewWithOptionalUtsendingskanal(
+                identifikator = it.value,
+                kabalApiClient = kabalApiClient
+            )
+        },
+        avsender = avsender?.let {
+            partViewWithOptionalUtsendingskanal(
+                identifikator = it.value,
+                kabalApiClient = kabalApiClient
+            )
+        },
         saksbehandlerIdent = saksbehandlerIdent,
         oppgaveId = oppgaveId,
     ),
@@ -180,7 +212,10 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
     muligheterFetched = muligheterFetched,
 )
 
-fun Registrering.partViewWithOptionalUtsendingskanal(identifikator: String, kabalApiClient: KabalApiClient): PartViewWithOptionalUtsendingskanal =
+fun Registrering.partViewWithOptionalUtsendingskanal(
+    identifikator: String,
+    kabalApiClient: KabalApiClient
+): PartViewWithOptionalUtsendingskanal =
     if (ytelse != null) {
         kabalApiClient.searchPartWithUtsendingskanal(
             searchPartInput = SearchPartWithUtsendingskanalInput(
@@ -421,7 +456,7 @@ fun Mulighet.toKlagemulighetView() =
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
         typeId = type.id,
-        klageBehandlendeEnhet = klageBehandlendeEnhet!!,
+        klageBehandlendeEnhet = klageBehandlendeEnhet,
     )
 
 fun Mulighet.toAnkemulighetView(): AnkemulighetView =

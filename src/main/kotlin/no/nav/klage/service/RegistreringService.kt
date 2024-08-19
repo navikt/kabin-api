@@ -115,13 +115,13 @@ class RegistreringService(
                 }
                 modified = LocalDateTime.now()
 
+                //empty the properties that no longer make sense if sakenGjelder changes.
+                mulighetId = null
                 reinitializeMuligheter()
 
-                //empty the properties that no longer make sense if sakenGjelder changes.
                 journalpostId = null
                 ytelse = null
                 type = null
-                mulighetId = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
                 hjemmelIdList = listOf()
@@ -138,6 +138,8 @@ class RegistreringService(
                 svarbrevBehandlingstidUnitType = null
                 svarbrevFullmektigFritekst = null
                 svarbrevReceivers.clear()
+                willCreateNewJournalpost = false
+
                 //Add as default
                 svarbrevReceivers.add(
                     SvarbrevReceiver(
@@ -149,7 +151,6 @@ class RegistreringService(
                         handling = HandlingEnum.AUTO,
                     )
                 )
-                willCreateNewJournalpost = false
             }
         return registrering.toRegistreringView(kabalApiClient = kabalApiClient)
     }
@@ -285,9 +286,6 @@ class RegistreringService(
     }
 
     fun Registrering.reinitializeMuligheter() {
-        //Simple solution for now. Could potentially keep chosen mulighet, if it is still valid, and update accordingly.
-        muligheter.clear()
-
         val input = IdnummerInput(idnummer = sakenGjelder!!.value)
 
         val klagemuligheterFromInfotrygdMono = klageService.getKlagemuligheterFromInfotrygdAsMono(input)
@@ -360,8 +358,24 @@ class RegistreringService(
                 }.duplicate
             }
 
-        muligheter.addAll(filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiClient = kabalApiClient) })
-        muligheter.addAll(muligheterFromKabal.map { it.toMulighet() })
+        var muligheterToStoreInDB = filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiClient = kabalApiClient) } + muligheterFromKabal.map { it.toMulighet() }
+
+        //Keep chosen mulighet, if it is still valid, and update accordingly.
+        if (mulighetId == null) {
+            muligheter.clear()
+        } else {
+            val previouslyChosenMulighet = muligheter.find { it.id == mulighetId }
+            muligheter.removeIf {
+                !(it.currentFagystemTechnicalId == previouslyChosenMulighet?.currentFagystemTechnicalId
+                        && it.currentFagsystem == previouslyChosenMulighet.currentFagsystem)
+            }
+            muligheterToStoreInDB = muligheterToStoreInDB.filter {
+                !(it.currentFagystemTechnicalId == previouslyChosenMulighet?.currentFagystemTechnicalId
+                        && it.currentFagsystem == previouslyChosenMulighet.currentFagsystem)
+            }
+        }
+
+        muligheter.addAll(muligheterToStoreInDB)
 
         muligheterFetched = LocalDateTime.now()
     }
@@ -1194,11 +1208,10 @@ class RegistreringService(
         )
     }
 
-    fun getMuligheter(registreringId: UUID): Muligheter {
+    fun getMuligheter(registreringId: UUID): MuligheterView {
         val registrering = getRegistreringForUpdate(registreringId)
-        if (registrering.muligheter.isEmpty()) {
-            registrering.reinitializeMuligheter()
-        }
+        registrering.reinitializeMuligheter()
+
         val (klagemuligheter, ankemuligheter) = registrering.muligheter.partition { it.type == Type.KLAGE }
 
         val klagemuligheterView = klagemuligheter.map { klagemulighet ->
@@ -1209,7 +1222,7 @@ class RegistreringService(
             ankemulighet.toAnkemulighetView()
         }
 
-        return Muligheter(
+        return MuligheterView(
             klagemuligheter = klagemuligheterView,
             ankemuligheter = ankemuligheterView,
             muligheterFetched = registrering.muligheterFetched!!,

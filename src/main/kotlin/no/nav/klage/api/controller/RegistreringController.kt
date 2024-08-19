@@ -426,7 +426,7 @@ class RegistreringController(
     @GetMapping("/{id}/muligheter", produces = ["application/json"])
     fun getMuligheter(
         @PathVariable id: UUID,
-    ): Muligheter {
+    ): MuligheterView {
         logMethodDetails(
             methodName = ::getMuligheter.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),

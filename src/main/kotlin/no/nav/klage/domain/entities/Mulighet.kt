@@ -54,6 +54,7 @@ import java.util.*
 class Mulighet(
     @Id
     val id: UUID = UUID.randomUUID(),
+    //TODO: Should complete parts be stored in db, or fetched from external service?
     @Embedded
     val sakenGjelder: PartWithUtsendingskanal,
     @Embedded

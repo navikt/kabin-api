@@ -55,7 +55,7 @@ interface MulighetView {
     val typeId: String
 }
 
-data class Muligheter(
+data class MuligheterView(
     val klagemuligheter: List<KlagemulighetView>,
     val ankemuligheter: List<AnkemulighetView>,
     val muligheterFetched: LocalDateTime,
