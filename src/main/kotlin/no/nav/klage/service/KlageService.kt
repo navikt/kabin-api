@@ -62,18 +62,26 @@ class KlageService(
             frist = frist
         )
 
-        klageFssProxyService.setToHandledInKabal(
-            sakId = sakFromKlanke.sakId,
-            frist = frist,
-        )
-
-        input.oppgaveId?.let {
-            logger.debug("Attempting oppgave update")
-            oppgaveService.updateOppgave(
-                oppgaveId = it,
+        try {
+            klageFssProxyService.setToHandledInKabal(
+                sakId = sakFromKlanke.sakId,
                 frist = frist,
-                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
             )
+        } catch (e: Exception) {
+            logger.error("Failed to set to handled in kabal", e)
+        }
+
+        try {
+            input.oppgaveId?.let {
+                logger.debug("Attempting oppgave update")
+                oppgaveService.updateOppgave(
+                    oppgaveId = it,
+                    frist = frist,
+                    tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
+                )
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to update oppgave", e)
         }
 
         return behandlingId
