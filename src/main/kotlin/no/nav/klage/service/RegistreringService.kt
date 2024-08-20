@@ -54,6 +54,7 @@ class RegistreringService(
                 fullmektig = null,
                 avsender = null,
                 journalpostId = null,
+                journalpostDatoOpprettet = null,
                 type = null,
                 mulighetId = null,
                 mottattVedtaksinstans = null,
@@ -165,22 +166,7 @@ class RegistreringService(
                     journalpostId = input.journalpostId
                 )
 
-                when (type) {
-                    Type.KLAGE -> {
-                        mottattVedtaksinstans = document.datoOpprettet.toLocalDate()
-                    }
-
-                    Type.ANKE -> {
-                        mottattKlageinstans = document.datoOpprettet.toLocalDate()
-                    }
-
-                    null -> {
-                        mottattVedtaksinstans = document.datoOpprettet.toLocalDate()
-                        mottattKlageinstans = document.datoOpprettet.toLocalDate()
-                    }
-
-                    else -> {} //do nothing
-                }
+                journalpostDatoOpprettet = document.datoOpprettet.toLocalDate()
 
                 //empty the properties that no longer make sense if journalpostId changes.
 
@@ -193,7 +179,23 @@ class RegistreringService(
                 svarbrevFullmektigFritekst = null
 
                 //Slett klager hvis klager ikke kom fra muligheten
+
                 val mulighet = muligheter.find { it.id == mulighetId }
+
+                if (mulighet != null) {
+                    when (type) {
+                        Type.KLAGE -> {
+                            mottattVedtaksinstans = journalpostDatoOpprettet
+                        }
+
+                        Type.ANKE -> {
+                            mottattKlageinstans = journalpostDatoOpprettet
+                        }
+
+                        else -> {} //do nothing
+                    }
+                }
+
                 if ((mulighet == null) || klager != null && klager?.value != mulighet.klager?.part?.value) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
@@ -249,9 +251,8 @@ class RegistreringService(
                 modified = LocalDateTime.now()
 
                 //empty the properties that no longer make sense if typeId changes.
-                if (type == Type.KLAGE) {
-                    mottattKlageinstans = null
-                }
+                mottattKlageinstans = null
+                mottattVedtaksinstans = null
 
                 //Slett klager kun hvis klager kom fra muligheten
                 val mulighet = muligheter.find { it.id == mulighetId }
@@ -283,6 +284,82 @@ class RegistreringService(
                 willCreateNewJournalpost = false
 
             }.toTypeChangeRegistreringView(kabalApiClient = kabalApiClient)
+    }
+
+    fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
+        return getRegistreringForUpdate(registreringId)
+            .apply {
+                //Slett klager hvis klager kom fra muligheten
+                val previousMulighet = muligheter.find { it.id == mulighetId }
+                if (previousMulighet != null && klager != null && klager?.value != previousMulighet.klager?.part?.value) {
+                    klager = null
+                }
+
+                mulighetId = input.mulighetId
+
+                val newMulighet = muligheter.find { it.id == input.mulighetId }
+                    ?: throw MulighetNotFoundException("Mulighet ikke funnet.")
+
+                val previousYtelse = ytelse
+                val currentYtelseCandidates = getYtelseOrNull(newMulighet)
+                if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
+                    //don't change ytelse if it is still valid.
+                } else if (currentYtelseCandidates.size == 1) {
+                    ytelse = currentYtelseCandidates.first()
+                } else {
+                    ytelse = null
+                }
+
+                if ((previousYtelse != null && ytelse != null && previousYtelse != ytelse)
+                    || (previousYtelse == null && ytelse != null)
+                ) {
+                    //set svarbrev settings (and reset old) for the new ytelse
+                    setSvarbrevSettings()
+                    svarbrevReceivers.clear()
+                    hjemmelIdList = emptyList()
+
+                    //Could be smarter here.
+                    saksbehandlerIdent = null
+                } else if (ytelse == null) {
+                    //empty the properties that no longer make sense if ytelse is null.
+                    sendSvarbrev = false
+                    svarbrevCustomText = null
+                    svarbrevBehandlingstidUnits = null
+                    svarbrevBehandlingstidUnitType = null
+                    overrideSvarbrevBehandlingstid = false
+                    overrideSvarbrevCustomText = false
+
+                    svarbrevReceivers.clear()
+
+                    hjemmelIdList = emptyList()
+
+                    saksbehandlerIdent = null
+                }
+
+                if (type == Type.KLAGE) {
+                    mottattKlageinstans = newMulighet.vedtakDate
+                    mottattVedtaksinstans = journalpostDatoOpprettet
+                } else if (type == Type.ANKE) {
+                    handleReceiversWhenChangingPart(
+                        unchangedRegistrering = this,
+                        partIdInput = newMulighet.klager?.part.toPartIdInput(),
+                        partISaken = PartISaken.KLAGER,
+                    )
+                    klager = newMulighet.klager?.part
+                    mottattKlageinstans = journalpostDatoOpprettet
+                    mottattVedtaksinstans = null
+                }
+
+                modified = LocalDateTime.now()
+
+                willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                    journalpostId = this.journalpostId!!,
+                    fagsakId = newMulighet.fagsakId,
+                    fagsystemId = newMulighet.originalFagsystem.id,
+                )
+
+                //What about fullmektig?
+            }.toMulighetChangeRegistreringView(kabalApiClient = kabalApiClient)
     }
 
     fun Registrering.reinitializeMuligheter() {
@@ -378,79 +455,6 @@ class RegistreringService(
         muligheter.addAll(muligheterToStoreInDB)
 
         muligheterFetched = LocalDateTime.now()
-    }
-
-    fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
-        return getRegistreringForUpdate(registreringId)
-            .apply {
-                //Slett klager hvis klager kom fra muligheten
-                val previousMulighet = muligheter.find { it.id == mulighetId }
-                if (previousMulighet != null && klager != null && klager?.value != previousMulighet.klager?.part?.value) {
-                    klager = null
-                }
-
-                mulighetId = input.mulighetId
-
-                val newMulighet = muligheter.find { it.id == input.mulighetId }
-                    ?: throw MulighetNotFoundException("Mulighet ikke funnet.")
-
-                val previousYtelse = ytelse
-                val currentYtelseCandidates = getYtelseOrNull(newMulighet)
-                if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
-                    //don't change ytelse if it is still valid.
-                } else if (currentYtelseCandidates.size == 1) {
-                    ytelse = currentYtelseCandidates.first()
-                } else {
-                    ytelse = null
-                }
-
-                if ((previousYtelse != null && ytelse != null && previousYtelse != ytelse)
-                    || (previousYtelse == null && ytelse != null)
-                ) {
-                    //set svarbrev settings (and reset old) for the new ytelse
-                    setSvarbrevSettings()
-                    svarbrevReceivers.clear()
-                    hjemmelIdList = emptyList()
-
-                    //Could be smarter here.
-                    saksbehandlerIdent = null
-                } else if (ytelse == null) {
-                    //empty the properties that no longer make sense if ytelse is null.
-                    sendSvarbrev = false
-                    svarbrevCustomText = null
-                    svarbrevBehandlingstidUnits = null
-                    svarbrevBehandlingstidUnitType = null
-                    overrideSvarbrevBehandlingstid = false
-                    overrideSvarbrevCustomText = false
-
-                    svarbrevReceivers.clear()
-
-                    hjemmelIdList = emptyList()
-
-                    saksbehandlerIdent = null
-                }
-
-                if (type == Type.KLAGE) {
-                    mottattKlageinstans = newMulighet.vedtakDate
-                } else if (type == Type.ANKE) {
-                    handleReceiversWhenChangingPart(
-                        unchangedRegistrering = this,
-                        partIdInput = newMulighet.klager?.part.toPartIdInput(),
-                        partISaken = PartISaken.KLAGER,
-                    )
-                    klager = newMulighet.klager?.part
-                }
-
-                modified = LocalDateTime.now()
-
-                willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-                    journalpostId = this.journalpostId!!,
-                    fagsakId = newMulighet.fagsakId,
-                    fagsystemId = newMulighet.originalFagsystem.id,
-                )
-
-                //What about fullmektig?
-            }.toMulighetChangeRegistreringView(kabalApiClient = kabalApiClient)
     }
 
     private fun Registrering.setSvarbrevSettings() {

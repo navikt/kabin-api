@@ -26,6 +26,7 @@ CREATE TABLE klage.registrering
     avsender_type                        TEXT,
     avsender_value                       TEXT,
     journalpost_id                       TEXT,
+    journalpost_dato_opprettet           DATE,
     type_id                              TEXT,
     mulighet_id                          UUID,
     mottatt_vedtaksinstans               DATE,
