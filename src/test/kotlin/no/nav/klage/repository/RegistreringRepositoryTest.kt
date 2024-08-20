@@ -210,6 +210,7 @@ class RegistreringRepositoryTest {
         assertThat(registreringFromDb.fullmektig).isEqualTo(registrering.fullmektig)
         assertThat(registreringFromDb.avsender).isEqualTo(registrering.avsender)
         assertThat(registreringFromDb.journalpostId).isEqualTo(registrering.journalpostId)
+        assertThat(registreringFromDb.journalpostDatoOpprettet).isEqualTo(registrering.journalpostDatoOpprettet)
         assertThat(registreringFromDb.type).isEqualTo(registrering.type)
         assertThat(registreringFromDb.mulighetId).isEqualTo(registrering.mulighetId)
         assertThat(registreringFromDb.mottattVedtaksinstans).isEqualTo(registrering.mottattVedtaksinstans)
