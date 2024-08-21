@@ -141,17 +141,7 @@ class RegistreringService(
                 svarbrevReceivers.clear()
                 willCreateNewJournalpost = false
 
-                //Add as default
-                svarbrevReceivers.add(
-                    SvarbrevReceiver(
-                        part = PartId(
-                            value = sakenGjelder!!.value,
-                            type = PartIdType.PERSON
-                        ),
-                        overriddenAddress = null,
-                        handling = HandlingEnum.AUTO,
-                    )
-                )
+                handleSvarbrevReceivers()
             }
         return registrering.toRegistreringView(kabalApiClient = kabalApiClient)
     }
@@ -170,11 +160,6 @@ class RegistreringService(
 
                 //empty the properties that no longer make sense if journalpostId changes.
 
-                handleReceiversWhenChangingPart(
-                    unchangedRegistrering = this,
-                    partIdInput = null,
-                    partISaken = PartISaken.FULLMEKTIG,
-                )
                 fullmektig = null
                 svarbrevFullmektigFritekst = null
 
@@ -196,14 +181,14 @@ class RegistreringService(
                     }
                 }
 
-                if ((mulighet == null) || klager != null && klager?.value != mulighet.klager?.part?.value) {
-                    handleReceiversWhenChangingPart(
-                        unchangedRegistrering = this,
-                        partIdInput = null,
-                        partISaken = PartISaken.KLAGER,
-                    )
-                    klager = null
-                }
+//                if ((mulighet == null) || klager != null && klager?.value != mulighet.klager?.part?.value) {
+//                    handleReceiversWhenChangingPart(
+//                        unchangedRegistrering = this,
+//                        partIdInput = null,
+//                        partISaken = PartISaken.KLAGER,
+//                    )
+//                    klager = null
+//                }
 
                 val avsenderPartId =
                     if (document.journalposttype == DokumentReferanse.Journalposttype.I && document.avsenderMottaker != null) {
@@ -222,12 +207,6 @@ class RegistreringService(
                         null
                     }
 
-                handleReceiversWhenChangingPart(
-                    unchangedRegistrering = this,
-                    partIdInput = avsenderPartId.toPartIdInput(),
-                    partISaken = PartISaken.AVSENDER,
-                )
-
                 avsender = avsenderPartId
 
                 if (mulighet != null) {
@@ -237,6 +216,8 @@ class RegistreringService(
                         fagsystemId = mulighet.originalFagsystem.id,
                     )
                 }
+
+                handleSvarbrevReceivers()
             }
 
         return registrering.toRegistreringView(kabalApiClient = kabalApiClient)
@@ -253,17 +234,6 @@ class RegistreringService(
                 //empty the properties that no longer make sense if typeId changes.
                 mottattKlageinstans = null
                 mottattVedtaksinstans = null
-
-                //Slett klager kun hvis klager kom fra muligheten
-                val mulighet = muligheter.find { it.id == mulighetId }
-                if (mulighet != null && klager != null && klager?.value != mulighet.klager?.part?.value) {
-                    handleReceiversWhenChangingPart(
-                        unchangedRegistrering = this,
-                        partIdInput = null,
-                        partISaken = PartISaken.KLAGER,
-                    )
-                    klager = null
-                }
 
                 mulighetId = null
 
@@ -289,12 +259,6 @@ class RegistreringService(
     fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
         return getRegistreringForUpdate(registreringId)
             .apply {
-                //Slett klager hvis klager kom fra muligheten
-                val previousMulighet = muligheter.find { it.id == mulighetId }
-                if (previousMulighet != null && klager != null && klager?.value != previousMulighet.klager?.part?.value) {
-                    klager = null
-                }
-
                 mulighetId = input.mulighetId
 
                 val newMulighet = muligheter.find { it.id == input.mulighetId }
@@ -315,7 +279,6 @@ class RegistreringService(
                 ) {
                     //set svarbrev settings (and reset old) for the new ytelse
                     setSvarbrevSettings()
-                    svarbrevReceivers.clear()
                     hjemmelIdList = emptyList()
 
                     //Could be smarter here.
@@ -328,8 +291,6 @@ class RegistreringService(
                     svarbrevBehandlingstidUnitType = null
                     overrideSvarbrevBehandlingstid = false
                     overrideSvarbrevCustomText = false
-
-                    svarbrevReceivers.clear()
 
                     hjemmelIdList = emptyList()
 
@@ -348,6 +309,7 @@ class RegistreringService(
                     klager = newMulighet.klager?.part
                     mottattKlageinstans = journalpostDatoOpprettet
                     mottattVedtaksinstans = null
+                    handleSvarbrevReceivers()
                 }
 
                 modified = LocalDateTime.now()
@@ -640,6 +602,7 @@ class RegistreringService(
                     svarbrevFullmektigFritekst = part.name
                 }
                 modified = LocalDateTime.now()
+                handleSvarbrevReceivers()
             }
         return FullmektigChangeRegistreringView(
             id = registrering.id,
@@ -667,34 +630,9 @@ class RegistreringService(
         val svarbrevReceivers = unchangedRegistrering.svarbrevReceivers
 
         //if there is only one receiver, and it is the same as the sakenGjelder (default set), clear it.
-        if (partIdInput != null && svarbrevReceivers.size == 1 && svarbrevReceivers.first().part.value == unchangedRegistrering.sakenGjelder?.value) {
+        if (partIdInput != null && svarbrevReceivers.size == 1 && svarbrevReceivers.first().part.value == unchangedRegistrering.sakenGjelder?.value && partIdInput.id != unchangedRegistrering.sakenGjelder?.value) {
             svarbrevReceivers.clear()
         }
-
-        if (partIdInput != null) {
-            if (svarbrevReceivers.any { it.part.value == partIdInput.id }) {
-                //if the receiver is already in the list, we don't need to do anything.
-                return
-            }
-        }
-
-//        val existingParts = listOf(
-//            unchangedRegistrering.sakenGjelder?.value,
-//            unchangedRegistrering.klager?.value,
-//            unchangedRegistrering.fullmektig?.value
-//        )
-//
-//        //if the receiver is in the list, we remove it.
-//        when {
-//            partISaken == PartISaken.FULLMEKTIG && existingParts.count { it == unchangedRegistrering.fullmektig?.value } == 1 -> {
-//                svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.fullmektig?.value }
-//            }
-//
-//            partISaken == PartISaken.KLAGER && existingParts.count { it == unchangedRegistrering.klager?.value } == 1 -> {
-//                svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.klager?.value }
-//            }
-//        }
-
     }
 
     enum class PartISaken {
@@ -737,6 +675,7 @@ class RegistreringService(
                     )
                 }
                 modified = LocalDateTime.now()
+                handleSvarbrevReceivers()
             }
         return KlagerChangeRegistreringView(
             id = registrering.id,
@@ -763,13 +702,6 @@ class RegistreringService(
                 if (avsender?.value == input.avsender?.id) {
                     return@apply
                 }
-
-                //Note: Avsender is not a "part" in the same way as klager and fullmektig, so we don't need to handle receivers here.
-//                handleReceiversWhenChangingPart(
-//                    unchangedRegistrering = this,
-//                    partIdInput = input.avsender,
-//                    partISaken = PartISaken.AVSENDER
-//                )
 
                 //2. avsender is set to null
                 if (input.avsender == null) {

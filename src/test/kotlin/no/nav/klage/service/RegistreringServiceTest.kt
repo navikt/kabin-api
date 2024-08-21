@@ -1,6 +1,7 @@
 package no.nav.klage.service
 
 import io.mockk.mockk
+import no.nav.klage.api.controller.view.FullmektigInput
 import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.domain.entities.HandlingEnum
@@ -18,31 +19,6 @@ import java.time.LocalDateTime
 import java.util.*
 
 class ModifySvarbrevReiceversTest {
-
-//    @Test
-//    fun `add fullmektig as only new part`() {
-//        val registreringService = RegistreringService(
-//            registreringRepository = mockk(),
-//            tokenUtil = mockk(),
-//            kabalApiClient = mockk(),
-//        )
-//
-//        val registrering = getRegistrering()
-//
-//        registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
-//
-//        registreringService.handleReceiversWhenAddingPart(
-//            unchangedRegistrering = registrering,
-//            partIdInput = PartIdInput(
-//                type = PartType.FNR,
-//                id = "fullmektig",
-//            ),
-//            partISaken = RegistreringService.PartISaken.FULLMEKTIG
-//        )
-//
-//        assertThat(registrering.svarbrevReceivers).hasSize(1)
-//        assertThat(registrering.svarbrevReceivers.first().part.value).isEqualTo("fullmektig")
-//    }
 
     @Test
     fun `add fullmektig same id as klager`() {
@@ -66,68 +42,40 @@ class ModifySvarbrevReiceversTest {
         assertThat(registrering.svarbrevReceivers.first().part.value).isEqualTo("123")
     }
 
-//    @Test
-//    fun `add fullmektig when we already have a klager`() {
-//        val registreringService = RegistreringService(
-//            registreringRepository = mockk(),
-//            tokenUtil = mockk(),
-//            kabalApiClient = mockk(),
-//        )
-//
-//        val registrering = getRegistrering()
-//        registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
-//        registrering.klager = PartId(type = PartIdType.PERSON, value = "klager")
-//        registrering.svarbrevReceivers.add(getSvarbrevRecipient("klager"))
-//
-//        registreringService.handleReceiversWhenAddingPart(
-//            unchangedRegistrering = registrering,
-//            partIdInput = PartIdInput(
-//                type = PartType.FNR,
-//                id = "fullmektig",
-//            ),
-//            partISaken = RegistreringService.PartISaken.FULLMEKTIG
-//        )
-//
-//        assertThat(registrering.svarbrevReceivers).hasSize(2)
-//        assertThat(registrering.svarbrevReceivers.first().part.value).isEqualTo("klager")
-//        assertThat(registrering.svarbrevReceivers.last().part.value).isEqualTo("fullmektig")
-//    }
+    @Test
+    fun `set default receiver when needed`() {
+        val registrering = getRegistrering()
+        registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
 
-//    @Test
-//    fun `remove fullmektig as the only one`() {
-//        val registreringService = getRegistreringService()
-//
-//        val registrering = getRegistrering()
-//        registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
-//        registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "fullmektig")
-//        registrering.svarbrevReceivers.add(getSvarbrevRecipient("fullmektig"))
-//
-//        registreringService.handleReceiversWhenChangingPart(
-//            unchangedRegistrering = registrering,
-//            partIdInput = null,
-//            partISaken = RegistreringService.PartISaken.FULLMEKTIG
-//        )
-//
-//        assertThat(registrering.svarbrevReceivers).isEmpty()
-//    }
+        assertThat(registrering.svarbrevReceivers).hasSize(0)
 
-//    @Test
-//    fun `remove klager as the only one`() {
-//        val registreringService = getRegistreringService()
-//
-//        val registrering = getRegistrering()
-//        registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
-//        registrering.klager = PartId(type = PartIdType.PERSON, value = "klager")
-//        registrering.svarbrevReceivers.add(getSvarbrevRecipient("klager"))
-//
-//        registreringService.handleReceiversWhenChangingPart(
-//            unchangedRegistrering = registrering,
-//            partIdInput = null,
-//            partISaken = RegistreringService.PartISaken.KLAGER
-//        )
-//
-//        assertThat(registrering.svarbrevReceivers).isEmpty()
-//    }
+        registrering.handleSvarbrevReceivers()
+
+        assertThat(registrering.svarbrevReceivers).hasSize(1)
+        assertThat(registrering.svarbrevReceivers.first().part.value).isEqualTo("sakenGjelder")
+    }
+
+    @Test
+    fun `remove default receiver when needed`() {
+        val registreringService = getRegistreringService()
+        val registrering = getRegistrering()
+        registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
+        registrering.handleSvarbrevReceivers()
+
+        assertThat(registrering.svarbrevReceivers).hasSize(1)
+
+        registreringService.handleReceiversWhenChangingPart(
+            unchangedRegistrering = registrering,
+            partIdInput = PartIdInput(
+                type = PartType.FNR,
+                id = "fullmektig",
+            ),
+            partISaken = RegistreringService.PartISaken.FULLMEKTIG
+        )
+        registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "fullmektig")
+
+        assertThat(registrering.svarbrevReceivers).hasSize(0)
+    }
 
     @Test
     fun `remove fullmektig when same as klager`() {

@@ -129,6 +129,27 @@ class Registrering(
         return "Registrering(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, journalpostDatoOpprettet=$journalpostDatoOpprettet, type=$type, mulighetId=$mulighetId, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$oppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost, muligheter=$muligheter, muligheterFetched=$muligheterFetched)"
     }
 
+    fun handleSvarbrevReceivers() {
+        val existingReceivers = svarbrevReceivers
+        val existingParts = setOf(
+            sakenGjelder?.value,
+            klager?.value,
+            fullmektig?.value
+        ).filterNotNull()
+
+        if (existingParts.size == 1 && existingReceivers.size == 0) {
+            svarbrevReceivers.add(
+                SvarbrevReceiver(
+                    part = PartId(
+                        value = sakenGjelder!!.value,
+                        type = PartIdType.PERSON
+                    ),
+                    overriddenAddress = null,
+                    handling = HandlingEnum.AUTO,
+                )
+            )
+        }
+    }
 }
 
 @Converter
