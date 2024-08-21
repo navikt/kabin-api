@@ -763,12 +763,13 @@ class RegistreringService(
                 if (avsender?.value == input.avsender?.id) {
                     return@apply
                 }
-                //handle receivers for all cases
-                handleReceiversWhenChangingPart(
-                    unchangedRegistrering = this,
-                    partIdInput = input.avsender,
-                    partISaken = PartISaken.AVSENDER
-                )
+
+                //Note: Avsender is not a "part" in the same way as klager and fullmektig, so we don't need to handle receivers here.
+//                handleReceiversWhenChangingPart(
+//                    unchangedRegistrering = this,
+//                    partIdInput = input.avsender,
+//                    partISaken = PartISaken.AVSENDER
+//                )
 
                 //2. avsender is set to null
                 if (input.avsender == null) {
@@ -1035,36 +1036,37 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 if (svarbrevReceivers.any { it.part.value == input.part.id }) {
-                    throw ReceiverAlreadyExistException("Mottaker finnes allerede.")
-                }
-                svarbrevReceivers.add(
-                    SvarbrevReceiver(
-                        part = PartId(
-                            value = input.part.id,
-                            type = when (input.part.type) {
-                                PartType.FNR -> {
-                                    PartIdType.PERSON
-                                }
+                    //if the receiver is already in the list, we don't need to do anything.
+                } else {
+                    svarbrevReceivers.add(
+                        SvarbrevReceiver(
+                            part = PartId(
+                                value = input.part.id,
+                                type = when (input.part.type) {
+                                    PartType.FNR -> {
+                                        PartIdType.PERSON
+                                    }
 
-                                PartType.ORGNR -> {
-                                    PartIdType.VIRKSOMHET
+                                    PartType.ORGNR -> {
+                                        PartIdType.VIRKSOMHET
+                                    }
                                 }
+                            ),
+                            handling = input.handling,
+                            overriddenAddress = input.overriddenAddress?.let { address ->
+                                no.nav.klage.domain.entities.Address(
+                                    adresselinje1 = address.adresselinje1,
+                                    adresselinje2 = address.adresselinje2,
+                                    adresselinje3 = address.adresselinje3,
+                                    landkode = address.landkode,
+                                    postnummer = address.postnummer,
+                                    poststed = address.poststed,
+                                )
                             }
-                        ),
-                        handling = input.handling,
-                        overriddenAddress = input.overriddenAddress?.let { address ->
-                            no.nav.klage.domain.entities.Address(
-                                adresselinje1 = address.adresselinje1,
-                                adresselinje2 = address.adresselinje2,
-                                adresselinje3 = address.adresselinje3,
-                                landkode = address.landkode,
-                                postnummer = address.postnummer,
-                                poststed = address.poststed,
-                            )
-                        }
+                        )
                     )
-                )
-                modified = LocalDateTime.now()
+                    modified = LocalDateTime.now()
+                }
             }
         return SvarbrevReceiverChangeRegistreringView(
             id = registrering.id,

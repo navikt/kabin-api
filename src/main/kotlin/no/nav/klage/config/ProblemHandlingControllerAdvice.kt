@@ -88,13 +88,6 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
-    fun handleReceiverAlreadyExistException(
-        ex: ReceiverAlreadyExistException,
-        request: NativeWebRequest
-    ): ProblemDetail =
-        create(HttpStatus.CONFLICT, ex)
-
-    @ExceptionHandler
     fun handleIllegalInputException(
         ex: IllegalInputException,
         request: NativeWebRequest

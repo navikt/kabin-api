@@ -22,7 +22,11 @@ class SvarbrevReceiver(
     var handling: HandlingEnum?,
     @Embedded
     var overriddenAddress: Address?
-)
+) {
+    override fun toString(): String {
+        return "SvarbrevReceiver(id=$id, part=$part, handling=$handling, overriddenAddress=$overriddenAddress)"
+    }
+}
 
 enum class HandlingEnum {
     AUTO,
