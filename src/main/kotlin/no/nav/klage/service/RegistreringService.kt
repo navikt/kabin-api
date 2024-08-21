@@ -435,7 +435,8 @@ class RegistreringService(
                 }.duplicate
             }
 
-        var muligheterToStoreInDB = filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiClient = kabalApiClient) } + muligheterFromKabal.map { it.toMulighet() }
+        var muligheterToStoreInDB =
+            filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiClient = kabalApiClient) } + muligheterFromKabal.map { it.toMulighet() }
 
         //Keep chosen mulighet, if it is still valid, and update accordingly.
         if (mulighetId == null) {
@@ -675,29 +676,25 @@ class RegistreringService(
                 //if the receiver is already in the list, we don't need to do anything.
                 return
             }
-        } else {
-            val existingParts = listOf(
-                unchangedRegistrering.sakenGjelder?.value,
-                unchangedRegistrering.klager?.value,
-                unchangedRegistrering.avsender?.value,
-                unchangedRegistrering.fullmektig?.value
-            )
-
-            //if the receiver is in the list, we remove it.
-            when {
-                partISaken == PartISaken.FULLMEKTIG && existingParts.count { it == unchangedRegistrering.fullmektig?.value } == 1 -> {
-                    svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.fullmektig?.value }
-                }
-
-                partISaken == PartISaken.KLAGER && existingParts.count { it == unchangedRegistrering.klager?.value } == 1 -> {
-                    svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.klager?.value }
-                }
-
-                partISaken == PartISaken.AVSENDER && existingParts.count { it == unchangedRegistrering.avsender?.value } == 1 -> {
-                    svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.avsender?.value }
-                }
-            }
         }
+
+//        val existingParts = listOf(
+//            unchangedRegistrering.sakenGjelder?.value,
+//            unchangedRegistrering.klager?.value,
+//            unchangedRegistrering.fullmektig?.value
+//        )
+//
+//        //if the receiver is in the list, we remove it.
+//        when {
+//            partISaken == PartISaken.FULLMEKTIG && existingParts.count { it == unchangedRegistrering.fullmektig?.value } == 1 -> {
+//                svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.fullmektig?.value }
+//            }
+//
+//            partISaken == PartISaken.KLAGER && existingParts.count { it == unchangedRegistrering.klager?.value } == 1 -> {
+//                svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.klager?.value }
+//            }
+//        }
+
     }
 
     enum class PartISaken {
