@@ -633,6 +633,23 @@ class RegistreringService(
         if (partIdInput != null && svarbrevReceivers.size == 1 && svarbrevReceivers.first().part.value == unchangedRegistrering.sakenGjelder?.value && partIdInput.id != unchangedRegistrering.sakenGjelder?.value) {
             svarbrevReceivers.clear()
         }
+
+        val existingParts = listOf(
+            unchangedRegistrering.sakenGjelder?.value,
+            unchangedRegistrering.klager?.value,
+            unchangedRegistrering.fullmektig?.value
+        )
+
+        //if the receiver is in the list, we remove it.
+        when {
+            partISaken == PartISaken.FULLMEKTIG && existingParts.count { it == unchangedRegistrering.fullmektig?.value } == 1 -> {
+                svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.fullmektig?.value }
+            }
+
+            partISaken == PartISaken.KLAGER && existingParts.count { it == unchangedRegistrering.klager?.value } == 1 -> {
+                svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.klager?.value }
+            }
+        }
     }
 
     enum class PartISaken {

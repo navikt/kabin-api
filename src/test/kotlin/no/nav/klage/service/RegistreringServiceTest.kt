@@ -97,20 +97,65 @@ class ModifySvarbrevReiceversTest {
     }
 
     @Test
-    fun `remove avsender when same as klager`() {
+    fun `remove chosen receiver when removed as fullmektig`() {
         val registreringService = getRegistreringService()
 
         val registrering = getRegistrering()
         registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
-        registrering.klager = PartId(type = PartIdType.PERSON, value = "123")
-        registrering.avsender = PartId(type = PartIdType.PERSON, value = "123")
-        registrering.svarbrevReceivers.add(getSvarbrevRecipient("123"))
+        registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "fullmektig")
+
+        registrering.svarbrevReceivers.add(getSvarbrevRecipient("fullmektig"))
 
         registreringService.handleReceiversWhenChangingPart(
             unchangedRegistrering = registrering,
             partIdInput = null,
-            partISaken = RegistreringService.PartISaken.AVSENDER
+            partISaken = RegistreringService.PartISaken.FULLMEKTIG
         )
+        registrering.fullmektig = null
+
+        assertThat(registrering.svarbrevReceivers).hasSize(0)
+    }
+
+    @Test
+    fun `remove chosen receiver when fullmektig changes`() {
+        val registreringService = getRegistreringService()
+
+        val registrering = getRegistrering()
+        registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
+        registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "stian")
+
+        registrering.svarbrevReceivers.add(getSvarbrevRecipient("stian"))
+
+        registreringService.handleReceiversWhenChangingPart(
+            unchangedRegistrering = registrering,
+            partIdInput = PartIdInput(
+                type = PartType.FNR,
+                id = "berit",
+            ),
+            partISaken = RegistreringService.PartISaken.FULLMEKTIG
+        )
+        registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "berit")
+
+        assertThat(registrering.svarbrevReceivers).hasSize(0)
+    }
+
+    @Test
+    fun `chosen receiver not removed when same as other part`() {
+        val registreringService = getRegistreringService()
+
+        val registrering = getRegistrering()
+        registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "sakenGjelder")
+        registrering.klager = PartId(type = PartIdType.PERSON, value = "stian")
+        registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "stian")
+
+        registrering.svarbrevReceivers.add(getSvarbrevRecipient("stian"))
+
+        registreringService.handleReceiversWhenChangingPart(
+            unchangedRegistrering = registrering,
+            partIdInput = null,
+            partISaken = RegistreringService.PartISaken.FULLMEKTIG
+        )
+        registrering.fullmektig = null
 
         assertThat(registrering.svarbrevReceivers).hasSize(1)
     }
