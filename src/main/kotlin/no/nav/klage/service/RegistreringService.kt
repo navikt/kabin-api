@@ -8,7 +8,10 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
-import no.nav.klage.domain.entities.*
+import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.domain.entities.PartId
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.exceptions.*
 import no.nav.klage.kodeverk.*
 import no.nav.klage.repository.RegistreringRepository
@@ -371,15 +374,16 @@ class RegistreringService(
             .parallel()
             .runOn(Schedulers.parallel())
             .flatMap { mulighetFromInfotrygd ->
-                logger.debug("Time to check duplicate: " + (System.currentTimeMillis() - duplicateCheckStart))
-                duplicateCheckStart = System.currentTimeMillis()
                 kabalApiClient.checkBehandlingDuplicateInKabal(
                     input = BehandlingIsDuplicateInput(
                         fagsystemId = Fagsystem.IT01.id,
                         kildereferanse = mulighetFromInfotrygd.sakId,
                         typeId = if (mulighetFromInfotrygd.sakstype.startsWith("KLAGE")) Type.KLAGE.id else Type.ANKE.id
                     )
-                )
+                ).also {
+                    logger.debug("Time to check duplicate: " + (System.currentTimeMillis() - duplicateCheckStart))
+                    duplicateCheckStart = System.currentTimeMillis()
+                }
             }
             .sequential()
             .toIterable()
