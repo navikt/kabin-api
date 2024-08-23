@@ -1,10 +1,10 @@
 TENANT_ID: 966ac572-f5b7-4bbe-aa88-c76419c0f851
 
-SAF_BASE_URL: https://saf.dev-fss-pub.nais.io/
-SAF_SCOPE: dev-fss.teamdokumenthandtering.saf-q1
+SAF_BASE_URL: https://saf-q2.dev-fss-pub.nais.io/
+SAF_SCOPE: dev-fss.teamdokumenthandtering.saf
 
-DOK_ARKIV_SCOPE: dev-fss.teamdokumenthandtering.dokarkiv-q1/
-DOK_ARKIV_SERVICE_URL: https://dokarkiv.dev-fss-pub.nais.io/rest/journalpostapi/v1
+DOK_ARKIV_SCOPE: dev-fss.teamdokumenthandtering.dokarkiv/
+DOK_ARKIV_SERVICE_URL: https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1
 
 KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.dev-fss-pub.nais.io
 
@@ -13,8 +13,8 @@ FSS_CLUSTER: dev-fss
 PDL_BASE_URL: https://pdl-api.dev-fss-pub.nais.io/graphql
 PDL_SCOPE: dev-fss.pdl.pdl-api
 
-OPPGAVE_BASE_URL: https://oppgave-q1.dev-fss-pub.nais.io/api/v1
-OPPGAVE_SCOPE: dev-fss.oppgavehandtering.oppgave-q1
+OPPGAVE_BASE_URL: https://oppgave.dev-fss-pub.nais.io/api/v1
+OPPGAVE_SCOPE: dev-fss.oppgavehandtering.oppgave
 
 spring:
   datasource:
