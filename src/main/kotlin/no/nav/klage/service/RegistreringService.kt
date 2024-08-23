@@ -83,6 +83,10 @@ class RegistreringService(
                 muligheterFetched = null,
             )
         )
+
+        registrering.reinitializeMuligheter()
+        registrering.handleSvarbrevReceivers()
+
         return registrering.toRegistreringView(kabalApiClient = kabalApiClient)
     }
 
