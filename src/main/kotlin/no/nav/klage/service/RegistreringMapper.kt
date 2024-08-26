@@ -464,7 +464,7 @@ fun Mulighet.toAnkemulighetView(): AnkemulighetView =
     AnkemulighetView(
         id = id,
         temaId = tema.id,
-        vedtakDate = vedtakDate!!,
+        vedtakDate = vedtakDate,
         sakenGjelder = sakenGjelder.toPartViewWithUtsendingskanal(sakenGjelderStatusList)!!,
         fagsakId = fagsakId,
         originalFagsystemId = originalFagsystem.id,
