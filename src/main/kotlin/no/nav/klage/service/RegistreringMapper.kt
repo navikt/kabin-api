@@ -287,7 +287,7 @@ fun PartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendin
 }
 
 fun Registrering.toSvarbrevWithReceiverInput(svarbrevSettings: SvarbrevSettingsView): SvarbrevWithReceiverInput? {
-    if (!svarbrevSettings.shouldSend || svarbrevReceivers.isEmpty()) {
+    if (svarbrevReceivers.isEmpty()) {
         return null
     }
 
