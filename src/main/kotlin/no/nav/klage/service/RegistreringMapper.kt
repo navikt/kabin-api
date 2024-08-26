@@ -390,10 +390,11 @@ fun AnkemulighetFromKabal.toMulighet(): Mulighet {
 }
 
 fun SakFromKlanke.toMulighet(kabalApiClient: KabalApiClient): Mulighet {
+    val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE
     return Mulighet(
-        type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE,
+        type = type,
         tema = Tema.valueOf(tema),
-        vedtakDate = vedtaksdato,
+        vedtakDate = if (type == Type.KLAGE) vedtaksdato else null,
         sakenGjelder = kabalApiClient.searchPartWithUtsendingskanal(
             SearchPartWithUtsendingskanalInput(
                 identifikator = fnr,

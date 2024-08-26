@@ -101,7 +101,7 @@ class AnkeService(
         return CreatedAnkebehandlingStatusView(
             typeId = response.typeId,
             ytelseId = response.ytelseId,
-            vedtakDate = response.vedtakDate.toLocalDate(),
+            vedtakDate = if (Fagsystem.of(response.fagsystemId) == Fagsystem.IT01) null else response.vedtakDate.toLocalDate(),
             sakenGjelder = response.sakenGjelder.partViewWithUtsendingskanal(),
             klager = response.klager.partViewWithUtsendingskanal(),
             fullmektig = response.fullmektig?.partViewWithUtsendingskanal(),
