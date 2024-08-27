@@ -32,6 +32,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     }
 
     @ExceptionHandler
+    fun handleRuntimeException(
+        ex: RuntimeException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
+
+    @ExceptionHandler
     fun handleResponseStatusException(
         ex: WebClientResponseException,
         request: NativeWebRequest
@@ -58,13 +65,6 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.NOT_FOUND, ex)
-
-//    @ExceptionHandler
-//    fun handleRuntimeException(
-//        ex: RuntimeException,
-//        request: NativeWebRequest
-//    ): ProblemDetail =
-//        create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
 
     @ExceptionHandler
     fun handleOppgaveClientException(
