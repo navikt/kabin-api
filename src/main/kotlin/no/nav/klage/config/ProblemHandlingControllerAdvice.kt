@@ -95,6 +95,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
+    fun handleRuntimeException(
+        ex: RuntimeException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
+
+    @ExceptionHandler
     fun handleSectionedValidationErrorWithDetailsException(
         ex: SectionedValidationErrorWithDetailsException,
         request: NativeWebRequest
