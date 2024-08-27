@@ -40,7 +40,7 @@ class RegistreringController(
     @GetMapping("/ferdige")
     fun getRegistreringerFerdige(
         @RequestParam(required = false) sidenDager: Int?,
-    ): List<FullRegistreringView> {
+    ): List<FinishedRegistreringView> {
         logMethodDetails(
             methodName = ::getRegistreringerFerdige.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),

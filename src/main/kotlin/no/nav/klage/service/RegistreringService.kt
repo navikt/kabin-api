@@ -98,11 +98,11 @@ class RegistreringService(
 
     fun getFerdigeRegistreringer(
         sidenDager: Int?,
-    ): List<FullRegistreringView> {
+    ): List<FinishedRegistreringView> {
         return registreringRepository.findFerdigeRegistreringer(
             navIdent = tokenUtil.getCurrentIdent(),
             finishedFrom = LocalDateTime.now().minusDays(sidenDager?.toLong() ?: 31)
-        ).map { it.toRegistreringView(kabalApiClient = kabalApiClient) }.sortedByDescending { it.finished }
+        ).map { it.toFinishedRegistreringView() }.sortedByDescending { it.finished }
     }
 
     fun getUferdigeRegistreringer(

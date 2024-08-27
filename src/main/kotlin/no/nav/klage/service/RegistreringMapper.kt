@@ -127,6 +127,16 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiClient: KabalApiClient
     )
 }
 
+fun Registrering.toFinishedRegistreringView(): FinishedRegistreringView = FinishedRegistreringView(
+    id = id,
+    sakenGjelderValue = sakenGjelder!!.value,
+    typeId = type!!.id,
+    ytelseId = ytelse!!.id,
+    finished = finished!!,
+    created = created,
+    behandlingId = behandlingId!!,
+)
+
 fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegistreringView(
     id = id,
     journalpostId = journalpostId,

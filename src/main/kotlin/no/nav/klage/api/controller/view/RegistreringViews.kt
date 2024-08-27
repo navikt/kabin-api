@@ -5,6 +5,16 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
+data class FinishedRegistreringView(
+    val id: UUID,
+    val sakenGjelderValue: String,
+    val typeId: String,
+    val ytelseId: String,
+    val finished: LocalDateTime,
+    val created: LocalDateTime,
+    val behandlingId: UUID,
+)
+
 data class FullRegistreringView(
     val id: UUID,
     val sakenGjelderValue: String?,
