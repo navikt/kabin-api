@@ -137,90 +137,95 @@ fun Registrering.toFinishedRegistreringView(): FinishedRegistreringView = Finish
     behandlingId = behandlingId!!,
 )
 
-fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegistreringView(
-    id = id,
-    journalpostId = journalpostId,
-    sakenGjelderValue = sakenGjelder?.value,
-    typeId = type?.id,
-    mulighet = mulighetId?.let {
-        MulighetIdView(
-            id = it,
-        )
-    },
-    overstyringer = FullRegistreringView.FullRegistreringOverstyringerView(
-        mottattVedtaksinstans = mottattVedtaksinstans,
-        mottattKlageinstans = mottattKlageinstans,
-        behandlingstid =
-        BehandlingstidView(
-            unitTypeId = behandlingstidUnitType.id,
-            units = behandlingstidUnits
-        ),
-        calculatedFrist = if (mottattKlageinstans != null) {
-            calculateFrist(
-                fromDate = mottattKlageinstans!!,
-                units = behandlingstidUnits.toLong(),
-                unitType = behandlingstidUnitType
-            )
-        } else null,
-        hjemmelIdList = hjemmelIdList,
-        ytelseId = ytelse?.id,
-        fullmektig = fullmektig?.let {
-            partViewWithOptionalUtsendingskanal(
-                identifikator = it.value,
-                kabalApiClient = kabalApiClient
+fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient): FullRegistreringView {
+    if (fullmektig != null) {
+        throw RuntimeException("Testing error handling")
+    }
+    return FullRegistreringView(
+        id = id,
+        journalpostId = journalpostId,
+        sakenGjelderValue = sakenGjelder?.value,
+        typeId = type?.id,
+        mulighet = mulighetId?.let {
+            MulighetIdView(
+                id = it,
             )
         },
-        klager = klager?.let {
-            partViewWithOptionalUtsendingskanal(
-                identifikator = it.value,
-                kabalApiClient = kabalApiClient
-            )
-        },
-        avsender = avsender?.let {
-            partViewWithOptionalUtsendingskanal(
-                identifikator = it.value,
-                kabalApiClient = kabalApiClient
-            )
-        },
-        saksbehandlerIdent = saksbehandlerIdent,
-        oppgaveId = oppgaveId,
-    ),
-    svarbrev = FullRegistreringView.FullRegistreringSvarbrevView(
-        send = sendSvarbrev,
-        behandlingstid = if (svarbrevBehandlingstidUnits != null) {
+        overstyringer = FullRegistreringView.FullRegistreringOverstyringerView(
+            mottattVedtaksinstans = mottattVedtaksinstans,
+            mottattKlageinstans = mottattKlageinstans,
+            behandlingstid =
             BehandlingstidView(
-                unitTypeId = svarbrevBehandlingstidUnitType!!.id,
-                units = svarbrevBehandlingstidUnits!!
-            )
-        } else null,
-        fullmektigFritekst = svarbrevFullmektigFritekst,
-        receivers = toRecipientViews(kabalApiClient),
-        title = svarbrevTitle,
-        customText = svarbrevCustomText,
-        overrideCustomText = overrideSvarbrevCustomText,
-        overrideBehandlingstid = overrideSvarbrevBehandlingstid,
-        calculatedFrist = if (mottattKlageinstans != null && svarbrevBehandlingstidUnits != null) {
-            calculateFrist(
-                fromDate = mottattKlageinstans!!,
-                units = svarbrevBehandlingstidUnits!!.toLong(),
-                unitType = svarbrevBehandlingstidUnitType!!
-            )
-        } else null,
-    ),
-    created = created,
-    modified = modified,
-    createdBy = createdBy,
-    finished = finished,
-    behandlingId = behandlingId,
-    willCreateNewJournalpost = willCreateNewJournalpost,
-    klagemuligheter = muligheter.filter { it.type == Type.KLAGE }.map { mulighet ->
-        mulighet.toKlagemulighetView()
-    },
-    ankemuligheter = muligheter.filter { it.type == Type.ANKE }.map { mulighet ->
-        mulighet.toAnkemulighetView()
-    },
-    muligheterFetched = muligheterFetched,
-)
+                unitTypeId = behandlingstidUnitType.id,
+                units = behandlingstidUnits
+            ),
+            calculatedFrist = if (mottattKlageinstans != null) {
+                calculateFrist(
+                    fromDate = mottattKlageinstans!!,
+                    units = behandlingstidUnits.toLong(),
+                    unitType = behandlingstidUnitType
+                )
+            } else null,
+            hjemmelIdList = hjemmelIdList,
+            ytelseId = ytelse?.id,
+            fullmektig = fullmektig?.let {
+                partViewWithOptionalUtsendingskanal(
+                    identifikator = it.value,
+                    kabalApiClient = kabalApiClient
+                )
+            },
+            klager = klager?.let {
+                partViewWithOptionalUtsendingskanal(
+                    identifikator = it.value,
+                    kabalApiClient = kabalApiClient
+                )
+            },
+            avsender = avsender?.let {
+                partViewWithOptionalUtsendingskanal(
+                    identifikator = it.value,
+                    kabalApiClient = kabalApiClient
+                )
+            },
+            saksbehandlerIdent = saksbehandlerIdent,
+            oppgaveId = oppgaveId,
+        ),
+        svarbrev = FullRegistreringView.FullRegistreringSvarbrevView(
+            send = sendSvarbrev,
+            behandlingstid = if (svarbrevBehandlingstidUnits != null) {
+                BehandlingstidView(
+                    unitTypeId = svarbrevBehandlingstidUnitType!!.id,
+                    units = svarbrevBehandlingstidUnits!!
+                )
+            } else null,
+            fullmektigFritekst = svarbrevFullmektigFritekst,
+            receivers = toRecipientViews(kabalApiClient),
+            title = svarbrevTitle,
+            customText = svarbrevCustomText,
+            overrideCustomText = overrideSvarbrevCustomText,
+            overrideBehandlingstid = overrideSvarbrevBehandlingstid,
+            calculatedFrist = if (mottattKlageinstans != null && svarbrevBehandlingstidUnits != null) {
+                calculateFrist(
+                    fromDate = mottattKlageinstans!!,
+                    units = svarbrevBehandlingstidUnits!!.toLong(),
+                    unitType = svarbrevBehandlingstidUnitType!!
+                )
+            } else null,
+        ),
+        created = created,
+        modified = modified,
+        createdBy = createdBy,
+        finished = finished,
+        behandlingId = behandlingId,
+        willCreateNewJournalpost = willCreateNewJournalpost,
+        klagemuligheter = muligheter.filter { it.type == Type.KLAGE }.map { mulighet ->
+            mulighet.toKlagemulighetView()
+        },
+        ankemuligheter = muligheter.filter { it.type == Type.ANKE }.map { mulighet ->
+            mulighet.toAnkemulighetView()
+        },
+        muligheterFetched = muligheterFetched,
+    )
+}
 
 fun Registrering.partViewWithOptionalUtsendingskanal(
     identifikator: String,

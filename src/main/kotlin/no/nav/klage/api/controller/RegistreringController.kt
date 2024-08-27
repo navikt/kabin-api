@@ -2,6 +2,7 @@ package no.nav.klage.api.controller
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.exceptions.MulighetNotFoundException
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -247,7 +248,8 @@ class RegistreringController(
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.setAvsender(registreringId = id, input = input)
+        throw MulighetNotFoundException("Testing exception handling")
+//        return registreringService.setAvsender(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/saksbehandler-ident")
@@ -338,7 +340,8 @@ class RegistreringController(
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.setSvarbrevFullmektigFritekst(registreringId = id, input = input)
+        throw RuntimeException("Not implemented")
+//        return registreringService.setSvarbrevFullmektigFritekst(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/custom-text")
