@@ -1,7 +1,7 @@
 package no.nav.klage.util
 
 
-import io.micrometer.tracing.Tracer
+import io.opentelemetry.api.trace.Span
 import no.nav.klage.util.AuditLogEvent.Level.INFO
 import no.nav.klage.util.AuditLogEvent.Level.WARN
 import org.springframework.beans.factory.annotation.Value
@@ -10,7 +10,6 @@ import java.lang.String.join
 
 @Component
 class AuditLogger(
-    private val tracer: Tracer,
     @Value("\${spring.application.name}") private val applicationName: String
 ) {
 
@@ -82,7 +81,7 @@ class AuditLogger(
             "end=${System.currentTimeMillis()}",
             "suid=${logEvent.navIdent}",
             "duid=${logEvent.personFnr}",
-            "sproc=${tracer.currentTraceContext().context()!!.traceId()}}",
+            "sproc=${Span.current().spanContext.traceId}}",
             "msg=${logEvent.message}",
         )
 }

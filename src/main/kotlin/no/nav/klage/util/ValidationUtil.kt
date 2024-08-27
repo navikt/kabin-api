@@ -44,6 +44,13 @@ class ValidationUtil(
                         reason = "Velg en ytelse."
                     )
                 }
+
+                if (input.oppgaveId == null) {
+                    saksdataValidationErrors += InvalidProperty(
+                        field = CreateAnkeInputView::oppgaveId.name,
+                        reason = "Velg en oppgave."
+                    )
+                }
             }
         }
 
@@ -77,7 +84,7 @@ class ValidationUtil(
             )
         }
 
-        if (!(input.behandlingstidUnits != null && (input.behandlingstidUnitType != null || input.behandlingstidUnitTypeId != null ))) {
+        if (!(input.behandlingstidUnits != null && (input.behandlingstidUnitType != null || input.behandlingstidUnitTypeId != null))) {
             saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingstidUnits.name,
                 reason = "Sett en frist."
@@ -211,7 +218,7 @@ class ValidationUtil(
             )
         }
 
-        if (!(input.behandlingstidUnits != null && (input.behandlingstidUnitType != null || input.behandlingstidUnitTypeId != null ))) {
+        if (!(input.behandlingstidUnits != null && (input.behandlingstidUnitType != null || input.behandlingstidUnitTypeId != null))) {
             saksdataValidationErrors += InvalidProperty(
                 field = CreateAnkeInputView::behandlingstidUnits.name,
                 reason = "Sett en frist."
@@ -262,6 +269,11 @@ class ValidationUtil(
                     reason = "Oppgaven er allerede i bruk i en åpen behandling i Kabal."
                 )
             }
+        } else {
+            saksdataValidationErrors += InvalidProperty(
+                field = CreateKlageInputView::oppgaveId.name,
+                reason = "Velg en oppgave."
+            )
         }
 
         if (input.svarbrevInput != null) {

@@ -46,6 +46,20 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
+    fun handleRegistreringNotFoundException(
+        ex: RegistreringNotFoundException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.NOT_FOUND, ex)
+
+    @ExceptionHandler
+    fun handleMulighetNotFoundException(
+        ex: MulighetNotFoundException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.NOT_FOUND, ex)
+
+    @ExceptionHandler
     fun handleOppgaveClientException(
         ex: OppgaveClientException,
         request: NativeWebRequest
@@ -60,6 +74,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
+    fun handleMissingAccessException(
+        ex: MissingAccessException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.FORBIDDEN, ex)
+
+    @ExceptionHandler
     fun handleIllegalUpdateException(
         ex: IllegalUpdateException,
         request: NativeWebRequest
@@ -72,6 +93,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
+    fun handleRuntimeException(
+        ex: RuntimeException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
 
     @ExceptionHandler
     fun handleSectionedValidationErrorWithDetailsException(

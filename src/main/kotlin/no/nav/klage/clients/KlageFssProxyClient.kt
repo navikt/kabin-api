@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 import java.time.LocalDate
 
 @Component
@@ -20,7 +21,7 @@ class KlageFssProxyClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun searchKlanke(input: KlankeSearchInput): List<SakFromKlanke> {
+    fun searchKlanke(input: KlankeSearchInput): Mono<List<SakFromKlanke>> {
         return klageFssProxyWebClient.post()
             .uri("/klanke/saker")
             .header(
@@ -30,8 +31,6 @@ class KlageFssProxyClient(
             .bodyValue(input)
             .retrieve()
             .bodyToMono<List<SakFromKlanke>>()
-            .block()
-            ?: throw RuntimeException("Empty result")
     }
 
     fun getSakAppAccess(sakId: String, saksbehandlerIdent: String): SakFromKlanke {

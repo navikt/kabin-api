@@ -1,15 +1,21 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreateKlageInputView
+import no.nav.klage.api.controller.view.CreatedBehandlingResponse
+import no.nav.klage.api.controller.view.CreatedKlagebehandlingStatusView
+import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateKlageInput
-import no.nav.klage.kodeverk.*
-import no.nav.klage.util.MulighetSource
+import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.util.*
 
 @Service
@@ -27,11 +33,11 @@ class KlageService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun createKlage(input: CreateKlageInputView): CreatedBehandlingResponse {
+    fun createKlage(input: CreateKlageInputView, klagemulighet: Mulighet): CreatedBehandlingResponse {
         val processedInput = validationUtil.validateCreateKlageInputView(input)
         val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
             journalpostId = processedInput.klageJournalpostId,
-            eksternBehandlingId = processedInput.eksternBehandlingId,
+            mulighet = klagemulighet,
             avsender = input.avsender,
             type = Type.KLAGE,
         )
@@ -44,6 +50,7 @@ class KlageService(
     }
 
     private fun createKlageFromInfotrygdSak(input: CreateKlageInput): UUID {
+        //TODO, get from cache?
         val sakFromKlanke = klageFssProxyService.getSak(sakId = input.eksternBehandlingId)
         val frist = when(input.behandlingstidUnitType) {
             TimeUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
@@ -55,53 +62,37 @@ class KlageService(
             frist = frist
         )
 
-        klageFssProxyService.setToHandledInKabal(
-            sakId = sakFromKlanke.sakId,
-            frist = frist,
-        )
-
-        input.oppgaveId?.let {
-            logger.debug("Attempting oppgave update")
-            oppgaveService.updateOppgave(
-                oppgaveId = it,
+        try {
+            klageFssProxyService.setToHandledInKabal(
+                sakId = sakFromKlanke.sakId,
                 frist = frist,
-                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
             )
+        } catch (e: Exception) {
+            logger.error("Failed to set to handled in kabal", e)
+        }
+
+        try {
+            input.oppgaveId?.let {
+                logger.debug("Attempting oppgave update")
+                oppgaveService.updateOppgave(
+                    oppgaveId = it,
+                    frist = frist,
+                    tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
+                )
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to update oppgave", e)
         }
 
         return behandlingId
     }
 
-    fun getKlagemuligheter(input: IdnummerInput): List<Klagemulighet> {
-        val resultsFromInfotrygd = klageFssProxyService.getKlagemuligheter(input = input)
-        return resultsFromInfotrygd
-            .filter {
-                !kabalApiService.mulighetIsDuplicate(
-                    fagsystem = Fagsystem.IT01,
-                    kildereferanse = it.sakId,
-                    type = Type.KLAGE,
-                )
-            }
-            .map {
-                Klagemulighet(
-                    id = it.sakId,
-                    temaId = Tema.fromNavn(it.tema).id,
-                    vedtakDate = it.vedtaksdato,
-                    fagsakId = it.fagsakId,
-                    //TODO: Tilpass når vi får flere fagsystemer.
-                    fagsystemId = Fagsystem.IT01.id,
-                    klageBehandlendeEnhet = it.enhetsnummer,
-                    sakenGjelder = kabalApiService.searchPartWithUtsendingskanal(
-                        SearchPartWithUtsendingskanalInput(
-                            identifikator = it.fnr,
-                            sakenGjelderId = it.fnr,
-                            //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
-                            ytelseId = Ytelse.entries.find { y -> y.toTema().navn == it.tema }!!.id,
-                        )
-                    ).partViewWithUtsendingskanal(),
-                    sourceId = MulighetSource.INFOTRYGD.fagsystem.id,
-                )
-            }
+    fun getKlagemuligheterFromInfotrygdAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+        return klageFssProxyService.getKlagemuligheterAsMono(input = input)
+    }
+
+    fun getKlageTilbakebetalingMuligheterFromInfotrygdAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+        return klageFssProxyService.getKlageTilbakebetalingMuligheterAsMono(input = input)
     }
 
     fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatusView {

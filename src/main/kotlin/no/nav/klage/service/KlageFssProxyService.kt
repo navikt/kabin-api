@@ -9,6 +9,7 @@ import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -23,17 +24,22 @@ class KlageFssProxyService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getAnkemuligheter(input: IdnummerInput): List<SakFromKlanke> {
+    fun getAnkemuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         return if (klageFssProxyClient.checkAccess().access) {
             klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"))
-        } else emptyList()
+        } else Mono.empty()
     }
 
-    fun getKlagemuligheter(input: IdnummerInput): List<SakFromKlanke> {
+    fun getKlagemuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         //Deliberately fail if missing access.
         val klageSaker = klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"))
+        return klageSaker
+    }
+
+    fun getKlageTilbakebetalingMuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+        //Deliberately fail if missing access.
         val klageTilbakebetalingSaker = klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE_TILBAKEBETALING"))
-        return klageSaker + klageTilbakebetalingSaker
+        return klageTilbakebetalingSaker
     }
 
     fun getSak(sakId: String): SakFromKlanke {

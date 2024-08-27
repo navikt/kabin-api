@@ -39,3 +39,8 @@ envs:
     value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
   - name: JAVA_OPTS
     value: "-Xms512m -Xmx4096m"
+
+db_tier: db-f1-micro
+db_size: 10
+db_ha: false
+db_type: POSTGRES_14

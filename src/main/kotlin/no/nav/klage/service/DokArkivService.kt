@@ -1,7 +1,7 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.CreateAnkeInputView
-import no.nav.klage.api.controller.view.PartId
+import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalInnstillingerClient
@@ -12,20 +12,19 @@ import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.domain.CreateAnkeInput
+import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.exceptions.InvalidProperty
-import no.nav.klage.exceptions.JournalpostNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.canChangeAvsenderInJournalpost
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class DokArkivService(
@@ -71,7 +70,7 @@ class DokArkivService(
 
     private fun updateAvsenderInJournalpost(
         journalpostId: String,
-        avsender: PartId,
+        avsender: PartIdInput,
     ) {
         val requestInput = getUpdateAvsenderMottakerInJournalpostRequest(avsender)
 
@@ -81,7 +80,7 @@ class DokArkivService(
         )
     }
 
-    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartId): UpdateAvsenderMottakerInJournalpostRequest {
+    private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartIdInput): UpdateAvsenderMottakerInJournalpostRequest {
         val avsenderPart = kabalApiService.searchPart(
             searchPartInput = SearchPartInput(identifikator = avsender.id)
         )
@@ -145,44 +144,45 @@ class DokArkivService(
 
     fun handleJournalpostBasedOnInfotrygdSak(
         journalpostId: String,
-        eksternBehandlingId: String,
-        avsender: PartId?,
+        mulighet: Mulighet,
+        avsender: PartIdInput?,
         type: Type,
     ): String {
-        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
-            ?: throw JournalpostNotFoundException("Fant ikke journalpost i SAF")
-
-        val tema = journalpostInSaf.tema
-        val sakFromKlanke = fssProxyService.getSak(eksternBehandlingId)
-
         return handleJournalpost(
             journalpostId = journalpostId,
             avsender = avsender,
-            tema = Tema.fromNavn(tema.name),
+            tema = mulighet.tema,
             bruker = Bruker(
-                id = sakFromKlanke.fnr, idType = BrukerIdType.FNR
+                id = mulighet.sakenGjelder.part.value, idType = when (mulighet.sakenGjelder.part.type) {
+                    PartIdType.PERSON -> {
+                        BrukerIdType.FNR
+                    }
+                    else -> {
+                        BrukerIdType.ORGNR
+                    }
+                }
             ),
             sakInFagsystem = Sak(
                 sakstype = Sakstype.FAGSAK,
                 fagsaksystem = FagsaksSystem.IT01,
-                fagsakid = sakFromKlanke.fagsakId
+                fagsakid = mulighet.fagsakId
             ),
             journalfoerendeEnhet = kabalInnstillingerClient.getBrukerdata().ansattEnhet.id,
         )
     }
 
-    fun handleJournalpostBasedOnAnkeInput(input: CreateAnkeInput): String {
+    fun handleJournalpostBasedOnAnkeInput(input: CreateAnkeInput, ankemulighet: Mulighet): String {
         return when (input.mulighetSource) {
             MulighetSource.INFOTRYGD -> handleJournalpostBasedOnInfotrygdSak(
                 journalpostId = input.ankeDocumentJournalpostId,
-                eksternBehandlingId = input.id,
+                mulighet = ankemulighet,
                 avsender = input.avsender,
                 type = Type.ANKE,
             )
 
             MulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
                 journalpostId = input.ankeDocumentJournalpostId,
-                klagebehandlingId = UUID.fromString(input.id),
+                mulighet = ankemulighet,
                 avsender = input.avsender,
             )
         }
@@ -190,25 +190,35 @@ class DokArkivService(
 
     fun handleJournalpostBasedOnKabalKlagebehandling(
         journalpostId: String,
-        klagebehandlingId: UUID,
-        avsender: PartId?,
+        mulighet: Mulighet,
+        avsender: PartIdInput?,
     ): String {
-        val completedBehandling =
-            kabalApiService.getCompletedBehandling(behandlingId = klagebehandlingId)
-
         return handleJournalpost(
             journalpostId = journalpostId,
             avsender = avsender,
-            tema = Ytelse.of(completedBehandling.ytelseId).toTema(),
-            bruker = completedBehandling.sakenGjelder.toDokarkivBruker(),
-            sakInFagsystem = completedBehandling.toDokarkivSak(),
-            journalfoerendeEnhet = completedBehandling.klageBehandlendeEnhet,
+            tema = mulighet.tema,
+            bruker = Bruker(
+                id = mulighet.sakenGjelder.part.value, idType = when (mulighet.sakenGjelder.part.type) {
+                    PartIdType.PERSON -> {
+                        BrukerIdType.FNR
+                    }
+                    else -> {
+                        BrukerIdType.ORGNR
+                    }
+                }
+            ),
+            sakInFagsystem = Sak(
+                sakstype = Sakstype.FAGSAK,
+                fagsaksystem = FagsaksSystem.valueOf(mulighet.originalFagsystem.navn),
+                fagsakid = mulighet.fagsakId
+            ),
+            journalfoerendeEnhet = mulighet.klageBehandlendeEnhet,
         )
     }
 
     private fun handleJournalpost(
         journalpostId: String,
-        avsender: PartId?,
+        avsender: PartIdInput?,
         tema: Tema,
         bruker: Bruker,
         sakInFagsystem: Sak,

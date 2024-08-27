@@ -7,17 +7,27 @@ spring:
     resources:
       add-mappings: false
   mvc:
-    throw-exception-if-no-handler-found: true
     log-request-details: true
   lifecycle:
     timeout-per-shutdown-phase: 20s
-  servlet:
-    multipart:
-      #       Size limitations are also handled by app itself to get nice fault messages, but this setting seems to fail faster?
-      max-request-size: 8MB
-      max-file-size: 8MB
   codec:
     max-in-memory-size: 256MB
+  datasource:
+    url: ${NAIS_DATABASE_KABIN_API_KABIN_API_JDBC_URL}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    clean-on-validation-error: false
+    schemas: flyway_history_schema,klage
+    connect-retries: 2
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        session:
+          events:
+            log:
+              LOG_QUERIES_SLOWER_THAN_MS: 100
 
 server:
   port: 7083
@@ -25,8 +35,6 @@ server:
     whitelabel:
       enabled: false
   shutdown: graceful
-
-navCallIdName: Nav-Callid
 
 management:
   health:
@@ -43,12 +51,7 @@ management:
     tags:
       application: ${spring.application.name}
   tracing:
-    baggage:
-      remote-fields:
-        - ${navCallIdName}
-      correlation:
-        fields:
-          - ${navCallIdName}
+    enabled: false
   prometheus:
     metrics:
       export:
@@ -64,6 +67,14 @@ no.nav.security.jwt:
       kabal-api-onbehalfof:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
         grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
+        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_API_APP_NAME}/.default
+        authentication:
+          client-id: ${AZURE_APP_CLIENT_ID}
+          client-jwk: ${AZURE_APP_JWK}
+          client-auth-method: private_key_jwt
+      kabal-api-maskintilmaskin:
+        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
+        grant-type: client_credentials
         scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_API_APP_NAME}/.default
         authentication:
           client-id: ${AZURE_APP_CLIENT_ID}

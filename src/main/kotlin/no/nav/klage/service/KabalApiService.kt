@@ -1,7 +1,6 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
@@ -10,11 +9,9 @@ import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 import java.time.LocalDate
 import java.util.*
 
@@ -25,16 +22,6 @@ class KabalApiService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-    }
-
-    fun mulighetIsDuplicate(fagsystem: Fagsystem, kildereferanse: String, type: Type): Boolean {
-        return kabalApiClient.checkBehandlingDuplicateInKabal(
-            input = BehandlingIsDuplicateInput(
-                fagsystemId = fagsystem.id,
-                kildereferanse = kildereferanse,
-                typeId = type.id
-            )
-        )
     }
 
     fun oppgaveIsDuplicate(oppgaveId: Long): Boolean {
@@ -51,38 +38,8 @@ class KabalApiService(
         return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
     }
 
-    fun getAnkemuligheter(input: IdnummerInput): List<Ankemulighet> {
-        return kabalApiClient.getAnkemuligheterByIdnummer(input).map {
-            Ankemulighet(
-                id = it.behandlingId.toString(),
-                ytelseId = it.ytelseId,
-                hjemmelIdList = it.hjemmelIdList,
-                temaId = Ytelse.of(it.ytelseId).toTema().id,
-                vedtakDate = it.vedtakDate.toLocalDate(),
-                sakenGjelder = it.sakenGjelder.partViewWithUtsendingskanal(),
-                klager = it.klager.partViewWithUtsendingskanal(),
-                fullmektig = it.fullmektig?.partViewWithUtsendingskanal(),
-                fagsakId = it.fagsakId,
-                fagsystemId = it.fagsystemId,
-                previousSaksbehandler = it.tildeltSaksbehandlerIdent?.let { it1 ->
-                    it.tildeltSaksbehandlerNavn?.let { it2 ->
-                        PreviousSaksbehandler(
-                            navIdent = it1,
-                            navn = it2,
-                        )
-                    }
-                },
-                sourceId = MulighetSource.KABAL.fagsystem.id,
-                typeId = it.typeId,
-                sourceOfExistingAnkebehandling = it.sourceOfExistingAnkebehandling.map { existingAnkebehandling ->
-                    ExistingAnkebehandling(
-                        id = existingAnkebehandling.id,
-                        created = existingAnkebehandling.created,
-                        completed = existingAnkebehandling.completed,
-                    )
-                },
-            )
-        }
+    fun getAnkemuligheterAsMono(input: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
+        return kabalApiClient.getAnkemuligheterByIdnummer(input)
     }
 
     fun createAnkeInKabalFromCompleteInput(
@@ -142,7 +99,7 @@ class KabalApiService(
                 receivers = svarbrevInput.receivers.map { receiver ->
                     SvarbrevInput.Receiver(
                         id = receiver.id,
-                        handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                        handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling!!.name),
                         overriddenAddress = receiver.overriddenAddress?.let { address ->
                             SvarbrevInput.Receiver.AddressInput(
                                 adresselinje1 = address.adresselinje1,
@@ -208,4 +165,9 @@ class KabalApiService(
     fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {
         return kabalApiClient.getCompletedBehandling(behandlingId)
     }
+
+    fun getSvarbrevSettings(ytelseId: String, typeId: String): SvarbrevSettingsView {
+        return kabalApiClient.getSvarbrevSettings(ytelseId = ytelseId, typeId = typeId)
+    }
+
 }

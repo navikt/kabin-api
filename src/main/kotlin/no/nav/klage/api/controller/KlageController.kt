@@ -1,11 +1,16 @@
 package no.nav.klage.api.controller
 
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreatedKlagebehandlingStatusView
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.KlageService
-import no.nav.klage.util.*
+import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.getLogger
+import no.nav.klage.util.getSecureLogger
+import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
 @RestController
@@ -19,30 +24,6 @@ class KlageController(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
-    }
-
-    @PostMapping("/createklage", produces = ["application/json"])
-    fun createKlage(@RequestBody input: CreateKlageInputView): CreatedBehandlingResponse {
-        logMethodDetails(
-            methodName = ::createKlage.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-
-        secureLogger.debug("createklage called with: {}", input)
-
-        return klageService.createKlage(input = input)
-    }
-
-    @PostMapping("/klagemuligheter", produces = ["application/json"])
-    fun getCompletedKlagebehandlingerInVedtaksinstansByIdnummer(@RequestBody input: IdnummerInput): List<Klagemulighet> {
-        logMethodDetails(
-            methodName = ::getCompletedKlagebehandlingerInVedtaksinstansByIdnummer.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-
-        return klageService.getKlagemuligheter(input)
     }
 
     @GetMapping("/klager/{behandlingId}/status")
