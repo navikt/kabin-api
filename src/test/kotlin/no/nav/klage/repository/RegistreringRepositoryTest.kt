@@ -102,6 +102,7 @@ class RegistreringRepositoryTest {
             previousSaksbehandlerIdent = "S123456",
             previousSaksbehandlerName = "Sakbehandler Navn",
             type = Type.ANKE,
+            originalType = Type.ANKE,
             klageBehandlendeEnhet = "4200",
             currentFagystemTechnicalId = UUID.randomUUID().toString(),
             sourceOfExistingAnkebehandling = mutableSetOf(

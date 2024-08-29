@@ -374,6 +374,7 @@ fun PartWithUtsendingskanal?.toPartViewWithUtsendingskanal(partStatusList: Set<P
 fun AnkemulighetFromKabal.toMulighet(): Mulighet {
     val ytelse = Ytelse.of(ytelseId)
     return Mulighet(
+        originalType = Type.of(typeId),
         type = Type.ANKE,
         tema = ytelse.toTema(),
         vedtakDate = vedtakDate.toLocalDate(),
@@ -403,6 +404,7 @@ fun SakFromKlanke.toMulighet(kabalApiClient: KabalApiClient): Mulighet {
     val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE
     return Mulighet(
         type = type,
+        originalType = type,
         tema = Tema.valueOf(tema),
         vedtakDate = if (type == Type.KLAGE) vedtaksdato else null,
         sakenGjelder = kabalApiClient.searchPartWithUtsendingskanal(
@@ -466,7 +468,7 @@ fun Mulighet.toKlagemulighetView() =
         fagsakId = fagsakId,
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
-        typeId = type.id,
+        typeId = originalType.id,
         klageBehandlendeEnhet = klageBehandlendeEnhet,
     )
 
@@ -479,7 +481,7 @@ fun Mulighet.toAnkemulighetView(): AnkemulighetView =
         fagsakId = fagsakId,
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
-        typeId = type.id,
+        typeId = originalType.id,
         sourceOfExistingAnkebehandling = sourceOfExistingAnkebehandling.map {
             ExistingAnkebehandling(
                 id = it.ankebehandlingId,
