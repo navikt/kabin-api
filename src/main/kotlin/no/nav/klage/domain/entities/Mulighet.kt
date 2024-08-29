@@ -87,6 +87,9 @@ class Mulighet(
     @Convert(converter = TypeConverter::class)
     @Column(name = "type_id")
     val type: Type,
+    @Convert(converter = TypeConverter::class)
+    @Column(name = "original_type_id")
+    val originalType: Type,
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
     /** sakId from Infotrygd or behandlingId from Kabal */
