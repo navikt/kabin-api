@@ -286,7 +286,10 @@ class RegistreringService(
                 ) {
                     //set svarbrev settings (and reset old) for the new ytelse
                     setSvarbrevSettings()
-                    hjemmelIdList = emptyList()
+
+                    hjemmelIdList = newMulighet.hjemmelIdList.ifEmpty {
+                        emptyList()
+                    }
 
                     //Could be smarter here.
                     saksbehandlerIdent = null
