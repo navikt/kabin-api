@@ -76,11 +76,7 @@ class OppgaveService(
                 endretAvEnhetsnr = currentUserInfo.enhet.enhetId,
                 tilordnetRessurs = tilordnetRessurs,
                 tildeltEnhetsnr = tildeltEnhetsnr,
-                beskrivelse = getNewBeskrivelse(
-                    newBeskrivelsePart = newBeskrivelsePart,
-                    existingBeskrivelse = currentOppgave.beskrivelse,
-                    currentUserInfo = currentUserInfo
-                ),
+                beskrivelse = null,
                 kommentar = UpdateOppgaveInput.Kommentar(
                     tekst = newComment,
                     automatiskGenerert = true
