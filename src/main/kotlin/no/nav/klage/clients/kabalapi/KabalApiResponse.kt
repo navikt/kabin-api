@@ -49,7 +49,7 @@ data class CompletedBehandling(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class AnkemulighetFromKabal(
+data class MulighetFromKabal(
     val behandlingId: UUID,
     val typeId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,

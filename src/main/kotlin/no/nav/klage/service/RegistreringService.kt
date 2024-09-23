@@ -5,9 +5,9 @@ import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.Beh
 import no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
@@ -33,6 +33,7 @@ class RegistreringService(
     private val tokenUtil: TokenUtil,
     private val klageService: KlageService,
     private val ankeService: AnkeService,
+    private val omgjoeringskravService: OmgjoeringskravService,
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
 ) {
@@ -180,7 +181,7 @@ class RegistreringService(
                             mottattVedtaksinstans = journalpostDatoOpprettet
                         }
 
-                        Type.ANKE -> {
+                        Type.ANKE, Type.OMGJOERINGSKRAV -> {
                             mottattKlageinstans = journalpostDatoOpprettet
                         }
 
@@ -310,7 +311,7 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = newMulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type == Type.ANKE) {
+                } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = newMulighet.klager?.part.toPartIdInput(),
@@ -343,9 +344,10 @@ class RegistreringService(
         val ankemuligheterFromInfotrygdMono = ankeService.getAnkemuligheterFromInfotrygdAsMono(input)
 
         val ankemuligheterFromKabalMono = ankeService.getAnkemuligheterFromKabalAsMono(input)
+        val omgjoeringskravmuligheterFromKabalMono = omgjoeringskravService.getOmgjoeringskravmuligheterFromKabalAsMono(input)
 
         val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
-        val muligheterFromKabal = mutableListOf<AnkemulighetFromKabal>()
+        val muligheterFromKabal = mutableListOf<MulighetFromKabal>()
 
         var start = System.currentTimeMillis()
         var mulighetStart = System.currentTimeMillis()
@@ -355,6 +357,7 @@ class RegistreringService(
             klageTilbakebetalingMuligheterFromInfotrygdMono,
             ankemuligheterFromInfotrygdMono,
             ankemuligheterFromKabalMono,
+            omgjoeringskravmuligheterFromKabalMono,
         ).parallel()
             .runOn(Schedulers.parallel())
             .doOnNext { mulighetList ->
@@ -363,7 +366,7 @@ class RegistreringService(
                 mulighetList.forEach { mulighet ->
                     if (mulighet is SakFromKlanke) {
                         muligheterFromInfotrygd.add(mulighet)
-                    } else if (mulighet is AnkemulighetFromKabal) {
+                    } else if (mulighet is MulighetFromKabal) {
                         muligheterFromKabal.add(mulighet)
                     }
                 }
@@ -1175,19 +1178,42 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
         registrering.reinitializeMuligheter()
 
-        val (klagemuligheter, ankemuligheter) = registrering.muligheter.partition { it.type == Type.KLAGE }
+        val klagemuligheter = mutableListOf<Mulighet>()
+        val ankemuligheter = mutableListOf<Mulighet>()
+        val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
+
+        registrering.muligheter.forEach { mulighet ->
+            when (mulighet.type) {
+                Type.KLAGE -> {
+                    klagemuligheter.add(mulighet)
+                }
+                Type.ANKE -> {
+                    ankemuligheter.add(mulighet)
+                }
+                Type.OMGJOERINGSKRAV -> {
+                    omgjoeringskravmuligheter.add(mulighet)
+                }
+
+                else -> error("Not valid mulighet type: ${mulighet.type}")
+            }
+        }
 
         val klagemuligheterView = klagemuligheter.map { klagemulighet ->
             klagemulighet.toKlagemulighetView()
         }
 
         val ankemuligheterView = ankemuligheter.map { ankemulighet ->
-            ankemulighet.toAnkemulighetView()
+            ankemulighet.toKabalmulighetView()
+        }
+
+        val omgjoeringskravmuligheterView = omgjoeringskravmuligheter.map { omgjoeringskravmulighet ->
+            omgjoeringskravmulighet.toKabalmulighetView()
         }
 
         return MuligheterView(
             klagemuligheter = klagemuligheterView,
             ankemuligheter = ankemuligheterView,
+            omgjoeringskravmuligheter = omgjoeringskravmuligheterView,
             muligheterFetched = registrering.muligheterFetched!!,
         )
     }

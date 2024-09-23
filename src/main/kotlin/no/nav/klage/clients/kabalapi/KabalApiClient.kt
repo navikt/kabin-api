@@ -74,7 +74,7 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
+    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<MulighetFromKabal>> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/ankemuligheter").build() }
             .header(
@@ -83,7 +83,19 @@ class KabalApiClient(
             )
             .bodyValue(idnummerInput)
             .retrieve()
-            .bodyToMono<List<AnkemulighetFromKabal>>()
+            .bodyToMono<List<MulighetFromKabal>>()
+    }
+
+    fun getOmgjoeringskravmuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<MulighetFromKabal>> {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/omgjoeringskravmuligheter").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(idnummerInput)
+            .retrieve()
+            .bodyToMono<List<MulighetFromKabal>>()
     }
 
     fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {

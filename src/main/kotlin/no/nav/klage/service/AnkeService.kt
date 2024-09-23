@@ -6,7 +6,7 @@ import no.nav.klage.api.controller.view.CreatedAnkebehandlingStatusView
 import no.nav.klage.api.controller.view.CreatedBehandlingResponse
 import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
+import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.CreateAnkeInput
 import no.nav.klage.domain.entities.Mulighet
@@ -87,7 +87,7 @@ class AnkeService(
         return behandlingId
     }
 
-    fun getAnkemuligheterFromKabalAsMono(input: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
+    fun getAnkemuligheterFromKabalAsMono(input: IdnummerInput): Mono<List<MulighetFromKabal>> {
         return kabalApiService.getAnkemuligheterAsMono(input)
     }
 

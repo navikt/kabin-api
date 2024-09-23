@@ -38,8 +38,12 @@ class KabalApiService(
         return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
     }
 
-    fun getAnkemuligheterAsMono(input: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
+    fun getAnkemuligheterAsMono(input: IdnummerInput): Mono<List<MulighetFromKabal>> {
         return kabalApiClient.getAnkemuligheterByIdnummer(input)
+    }
+
+    fun getOmgjoeringskravmuligheterAsMono(input: IdnummerInput): Mono<List<MulighetFromKabal>> {
+        return kabalApiClient.getOmgjoeringskravmuligheterByIdnummer(input)
     }
 
     fun createAnkeInKabalFromCompleteInput(

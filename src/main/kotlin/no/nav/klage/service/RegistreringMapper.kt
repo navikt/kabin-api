@@ -4,8 +4,8 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.Address
 import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
 import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
 import no.nav.klage.domain.entities.*
@@ -217,7 +217,7 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
         mulighet.toKlagemulighetView()
     },
     ankemuligheter = muligheter.filter { it.type == Type.ANKE }.map { mulighet ->
-        mulighet.toAnkemulighetView()
+        mulighet.toKabalmulighetView()
     },
     muligheterFetched = muligheterFetched,
 )
@@ -371,7 +371,7 @@ fun PartWithUtsendingskanal?.toPartViewWithUtsendingskanal(partStatusList: Set<P
     }
 }
 
-fun AnkemulighetFromKabal.toMulighet(): Mulighet {
+fun MulighetFromKabal.toMulighet(): Mulighet {
     val ytelse = Ytelse.of(ytelseId)
     return Mulighet(
         originalType = Type.of(typeId),
@@ -472,8 +472,8 @@ fun Mulighet.toKlagemulighetView() =
         klageBehandlendeEnhet = klageBehandlendeEnhet,
     )
 
-fun Mulighet.toAnkemulighetView(): AnkemulighetView =
-    AnkemulighetView(
+fun Mulighet.toKabalmulighetView(): KabalmulighetView =
+    KabalmulighetView(
         id = id,
         temaId = tema.id,
         vedtakDate = vedtakDate,
