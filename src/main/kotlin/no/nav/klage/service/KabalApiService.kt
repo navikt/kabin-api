@@ -5,7 +5,7 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
-import no.nav.klage.domain.CreateAnkeInput
+import no.nav.klage.domain.CreateBehandlingInput
 import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
@@ -47,7 +47,7 @@ class KabalApiService(
     }
 
     fun createAnkeInKabalFromCompleteInput(
-        input: CreateAnkeInput,
+        input: CreateBehandlingInput,
         sakFromKlanke: SakFromKlanke,
         frist: LocalDate
     ): UUID {
@@ -64,11 +64,11 @@ class KabalApiService(
                 fagsystemId = Fagsystem.IT01.id,
                 hjemmelIdList = input.hjemmelIdList,
                 forrigeBehandlendeEnhet = sakFromKlanke.enhetsnummer,
-                ankeJournalpostId = input.ankeDocumentJournalpostId,
+                ankeJournalpostId = input.receivedDocumentJournalpostId,
                 mottattNav = input.mottattKlageinstans,
                 frist = frist,
                 ytelseId = input.ytelseId!!,
-                kildereferanse = input.id,
+                kildereferanse = input.currentFagystemTechnicalId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
                 oppgaveId = input.oppgaveId,
@@ -76,10 +76,11 @@ class KabalApiService(
         ).behandlingId
     }
 
-    fun createAnkeInKabalFromKlagebehandling(input: CreateAnkeInput): UUID {
-        return kabalApiClient.createAnkeInKabal(
-            CreateAnkeBasedOnKlagebehandlingInput(
-                sourceBehandlingId = UUID.fromString(input.id),
+    fun createAnkeInKabalFromKlagebehandling(input: CreateBehandlingInput): UUID {
+        return kabalApiClient.createBehandlingInKabal(
+            CreateBehandlingBasedOnKabalInput(
+                typeId = input.typeId,
+                sourceBehandlingId = UUID.fromString(input.currentFagystemTechnicalId),
                 mottattNav = input.mottattKlageinstans,
                 frist = when(input.behandlingstidUnitType) {
                     TimeUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
@@ -87,7 +88,7 @@ class KabalApiService(
                 },
                 klager = input.klager.toOversendtPartId(),
                 fullmektig = input.fullmektig.toOversendtPartId(),
-                ankeDocumentJournalpostId = input.ankeDocumentJournalpostId,
+                receivedDocumentJournalpostId = input.receivedDocumentJournalpostId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),
                 hjemmelIdList = input.hjemmelIdList,
@@ -132,7 +133,7 @@ class KabalApiService(
     }
 
     fun createKlageInKabalFromCompleteInput(
-        input: CreateKlageInput,
+        input: CreateBehandlingInput,
         sakFromKlanke: SakFromKlanke,
         frist: LocalDate
     ): UUID {
@@ -149,12 +150,12 @@ class KabalApiService(
                 fagsystemId = Fagsystem.IT01.id,
                 hjemmelIdList = input.hjemmelIdList,
                 forrigeBehandlendeEnhet = sakFromKlanke.enhetsnummer,
-                klageJournalpostId = input.klageJournalpostId,
-                brukersHenvendelseMottattNav = input.mottattVedtaksinstans,
+                klageJournalpostId = input.receivedDocumentJournalpostId,
+                brukersHenvendelseMottattNav = input.mottattVedtaksinstans!!,
                 sakMottattKa = input.mottattKlageinstans,
                 frist = frist,
                 ytelseId = input.ytelseId,
-                kildereferanse = input.eksternBehandlingId,
+                kildereferanse = input.currentFagystemTechnicalId,
                 saksbehandlerIdent = input.saksbehandlerIdent,
                 oppgaveId = input.oppgaveId,
                 svarbrevInput = input.svarbrevInput?.toKabalModel(),

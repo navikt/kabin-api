@@ -1,16 +1,17 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.CreateKlageInputView
 import no.nav.klage.api.controller.view.CreatedBehandlingResponse
 import no.nav.klage.api.controller.view.CreatedKlagebehandlingStatusView
 import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.toView
-import no.nav.klage.domain.CreateKlageInput
+import no.nav.klage.domain.CreateBehandlingInput
 import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.exceptions.IllegalInputException
 import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.kodeverk.Type
+import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -33,26 +34,31 @@ class KlageService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun createKlage(input: CreateKlageInputView, klagemulighet: Mulighet): CreatedBehandlingResponse {
-        val processedInput = validationUtil.validateCreateKlageInputView(input)
+    fun createKlage(registrering: Registrering): CreatedBehandlingResponse {
+        val mulighet = registrering.mulighetId?.let { mulighetId ->
+            registrering.muligheter.find { it.id == mulighetId }
+        } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+
+        validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
+        val processedInput = registrering.toCreateBehandlingInput(mulighet)
+
         val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
-            journalpostId = processedInput.klageJournalpostId,
-            mulighet = klagemulighet,
-            avsender = input.avsender,
-            type = Type.KLAGE,
+            journalpostId = processedInput.receivedDocumentJournalpostId,
+            mulighet = mulighet,
+            avsender = processedInput.avsender,
         )
 
-        val finalInput = processedInput.copy(klageJournalpostId = journalpostId)
+        val finalInput = processedInput.copy(receivedDocumentJournalpostId = journalpostId)
 
         return CreatedBehandlingResponse(
             behandlingId = createKlageFromInfotrygdSak(input = finalInput)
         )
     }
 
-    private fun createKlageFromInfotrygdSak(input: CreateKlageInput): UUID {
+    private fun createKlageFromInfotrygdSak(input: CreateBehandlingInput): UUID {
         //TODO, get from cache?
-        val sakFromKlanke = klageFssProxyService.getSak(sakId = input.eksternBehandlingId)
-        val frist = when(input.behandlingstidUnitType) {
+        val sakFromKlanke = klageFssProxyService.getSak(sakId = input.currentFagystemTechnicalId)
+        val frist = when (input.behandlingstidUnitType) {
             TimeUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
             TimeUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
         }
@@ -121,4 +127,31 @@ class KlageService(
             svarbrev = status.svarbrev?.toView(),
         )
     }
+
+    fun Registrering.toCreateBehandlingInput(mulighet: Mulighet): CreateBehandlingInput {
+        return CreateBehandlingInput(
+            currentFagystemTechnicalId = mulighet.currentFagystemTechnicalId,
+            mulighetSource = MulighetSource.of(mulighet.currentFagsystem),
+            mottattKlageinstans = mottattKlageinstans!!,
+            mottattVedtaksinstans = mottattVedtaksinstans!!,
+            behandlingstidUnits = behandlingstidUnits,
+            behandlingstidUnitType = behandlingstidUnitType,
+            klager = klager.toPartIdInput()!!,
+            fullmektig = fullmektig.toPartIdInput(),
+            receivedDocumentJournalpostId = journalpostId!!,
+            ytelseId = ytelse!!.id,
+            hjemmelIdList = hjemmelIdList,
+            avsender = avsender.toPartIdInput(),
+            saksbehandlerIdent = saksbehandlerIdent!!,
+            svarbrevInput = toSvarbrevWithReceiverInput(this.getSvarbrevSettings()),
+            oppgaveId = oppgaveId,
+            typeId = type!!.id
+
+        )
+    }
+
+    private fun Registrering.getSvarbrevSettings() = kabalApiService.getSvarbrevSettings(
+        ytelseId = ytelse!!.id,
+        typeId = type!!.id
+    )
 }

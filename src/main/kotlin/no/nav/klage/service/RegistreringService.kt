@@ -344,7 +344,8 @@ class RegistreringService(
         val ankemuligheterFromInfotrygdMono = ankeService.getAnkemuligheterFromInfotrygdAsMono(input)
 
         val ankemuligheterFromKabalMono = ankeService.getAnkemuligheterFromKabalAsMono(input)
-        val omgjoeringskravmuligheterFromKabalMono = omgjoeringskravService.getOmgjoeringskravmuligheterFromKabalAsMono(input)
+        val omgjoeringskravmuligheterFromKabalMono =
+            omgjoeringskravService.getOmgjoeringskravmuligheterFromKabalAsMono(input)
 
         val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
         val muligheterFromKabal = mutableListOf<MulighetFromKabal>()
@@ -1100,59 +1101,17 @@ class RegistreringService(
     fun finishRegistrering(registreringId: UUID): FerdigstiltRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        val mulighet = registrering.mulighetId?.let { mulighetId ->
-            registrering.muligheter.find { it.id == mulighetId }
-        } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
 
         val response: CreatedBehandlingResponse = when (registrering.type) {
             Type.ANKE -> {
                 ankeService.createAnke(
-                    input = CreateAnkeInputView(
-                        mottattKlageinstans = registrering.mottattKlageinstans,
-                        behandlingstidUnits = registrering.behandlingstidUnits,
-                        behandlingstidUnitType = registrering.behandlingstidUnitType,
-                        behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
-                        klager = registrering.klager.toPartIdInput(),
-                        fullmektig = registrering.fullmektig.toPartIdInput(),
-                        journalpostId = registrering.journalpostId,
-                        ytelseId = registrering.ytelse?.id,
-                        hjemmelIdList = registrering.hjemmelIdList,
-                        avsender = registrering.avsender.toPartIdInput(),
-                        saksbehandlerIdent = registrering.saksbehandlerIdent,
-                        svarbrevInput = registrering.toSvarbrevWithReceiverInput(registrering.getSvarbrevSettings()),
-                        vedtak = Vedtak(
-                            id = mulighet.currentFagystemTechnicalId,
-                            sourceId = mulighet.currentFagsystem.id,
-                        ),
-                        oppgaveId = registrering.oppgaveId,
-                    ),
-                    ankemulighet = mulighet,
+                    registrering = registrering,
                 )
             }
 
             Type.KLAGE -> {
                 klageService.createKlage(
-                    input = CreateKlageInputView(
-                        mottattKlageinstans = registrering.mottattKlageinstans,
-                        mottattVedtaksinstans = registrering.mottattVedtaksinstans,
-                        behandlingstidUnits = registrering.behandlingstidUnits,
-                        behandlingstidUnitType = registrering.behandlingstidUnitType,
-                        behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
-                        klager = registrering.klager.toPartIdInput(),
-                        fullmektig = registrering.fullmektig.toPartIdInput(),
-                        journalpostId = registrering.journalpostId,
-                        ytelseId = registrering.ytelse?.id,
-                        hjemmelIdList = registrering.hjemmelIdList,
-                        avsender = registrering.avsender.toPartIdInput(),
-                        saksbehandlerIdent = registrering.saksbehandlerIdent,
-                        svarbrevInput = registrering.toSvarbrevWithReceiverInput(registrering.getSvarbrevSettings()),
-                        vedtak = Vedtak(
-                            id = mulighet.currentFagystemTechnicalId,
-                            sourceId = mulighet.currentFagsystem.id,
-                        ),
-                        oppgaveId = registrering.oppgaveId,
-                    ),
-                    klagemulighet = mulighet,
+                    registrering = registrering,
                 )
             }
 
@@ -1187,9 +1146,11 @@ class RegistreringService(
                 Type.KLAGE -> {
                     klagemuligheter.add(mulighet)
                 }
+
                 Type.ANKE -> {
                     ankemuligheter.add(mulighet)
                 }
+
                 Type.OMGJOERINGSKRAV -> {
                     omgjoeringskravmuligheter.add(mulighet)
                 }

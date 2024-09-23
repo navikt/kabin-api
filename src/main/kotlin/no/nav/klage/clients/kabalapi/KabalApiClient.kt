@@ -48,9 +48,9 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandlingInput): CreatedBehandlingResponse {
+    fun createBehandlingInKabal(input: CreateBehandlingBasedOnKabalInput): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
-            .uri { it.path("/api/internal/createanke").build() }
+            .uri { it.path("/api/internal/createbehandling").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"

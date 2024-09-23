@@ -3,13 +3,14 @@ package no.nav.klage.clients.kabalapi
 import java.time.LocalDate
 import java.util.*
 
-data class CreateAnkeBasedOnKlagebehandlingInput(
+data class CreateBehandlingBasedOnKabalInput(
+    val typeId: String,
     val sourceBehandlingId: UUID,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,
-    val ankeDocumentJournalpostId: String,
+    val receivedDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
     val hjemmelIdList: List<String>,

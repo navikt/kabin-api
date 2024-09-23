@@ -1,6 +1,5 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.CreateAnkeInputView
 import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.SearchPartInput
@@ -11,7 +10,7 @@ import no.nav.klage.clients.oppgaveapi.OppgaveClient
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
-import no.nav.klage.domain.CreateAnkeInput
+import no.nav.klage.domain.CreateBehandlingInput
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
@@ -19,7 +18,6 @@ import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.canChangeAvsenderInJournalpost
 import no.nav.klage.util.getLogger
@@ -146,7 +144,6 @@ class DokArkivService(
         journalpostId: String,
         mulighet: Mulighet,
         avsender: PartIdInput?,
-        type: Type,
     ): String {
         return handleJournalpost(
             journalpostId = journalpostId,
@@ -171,17 +168,16 @@ class DokArkivService(
         )
     }
 
-    fun handleJournalpostBasedOnAnkeInput(input: CreateAnkeInput, ankemulighet: Mulighet): String {
+    fun handleJournalpostBasedOnAnkeInput(input: CreateBehandlingInput, ankemulighet: Mulighet): String {
         return when (input.mulighetSource) {
             MulighetSource.INFOTRYGD -> handleJournalpostBasedOnInfotrygdSak(
-                journalpostId = input.ankeDocumentJournalpostId,
+                journalpostId = input.receivedDocumentJournalpostId,
                 mulighet = ankemulighet,
                 avsender = input.avsender,
-                type = Type.ANKE,
             )
 
             MulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
-                journalpostId = input.ankeDocumentJournalpostId,
+                journalpostId = input.receivedDocumentJournalpostId,
                 mulighet = ankemulighet,
                 avsender = input.avsender,
             )
@@ -249,7 +245,7 @@ class DokArkivService(
                         section = "saksdata",
                         properties = listOf(
                             InvalidProperty(
-                                field = CreateAnkeInputView::avsender.name,
+                                field = CreateBehandlingInput::avsender.name,
                                 reason = "Velg en avsender."
                             )
                         )
