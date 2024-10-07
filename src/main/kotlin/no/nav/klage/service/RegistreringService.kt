@@ -18,7 +18,6 @@ import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.calculateFrist
 import no.nav.klage.util.getLogger
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -37,7 +36,6 @@ class RegistreringService(
     private val omgjoeringskravService: OmgjoeringskravService,
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
-
 ) {
 
     companion object {

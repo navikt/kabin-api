@@ -58,13 +58,6 @@ enum class Status(val statusId: Long) {
             return entries.firstOrNull { it.statusId == statusId }
                 ?: throw IllegalArgumentException("No status with $statusId exists")
         }
-
-        fun kategoriForStatus(status: Status): Statuskategori {
-            return when (status) {
-                AAPNET, OPPRETTET, UNDER_BEHANDLING -> Statuskategori.AAPEN
-                FEILREGISTRERT, FERDIGSTILT -> Statuskategori.AVSLUTTET
-            }
-        }
     }
 }
 

@@ -1,10 +1,6 @@
 package no.nav.klage.api.controller.view
 
-import no.nav.klage.clients.kabalapi.OversendtPartId
-import no.nav.klage.clients.kabalapi.OversendtPartIdType
 import no.nav.klage.domain.entities.HandlingEnum
-import no.nav.klage.domain.entities.PartId
-import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
 import java.util.*

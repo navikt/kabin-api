@@ -223,10 +223,6 @@ class DokArkivClient(
         val journalfoerendeEnhet: String
     )
 
-    data class SetLogiskeVedleggPayload(
-        val titler: List<String>
-    )
-
     data class LogiskVedleggPayload(
         val tittel: String,
     )

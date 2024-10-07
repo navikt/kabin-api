@@ -1,11 +1,10 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CreatedBehandlingStatusView
+import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.kabalapi.*
-import no.nav.klage.clients.kabalapi.PartView
-import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
-import no.nav.klage.domain.CreateBehandlingInput
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.kodeverk.Fagsystem
