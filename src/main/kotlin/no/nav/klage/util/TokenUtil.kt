@@ -79,12 +79,6 @@ class TokenUtil(
         return response.accessToken!!
     }
 
-    fun getSaksbehandlerAccessTokenWithGraphScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["azure-onbehalfof"]!!
-        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.accessToken!!
-    }
-
     fun getAccessTokenFrontendSent(): String =
         tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)!!.encodedToken
 

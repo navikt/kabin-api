@@ -1,6 +1,5 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.CreateAnkeInputView
 import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.SearchPartInput
@@ -11,7 +10,7 @@ import no.nav.klage.clients.oppgaveapi.OppgaveClient
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
-import no.nav.klage.domain.CreateAnkeInput
+import no.nav.klage.domain.CreateBehandlingInput
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
@@ -19,7 +18,6 @@ import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.canChangeAvsenderInJournalpost
 import no.nav.klage.util.getLogger
@@ -30,7 +28,6 @@ import org.springframework.stereotype.Service
 class DokArkivService(
     private val dokArkivClient: DokArkivClient,
     private val safService: SafService,
-    private val fssProxyService: KlageFssProxyService,
     private val kabalInnstillingerClient: KabalInnstillingerClient,
     private val kabalApiService: KabalApiService,
     private val oppgaveClient: OppgaveClient,
@@ -142,11 +139,10 @@ class DokArkivService(
         }
     }
 
-    fun handleJournalpostBasedOnInfotrygdSak(
+    private fun handleJournalpostBasedOnInfotrygdSak(
         journalpostId: String,
         mulighet: Mulighet,
         avsender: PartIdInput?,
-        type: Type,
     ): String {
         return handleJournalpost(
             journalpostId = journalpostId,
@@ -157,6 +153,7 @@ class DokArkivService(
                     PartIdType.PERSON -> {
                         BrukerIdType.FNR
                     }
+
                     else -> {
                         BrukerIdType.ORGNR
                     }
@@ -171,19 +168,20 @@ class DokArkivService(
         )
     }
 
-    fun handleJournalpostBasedOnAnkeInput(input: CreateAnkeInput, ankemulighet: Mulighet): String {
-        return when (input.mulighetSource) {
+    fun handleJournalpost(
+        mulighet: Mulighet, journalpostId: String, avsender: PartIdInput?
+    ): String {
+        return when (MulighetSource.of(mulighet.currentFagsystem)) {
             MulighetSource.INFOTRYGD -> handleJournalpostBasedOnInfotrygdSak(
-                journalpostId = input.ankeDocumentJournalpostId,
-                mulighet = ankemulighet,
-                avsender = input.avsender,
-                type = Type.ANKE,
+                journalpostId = journalpostId,
+                mulighet = mulighet,
+                avsender = avsender,
             )
 
             MulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
-                journalpostId = input.ankeDocumentJournalpostId,
-                mulighet = ankemulighet,
-                avsender = input.avsender,
+                journalpostId = journalpostId,
+                mulighet = mulighet,
+                avsender = avsender,
             )
         }
     }
@@ -202,6 +200,7 @@ class DokArkivService(
                     PartIdType.PERSON -> {
                         BrukerIdType.FNR
                     }
+
                     else -> {
                         BrukerIdType.ORGNR
                     }
@@ -249,7 +248,7 @@ class DokArkivService(
                         section = "saksdata",
                         properties = listOf(
                             InvalidProperty(
-                                field = CreateAnkeInputView::avsender.name,
+                                field = CreateBehandlingInput::avsender.name,
                                 reason = "Velg en avsender."
                             )
                         )

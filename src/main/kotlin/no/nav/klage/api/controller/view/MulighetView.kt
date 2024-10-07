@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-data class AnkemulighetView(
+data class KabalmulighetView(
     override val id: UUID,
     override var currentFagsystemId: String,
     override val temaId: String,
@@ -57,6 +57,7 @@ interface MulighetView {
 
 data class MuligheterView(
     val klagemuligheter: List<KlagemulighetView>,
-    val ankemuligheter: List<AnkemulighetView>,
+    val ankemuligheter: List<KabalmulighetView>,
+    val omgjoeringskravmuligheter: List<KabalmulighetView>,
     val muligheterFetched: LocalDateTime,
 )

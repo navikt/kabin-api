@@ -85,7 +85,6 @@ class DokArkivServiceTest {
         dokArkivService = DokArkivService(
             dokArkivClient = dokArkivClient,
             safService = safService,
-            fssProxyService = fssProxyService,
             kabalInnstillingerClient = kabalInnstillingerClient,
             kabalApiService = kabalApiService,
             oppgaveClient = mockk(relaxed = true),

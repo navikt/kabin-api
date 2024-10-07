@@ -3,11 +3,11 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.Address
 import no.nav.klage.api.controller.view.ExistingAnkebehandling
+import no.nav.klage.api.controller.view.PartType
+import no.nav.klage.api.controller.view.PartViewWithUtsendingskanal
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
-import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
-import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
 import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.PartStatus
 import no.nav.klage.kodeverk.*
@@ -217,7 +217,7 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
         mulighet.toKlagemulighetView()
     },
     ankemuligheter = muligheter.filter { it.type == Type.ANKE }.map { mulighet ->
-        mulighet.toAnkemulighetView()
+        mulighet.toKabalmulighetView()
     },
     muligheterFetched = muligheterFetched,
 )
@@ -296,20 +296,20 @@ fun PartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendin
     )
 }
 
-fun Registrering.toSvarbrevWithReceiverInput(svarbrevSettings: SvarbrevSettingsView): SvarbrevWithReceiverInput? {
+fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): SvarbrevInput? {
     if (sendSvarbrev != true) {
         return null
     }
 
-    return SvarbrevWithReceiverInput(
+    return SvarbrevInput(
         title = svarbrevTitle,
         customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
         receivers = svarbrevReceivers.map { receiver ->
-            SvarbrevWithReceiverInput.Receiver(
+            SvarbrevInput.Receiver(
                 id = receiver.part.value,
-                handling = receiver.handling?.let { SvarbrevWithReceiverInput.Receiver.HandlingEnum.valueOf(it.name) },
+                handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling!!.name),
                 overriddenAddress = receiver.overriddenAddress?.let { address ->
-                    SvarbrevWithReceiverInput.Receiver.AddressInput(
+                    SvarbrevInput.Receiver.AddressInput(
                         adresselinje1 = address.adresselinje1,
                         adresselinje2 = address.adresselinje2,
                         adresselinje3 = address.adresselinje3,
@@ -321,7 +321,6 @@ fun Registrering.toSvarbrevWithReceiverInput(svarbrevSettings: SvarbrevSettingsV
         },
         fullmektigFritekst = svarbrevFullmektigFritekst,
         varsletBehandlingstidUnits = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnits!! else svarbrevSettings.behandlingstidUnits,
-        varsletBehandlingstidUnitType = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnitType!! else svarbrevSettings.behandlingstidUnitType,
         varsletBehandlingstidUnitTypeId = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnitType!!.id else svarbrevSettings.behandlingstidUnitType.id,
     )
 }
@@ -371,7 +370,7 @@ fun PartWithUtsendingskanal?.toPartViewWithUtsendingskanal(partStatusList: Set<P
     }
 }
 
-fun AnkemulighetFromKabal.toMulighet(): Mulighet {
+fun MulighetFromKabal.toMulighet(): Mulighet {
     val ytelse = Ytelse.of(ytelseId)
     return Mulighet(
         originalType = Type.of(typeId),
@@ -472,8 +471,8 @@ fun Mulighet.toKlagemulighetView() =
         klageBehandlendeEnhet = klageBehandlendeEnhet,
     )
 
-fun Mulighet.toAnkemulighetView(): AnkemulighetView =
-    AnkemulighetView(
+fun Mulighet.toKabalmulighetView(): KabalmulighetView =
+    KabalmulighetView(
         id = id,
         temaId = tema.id,
         vedtakDate = vedtakDate,

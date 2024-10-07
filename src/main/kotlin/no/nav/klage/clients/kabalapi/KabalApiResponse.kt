@@ -5,7 +5,9 @@ import no.nav.klage.api.controller.view.PartStatus
 import no.nav.klage.api.controller.view.Svarbrev
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.domain.entities.PartId
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -24,32 +26,7 @@ data class BehandlingIsDuplicateResponse(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class CompletedBehandling(
-    val behandlingId: UUID,
-    val ytelseId: String,
-    val hjemmelIdList: List<String>,
-    val vedtakDate: LocalDateTime,
-    val sakenGjelder: PartViewWithUtsendingskanal,
-    val klager: PartViewWithUtsendingskanal,
-    val fullmektig: PartViewWithUtsendingskanal?,
-    val fagsakId: String,
-    val fagsystem: Fagsystem,
-    val fagsystemId: String,
-    val klageBehandlendeEnhet: String,
-    val tildeltSaksbehandlerIdent: String?,
-    val tildeltSaksbehandlerNavn: String?,
-) {
-    fun toDokarkivSak(): Sak {
-        return Sak(
-            sakstype = Sakstype.FAGSAK,
-            fagsaksystem = FagsaksSystem.valueOf(fagsystem.name),
-            fagsakid = fagsakId
-        )
-    }
-}
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class AnkemulighetFromKabal(
+data class MulighetFromKabal(
     val behandlingId: UUID,
     val typeId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
@@ -71,26 +48,6 @@ data class ExistingAnkebehandling(
     val id: UUID,
     val created: LocalDateTime,
     val completed: LocalDateTime?,
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class CreatedAnkebehandlingStatus(
-    val typeId: String,
-    val ytelseId: String,
-    val vedtakDate: LocalDateTime,
-    val sakenGjelder: PartViewWithUtsendingskanal,
-    val klager: PartViewWithUtsendingskanal,
-    val fullmektig: PartViewWithUtsendingskanal?,
-    val mottattNav: LocalDate,
-    val frist: LocalDate,
-    val varsletFrist: LocalDate?,
-    val varsletFristUnits: Int?,
-    val varsletFristUnitTypeId: String?,
-    val fagsakId: String,
-    val fagsystemId: String,
-    val journalpost: DokumentReferanse,
-    val tildeltSaksbehandler: TildeltSaksbehandler?,
-    val svarbrev: KabalApiResponseSvarbrev?,
 )
 
 data class KabalApiResponseSvarbrev(
@@ -115,13 +72,13 @@ data class KabalApiResponseSvarbrev(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class CreatedKlagebehandlingStatus(
+data class CreatedBehandlingStatus(
     val typeId: String,
     val ytelseId: String,
     val sakenGjelder: PartViewWithUtsendingskanal,
     val klager: PartViewWithUtsendingskanal,
     val fullmektig: PartViewWithUtsendingskanal?,
-    val mottattVedtaksinstans: LocalDate,
+    val mottattVedtaksinstans: LocalDate?,
     val mottattKlageinstans: LocalDate,
     val frist: LocalDate,
     val varsletFrist: LocalDate?,
@@ -130,10 +87,10 @@ data class CreatedKlagebehandlingStatus(
     val fagsakId: String,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
-    val kildereferanse: String,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
     val svarbrev: KabalApiResponseSvarbrev?,
 )
+
 
 data class TildeltSaksbehandler(
     val navIdent: String,
@@ -168,6 +125,24 @@ fun KabalApiResponseSvarbrev.toView(): Svarbrev {
             )
         }
     )
+}
+
+fun PartId?.toOversendtPartId(): OversendtPartId? {
+    return if (this == null) {
+        null
+    } else {
+        if (type == PartIdType.PERSON) {
+            OversendtPartId(
+                type = OversendtPartIdType.PERSON,
+                value = this.value
+            )
+        } else {
+            OversendtPartId(
+                type = OversendtPartIdType.VIRKSOMHET,
+                value = this.value
+            )
+        }
+    }
 }
 
 data class OversendtPartId(
@@ -252,34 +227,10 @@ data class PartViewWithUtsendingskanal(
             utsendingskanal = utsendingskanal,
         )
     }
-
-    fun toDokarkivBruker(): Bruker {
-        return Bruker(
-            id = id,
-            idType = BrukerIdType.valueOf(type.name)
-        )
-    }
 }
 
 enum class PartType {
     FNR, ORGNR
-}
-
-data class PartStatus(
-    val status: Status,
-    val date: LocalDate? = null,
-) {
-    enum class Status {
-        DEAD,
-        DELETED,
-        FORTROLIG,
-        STRENGT_FORTROLIG,
-        EGEN_ANSATT,
-        VERGEMAAL,
-        FULLMAKT,
-        RESERVERT_I_KRR,
-        DELT_ANSVAR,
-    }
 }
 
 data class Address(

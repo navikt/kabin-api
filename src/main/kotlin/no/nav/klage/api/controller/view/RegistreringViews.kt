@@ -30,7 +30,7 @@ data class FullRegistreringView(
     val behandlingId: UUID?,
     val willCreateNewJournalpost: Boolean,
     val klagemuligheter: List<KlagemulighetView>,
-    val ankemuligheter: List<AnkemulighetView>,
+    val ankemuligheter: List<KabalmulighetView>,
     val muligheterFetched: LocalDateTime?,
 ) {
 

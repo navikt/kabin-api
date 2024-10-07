@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*
 class DokumentController(
     private val documentService: DocumentService,
     private val tokenUtil: TokenUtil,
-    private val auditLogger: AuditLogger,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")

@@ -48,9 +48,9 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun createAnkeInKabal(input: CreateAnkeBasedOnKlagebehandlingInput): CreatedBehandlingResponse {
+    fun createBehandlingInKabal(input: CreateBehandlingBasedOnKabalInput): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
-            .uri { it.path("/api/internal/createanke").build() }
+            .uri { it.path("/api/internal/createbehandling").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
@@ -61,7 +61,7 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun createAnkeFromCompleteInputInKabal(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
+    fun createAnkeFromInfotrygdInputInKabal(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/createankefromcompleteinput").build() }
             .header(
@@ -74,7 +74,7 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
+    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<MulighetFromKabal>> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/ankemuligheter").build() }
             .header(
@@ -83,19 +83,19 @@ class KabalApiClient(
             )
             .bodyValue(idnummerInput)
             .retrieve()
-            .bodyToMono<List<AnkemulighetFromKabal>>()
+            .bodyToMono<List<MulighetFromKabal>>()
     }
 
-    fun getCompletedBehandling(behandlingId: UUID): CompletedBehandling {
-        return kabalApiWebClient.get()
-            .uri { it.path("/api/internal/completedbehandlinger/{klagebehandlingId}").build(behandlingId) }
+    fun getOmgjoeringskravmuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<MulighetFromKabal>> {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/omgjoeringskravmuligheter").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
             )
+            .bodyValue(idnummerInput)
             .retrieve()
-            .bodyToMono<CompletedBehandling>()
-            .block() ?: throw RuntimeException("Could not get behandling with id $behandlingId")
+            .bodyToMono<List<MulighetFromKabal>>()
     }
 
     fun searchPart(searchPartInput: SearchPartInput): PartView {
@@ -124,28 +124,16 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("null part returned")
     }
 
-    fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatus {
+    fun getBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatus {
         return kabalApiWebClient.get()
-            .uri { it.path("/api/internal/anker/{behandlingId}/status").build(behandlingId) }
+            .uri { it.path("/api/internal/behandlinger/{behandlingId}/status").build(behandlingId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
             )
             .retrieve()
-            .bodyToMono<CreatedAnkebehandlingStatus>()
-            .block() ?: throw RuntimeException("Could not get ankestatus for behandlingId $behandlingId")
-    }
-
-    fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatus {
-        return kabalApiWebClient.get()
-            .uri { it.path("/api/internal/klager/{behandlingId}/status").build(behandlingId) }
-            .header(
-                HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
-            )
-            .retrieve()
-            .bodyToMono<CreatedKlagebehandlingStatus>()
-            .block() ?: throw RuntimeException("Could not get klagestatus for behandlingId $behandlingId")
+            .bodyToMono<CreatedBehandlingStatus>()
+            .block() ?: throw RuntimeException("Could not get status for behandlingId $behandlingId")
     }
 
     fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {

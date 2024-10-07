@@ -1,7 +1,6 @@
 package no.nav.klage.service
 
 import io.mockk.mockk
-import no.nav.klage.api.controller.view.FullmektigInput
 import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.domain.entities.HandlingEnum
@@ -167,6 +166,7 @@ class ModifySvarbrevReiceversTest {
             kabalApiClient = mockk(),
             klageService = mockk(),
             ankeService = mockk(),
+            omgjoeringskravService = mockk(),
             documentService = mockk(),
             dokArkivService = mockk(),
         )

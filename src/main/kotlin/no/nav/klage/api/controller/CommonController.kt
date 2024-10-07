@@ -12,17 +12,15 @@ import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
+import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class CommonController(
     private val tokenUtil: TokenUtil,
     private val kabalApiService: KabalApiService,
-    private val dokArkivService: DokArkivService,
     private val oppgaveService: OppgaveService,
 ) {
 
@@ -81,5 +79,18 @@ class CommonController(
             fnr = input.identifikator,
             tema = input.temaId?.let { Tema.of(it) }
         )
+    }
+
+    @GetMapping("/behandlinger/{behandlingId}/status", "/anker/{behandlingId}/status", "/klager/{behandlingId}/status")
+    fun getCreatedBehandlingStatus(
+        @PathVariable behandlingId: UUID,
+    ): CreatedBehandlingStatusView {
+        logMethodDetails(
+            methodName = ::getCreatedBehandlingStatus.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        return kabalApiService.getCreatedBehandlingStatus(behandlingId)
     }
 }
