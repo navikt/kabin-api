@@ -143,7 +143,6 @@ class DokArkivService(
         journalpostId: String,
         mulighet: Mulighet,
         avsender: PartIdInput?,
-        type: Type,
     ): String {
         return handleJournalpost(
             journalpostId = journalpostId,
