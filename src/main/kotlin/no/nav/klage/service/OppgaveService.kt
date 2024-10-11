@@ -57,12 +57,9 @@ class OppgaveService(
 
         val newComment = "Overførte oppgaven fra Kabin til Kabal."
 
-        var newBeskrivelsePart = "$newComment\nOppdaterte frist."
-
         val (tilordnetRessurs, tildeltEnhetsnr) = if (tildeltSaksbehandlerIdent != null) {
             val tildeltSaksbehandlerInfo =
                 microsoftGraphService.getSaksbehandlerPersonligInfo(tildeltSaksbehandlerIdent)
-            newBeskrivelsePart += "\nTildelte oppgaven til $tildeltSaksbehandlerIdent."
             tildeltSaksbehandlerIdent to tildeltSaksbehandlerInfo.enhet.enhetId
         } else {
             null to null
@@ -76,11 +73,7 @@ class OppgaveService(
                 endretAvEnhetsnr = currentUserInfo.enhet.enhetId,
                 tilordnetRessurs = tilordnetRessurs,
                 tildeltEnhetsnr = tildeltEnhetsnr,
-                beskrivelse = getNewBeskrivelse(
-                    newBeskrivelsePart = newBeskrivelsePart,
-                    existingBeskrivelse = currentOppgave.beskrivelse,
-                    currentUserInfo = currentUserInfo
-                ),
+                beskrivelse = null,
                 kommentar = UpdateOppgaveInput.Kommentar(
                     tekst = newComment,
                     automatiskGenerert = true
@@ -99,19 +92,6 @@ class OppgaveService(
                 personident = null,
             )
         )
-    }
-
-    private fun getNewBeskrivelse(
-        newBeskrivelsePart: String,
-        existingBeskrivelse: String?,
-        currentUserInfo: MicrosoftGraphService.SaksbehandlerPersonligInfo,
-    ): String {
-        val formattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
-
-        val nameOfCurrentUser = currentUserInfo.sammensattNavn
-        val currentUserEnhet = currentUserInfo.enhet.enhetId
-        val header = "--- $formattedDate $nameOfCurrentUser (${currentUserInfo.navIdent}, $currentUserEnhet) ---"
-        return "$header\n$newBeskrivelsePart\n\n$existingBeskrivelse\n".trimIndent()
     }
 
     fun OppgaveApiRecord.toOppgaveView(): OppgaveView {
