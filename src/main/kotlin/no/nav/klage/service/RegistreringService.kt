@@ -285,20 +285,8 @@ class RegistreringService(
                     ytelse = null
                 }
 
-                if ((previousYtelse != null && ytelse != null && previousYtelse != ytelse)
-                    || (previousYtelse == null && ytelse != null)
-                ) {
-                    //set svarbrev settings (and reset old) for the new ytelse
-                    setSvarbrevSettings()
-
-                    hjemmelIdList = newMulighet.hjemmelIdList.ifEmpty {
-                        emptyList()
-                    }
-
-                    //Could be smarter here.
-                    saksbehandlerIdent = null
-                } else if (ytelse == null) {
-                    //empty the properties that no longer make sense if ytelse is null.
+                if (ytelse == null || type == Type.OMGJOERINGSKRAV) {
+                    //empty the properties that no longer make sense
                     sendSvarbrev = false
                     svarbrevCustomText = null
                     svarbrevBehandlingstidUnits = null
@@ -308,6 +296,21 @@ class RegistreringService(
 
                     hjemmelIdList = emptyList()
 
+                    saksbehandlerIdent = null
+                } else if (
+                    (previousYtelse != null &&
+                            ytelse != null &&
+                            previousYtelse != ytelse) ||
+                    (previousYtelse == null && ytelse != null)
+                ) {
+                    //set svarbrev settings (and reset old) for the new ytelse
+                    setSvarbrevSettings()
+
+                    hjemmelIdList = newMulighet.hjemmelIdList.ifEmpty {
+                        emptyList()
+                    }
+
+                    //Could be smarter here.
                     saksbehandlerIdent = null
                 }
 
@@ -1195,7 +1198,7 @@ class RegistreringService(
 
     fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusView {
         val mulighet = getMulighetFromBehandlingId(behandlingId)
-        val status =  kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
+        val status = kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
 
         return CreatedBehandlingStatusView(
             typeId = status.typeId,
