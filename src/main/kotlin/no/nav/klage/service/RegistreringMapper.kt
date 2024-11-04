@@ -299,14 +299,14 @@ fun PartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendin
     )
 }
 
-fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): SvarbrevInput? {
+fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView?): SvarbrevInput? {
     if (sendSvarbrev != true) {
         return null
     }
 
     return SvarbrevInput(
         title = svarbrevTitle,
-        customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
+        customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings?.customText,
         receivers = svarbrevReceivers.map { receiver ->
             SvarbrevInput.Receiver(
                 id = receiver.part.value,
@@ -323,8 +323,8 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
             )
         },
         fullmektigFritekst = svarbrevFullmektigFritekst,
-        varsletBehandlingstidUnits = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnits!! else svarbrevSettings.behandlingstidUnits,
-        varsletBehandlingstidUnitTypeId = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnitType!!.id else svarbrevSettings.behandlingstidUnitType.id,
+        varsletBehandlingstidUnits = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnits!! else svarbrevSettings?.behandlingstidUnits ?: 12,
+        varsletBehandlingstidUnitTypeId = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnitType!!.id else svarbrevSettings?.behandlingstidUnitType?.id ?: TimeUnitType.WEEKS.id,
     )
 }
 

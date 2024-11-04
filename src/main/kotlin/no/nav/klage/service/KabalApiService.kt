@@ -7,6 +7,7 @@ import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -80,10 +81,12 @@ class KabalApiService(
         mulighet: Mulighet,
         registrering: Registrering
     ): UUID {
-        val svarbrevSettings = getSvarbrevSettings(
-            ytelseId = registrering.ytelse!!.id,
-            typeId = registrering.type!!.id,
-        )
+        val svarbrevSettings = if (registrering.type != Type.OMGJOERINGSKRAV) {
+            getSvarbrevSettings(
+                ytelseId = registrering.ytelse!!.id,
+                typeId = registrering.type!!.id,
+            )
+        } else null
 
         return kabalApiClient.createBehandlingInKabal(
             CreateBehandlingBasedOnKabalInput(
