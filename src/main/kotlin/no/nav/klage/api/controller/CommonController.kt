@@ -6,6 +6,7 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.service.KabalApiService
 import no.nav.klage.service.GosysOppgaveService
+import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -21,6 +22,7 @@ class CommonController(
     private val tokenUtil: TokenUtil,
     private val kabalApiService: KabalApiService,
     private val gosysOppgaveService: GosysOppgaveService,
+    private val registreringService: RegistreringService,
 ) {
 
     companion object {
@@ -91,6 +93,6 @@ class CommonController(
             logger = logger,
         )
 
-        return kabalApiService.getCreatedBehandlingStatus(behandlingId)
+        return registreringService.getCreatedBehandlingStatus(behandlingId)
     }
 }

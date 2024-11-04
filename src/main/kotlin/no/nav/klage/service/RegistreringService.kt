@@ -1,5 +1,6 @@
 package no.nav.klage.service
 
+import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
 import no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType
@@ -8,6 +9,7 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
+import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
@@ -1188,5 +1190,30 @@ class RegistreringService(
     fun getMulighetFromBehandlingId(behandlingId: UUID): Mulighet {
         val registrering = registreringRepository.findByBehandlingId(behandlingId)
         return registrering.muligheter.find { it.id == registrering.mulighetId }!!
+    }
+
+    fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusView {
+        val mulighet = getMulighetFromBehandlingId(behandlingId)
+        val status =  kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
+
+        return CreatedBehandlingStatusView(
+            typeId = status.typeId,
+            ytelseId = status.ytelseId,
+            vedtakDate = mulighet.vedtakDate,
+            sakenGjelder = status.sakenGjelder.partViewWithUtsendingskanal(),
+            klager = status.klager.partViewWithUtsendingskanal(),
+            fullmektig = status.fullmektig?.partViewWithUtsendingskanal(),
+            mottattVedtaksinstans = status.mottattVedtaksinstans,
+            mottattKlageinstans = status.mottattKlageinstans,
+            frist = status.frist,
+            varsletFrist = status.varsletFrist,
+            varsletFristUnits = status.varsletFristUnits,
+            varsletFristUnitTypeId = status.varsletFristUnitTypeId,
+            fagsakId = status.fagsakId,
+            fagsystemId = status.fagsystemId,
+            journalpost = status.journalpost.toReceiptView(),
+            tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
+            svarbrev = status.svarbrev?.toView(),
+        )
     }
 }

@@ -1,7 +1,5 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.CreatedBehandlingStatusView
 import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.kabalapi.*
@@ -18,7 +16,6 @@ import java.util.*
 @Service
 class KabalApiService(
     private val kabalApiClient: KabalApiClient,
-    private val registreringService: RegistreringService
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -106,31 +103,6 @@ class KabalApiService(
                 gosysOppgaveId = registrering.gosysOppgaveId,
             )
         ).behandlingId
-    }
-
-    fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusView {
-        val mulighet = registreringService.getMulighetFromBehandlingId(behandlingId)
-        val status =  kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
-
-        return CreatedBehandlingStatusView(
-            typeId = status.typeId,
-            ytelseId = status.ytelseId,
-            vedtakDate = mulighet.vedtakDate,
-            sakenGjelder = status.sakenGjelder.partViewWithUtsendingskanal(),
-            klager = status.klager.partViewWithUtsendingskanal(),
-            fullmektig = status.fullmektig?.partViewWithUtsendingskanal(),
-            mottattVedtaksinstans = status.mottattVedtaksinstans,
-            mottattKlageinstans = status.mottattKlageinstans,
-            frist = status.frist,
-            varsletFrist = status.varsletFrist,
-            varsletFristUnits = status.varsletFristUnits,
-            varsletFristUnitTypeId = status.varsletFristUnitTypeId,
-            fagsakId = status.fagsakId,
-            fagsystemId = status.fagsystemId,
-            journalpost = status.journalpost.toReceiptView(),
-            tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
-            svarbrev = status.svarbrev?.toView(),
-        )
     }
 
     fun createKlageInKabalFromInfotrygdInput(
