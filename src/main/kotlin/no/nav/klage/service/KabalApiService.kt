@@ -25,9 +25,9 @@ class KabalApiService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun gosysOppgaveIsDuplicate(oppgaveId: Long): Boolean {
+    fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean {
         return kabalApiClient.checkGosysOppgaveDuplicateInKabal(
-            input = GosysOppgaveIsDuplicateInput(gosysOppgaveId = oppgaveId)
+            input = GosysOppgaveIsDuplicateInput(gosysOppgaveId = gosysOppgaveId)
         )
     }
 

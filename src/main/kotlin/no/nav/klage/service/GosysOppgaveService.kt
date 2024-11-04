@@ -116,7 +116,7 @@ class GosysOppgaveService(
 
     fun GosysOppgaveRecord.toOppgaveView(): GosysOppgaveView {
         val tema = Tema.fromNavn(tema)
-        val alreadyUsed = kabalApiService.gosysOppgaveIsDuplicate(oppgaveId = id)
+        val alreadyUsed = kabalApiService.gosysOppgaveIsDuplicate(gosysOppgaveId = id)
         return GosysOppgaveView(
             id = id,
             temaId = tema.id,

@@ -1,5 +1,7 @@
 package no.nav.klage.util
 
+import no.nav.klage.clients.kabalapi.GosysOppgaveIsDuplicateInput
+import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.exceptions.InvalidProperty
@@ -9,13 +11,12 @@ import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
-import no.nav.klage.service.KabalApiService
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
 class ValidationUtil(
-    private val kabalApiService: KabalApiService
+    private val kabalApiClient: KabalApiClient
 ) {
     fun validateRegistrering(registrering: Registrering, mulighet: Mulighet) {
         val saksdataValidationErrors = mutableListOf<InvalidProperty>()
@@ -132,10 +133,15 @@ class ValidationUtil(
         }
 
         if (registrering.gosysOppgaveId != null) {
-            if (kabalApiService.gosysOppgaveIsDuplicate(oppgaveId = registrering.gosysOppgaveId!!)) {
+            if (kabalApiClient.checkGosysOppgaveDuplicateInKabal(
+                    input = GosysOppgaveIsDuplicateInput(
+                        gosysOppgaveId = registrering.gosysOppgaveId!!
+                    )
+                )
+            ) {
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::gosysOppgaveId.name,
-                    reason = "Oppgaven er allerede i bruk i en åpen behandling i Kabal."
+                    reason = "Gosys-oppgaven er allerede i bruk i en åpen behandling i Kabal."
                 )
             }
         }
