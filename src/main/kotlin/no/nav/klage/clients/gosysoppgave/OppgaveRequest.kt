@@ -1,10 +1,10 @@
-package no.nav.klage.clients.oppgaveapi
+package no.nav.klage.clients.gosysoppgave
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import java.time.LocalDate
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class UpdateOppgaveInput(
+data class UpdateGosysOppgaveInput(
     val versjon: Int,
     val fristFerdigstillelse: LocalDate?,
     val mappeId: Long?,

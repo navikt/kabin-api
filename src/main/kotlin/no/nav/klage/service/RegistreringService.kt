@@ -68,7 +68,7 @@ class RegistreringService(
                 hjemmelIdList = listOf(),
                 ytelse = null,
                 saksbehandlerIdent = null,
-                oppgaveId = null,
+                gosysOppgaveId = null,
                 sendSvarbrev = null,
                 svarbrevTitle = "NAV orienterer om saksbehandlingen",
                 svarbrevCustomText = null,
@@ -138,7 +138,7 @@ class RegistreringService(
                 fullmektig = null
                 avsender = null
                 saksbehandlerIdent = null
-                oppgaveId = null
+                gosysOppgaveId = null
                 sendSvarbrev = null
                 overrideSvarbrevBehandlingstid = false
                 overrideSvarbrevCustomText = false
@@ -257,7 +257,7 @@ class RegistreringService(
                 svarbrevBehandlingstidUnitType = null
                 svarbrevCustomText = null
 
-                oppgaveId = null
+                gosysOppgaveId = null
 
                 willCreateNewJournalpost = false
 
@@ -791,17 +791,17 @@ class RegistreringService(
         )
     }
 
-    fun setOppgaveId(registreringId: UUID, input: OppgaveIdInput): OppgaveIdChangeRegistreringView {
+    fun setOppgaveId(registreringId: UUID, input: GosysOppgaveIdInput): GosysOppgaveIdChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                oppgaveId = input.oppgaveId
+                gosysOppgaveId = input.gosysOppgaveId
                 modified = LocalDateTime.now()
             }
 
-        return OppgaveIdChangeRegistreringView(
+        return GosysOppgaveIdChangeRegistreringView(
             id = registrering.id,
-            overstyringer = OppgaveIdChangeRegistreringView.OppgaveIdChangeRegistreringOverstyringerView(
-                oppgaveId = registrering.oppgaveId,
+            overstyringer = GosysOppgaveIdChangeRegistreringView.GosysOppgaveIdChangeRegistreringOverstyringerView(
+                gosysOppgaveId = registrering.gosysOppgaveId,
             ),
             modified = registrering.modified,
         )

@@ -35,7 +35,7 @@ class KabalApiClient(
             .bodyToMono<BehandlingIsDuplicateResponse>()
     }
 
-    fun checkOppgaveDuplicateInKabal(input: OppgaveIsDuplicateInput): Boolean {
+    fun checkGosysOppgaveDuplicateInKabal(input: GosysOppgaveIsDuplicateInput): Boolean {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/oppgaveisduplicate").build() }
             .header(

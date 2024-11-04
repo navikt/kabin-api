@@ -106,7 +106,7 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiClient: KabalApiClient
                 )
             },
             saksbehandlerIdent = saksbehandlerIdent,
-            oppgaveId = oppgaveId,
+            gosysOppgaveId = gosysOppgaveId,
         ),
         svarbrev = MulighetChangeRegistreringView.MulighetChangeRegistreringSvarbrevView(
             send = sendSvarbrev,
@@ -183,7 +183,7 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
             )
         },
         saksbehandlerIdent = saksbehandlerIdent,
-        oppgaveId = oppgaveId,
+        gosysOppgaveId = gosysOppgaveId,
     ),
     svarbrev = FullRegistreringView.FullRegistreringSvarbrevView(
         send = sendSvarbrev,

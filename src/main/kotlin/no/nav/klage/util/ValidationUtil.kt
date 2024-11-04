@@ -45,10 +45,10 @@ class ValidationUtil(
             }
 
         if (mulighetSource == MulighetSource.INFOTRYGD) {
-            if (registrering.oppgaveId == null) {
+            if (registrering.gosysOppgaveId == null) {
                 saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::oppgaveId.name,
-                    reason = "Velg en oppgave."
+                    field = Registrering::gosysOppgaveId.name,
+                    reason = "Velg en Gosys-oppgave."
                 )
             }
         }
@@ -131,10 +131,10 @@ class ValidationUtil(
             }
         }
 
-        if (registrering.oppgaveId != null) {
-            if (kabalApiService.oppgaveIsDuplicate(oppgaveId = registrering.oppgaveId!!)) {
+        if (registrering.gosysOppgaveId != null) {
+            if (kabalApiService.gosysOppgaveIsDuplicate(oppgaveId = registrering.gosysOppgaveId!!)) {
                 saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::oppgaveId.name,
+                    field = Registrering::gosysOppgaveId.name,
                     reason = "Oppgaven er allerede i bruk i en åpen behandling i Kabal."
                 )
             }

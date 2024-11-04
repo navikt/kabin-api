@@ -3,7 +3,7 @@ package no.nav.klage.api.controller.view
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class OppgaveView(
+data class GosysOppgaveView(
     val id: Long,
     val tildeltEnhetsnr: String?,
     val endretAvEnhetsnr: String?,

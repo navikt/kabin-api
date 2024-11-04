@@ -5,8 +5,8 @@ import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
-import no.nav.klage.clients.oppgaveapi.FerdigstillOppgaveRequest
-import no.nav.klage.clients.oppgaveapi.OppgaveClient
+import no.nav.klage.clients.gosysoppgave.FerdigstillGosysOppgaveRequest
+import no.nav.klage.clients.gosysoppgave.GosysOppgaveClient
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
@@ -30,7 +30,7 @@ class DokArkivService(
     private val safService: SafService,
     private val kabalInnstillingerClient: KabalInnstillingerClient,
     private val kabalApiService: KabalApiService,
-    private val oppgaveClient: OppgaveClient,
+    private val gosysOppgaveClient: GosysOppgaveClient,
 ) {
 
     companion object {
@@ -320,19 +320,19 @@ class DokArkivService(
             )
 
             logger.debug("About to fetch journalfoeringsoppgave")
-            val oppgave = oppgaveClient.fetchJournalfoeringsoppgave(
+            val gosysOppgave = gosysOppgaveClient.fetchJournalfoeringsoppgave(
                 journalpostId = journalpostId,
             )
 
-            if (oppgave == null) {
+            if (gosysOppgave == null) {
                 logger.warn("No journalfoeringsoppgave found")
                 return journalpostId
             }
 
-            oppgaveClient.ferdigstillOppgave(
-                FerdigstillOppgaveRequest(
-                    oppgaveId = oppgave.id,
-                    versjon = oppgave.versjon,
+            gosysOppgaveClient.ferdigstillGosysOppgave(
+                FerdigstillGosysOppgaveRequest(
+                    oppgaveId = gosysOppgave.id,
+                    versjon = gosysOppgave.versjon,
                 )
             )
             logger.debug("Ferdigstilt journalfoeringsoppgave")

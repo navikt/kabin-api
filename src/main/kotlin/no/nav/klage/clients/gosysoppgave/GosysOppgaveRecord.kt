@@ -1,4 +1,4 @@
-package no.nav.klage.clients.oppgaveapi
+package no.nav.klage.clients.gosysoppgave
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class OppgaveApiRecord(
+data class GosysOppgaveRecord(
     val id: Long,
     val versjon: Int,
     val journalpostId: String?,
@@ -84,18 +84,18 @@ enum class Statuskategori {
     AVSLUTTET;
 }
 
-data class OppgaveResponse(
+data class GosysOppgaveResponse(
     val antallTreffTotalt: Int,
-    val oppgaver: List<OppgaveApiRecord>
+    val oppgaver: List<GosysOppgaveRecord>
 )
 
-class OppgaveClientException : Exception {
+class GosysOppgaveClientException : Exception {
     constructor(message: String?) : super(message)
 
     constructor(message: String?, cause: Throwable?) : super(message, cause)
 }
 
-data class FerdigstillOppgaveRequest(
+data class FerdigstillGosysOppgaveRequest(
     val oppgaveId: Long,
     val versjon: Int,
     val status: Status = Status.FERDIGSTILT,

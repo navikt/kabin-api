@@ -45,7 +45,7 @@ data class FullRegistreringView(
         val klager: PartViewWithOptionalUtsendingskanal?,
         val avsender: PartViewWithOptionalUtsendingskanal?,
         val saksbehandlerIdent: String?,
-        val oppgaveId: Long?
+        val gosysOppgaveId: Long?
     )
 
     data class FullRegistreringSvarbrevView(
@@ -82,7 +82,7 @@ data class TypeChangeRegistreringView(
         val klager: PartViewWithUtsendingskanal? = null,
         val avsender: PartViewWithUtsendingskanal? = null,
         val saksbehandlerIdent: String? = null,
-        val oppgaveId: Long? = null
+        val gosysOppgaveId: Long? = null
     )
 
     data class TypeChangeRegistreringSvarbrevView(
@@ -125,7 +125,7 @@ data class MulighetChangeRegistreringView(
         val klager: PartViewWithOptionalUtsendingskanal?,
         val avsender: PartViewWithOptionalUtsendingskanal?,
         val saksbehandlerIdent: String?,
-        val oppgaveId: Long?
+        val gosysOppgaveId: Long?
     )
 
     data class MulighetChangeRegistreringSvarbrevView(
@@ -282,13 +282,13 @@ data class SaksbehandlerIdentChangeRegistreringView(
     )
 }
 
-data class OppgaveIdChangeRegistreringView(
+data class GosysOppgaveIdChangeRegistreringView(
     val id: UUID,
-    val overstyringer: OppgaveIdChangeRegistreringOverstyringerView,
+    val overstyringer: GosysOppgaveIdChangeRegistreringOverstyringerView,
     val modified: LocalDateTime,
 ) {
-    data class OppgaveIdChangeRegistreringOverstyringerView(
-        val oppgaveId: Long?,
+    data class GosysOppgaveIdChangeRegistreringOverstyringerView(
+        val gosysOppgaveId: Long?,
     )
 }
 

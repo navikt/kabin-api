@@ -266,8 +266,8 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/oppgave-id")
     fun updateOppgaveId(
         @PathVariable id: UUID,
-        @RequestBody input: OppgaveIdInput
-    ): OppgaveIdChangeRegistreringView {
+        @RequestBody input: GosysOppgaveIdInput
+    ): GosysOppgaveIdChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateOppgaveId.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),

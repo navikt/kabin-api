@@ -24,7 +24,7 @@ data class CalculateFristInput(
     val varsletBehandlingstidUnitTypeId: String?
 )
 
-data class GetOppgaveListInput(
+data class GetGosysOppgaveListInput(
     val identifikator: String,
     val temaId: String?,
 )
@@ -62,7 +62,7 @@ data class YtelseIdInput(val ytelseId: String?)
 
 data class SaksbehandlerIdentInput(val saksbehandlerIdent: String?)
 
-data class OppgaveIdInput(val oppgaveId: Long?)
+data class GosysOppgaveIdInput(val gosysOppgaveId: Long?)
 
 data class SendSvarbrevInput(val send: Boolean)
 

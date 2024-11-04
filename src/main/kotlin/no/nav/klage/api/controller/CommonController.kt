@@ -5,7 +5,7 @@ import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.service.KabalApiService
-import no.nav.klage.service.OppgaveService
+import no.nav.klage.service.GosysOppgaveService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -20,7 +20,7 @@ import java.util.*
 class CommonController(
     private val tokenUtil: TokenUtil,
     private val kabalApiService: KabalApiService,
-    private val oppgaveService: OppgaveService,
+    private val gosysOppgaveService: GosysOppgaveService,
 ) {
 
     companion object {
@@ -64,17 +64,18 @@ class CommonController(
         )
     }
 
-    @PostMapping("/searchoppgave")
-    fun searchOppgaveList(
-        @RequestBody input: GetOppgaveListInput,
-    ): List<OppgaveView> {
+    //TODO: Gjør dette søket basert på registreringen, på samme måte som i Kabal
+    @PostMapping("/searchgosysoppgave")
+    fun searchGosysOppgaveList(
+        @RequestBody input: GetGosysOppgaveListInput,
+    ): List<GosysOppgaveView> {
         logMethodDetails(
-            methodName = ::searchOppgaveList.name,
+            methodName = ::searchGosysOppgaveList.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
 
-        return oppgaveService.getOppgaveList(
+        return gosysOppgaveService.getGosysOppgaveList(
             fnr = input.identifikator,
             tema = input.temaId?.let { Tema.of(it) }
         )

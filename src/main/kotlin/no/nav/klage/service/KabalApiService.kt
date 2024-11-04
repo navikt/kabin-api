@@ -25,9 +25,9 @@ class KabalApiService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun oppgaveIsDuplicate(oppgaveId: Long): Boolean {
-        return kabalApiClient.checkOppgaveDuplicateInKabal(
-            input = OppgaveIsDuplicateInput(oppgaveId = oppgaveId)
+    fun gosysOppgaveIsDuplicate(oppgaveId: Long): Boolean {
+        return kabalApiClient.checkGosysOppgaveDuplicateInKabal(
+            input = GosysOppgaveIsDuplicateInput(gosysOppgaveId = oppgaveId)
         )
     }
 
@@ -73,7 +73,7 @@ class KabalApiService(
                 kildereferanse = mulighet.currentFagystemTechnicalId,
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
                 svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
-                oppgaveId = registrering.oppgaveId,
+                gosysOppgaveId = registrering.gosysOppgaveId,
             )
         ).behandlingId
     }
@@ -103,7 +103,7 @@ class KabalApiService(
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
                 svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
                 hjemmelIdList = registrering.hjemmelIdList,
-                oppgaveId = registrering.oppgaveId,
+                gosysOppgaveId = registrering.gosysOppgaveId,
             )
         ).behandlingId
     }
@@ -164,7 +164,7 @@ class KabalApiService(
                 ytelseId = registrering.ytelse!!.id,
                 kildereferanse = mulighet.currentFagystemTechnicalId,
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
-                oppgaveId = registrering.oppgaveId,
+                gosysOppgaveId = registrering.gosysOppgaveId,
                 svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
             )
         ).behandlingId

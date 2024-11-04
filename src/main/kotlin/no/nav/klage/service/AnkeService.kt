@@ -21,7 +21,7 @@ class AnkeService(
     private val dokArkivService: DokArkivService,
     private val klageFssProxyService: KlageFssProxyService,
     private val kabalApiService: KabalApiService,
-    private val oppgaveService: OppgaveService,
+    private val gosysOppgaveService: GosysOppgaveService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -85,16 +85,16 @@ class AnkeService(
         }
 
         try {
-            registrering.oppgaveId?.let {
-                logger.debug("Attempting oppgave update")
-                oppgaveService.updateOppgave(
-                    oppgaveId = it,
+            registrering.gosysOppgaveId?.let {
+                logger.debug("Attempting Gosys-oppgave update")
+                gosysOppgaveService.updateGosysOppgave(
+                    gosysOppgaveId = it,
                     frist = frist,
                     tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
                 )
             }
         } catch (e: Exception) {
-            logger.error("Failed to update oppgave", e)
+            logger.error("Failed to update Gosys-oppgave", e)
         }
 
         return behandlingId

@@ -1,4 +1,4 @@
-package no.nav.klage.clients.oppgaveapi
+package no.nav.klage.clients.gosysoppgave
 
 data class Gjelder(
     val behandlingsTema: String?,
@@ -7,7 +7,7 @@ data class Gjelder(
     val behandlingstypeTerm: String?,
 )
 
-data class OppgavetypeResponse(
+data class GosysOppgavetypeResponse(
     val oppgavetype: String,
     val term: String,
 )

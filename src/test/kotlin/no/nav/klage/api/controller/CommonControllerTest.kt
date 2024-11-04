@@ -8,7 +8,7 @@ import no.nav.klage.api.controller.view.CalculateFristInput
 import no.nav.klage.service.DocumentService
 import no.nav.klage.service.DokArkivService
 import no.nav.klage.service.KabalApiService
-import no.nav.klage.service.OppgaveService
+import no.nav.klage.service.GosysOppgaveService
 import no.nav.klage.util.AuditLogger
 import no.nav.klage.util.TokenUtil
 import org.junit.jupiter.api.BeforeEach
@@ -46,7 +46,7 @@ class CommonControllerTest {
     lateinit var auditLogger: AuditLogger
 
     @MockkBean
-    lateinit var oppgaveService: OppgaveService
+    lateinit var gosysOppgaveService: GosysOppgaveService
 
     private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
