@@ -31,6 +31,7 @@ data class FullRegistreringView(
     val willCreateNewJournalpost: Boolean,
     val klagemuligheter: List<KlagemulighetView>,
     val ankemuligheter: List<KabalmulighetView>,
+    val omgjoeringskravmuligheter: List<KabalmulighetView>,
     val muligheterFetched: LocalDateTime?,
 ) {
 

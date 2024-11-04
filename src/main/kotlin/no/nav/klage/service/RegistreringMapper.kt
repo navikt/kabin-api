@@ -219,6 +219,9 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
     ankemuligheter = muligheter.filter { it.type == Type.ANKE }.map { mulighet ->
         mulighet.toKabalmulighetView()
     },
+    omgjoeringskravmuligheter = muligheter.filter { it.type == Type.OMGJOERINGSKRAV }.map { mulighet ->
+        mulighet.toKabalmulighetView()
+    },
     muligheterFetched = muligheterFetched,
 )
 
