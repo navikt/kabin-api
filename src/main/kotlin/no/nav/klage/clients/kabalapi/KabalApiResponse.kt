@@ -28,6 +28,7 @@ data class BehandlingIsDuplicateResponse(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MulighetFromKabal(
     val behandlingId: UUID,
+    val originalTypeId: String,
     val typeId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String,

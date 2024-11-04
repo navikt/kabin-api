@@ -376,8 +376,8 @@ fun PartWithUtsendingskanal?.toPartViewWithUtsendingskanal(partStatusList: Set<P
 fun MulighetFromKabal.toMulighet(): Mulighet {
     val ytelse = Ytelse.of(ytelseId)
     return Mulighet(
-        originalType = Type.of(typeId),
-        type = Type.ANKE,
+        originalType = Type.of(originalTypeId),
+        type = Type.of(typeId),
         tema = ytelse.toTema(),
         vedtakDate = vedtakDate.toLocalDate(),
         sakenGjelder = sakenGjelder.toPartWithUtsendingskanal()!!,
