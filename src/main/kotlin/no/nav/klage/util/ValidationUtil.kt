@@ -5,7 +5,6 @@ import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.exceptions.InvalidProperty
-import no.nav.klage.exceptions.InvalidSourceException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
@@ -36,16 +35,7 @@ class ValidationUtil(
             )
         }
 
-        val mulighetSource =
-            try {
-                MulighetSource.of(Fagsystem.of(mulighet.currentFagsystem.id))
-            } catch (exception: Exception) {
-                throw InvalidSourceException(
-                    message = "Ugyldig currentFagsystem."
-                )
-            }
-
-        if (mulighetSource == MulighetSource.INFOTRYGD) {
+        if (!Fagsystem.of(mulighet.originalFagsystem.id).modernized) {
             if (registrering.gosysOppgaveId == null) {
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::gosysOppgaveId.name,
@@ -53,7 +43,6 @@ class ValidationUtil(
                 )
             }
         }
-
 
         if (registrering.hjemmelIdList.isEmpty()) {
             saksdataValidationErrors += InvalidProperty(
