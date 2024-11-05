@@ -285,7 +285,7 @@ class RegistreringService(
                     ytelse = null
                 }
 
-                if (ytelse == null || type == Type.OMGJOERINGSKRAV) {
+                if (ytelse == null) {
                     //empty the properties that no longer make sense
                     sendSvarbrev = false
                     svarbrevCustomText = null
@@ -297,12 +297,7 @@ class RegistreringService(
                     hjemmelIdList = emptyList()
 
                     saksbehandlerIdent = null
-                } else if (
-                    (previousYtelse != null &&
-                            ytelse != null &&
-                            previousYtelse != ytelse) ||
-                    (previousYtelse == null && ytelse != null)
-                ) {
+                } else if (previousYtelse != ytelse) {
                     //set svarbrev settings (and reset old) for the new ytelse
                     setSvarbrevSettings()
 
@@ -446,7 +441,7 @@ class RegistreringService(
         sendSvarbrev = svarbrevSettings.shouldSend
         svarbrevCustomText = svarbrevSettings.customText
         svarbrevBehandlingstidUnits = svarbrevSettings.behandlingstidUnits
-        svarbrevBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType
+        svarbrevBehandlingstidUnitType = TimeUnitType.of(svarbrevSettings.behandlingstidUnitTypeId)
         overrideSvarbrevBehandlingstid = false
         overrideSvarbrevCustomText = false
     }
@@ -867,7 +862,7 @@ class RegistreringService(
 
                 if (!input.overrideBehandlingstid) {
                     svarbrevBehandlingstidUnits = svarbrevSettings.behandlingstidUnits
-                    svarbrevBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType
+                    svarbrevBehandlingstidUnitType = TimeUnitType.of(svarbrevSettings.behandlingstidUnitTypeId)
                 }
 
                 modified = LocalDateTime.now()

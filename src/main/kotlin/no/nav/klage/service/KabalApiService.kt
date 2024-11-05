@@ -81,12 +81,11 @@ class KabalApiService(
         mulighet: Mulighet,
         registrering: Registrering
     ): UUID {
-        val svarbrevSettings = if (registrering.type != Type.OMGJOERINGSKRAV) {
-            getSvarbrevSettings(
+        val svarbrevSettings = getSvarbrevSettings(
                 ytelseId = registrering.ytelse!!.id,
                 typeId = registrering.type!!.id,
             )
-        } else null
+
 
         return kabalApiClient.createBehandlingInKabal(
             CreateBehandlingBasedOnKabalInput(
