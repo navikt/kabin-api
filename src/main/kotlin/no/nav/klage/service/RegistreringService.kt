@@ -26,7 +26,6 @@ import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.math.log
 
 @Service
 @Transactional
@@ -792,7 +791,7 @@ class RegistreringService(
         )
     }
 
-    fun setOppgaveId(registreringId: UUID, input: GosysOppgaveIdInput): GosysOppgaveIdChangeRegistreringView {
+    fun setGosysOppgaveId(registreringId: UUID, input: GosysOppgaveIdInput): GosysOppgaveIdChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 gosysOppgaveId = input.gosysOppgaveId

@@ -2,7 +2,6 @@ package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.Address
-import no.nav.klage.api.controller.view.ExistingAnkebehandling
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.PartViewWithUtsendingskanal
 import no.nav.klage.clients.SakFromKlanke
@@ -484,8 +483,8 @@ fun Mulighet.toKabalmulighetView(): KabalmulighetView =
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
         typeId = originalType.id,
-        sourceOfExistingAnkebehandling = sourceOfExistingAnkebehandling.map {
-            ExistingAnkebehandling(
+        sourceOfExistingBehandlinger = sourceOfExistingAnkebehandling.map {
+            ExistingBehandling(
                 id = it.ankebehandlingId,
                 created = it.created,
                 completed = it.completed,

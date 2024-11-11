@@ -13,7 +13,7 @@ data class KabalmulighetView(
     override val fagsakId: String,
     override var originalFagsystemId: String,
     override val typeId: String,
-    val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
+    val sourceOfExistingBehandlinger: List<ExistingBehandling>,
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
     val klager: PartViewWithUtsendingskanal?,
@@ -21,7 +21,7 @@ data class KabalmulighetView(
     val previousSaksbehandler: PreviousSaksbehandler?,
 ): MulighetView
 
-data class ExistingAnkebehandling(
+data class ExistingBehandling(
     val id: UUID,
     val created: LocalDateTime,
     val completed: LocalDateTime?,
