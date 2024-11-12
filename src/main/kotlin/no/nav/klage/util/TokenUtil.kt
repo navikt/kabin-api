@@ -49,8 +49,8 @@ class TokenUtil(
         return response.accessToken!!
     }
 
-    fun getSaksbehandlerAccessTokenWithOppgaveScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["oppgave-onbehalfof"]!!
+    fun getSaksbehandlerAccessTokenWithGosysOppgaveScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["gosys-oppgave-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.accessToken!!
     }
@@ -75,12 +75,6 @@ class TokenUtil(
 
     fun getAppAccessTokenWithGraphScope(): String {
         val clientProperties = clientConfigurationProperties.registration["azure-maskintilmaskin"]!!
-        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.accessToken!!
-    }
-
-    fun getSaksbehandlerAccessTokenWithGraphScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["azure-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.accessToken!!
     }

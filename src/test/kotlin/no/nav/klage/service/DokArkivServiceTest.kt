@@ -85,10 +85,9 @@ class DokArkivServiceTest {
         dokArkivService = DokArkivService(
             dokArkivClient = dokArkivClient,
             safService = safService,
-            fssProxyService = fssProxyService,
             kabalInnstillingerClient = kabalInnstillingerClient,
             kabalApiService = kabalApiService,
-            oppgaveClient = mockk(relaxed = true),
+            gosysOppgaveClient = mockk(relaxed = true),
         )
 
         every { mulighet.tema } returns Tema.OMS

@@ -150,7 +150,7 @@ class RegistreringRepositoryTest {
                 hjemmelIdList = listOf("123", "456"),
                 ytelse = Ytelse.OMS_PSB,
                 saksbehandlerIdent = "S223456",
-                oppgaveId = 923456789,
+                gosysOppgaveId = 923456789,
                 sendSvarbrev = true,
                 overrideSvarbrevBehandlingstid = true,
                 overrideSvarbrevCustomText = true,
@@ -221,7 +221,7 @@ class RegistreringRepositoryTest {
         assertThat(registreringFromDb.hjemmelIdList).isEqualTo(registrering.hjemmelIdList)
         assertThat(registreringFromDb.ytelse).isEqualTo(registrering.ytelse)
         assertThat(registreringFromDb.saksbehandlerIdent).isEqualTo(registrering.saksbehandlerIdent)
-        assertThat(registreringFromDb.oppgaveId).isEqualTo(registrering.oppgaveId)
+        assertThat(registreringFromDb.gosysOppgaveId).isEqualTo(registrering.gosysOppgaveId)
         assertThat(registreringFromDb.sendSvarbrev).isEqualTo(registrering.sendSvarbrev)
         assertThat(registreringFromDb.svarbrevTitle).isEqualTo(registrering.svarbrevTitle)
         assertThat(registreringFromDb.svarbrevCustomText).isEqualTo(registrering.svarbrevCustomText)
@@ -288,7 +288,7 @@ class RegistreringRepositoryTest {
                 hjemmelIdList = listOf("123", "456"),
                 ytelse = Ytelse.OMS_PSB,
                 saksbehandlerIdent = "S223456",
-                oppgaveId = 923456789,
+                gosysOppgaveId = 923456789,
                 sendSvarbrev = true,
                 overrideSvarbrevBehandlingstid = true,
                 overrideSvarbrevCustomText = true,
@@ -366,7 +366,7 @@ class RegistreringRepositoryTest {
                 hjemmelIdList = listOf("123", "456"),
                 ytelse = Ytelse.OMS_PSB,
                 saksbehandlerIdent = "S223456",
-                oppgaveId = 923456789,
+                gosysOppgaveId = 923456789,
                 sendSvarbrev = true,
                 overrideSvarbrevBehandlingstid = true,
                 overrideSvarbrevCustomText = true,

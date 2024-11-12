@@ -27,4 +27,5 @@ interface RegistreringRepository : JpaRepository<Registrering, UUID> {
     )
     fun findFerdigeRegistreringer(navIdent: String, finishedFrom: LocalDateTime): List<Registrering>
 
+    fun findByBehandlingId(behandlingId: UUID): Registrering
 }

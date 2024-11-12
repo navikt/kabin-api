@@ -42,13 +42,6 @@ class KlageFssProxyService(
         return klageTilbakebetalingSaker
     }
 
-    fun getSak(sakId: String): SakFromKlanke {
-        return klageFssProxyClient.getSakAppAccess(
-            sakId = sakId,
-            saksbehandlerIdent = tokenUtil.getCurrentIdent(),
-        )
-    }
-
     fun setToHandledInKabal(sakId: String, frist: LocalDate) {
         klageFssProxyClient.setToHandledInKabal(
             sakId = sakId,

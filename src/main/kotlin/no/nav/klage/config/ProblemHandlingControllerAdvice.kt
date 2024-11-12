@@ -1,6 +1,6 @@
 package no.nav.klage.config
 
-import no.nav.klage.clients.oppgaveapi.OppgaveClientException
+import no.nav.klage.clients.gosysoppgave.GosysOppgaveClientException
 import no.nav.klage.exceptions.*
 import no.nav.klage.util.getSecureLogger
 import org.springframework.http.*
@@ -60,8 +60,8 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
-    fun handleOppgaveClientException(
-        ex: OppgaveClientException,
+    fun handleGosysOppgaveClientException(
+        ex: GosysOppgaveClientException,
         request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.INTERNAL_SERVER_ERROR, ex)

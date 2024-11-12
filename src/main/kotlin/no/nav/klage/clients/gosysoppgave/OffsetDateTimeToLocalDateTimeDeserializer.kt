@@ -1,4 +1,4 @@
-package no.nav.klage.clients.oppgaveapi
+package no.nav.klage.clients.gosysoppgave
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext

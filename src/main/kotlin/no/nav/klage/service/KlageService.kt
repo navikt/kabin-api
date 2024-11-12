@@ -1,16 +1,12 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.CreateKlageInputView
 import no.nav.klage.api.controller.view.CreatedBehandlingResponse
-import no.nav.klage.api.controller.view.CreatedKlagebehandlingStatusView
 import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.toView
-import no.nav.klage.domain.CreateKlageInput
 import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.exceptions.IllegalInputException
 import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -24,7 +20,7 @@ class KlageService(
     private val dokArkivService: DokArkivService,
     private val klageFssProxyService: KlageFssProxyService,
     private val kabalApiService: KabalApiService,
-    private val oppgaveService: OppgaveService,
+    private val gosysOppgaveService: GosysOppgaveService,
 ) {
 
     companion object {
@@ -33,38 +29,47 @@ class KlageService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun createKlage(input: CreateKlageInputView, klagemulighet: Mulighet): CreatedBehandlingResponse {
-        val processedInput = validationUtil.validateCreateKlageInputView(input)
-        val journalpostId = dokArkivService.handleJournalpostBasedOnInfotrygdSak(
-            journalpostId = processedInput.klageJournalpostId,
-            mulighet = klagemulighet,
-            avsender = input.avsender,
-            type = Type.KLAGE,
+    fun createKlage(registrering: Registrering): CreatedBehandlingResponse {
+        val mulighet = registrering.mulighetId?.let { mulighetId ->
+            registrering.muligheter.find { it.id == mulighetId }
+        } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+
+        validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
+
+        val journalpostId = dokArkivService.handleJournalpost(
+            journalpostId = registrering.journalpostId!!,
+            mulighet = mulighet,
+            avsender = registrering.avsender.toPartIdInput(),
         )
 
-        val finalInput = processedInput.copy(klageJournalpostId = journalpostId)
-
         return CreatedBehandlingResponse(
-            behandlingId = createKlageFromInfotrygdSak(input = finalInput)
+            behandlingId = createKlageFromInfotrygdSak(
+                journalpostId = journalpostId,
+                mulighet = mulighet,
+                registrering = registrering
+            ),
         )
     }
 
-    private fun createKlageFromInfotrygdSak(input: CreateKlageInput): UUID {
-        //TODO, get from cache?
-        val sakFromKlanke = klageFssProxyService.getSak(sakId = input.eksternBehandlingId)
-        val frist = when(input.behandlingstidUnitType) {
-            TimeUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
-            TimeUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
+    private fun createKlageFromInfotrygdSak(
+        journalpostId: String,
+        mulighet: Mulighet,
+        registrering: Registrering
+    ): UUID {
+        val frist = when (registrering.behandlingstidUnitType) {
+            TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
+            TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
         }
-        val behandlingId = kabalApiService.createKlageInKabalFromCompleteInput(
-            input = input,
-            sakFromKlanke = sakFromKlanke,
-            frist = frist
+        val behandlingId = kabalApiService.createKlageInKabalFromInfotrygdInput(
+            registrering = registrering,
+            mulighet = mulighet,
+            frist = frist,
+            journalpostId = journalpostId,
         )
 
         try {
             klageFssProxyService.setToHandledInKabal(
-                sakId = sakFromKlanke.sakId,
+                sakId = mulighet.currentFagystemTechnicalId,
                 frist = frist,
             )
         } catch (e: Exception) {
@@ -72,16 +77,16 @@ class KlageService(
         }
 
         try {
-            input.oppgaveId?.let {
-                logger.debug("Attempting oppgave update")
-                oppgaveService.updateOppgave(
-                    oppgaveId = it,
+            registrering.gosysOppgaveId?.let {
+                logger.debug("Attempting Gosys-oppgave update")
+                gosysOppgaveService.updateGosysOppgave(
+                    gosysOppgaveId = it,
                     frist = frist,
-                    tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
+                    tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
                 )
             }
         } catch (e: Exception) {
-            logger.error("Failed to update oppgave", e)
+            logger.error("Failed to update Gosys-oppgave", e)
         }
 
         return behandlingId
@@ -93,32 +98,5 @@ class KlageService(
 
     fun getKlageTilbakebetalingMuligheterFromInfotrygdAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         return klageFssProxyService.getKlageTilbakebetalingMuligheterAsMono(input = input)
-    }
-
-    fun getCreatedKlageStatus(behandlingId: UUID): CreatedKlagebehandlingStatusView {
-        val status = kabalApiService.getCreatedKlageStatus(behandlingId = behandlingId)
-
-        //TODO works only for klager in Infotrygd
-        val sakFromKlanke = klageFssProxyService.getSak(status.kildereferanse)
-
-        return CreatedKlagebehandlingStatusView(
-            typeId = status.typeId,
-            ytelseId = status.ytelseId,
-            vedtakDate = sakFromKlanke.vedtaksdato,
-            sakenGjelder = status.sakenGjelder.partViewWithUtsendingskanal(),
-            klager = status.klager.partViewWithUtsendingskanal(),
-            fullmektig = status.fullmektig?.partViewWithUtsendingskanal(),
-            mottattVedtaksinstans = status.mottattVedtaksinstans,
-            mottattKlageinstans = status.mottattKlageinstans,
-            frist = status.frist,
-            varsletFrist = status.varsletFrist,
-            varsletFristUnits = status.varsletFristUnits,
-            varsletFristUnitTypeId = status.varsletFristUnitTypeId,
-            fagsakId = status.fagsakId,
-            fagsystemId = status.fagsystemId,
-            journalpost = status.journalpost.toReceiptView(),
-            tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
-            svarbrev = status.svarbrev?.toView(),
-        )
     }
 }

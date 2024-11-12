@@ -1,16 +1,11 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.CreateAnkeInputView
-import no.nav.klage.api.controller.view.CreatedAnkebehandlingStatusView
-import no.nav.klage.api.controller.view.CreatedBehandlingResponse
-import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.*
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
-import no.nav.klage.clients.kabalapi.toView
-import no.nav.klage.domain.CreateAnkeInput
+import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.domain.entities.Mulighet
-import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.exceptions.IllegalInputException
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.ValidationUtil
@@ -26,7 +21,7 @@ class AnkeService(
     private val dokArkivService: DokArkivService,
     private val klageFssProxyService: KlageFssProxyService,
     private val kabalApiService: KabalApiService,
-    private val oppgaveService: OppgaveService,
+    private val gosysOppgaveService: GosysOppgaveService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -34,37 +29,55 @@ class AnkeService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun createAnke(input: CreateAnkeInputView, ankemulighet: Mulighet): CreatedBehandlingResponse {
-        val processedInput = validationUtil.validateCreateAnkeInputView(input)
-        val journalpostId = dokArkivService.handleJournalpostBasedOnAnkeInput(
-            input = processedInput,
-            ankemulighet = ankemulighet
+    fun createAnke(registrering: Registrering): CreatedBehandlingResponse {
+        val mulighet = registrering.mulighetId?.let { mulighetId ->
+            registrering.muligheter.find { it.id == mulighetId }
+        } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+
+        validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
+
+        val journalpostId = dokArkivService.handleJournalpost(
+            mulighet = mulighet,
+            journalpostId = registrering.journalpostId!!,
+            avsender = registrering.avsender.toPartIdInput()
         )
-        val finalInput = processedInput.copy(ankeDocumentJournalpostId = journalpostId)
 
         return CreatedBehandlingResponse(
-            behandlingId = when (finalInput.mulighetSource) {
-                MulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(input = finalInput)
-                MulighetSource.KABAL -> kabalApiService.createAnkeInKabalFromKlagebehandling(input = finalInput)
+            behandlingId = when (MulighetSource.of(mulighet.currentFagsystem)) {
+                MulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(
+                    journalpostId = journalpostId,
+                    mulighet = mulighet,
+                    registrering = registrering
+                )
+
+                MulighetSource.KABAL -> kabalApiService.createBehandlingInKabalFromKabalInput(
+                    journalpostId = journalpostId,
+                    mulighet = mulighet,
+                    registrering = registrering
+                )
             }
         )
     }
 
-    private fun createAnkeFromInfotrygdSak(input: CreateAnkeInput): UUID {
-        val sakFromKlanke = klageFssProxyService.getSak(sakId = input.id)
-        val frist = when(input.behandlingstidUnitType) {
-            TimeUnitType.WEEKS -> input.mottattKlageinstans.plusWeeks(input.behandlingstidUnits.toLong())
-            TimeUnitType.MONTHS -> input.mottattKlageinstans.plusMonths(input.behandlingstidUnits.toLong())
+    private fun createAnkeFromInfotrygdSak(
+        journalpostId: String,
+        mulighet: Mulighet,
+        registrering: Registrering
+    ): UUID {
+        val frist = when (registrering.behandlingstidUnitType) {
+            TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
+            TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
         }
-        val behandlingId = kabalApiService.createAnkeInKabalFromCompleteInput(
-            input = input,
-            sakFromKlanke = sakFromKlanke,
-            frist = frist
+        val behandlingId = kabalApiService.createAnkeInKabalFromInfotrygdInput(
+            registrering = registrering,
+            mulighet = mulighet,
+            frist = frist,
+            journalpostId = journalpostId,
         )
 
         try {
             klageFssProxyService.setToHandledInKabal(
-                sakId = sakFromKlanke.sakId,
+                sakId = mulighet.currentFagystemTechnicalId,
                 frist = frist,
             )
         } catch (e: Exception) {
@@ -72,49 +85,26 @@ class AnkeService(
         }
 
         try {
-            input.oppgaveId?.let {
-                logger.debug("Attempting oppgave update")
-                oppgaveService.updateOppgave(
-                    oppgaveId = it,
+            registrering.gosysOppgaveId?.let {
+                logger.debug("Attempting Gosys-oppgave update")
+                gosysOppgaveService.updateGosysOppgave(
+                    gosysOppgaveId = it,
                     frist = frist,
-                    tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
+                    tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
                 )
             }
         } catch (e: Exception) {
-            logger.error("Failed to update oppgave", e)
+            logger.error("Failed to update Gosys-oppgave", e)
         }
 
         return behandlingId
     }
 
-    fun getAnkemuligheterFromKabalAsMono(input: IdnummerInput): Mono<List<AnkemulighetFromKabal>> {
+    fun getAnkemuligheterFromKabalAsMono(input: IdnummerInput): Mono<List<MulighetFromKabal>> {
         return kabalApiService.getAnkemuligheterAsMono(input)
     }
 
     fun getAnkemuligheterFromInfotrygdAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
         return klageFssProxyService.getAnkemuligheterAsMono(input)
-    }
-
-    fun getCreatedAnkeStatus(behandlingId: UUID): CreatedAnkebehandlingStatusView {
-        val response = kabalApiService.getCreatedAnkeStatus(behandlingId = behandlingId)
-
-        return CreatedAnkebehandlingStatusView(
-            typeId = response.typeId,
-            ytelseId = response.ytelseId,
-            vedtakDate = if (Fagsystem.of(response.fagsystemId) == Fagsystem.IT01) null else response.vedtakDate.toLocalDate(),
-            sakenGjelder = response.sakenGjelder.partViewWithUtsendingskanal(),
-            klager = response.klager.partViewWithUtsendingskanal(),
-            fullmektig = response.fullmektig?.partViewWithUtsendingskanal(),
-            mottattKlageinstans = response.mottattNav,
-            frist = response.frist,
-            varsletFrist = response.varsletFrist,
-            varsletFristUnits = response.varsletFristUnits,
-            varsletFristUnitTypeId = response.varsletFristUnitTypeId,
-            fagsakId = response.fagsakId,
-            fagsystemId = response.fagsystemId,
-            journalpost = response.journalpost.toReceiptView(),
-            tildeltSaksbehandler = response.tildeltSaksbehandler?.toView(),
-            svarbrev = response.svarbrev?.toView(),
-        )
     }
 }

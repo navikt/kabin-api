@@ -1,13 +1,15 @@
 package no.nav.klage.service
 
+import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
 import no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.AnkemulighetFromKabal
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.clients.kabalapi.MulighetFromKabal
+import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
@@ -33,6 +35,7 @@ class RegistreringService(
     private val tokenUtil: TokenUtil,
     private val klageService: KlageService,
     private val ankeService: AnkeService,
+    private val omgjoeringskravService: OmgjoeringskravService,
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
 ) {
@@ -67,7 +70,7 @@ class RegistreringService(
                 hjemmelIdList = listOf(),
                 ytelse = null,
                 saksbehandlerIdent = null,
-                oppgaveId = null,
+                gosysOppgaveId = null,
                 sendSvarbrev = null,
                 svarbrevTitle = "NAV orienterer om saksbehandlingen",
                 svarbrevCustomText = null,
@@ -137,7 +140,7 @@ class RegistreringService(
                 fullmektig = null
                 avsender = null
                 saksbehandlerIdent = null
-                oppgaveId = null
+                gosysOppgaveId = null
                 sendSvarbrev = null
                 overrideSvarbrevBehandlingstid = false
                 overrideSvarbrevCustomText = false
@@ -180,7 +183,7 @@ class RegistreringService(
                             mottattVedtaksinstans = journalpostDatoOpprettet
                         }
 
-                        Type.ANKE -> {
+                        Type.ANKE, Type.OMGJOERINGSKRAV -> {
                             mottattKlageinstans = journalpostDatoOpprettet
                         }
 
@@ -256,7 +259,7 @@ class RegistreringService(
                 svarbrevBehandlingstidUnitType = null
                 svarbrevCustomText = null
 
-                oppgaveId = null
+                gosysOppgaveId = null
 
                 willCreateNewJournalpost = false
 
@@ -281,20 +284,8 @@ class RegistreringService(
                     ytelse = null
                 }
 
-                if ((previousYtelse != null && ytelse != null && previousYtelse != ytelse)
-                    || (previousYtelse == null && ytelse != null)
-                ) {
-                    //set svarbrev settings (and reset old) for the new ytelse
-                    setSvarbrevSettings()
-
-                    hjemmelIdList = newMulighet.hjemmelIdList.ifEmpty {
-                        emptyList()
-                    }
-
-                    //Could be smarter here.
-                    saksbehandlerIdent = null
-                } else if (ytelse == null) {
-                    //empty the properties that no longer make sense if ytelse is null.
+                if (ytelse == null) {
+                    //empty the properties that no longer make sense
                     sendSvarbrev = false
                     svarbrevCustomText = null
                     svarbrevBehandlingstidUnits = null
@@ -305,12 +296,22 @@ class RegistreringService(
                     hjemmelIdList = emptyList()
 
                     saksbehandlerIdent = null
+                } else if (previousYtelse != ytelse) {
+                    //set svarbrev settings (and reset old) for the new ytelse
+                    setSvarbrevSettings()
+
+                    hjemmelIdList = newMulighet.hjemmelIdList.ifEmpty {
+                        emptyList()
+                    }
+
+                    //Could be smarter here.
+                    saksbehandlerIdent = null
                 }
 
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = newMulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type == Type.ANKE) {
+                } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = newMulighet.klager?.part.toPartIdInput(),
@@ -343,9 +344,11 @@ class RegistreringService(
         val ankemuligheterFromInfotrygdMono = ankeService.getAnkemuligheterFromInfotrygdAsMono(input)
 
         val ankemuligheterFromKabalMono = ankeService.getAnkemuligheterFromKabalAsMono(input)
+        val omgjoeringskravmuligheterFromKabalMono =
+            omgjoeringskravService.getOmgjoeringskravmuligheterFromKabalAsMono(input)
 
         val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
-        val muligheterFromKabal = mutableListOf<AnkemulighetFromKabal>()
+        val muligheterFromKabal = mutableListOf<MulighetFromKabal>()
 
         var start = System.currentTimeMillis()
         var mulighetStart = System.currentTimeMillis()
@@ -355,6 +358,7 @@ class RegistreringService(
             klageTilbakebetalingMuligheterFromInfotrygdMono,
             ankemuligheterFromInfotrygdMono,
             ankemuligheterFromKabalMono,
+            omgjoeringskravmuligheterFromKabalMono,
         ).parallel()
             .runOn(Schedulers.parallel())
             .doOnNext { mulighetList ->
@@ -363,7 +367,7 @@ class RegistreringService(
                 mulighetList.forEach { mulighet ->
                     if (mulighet is SakFromKlanke) {
                         muligheterFromInfotrygd.add(mulighet)
-                    } else if (mulighet is AnkemulighetFromKabal) {
+                    } else if (mulighet is MulighetFromKabal) {
                         muligheterFromKabal.add(mulighet)
                     }
                 }
@@ -436,7 +440,7 @@ class RegistreringService(
         sendSvarbrev = svarbrevSettings.shouldSend
         svarbrevCustomText = svarbrevSettings.customText
         svarbrevBehandlingstidUnits = svarbrevSettings.behandlingstidUnits
-        svarbrevBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType
+        svarbrevBehandlingstidUnitType = TimeUnitType.of(svarbrevSettings.behandlingstidUnitTypeId)
         overrideSvarbrevBehandlingstid = false
         overrideSvarbrevCustomText = false
     }
@@ -787,17 +791,17 @@ class RegistreringService(
         )
     }
 
-    fun setOppgaveId(registreringId: UUID, input: OppgaveIdInput): OppgaveIdChangeRegistreringView {
+    fun setGosysOppgaveId(registreringId: UUID, input: GosysOppgaveIdInput): GosysOppgaveIdChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                oppgaveId = input.oppgaveId
+                gosysOppgaveId = input.gosysOppgaveId
                 modified = LocalDateTime.now()
             }
 
-        return OppgaveIdChangeRegistreringView(
+        return GosysOppgaveIdChangeRegistreringView(
             id = registrering.id,
-            overstyringer = OppgaveIdChangeRegistreringView.OppgaveIdChangeRegistreringOverstyringerView(
-                oppgaveId = registrering.oppgaveId,
+            overstyringer = GosysOppgaveIdChangeRegistreringView.GosysOppgaveIdChangeRegistreringOverstyringerView(
+                gosysOppgaveId = registrering.gosysOppgaveId,
             ),
             modified = registrering.modified,
         )
@@ -838,7 +842,7 @@ class RegistreringService(
         return SvarbrevOverrideCustomTextChangeRegistreringView(
             id = registrering.id,
             svarbrev = SvarbrevOverrideCustomTextChangeRegistreringView.SvarbrevOverrideCustomTextChangeRegistreringSvarbrevView(
-                overrideCustomText = registrering.overrideSvarbrevCustomText!!,
+                overrideCustomText = registrering.overrideSvarbrevCustomText,
                 customText = registrering.svarbrevCustomText,
             ),
             modified = registrering.modified,
@@ -857,7 +861,7 @@ class RegistreringService(
 
                 if (!input.overrideBehandlingstid) {
                     svarbrevBehandlingstidUnits = svarbrevSettings.behandlingstidUnits
-                    svarbrevBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType
+                    svarbrevBehandlingstidUnitType = TimeUnitType.of(svarbrevSettings.behandlingstidUnitTypeId)
                 }
 
                 modified = LocalDateTime.now()
@@ -865,7 +869,7 @@ class RegistreringService(
         return SvarbrevOverrideBehandlingstidChangeRegistreringView(
             id = registrering.id,
             svarbrev = SvarbrevOverrideBehandlingstidChangeRegistreringView.SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView(
-                overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid!!,
+                overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
                 behandlingstid = if (registrering.svarbrevBehandlingstidUnits != null) {
                     BehandlingstidView(
                         unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
@@ -1097,59 +1101,23 @@ class RegistreringService(
     fun finishRegistrering(registreringId: UUID): FerdigstiltRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        val mulighet = registrering.mulighetId?.let { mulighetId ->
-            registrering.muligheter.find { it.id == mulighetId }
-        } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
 
         val response: CreatedBehandlingResponse = when (registrering.type) {
             Type.ANKE -> {
                 ankeService.createAnke(
-                    input = CreateAnkeInputView(
-                        mottattKlageinstans = registrering.mottattKlageinstans,
-                        behandlingstidUnits = registrering.behandlingstidUnits,
-                        behandlingstidUnitType = registrering.behandlingstidUnitType,
-                        behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
-                        klager = registrering.klager.toPartIdInput(),
-                        fullmektig = registrering.fullmektig.toPartIdInput(),
-                        journalpostId = registrering.journalpostId,
-                        ytelseId = registrering.ytelse?.id,
-                        hjemmelIdList = registrering.hjemmelIdList,
-                        avsender = registrering.avsender.toPartIdInput(),
-                        saksbehandlerIdent = registrering.saksbehandlerIdent,
-                        svarbrevInput = registrering.toSvarbrevWithReceiverInput(registrering.getSvarbrevSettings()),
-                        vedtak = Vedtak(
-                            id = mulighet.currentFagystemTechnicalId,
-                            sourceId = mulighet.currentFagsystem.id,
-                        ),
-                        oppgaveId = registrering.oppgaveId,
-                    ),
-                    ankemulighet = mulighet,
+                    registrering = registrering,
                 )
             }
 
             Type.KLAGE -> {
                 klageService.createKlage(
-                    input = CreateKlageInputView(
-                        mottattKlageinstans = registrering.mottattKlageinstans,
-                        mottattVedtaksinstans = registrering.mottattVedtaksinstans,
-                        behandlingstidUnits = registrering.behandlingstidUnits,
-                        behandlingstidUnitType = registrering.behandlingstidUnitType,
-                        behandlingstidUnitTypeId = registrering.behandlingstidUnitType.id,
-                        klager = registrering.klager.toPartIdInput(),
-                        fullmektig = registrering.fullmektig.toPartIdInput(),
-                        journalpostId = registrering.journalpostId,
-                        ytelseId = registrering.ytelse?.id,
-                        hjemmelIdList = registrering.hjemmelIdList,
-                        avsender = registrering.avsender.toPartIdInput(),
-                        saksbehandlerIdent = registrering.saksbehandlerIdent,
-                        svarbrevInput = registrering.toSvarbrevWithReceiverInput(registrering.getSvarbrevSettings()),
-                        vedtak = Vedtak(
-                            id = mulighet.currentFagystemTechnicalId,
-                            sourceId = mulighet.currentFagsystem.id,
-                        ),
-                        oppgaveId = registrering.oppgaveId,
-                    ),
-                    klagemulighet = mulighet,
+                    registrering = registrering,
+                )
+            }
+
+            Type.OMGJOERINGSKRAV -> {
+                omgjoeringskravService.createOmgjoeringskrav(
+                    registrering = registrering
                 )
             }
 
@@ -1175,20 +1143,75 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
         registrering.reinitializeMuligheter()
 
-        val (klagemuligheter, ankemuligheter) = registrering.muligheter.partition { it.type == Type.KLAGE }
+        val klagemuligheter = mutableListOf<Mulighet>()
+        val ankemuligheter = mutableListOf<Mulighet>()
+        val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
+
+        registrering.muligheter.forEach { mulighet ->
+            when (mulighet.type) {
+                Type.KLAGE -> {
+                    klagemuligheter.add(mulighet)
+                }
+
+                Type.ANKE -> {
+                    ankemuligheter.add(mulighet)
+                }
+
+                Type.OMGJOERINGSKRAV -> {
+                    omgjoeringskravmuligheter.add(mulighet)
+                }
+
+                else -> error("Not valid mulighet type: ${mulighet.type}")
+            }
+        }
 
         val klagemuligheterView = klagemuligheter.map { klagemulighet ->
             klagemulighet.toKlagemulighetView()
         }
 
         val ankemuligheterView = ankemuligheter.map { ankemulighet ->
-            ankemulighet.toAnkemulighetView()
+            ankemulighet.toKabalmulighetView()
+        }
+
+        val omgjoeringskravmuligheterView = omgjoeringskravmuligheter.map { omgjoeringskravmulighet ->
+            omgjoeringskravmulighet.toKabalmulighetView()
         }
 
         return MuligheterView(
             klagemuligheter = klagemuligheterView,
             ankemuligheter = ankemuligheterView,
+            omgjoeringskravmuligheter = omgjoeringskravmuligheterView,
             muligheterFetched = registrering.muligheterFetched!!,
+        )
+    }
+
+    fun getMulighetFromBehandlingId(behandlingId: UUID): Mulighet {
+        val registrering = registreringRepository.findByBehandlingId(behandlingId)
+        return registrering.muligheter.find { it.id == registrering.mulighetId }!!
+    }
+
+    fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusView {
+        val mulighet = getMulighetFromBehandlingId(behandlingId)
+        val status = kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
+
+        return CreatedBehandlingStatusView(
+            typeId = status.typeId,
+            ytelseId = status.ytelseId,
+            vedtakDate = mulighet.vedtakDate,
+            sakenGjelder = status.sakenGjelder.partViewWithUtsendingskanal(),
+            klager = status.klager.partViewWithUtsendingskanal(),
+            fullmektig = status.fullmektig?.partViewWithUtsendingskanal(),
+            mottattVedtaksinstans = status.mottattVedtaksinstans,
+            mottattKlageinstans = status.mottattKlageinstans,
+            frist = status.frist,
+            varsletFrist = status.varsletFrist,
+            varsletFristUnits = status.varsletFristUnits,
+            varsletFristUnitTypeId = status.varsletFristUnitTypeId,
+            fagsakId = status.fagsakId,
+            fagsystemId = status.fagsystemId,
+            journalpost = status.journalpost.toReceiptView(),
+            tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
+            svarbrev = status.svarbrev?.toView(),
         )
     }
 }

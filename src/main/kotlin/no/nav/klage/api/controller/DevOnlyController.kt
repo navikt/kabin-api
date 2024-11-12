@@ -1,13 +1,13 @@
 package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Hidden
-import no.nav.klage.api.controller.view.OppgaveView
+import no.nav.klage.api.controller.view.GosysOppgaveView
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.oppgaveapi.Gjelder
+import no.nav.klage.clients.gosysoppgave.Gjelder
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
-import no.nav.klage.service.OppgaveService
+import no.nav.klage.service.GosysOppgaveService
 import no.nav.klage.util.TokenUtil
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.Unprotected
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 class DevOnlyController(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val tokenUtil: TokenUtil,
-    private val oppgaveService: OppgaveService,
+    private val gosysOppgaveService: GosysOppgaveService,
 ) {
 
     @GetMapping("/klanke/sak/{sakId}")
@@ -46,22 +46,22 @@ class DevOnlyController(
     }
 
     @Unprotected
-    @GetMapping("/internal/oppgavetoken")
-    fun getOppgaveToken(): String {
-        return tokenUtil.getSaksbehandlerAccessTokenWithOppgaveScope()
+    @GetMapping("/internal/gosysoppgavetoken")
+    fun getGosysOppgaveToken(): String {
+        return tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()
     }
 
-    @GetMapping("/oppgaver/{fnr}")
-    fun searchOppgaveForFnr(
+    @GetMapping("/gosysoppgaver/{fnr}")
+    fun searchGosysOppgaveForFnr(
         @PathVariable fnr: String
-    ): List<OppgaveView> {
-        return oppgaveService.getOppgaveList(fnr = fnr, tema = null)
+    ): List<GosysOppgaveView> {
+        return gosysOppgaveService.getGosysOppgaveList(fnr = fnr, tema = null)
     }
 
-    @GetMapping("/oppgaver/kodeverk/gjelder/{tema}")
+    @GetMapping("/gosysoppgaver/kodeverk/gjelder/{tema}")
     fun searchGjelderKodeverk(
         @PathVariable tema: String
     ): List<Gjelder> {
-        return oppgaveService.getGjelderKodeverkForTema(tema = Tema.fromNavn(tema))
+        return gosysOppgaveService.getGjelderKodeverkForTema(tema = Tema.fromNavn(tema))
     }
 }

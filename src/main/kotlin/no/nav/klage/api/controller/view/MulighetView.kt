@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-data class AnkemulighetView(
+data class KabalmulighetView(
     override val id: UUID,
     override var currentFagsystemId: String,
     override val temaId: String,
@@ -13,7 +13,7 @@ data class AnkemulighetView(
     override val fagsakId: String,
     override var originalFagsystemId: String,
     override val typeId: String,
-    val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
+    val sourceOfExistingBehandlinger: List<ExistingBehandling>,
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
     val klager: PartViewWithUtsendingskanal?,
@@ -21,7 +21,7 @@ data class AnkemulighetView(
     val previousSaksbehandler: PreviousSaksbehandler?,
 ): MulighetView
 
-data class ExistingAnkebehandling(
+data class ExistingBehandling(
     val id: UUID,
     val created: LocalDateTime,
     val completed: LocalDateTime?,
@@ -57,6 +57,7 @@ interface MulighetView {
 
 data class MuligheterView(
     val klagemuligheter: List<KlagemulighetView>,
-    val ankemuligheter: List<AnkemulighetView>,
+    val ankemuligheter: List<KabalmulighetView>,
+    val omgjoeringskravmuligheter: List<KabalmulighetView>,
     val muligheterFetched: LocalDateTime,
 )

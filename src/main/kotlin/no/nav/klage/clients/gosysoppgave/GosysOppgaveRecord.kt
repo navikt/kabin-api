@@ -1,4 +1,4 @@
-package no.nav.klage.clients.oppgaveapi
+package no.nav.klage.clients.gosysoppgave
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class OppgaveApiRecord(
+data class GosysOppgaveRecord(
     val id: Long,
     val versjon: Int,
     val journalpostId: String?,
@@ -58,17 +58,6 @@ enum class Status(val statusId: Long) {
             return entries.firstOrNull { it.statusId == statusId }
                 ?: throw IllegalArgumentException("No status with $statusId exists")
         }
-
-        fun kategoriForStatus(status: Status): Statuskategori {
-            return when (status) {
-                AAPNET, OPPRETTET, UNDER_BEHANDLING -> Statuskategori.AAPEN
-                FEILREGISTRERT, FERDIGSTILT -> Statuskategori.AVSLUTTET
-            }
-        }
-    }
-
-    fun kategoriForStatus(): Statuskategori {
-        return kategoriForStatus(this)
     }
 }
 
@@ -93,35 +82,20 @@ enum class IdentType {
 enum class Statuskategori {
     AAPEN,
     AVSLUTTET;
-
-    fun statuserForKategori(kategori: Statuskategori): List<Status> {
-        return when (kategori) {
-            AAPEN -> aapen()
-            AVSLUTTET -> avsluttet()
-        }
-    }
-
-    fun avsluttet(): List<Status> {
-        return listOf(Status.FERDIGSTILT, Status.FEILREGISTRERT)
-    }
-
-    fun aapen(): List<Status> {
-        return listOf(Status.OPPRETTET, Status.AAPNET, Status.UNDER_BEHANDLING)
-    }
 }
 
-data class OppgaveResponse(
+data class GosysOppgaveResponse(
     val antallTreffTotalt: Int,
-    val oppgaver: List<OppgaveApiRecord>
+    val oppgaver: List<GosysOppgaveRecord>
 )
 
-class OppgaveClientException : Exception {
+class GosysOppgaveClientException : Exception {
     constructor(message: String?) : super(message)
 
     constructor(message: String?, cause: Throwable?) : super(message, cause)
 }
 
-data class FerdigstillOppgaveRequest(
+data class FerdigstillGosysOppgaveRequest(
     val oppgaveId: Long,
     val versjon: Int,
     val status: Status = Status.FERDIGSTILT,

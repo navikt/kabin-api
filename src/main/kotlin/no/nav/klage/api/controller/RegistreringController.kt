@@ -263,17 +263,17 @@ class RegistreringController(
         return registreringService.setSaksbehandlerIdent(registreringId = id, input = input)
     }
 
-    @PutMapping("/{id}/overstyringer/oppgave-id")
-    fun updateOppgaveId(
+    @PutMapping("/{id}/overstyringer/gosys-oppgave-id")
+    fun updateGosysOppgaveId(
         @PathVariable id: UUID,
-        @RequestBody input: OppgaveIdInput
-    ): OppgaveIdChangeRegistreringView {
+        @RequestBody input: GosysOppgaveIdInput
+    ): GosysOppgaveIdChangeRegistreringView {
         logMethodDetails(
-            methodName = ::updateOppgaveId.name,
+            methodName = ::updateGosysOppgaveId.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.setOppgaveId(registreringId = id, input = input)
+        return registreringService.setGosysOppgaveId(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/svarbrev/send")

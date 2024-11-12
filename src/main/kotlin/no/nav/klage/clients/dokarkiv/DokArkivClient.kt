@@ -117,29 +117,6 @@ class DokArkivClient(
         logger.debug("Document from journalpost $journalpostId with dokumentInfoId id ${input.dokumenter.first().dokumentInfoId} was successfully updated.")
     }
 
-    fun setLogiskeVedlegg(
-        dokumentInfoId: String,
-        payload: SetLogiskeVedleggPayload
-    ) {
-        try {
-            dokArkivWebClient.post()
-                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
-                .retrieve()
-                .bodyToMono(JournalpostResponse::class.java)
-                .block()
-                ?: throw RuntimeException("Could not set logiske vedlegg for document.")
-        } catch (e: Exception) {
-            logger.error("Error setting logiske vedlegg for document $dokumentInfoId:", e)
-        }
-        logger.debug("Bulk updated logiske vedlegg for document $dokumentInfoId successfully.")
-    }
-
     fun addLogiskVedlegg(
         dokumentInfoId: String,
         title: String,
@@ -244,10 +221,6 @@ class DokArkivClient(
 
     data class FerdigstillJournalpostPayload(
         val journalfoerendeEnhet: String
-    )
-
-    data class SetLogiskeVedleggPayload(
-        val titler: List<String>
     )
 
     data class LogiskVedleggPayload(
