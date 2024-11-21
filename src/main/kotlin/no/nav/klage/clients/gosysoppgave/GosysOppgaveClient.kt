@@ -2,6 +2,7 @@ package no.nav.klage.clients.gosysoppgave
 
 import io.opentelemetry.api.trace.Span
 import no.nav.klage.config.CacheWithJCacheConfiguration
+import no.nav.klage.exceptions.GosysOppgaveClientException
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -51,7 +52,7 @@ class GosysOppgaveClient(
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<GosysOppgaveResponse>()
-                    .block() ?: throw GosysOppgaveClientException("Gosys-oppgaver could not be fetched")
+                    .block() ?: throw RuntimeException("Gosys-oppgaver could not be fetched")
             }
 
         if (gosysOppgaveResponse.oppgaver.size > 1) {
@@ -84,7 +85,7 @@ class GosysOppgaveClient(
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<GosysOppgaveResponse>()
-                    .block() ?: throw GosysOppgaveClientException("Gosys-oppgaver could not be fetched")
+                    .block() ?: throw RuntimeException("Gosys-oppgaver could not be fetched")
             }
 
         return gosysOppgaveResponse.oppgaver
@@ -106,7 +107,7 @@ class GosysOppgaveClient(
                 .bodyValue(ferdigstillGosysOppgaveRequest)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
-                .block() ?: throw GosysOppgaveClientException("Kunne ikke ferdigstille Gosys-oppgaven.")
+                .block() ?: throw RuntimeException("Kunne ikke ferdigstille Gosys-oppgaven.")
         }
     }
 
@@ -124,7 +125,7 @@ class GosysOppgaveClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
-                .block() ?: throw GosysOppgaveClientException("Gosys-oppgave could not be fetched")
+                .block() ?: throw RuntimeException("Gosys-oppgave could not be fetched")
         }
     }
 
@@ -143,7 +144,7 @@ class GosysOppgaveClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
-                .block() ?: throw GosysOppgaveClientException("Gosys-oppgave could not be updated")
+                .block() ?: throw RuntimeException("Gosys-oppgave could not be updated")
         }
     }
 
@@ -164,7 +165,7 @@ class GosysOppgaveClient(
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<Gjelder>>()
-                    .block() ?: throw GosysOppgaveClientException("Could not fetch gjelder kodeverk for tema ${tema.navn}")
+                    .block() ?: throw RuntimeException("Could not fetch gjelder kodeverk for tema ${tema.navn}")
             }
 
         return gjelderResponse
@@ -187,7 +188,7 @@ class GosysOppgaveClient(
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<GosysOppgavetypeResponse>>()
-                    .block() ?: throw GosysOppgaveClientException("Could not fetch oppgavetype kodeverk for tema ${tema.navn}")
+                    .block() ?: throw RuntimeException("Could not fetch oppgavetype kodeverk for tema ${tema.navn}")
             }
 
         return gosysOppgavetypeResponse

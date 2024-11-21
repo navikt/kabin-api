@@ -24,3 +24,9 @@ class RegistreringNotFoundException(msg: String) : RuntimeException(msg)
 class MissingAccessException(msg: String) : RuntimeException(msg)
 
 class MulighetNotFoundException(msg: String) : RuntimeException(msg)
+
+class GosysOppgaveClientException : RuntimeException {
+    constructor(message: String?) : super(message)
+
+    constructor(message: String?, cause: Throwable?) : super(message, cause)
+}

@@ -41,7 +41,7 @@ class DokArkivService(
 
     private fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
         val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
-            ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
+            ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
 
         if (journalpostCanBeFinalized(journalpostInSaf)) {
             logger.debug("Finalizing journalpost $journalpostId in Dokarkiv")
@@ -225,7 +225,7 @@ class DokArkivService(
     ): String {
         logger.debug("handleJournalpost called")
         val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
-            ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
+            ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
 
         secureLogger.debug(
             "handleJournalpost called. Fetched journalpostInSaf: {}, sak: {}, tema: {}",
@@ -347,7 +347,7 @@ class DokArkivService(
         fagsystemId: String
     ): Boolean {
         val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
-            ?: throw Exception("Journalpost with id $journalpostId not found in SAF")
+            ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
 
         if (!journalpostInSaf.isFinalized()) {
             return false

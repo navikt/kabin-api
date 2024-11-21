@@ -1101,7 +1101,6 @@ class RegistreringService(
     fun finishRegistrering(registreringId: UUID): FerdigstiltRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
-
         val response: CreatedBehandlingResponse = when (registrering.type) {
             Type.ANKE -> {
                 ankeService.createAnke(

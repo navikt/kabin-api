@@ -89,12 +89,6 @@ data class GosysOppgaveResponse(
     val oppgaver: List<GosysOppgaveRecord>
 )
 
-class GosysOppgaveClientException : Exception {
-    constructor(message: String?) : super(message)
-
-    constructor(message: String?, cause: Throwable?) : super(message, cause)
-}
-
 data class FerdigstillGosysOppgaveRequest(
     val oppgaveId: Long,
     val versjon: Int,
