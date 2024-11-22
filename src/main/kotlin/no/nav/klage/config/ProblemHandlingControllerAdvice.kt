@@ -1,6 +1,5 @@
 package no.nav.klage.config
 
-import no.nav.klage.clients.gosysoppgave.GosysOppgaveClientException
 import no.nav.klage.exceptions.*
 import no.nav.klage.util.getSecureLogger
 import org.springframework.http.*
