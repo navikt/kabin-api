@@ -15,6 +15,11 @@ fun canChangeAvsenderInJournalpost(
         return false
     }
 
+    //Avsender på digitalt innsendt journalpost kan ikke endres
+    if (journalpost.kanal == "NAV_NO") {
+        return false
+    }
+
     val datoJournalfoert =
         journalpost.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
 

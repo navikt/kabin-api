@@ -465,7 +465,7 @@ class DokArkivServiceTest {
             relevanteDatoer = listOf(),
             antallRetur = null,
             tilleggsopplysninger = listOf(),
-            kanal = "NAV_NO",
+            kanal = "NAV_NO_UINNLOGGET",
             kanalnavn = "",
             utsendingsinfo = null,
         )
