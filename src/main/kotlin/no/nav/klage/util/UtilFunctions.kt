@@ -16,7 +16,7 @@ fun canChangeAvsenderInJournalpost(
     }
 
     //Avsender på digitalt innsendt journalpost kan ikke endres
-    if (journalpost.kanal == "NAV_NO") {
+    if (journalpost.kanal in listOf("NAV_NO", "NAV_NO_CHAT", "ALTINN", "EESSI")) {
         return false
     }
 
