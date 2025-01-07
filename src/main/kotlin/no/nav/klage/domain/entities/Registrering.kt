@@ -2,6 +2,8 @@ package no.nav.klage.domain.entities
 
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.kodeverk.ytelse.YtelseConverter
 import org.hibernate.annotations.DynamicUpdate
 import java.time.LocalDate
 import java.time.LocalDateTime

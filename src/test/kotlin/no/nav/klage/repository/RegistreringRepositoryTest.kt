@@ -3,6 +3,7 @@ package no.nav.klage.repository
 import no.nav.klage.db.TestPostgresqlContainer
 import no.nav.klage.domain.entities.*
 import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

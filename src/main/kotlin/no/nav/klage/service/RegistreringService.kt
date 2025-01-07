@@ -15,7 +15,11 @@ import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.exceptions.*
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.calculateFrist
