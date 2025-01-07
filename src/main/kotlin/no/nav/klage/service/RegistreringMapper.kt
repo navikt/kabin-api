@@ -9,7 +9,11 @@ import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.clients.kabalapi.PartView
 import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.PartStatus
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.util.calculateFrist
 
 fun SvarbrevReceiver.toRecipientView(

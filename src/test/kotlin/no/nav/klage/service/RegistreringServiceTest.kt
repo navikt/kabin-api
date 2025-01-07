@@ -10,7 +10,7 @@ import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
