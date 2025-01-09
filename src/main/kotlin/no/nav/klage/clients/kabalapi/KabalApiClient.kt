@@ -23,12 +23,12 @@ class KabalApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput): Mono<BehandlingIsDuplicateResponse> {
+    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput, token: String): Mono<BehandlingIsDuplicateResponse> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/checkbehandlingisduplicate").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getMaskinTilMaskinAccessTokenWithKabalApiScope()}"
+                token,
             )
             .bodyValue(input)
             .retrieve()

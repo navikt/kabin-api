@@ -385,6 +385,8 @@ class RegistreringService(
 
         var duplicateCheckStart = System.currentTimeMillis()
 
+        val kabalApiToken = "Bearer ${tokenUtil.getMaskinTilMaskinAccessTokenWithKabalApiScope()}"
+
         val behandlingIsDuplicateResponses = Flux.fromIterable(muligheterFromInfotrygd)
             .parallel()
             .runOn(Schedulers.parallel())
@@ -394,7 +396,8 @@ class RegistreringService(
                         fagsystemId = Fagsystem.IT01.id,
                         kildereferanse = mulighetFromInfotrygd.sakId,
                         typeId = if (mulighetFromInfotrygd.sakstype.startsWith("KLAGE")) Type.KLAGE.id else Type.ANKE.id
-                    )
+                    ),
+                    token = kabalApiToken,
                 ).also {
                     logger.debug("Time to check duplicate: " + (System.currentTimeMillis() - duplicateCheckStart))
                     duplicateCheckStart = System.currentTimeMillis()
