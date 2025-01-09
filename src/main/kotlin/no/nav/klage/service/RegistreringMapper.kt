@@ -2,11 +2,11 @@ package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.Address
-import no.nav.klage.api.controller.view.PartType
-import no.nav.klage.api.controller.view.PartViewWithUtsendingskanal
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.*
+import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.PartView
+import no.nav.klage.clients.kabalapi.SvarbrevInput
+import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
 import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.PartStatus
 import no.nav.klage.kodeverk.Fagsystem
@@ -18,12 +18,12 @@ import no.nav.klage.util.calculateFrist
 
 fun SvarbrevReceiver.toRecipientView(
     registrering: Registrering,
-    kabalApiClient: KabalApiClient,
+    kabalApiService: KabalApiService,
 ) = RecipientView(
     id = id,
     part = registrering.partViewWithOptionalUtsendingskanal(
         identifikator = part.value,
-        kabalApiClient = kabalApiClient
+        kabalApiService = kabalApiService
     ),
     handling = handling,
     overriddenAddress = overriddenAddress?.let { address ->
@@ -37,12 +37,12 @@ fun SvarbrevReceiver.toRecipientView(
     }
 )
 
-fun Registrering.toRecipientViews(kabalApiClient: KabalApiClient) =
+fun Registrering.toRecipientViews(kabalApiService: KabalApiService) =
     svarbrevReceivers.map { receiver ->
-        receiver.toRecipientView(this, kabalApiClient = kabalApiClient)
+        receiver.toRecipientView(this, kabalApiService = kabalApiService)
     }.sortedBy { it.part.name }
 
-fun Registrering.toTypeChangeRegistreringView(kabalApiClient: KabalApiClient): TypeChangeRegistreringView {
+fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService): TypeChangeRegistreringView {
     return TypeChangeRegistreringView(
         id = id,
         typeId = type?.id,
@@ -56,7 +56,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiClient: KabalApiClient): T
                 )
             } else null,
             fullmektigFritekst = svarbrevFullmektigFritekst,
-            receivers = toRecipientViews(kabalApiClient = kabalApiClient),
+            receivers = toRecipientViews(kabalApiService = kabalApiService),
             overrideCustomText = overrideSvarbrevCustomText,
             overrideBehandlingstid = overrideSvarbrevBehandlingstid,
             customText = svarbrevCustomText,
@@ -66,7 +66,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiClient: KabalApiClient): T
     )
 }
 
-fun Registrering.toMulighetChangeRegistreringView(kabalApiClient: KabalApiClient): MulighetChangeRegistreringView {
+fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiService): MulighetChangeRegistreringView {
     return MulighetChangeRegistreringView(
         id = id,
         mulighet = mulighetId?.let {
@@ -93,19 +93,19 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiClient: KabalApiClient
             fullmektig = fullmektig?.let {
                 partViewWithOptionalUtsendingskanal(
                     identifikator = it.value,
-                    kabalApiClient = kabalApiClient
+                    kabalApiService = kabalApiService
                 )
             },
             klager = klager?.let {
                 partViewWithOptionalUtsendingskanal(
                     identifikator = it.value,
-                    kabalApiClient = kabalApiClient
+                    kabalApiService = kabalApiService
                 )
             },
             avsender = avsender?.let {
                 partViewWithOptionalUtsendingskanal(
                     identifikator = it.value,
-                    kabalApiClient = kabalApiClient
+                    kabalApiService = kabalApiService
                 )
             },
             saksbehandlerIdent = saksbehandlerIdent,
@@ -120,7 +120,7 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiClient: KabalApiClient
                 )
             } else null,
             fullmektigFritekst = svarbrevFullmektigFritekst,
-            receivers = toRecipientViews(kabalApiClient),
+            receivers = toRecipientViews(kabalApiService),
             overrideCustomText = overrideSvarbrevCustomText,
             overrideBehandlingstid = overrideSvarbrevBehandlingstid,
             customText = svarbrevCustomText,
@@ -140,7 +140,7 @@ fun Registrering.toFinishedRegistreringView(): FinishedRegistreringView = Finish
     behandlingId = behandlingId!!,
 )
 
-fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegistreringView(
+fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegistreringView(
     id = id,
     journalpostId = journalpostId,
     sakenGjelderValue = sakenGjelder?.value,
@@ -170,19 +170,19 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
         fullmektig = fullmektig?.let {
             partViewWithOptionalUtsendingskanal(
                 identifikator = it.value,
-                kabalApiClient = kabalApiClient
+                kabalApiService = kabalApiService
             )
         },
         klager = klager?.let {
             partViewWithOptionalUtsendingskanal(
                 identifikator = it.value,
-                kabalApiClient = kabalApiClient
+                kabalApiService = kabalApiService
             )
         },
         avsender = avsender?.let {
             partViewWithOptionalUtsendingskanal(
                 identifikator = it.value,
-                kabalApiClient = kabalApiClient
+                kabalApiService = kabalApiService
             )
         },
         saksbehandlerIdent = saksbehandlerIdent,
@@ -197,7 +197,7 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
             )
         } else null,
         fullmektigFritekst = svarbrevFullmektigFritekst,
-        receivers = toRecipientViews(kabalApiClient),
+        receivers = toRecipientViews(kabalApiService),
         title = svarbrevTitle,
         customText = svarbrevCustomText,
         overrideCustomText = overrideSvarbrevCustomText,
@@ -230,10 +230,10 @@ fun Registrering.toRegistreringView(kabalApiClient: KabalApiClient) = FullRegist
 
 fun Registrering.partViewWithOptionalUtsendingskanal(
     identifikator: String,
-    kabalApiClient: KabalApiClient
+    kabalApiService: KabalApiService
 ): PartViewWithOptionalUtsendingskanal =
     if (ytelse != null) {
-        kabalApiClient.searchPartWithUtsendingskanal(
+        kabalApiService.searchPartWithUtsendingskanal(
             searchPartInput = SearchPartWithUtsendingskanalInput(
                 identifikator = identifikator,
                 sakenGjelderId = sakenGjelder!!.value,
@@ -241,7 +241,7 @@ fun Registrering.partViewWithOptionalUtsendingskanal(
             )
         ).partViewWithOptionalUtsendingskanal()
     } else {
-        kabalApiClient.searchPart(
+        kabalApiService.searchPart(
             searchPartInput = SearchPartInput(
                 identifikator = identifikator,
             )
@@ -405,14 +405,14 @@ fun MulighetFromKabal.toMulighet(): Mulighet {
     )
 }
 
-fun SakFromKlanke.toMulighet(kabalApiClient: KabalApiClient): Mulighet {
+fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
     val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE
     return Mulighet(
         type = type,
         originalType = type,
         tema = Tema.valueOf(tema),
         vedtakDate = if (type == Type.KLAGE) vedtaksdato else null,
-        sakenGjelder = kabalApiClient.searchPartWithUtsendingskanal(
+        sakenGjelder = kabalApiService.searchPartWithUtsendingskanal(
             SearchPartWithUtsendingskanalInput(
                 identifikator = fnr,
                 sakenGjelderId = fnr,

@@ -2,12 +2,12 @@ package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -23,6 +23,18 @@ class KabalApiService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    fun searchPartWithUtsendingskanal(searchPartInput: SearchPartWithUtsendingskanalInput): PartViewWithUtsendingskanal {
+        return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
+    }
+
+    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput, token: String): Mono<BehandlingIsDuplicateResponse> {
+        return kabalApiClient.checkBehandlingDuplicateInKabal(input = input, token = token)
+    }
+
+    fun getBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatus {
+        return kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
+    }
+
     fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean {
         return kabalApiClient.checkGosysOppgaveDuplicateInKabal(
             input = GosysOppgaveIsDuplicateInput(gosysOppgaveId = gosysOppgaveId)
@@ -33,12 +45,18 @@ class KabalApiService(
         return kabalApiClient.searchPart(searchPartInput = searchPartInput)
     }
 
-    fun getAnkemuligheterAsMono(input: IdnummerInput): Mono<List<MulighetFromKabal>> {
-        return kabalApiClient.getAnkemuligheterByIdnummer(input)
+    fun getAnkemuligheterAsMono(input: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
+        return kabalApiClient.getAnkemuligheterByIdnummer(
+            idnummerInput = input,
+            token = token,
+        )
     }
 
-    fun getOmgjoeringskravmuligheterAsMono(input: IdnummerInput): Mono<List<MulighetFromKabal>> {
-        return kabalApiClient.getOmgjoeringskravmuligheterByIdnummer(input)
+    fun getOmgjoeringskravmuligheterAsMono(input: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
+        return kabalApiClient.getOmgjoeringskravmuligheterByIdnummer(
+            idnummerInput = input,
+            token = token,
+        )
     }
 
     fun createAnkeInKabalFromInfotrygdInput(

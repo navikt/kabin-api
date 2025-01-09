@@ -1,8 +1,6 @@
 package no.nav.klage.service
 
-import no.nav.klage.api.controller.view.*
-import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.clients.kabalapi.MulighetFromKabal
+import no.nav.klage.api.controller.view.CreatedBehandlingResponse
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.exceptions.IllegalInputException
@@ -12,7 +10,6 @@ import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import java.util.*
 
 @Service
@@ -98,13 +95,5 @@ class AnkeService(
         }
 
         return behandlingId
-    }
-
-    fun getAnkemuligheterFromKabalAsMono(input: IdnummerInput): Mono<List<MulighetFromKabal>> {
-        return kabalApiService.getAnkemuligheterAsMono(input)
-    }
-
-    fun getAnkemuligheterFromInfotrygdAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
-        return klageFssProxyService.getAnkemuligheterAsMono(input)
     }
 }

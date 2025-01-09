@@ -21,12 +21,12 @@ class KlageFssProxyClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun searchKlanke(input: KlankeSearchInput): Mono<List<SakFromKlanke>> {
+    fun searchKlanke(input: KlankeSearchInput, token: String): Mono<List<SakFromKlanke>> {
         return klageFssProxyWebClient.post()
             .uri("/klanke/saker")
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+                token,
             )
             .bodyValue(input)
             .retrieve()

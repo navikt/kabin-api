@@ -7,7 +7,6 @@ import no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker.Avsen
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
-import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.entities.Mulighet
@@ -35,13 +34,14 @@ import java.util.*
 @Transactional
 class RegistreringService(
     private val registreringRepository: RegistreringRepository,
-    private val kabalApiClient: KabalApiClient,
+    private val kabalApiService: KabalApiService,
     private val tokenUtil: TokenUtil,
     private val klageService: KlageService,
     private val ankeService: AnkeService,
     private val omgjoeringskravService: OmgjoeringskravService,
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
+    private val klageFssProxyService: KlageFssProxyService,
 ) {
 
     companion object {
@@ -94,13 +94,13 @@ class RegistreringService(
         registrering.reinitializeMuligheter()
         registrering.handleSvarbrevReceivers()
 
-        return registrering.toRegistreringView(kabalApiClient = kabalApiClient)
+        return registrering.toRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun getRegistrering(registreringId: UUID): FullRegistreringView {
         return registreringRepository.findById(registreringId)
             .orElseThrow { throw RegistreringNotFoundException("Registrering ikke funnet.") }
-            .toRegistreringView(kabalApiClient = kabalApiClient)
+            .toRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun getFerdigeRegistreringer(
@@ -116,7 +116,7 @@ class RegistreringService(
     ): List<FullRegistreringView> {
         return registreringRepository.findUferdigeRegistreringer(
             navIdent = tokenUtil.getCurrentIdent(),
-        ).map { it.toRegistreringView(kabalApiClient = kabalApiClient) }.sortedByDescending { it.created }
+        ).map { it.toRegistreringView(kabalApiService = kabalApiService) }.sortedByDescending { it.created }
     }
 
     fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): FullRegistreringView {
@@ -157,7 +157,7 @@ class RegistreringService(
 
                 handleSvarbrevReceivers()
             }
-        return registrering.toRegistreringView(kabalApiClient = kabalApiClient)
+        return registrering.toRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): FullRegistreringView {
@@ -234,7 +234,7 @@ class RegistreringService(
                 handleSvarbrevReceivers()
             }
 
-        return registrering.toRegistreringView(kabalApiClient = kabalApiClient)
+        return registrering.toRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun setTypeId(registreringId: UUID, input: TypeIdInput): TypeChangeRegistreringView {
@@ -267,7 +267,7 @@ class RegistreringService(
 
                 willCreateNewJournalpost = false
 
-            }.toTypeChangeRegistreringView(kabalApiClient = kabalApiClient)
+            }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
@@ -336,20 +336,41 @@ class RegistreringService(
                 )
 
                 //What about fullmektig?
-            }.toMulighetChangeRegistreringView(kabalApiClient = kabalApiClient)
+            }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun Registrering.reinitializeMuligheter() {
         val input = IdnummerInput(idnummer = sakenGjelder!!.value)
 
-        val klagemuligheterFromInfotrygdMono = klageService.getKlagemuligheterFromInfotrygdAsMono(input)
-        val klageTilbakebetalingMuligheterFromInfotrygdMono =
-            klageService.getKlageTilbakebetalingMuligheterFromInfotrygdAsMono(input)
-        val ankemuligheterFromInfotrygdMono = ankeService.getAnkemuligheterFromInfotrygdAsMono(input)
+        val tokenWithKlageFSSProxyScope = "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
 
-        val ankemuligheterFromKabalMono = ankeService.getAnkemuligheterFromKabalAsMono(input)
+        val klagemuligheterFromInfotrygdMono = klageFssProxyService.getKlagemuligheterAsMono(
+            input = input,
+            token = tokenWithKlageFSSProxyScope,
+        )
+        val klageTilbakebetalingMuligheterFromInfotrygdMono =
+            klageFssProxyService.getKlageTilbakebetalingMuligheterAsMono(
+                input = input,
+                token = tokenWithKlageFSSProxyScope,
+            )
+        val ankemuligheterFromInfotrygdMono = klageFssProxyService.getAnkemuligheterAsMono(
+            input = input,
+            token = tokenWithKlageFSSProxyScope,
+        )
+
+        val saksbehandlerAccessTokenWithKabalApiScope =
+            "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+
+        val ankemuligheterFromKabalMono =
+            kabalApiService.getAnkemuligheterAsMono(
+                input = input,
+                token = saksbehandlerAccessTokenWithKabalApiScope,
+            )
         val omgjoeringskravmuligheterFromKabalMono =
-            omgjoeringskravService.getOmgjoeringskravmuligheterFromKabalAsMono(input)
+            kabalApiService.getOmgjoeringskravmuligheterAsMono(
+                input = input,
+                token = saksbehandlerAccessTokenWithKabalApiScope,
+            )
 
         val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
         val muligheterFromKabal = mutableListOf<MulighetFromKabal>()
@@ -385,16 +406,20 @@ class RegistreringService(
 
         var duplicateCheckStart = System.currentTimeMillis()
 
+        val maskinTilMaskinAccessTokenWithKabalApiScope =
+            "Bearer ${tokenUtil.getMaskinTilMaskinAccessTokenWithKabalApiScope()}"
+
         val behandlingIsDuplicateResponses = Flux.fromIterable(muligheterFromInfotrygd)
             .parallel()
             .runOn(Schedulers.parallel())
             .flatMap { mulighetFromInfotrygd ->
-                kabalApiClient.checkBehandlingDuplicateInKabal(
+                kabalApiService.checkBehandlingDuplicateInKabal(
                     input = BehandlingIsDuplicateInput(
                         fagsystemId = Fagsystem.IT01.id,
                         kildereferanse = mulighetFromInfotrygd.sakId,
                         typeId = if (mulighetFromInfotrygd.sakstype.startsWith("KLAGE")) Type.KLAGE.id else Type.ANKE.id
-                    )
+                    ),
+                    token = maskinTilMaskinAccessTokenWithKabalApiScope,
                 ).also {
                     logger.debug("Time to check duplicate: " + (System.currentTimeMillis() - duplicateCheckStart))
                     duplicateCheckStart = System.currentTimeMillis()
@@ -417,7 +442,7 @@ class RegistreringService(
             }
 
         var muligheterToStoreInDB =
-            filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiClient = kabalApiClient) } + muligheterFromKabal.map { it.toMulighet() }
+            filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiService = kabalApiService) } + muligheterFromKabal.map { it.toMulighet() }
 
         //Keep chosen mulighet, if it is still valid, and update accordingly.
         if (mulighetId == null) {
@@ -617,7 +642,7 @@ class RegistreringService(
                             }
                         }
                     )
-                    val part = kabalApiClient.searchPart(SearchPartInput(identifikator = input.fullmektig.id))
+                    val part = kabalApiService.searchPart(SearchPartInput(identifikator = input.fullmektig.id))
                     svarbrevFullmektigFritekst = part.name
                 }
                 modified = LocalDateTime.now()
@@ -633,7 +658,7 @@ class RegistreringService(
                 fullmektig = registrering.fullmektig?.let {
                     registrering.partViewWithOptionalUtsendingskanal(
                         identifikator = it.value,
-                        kabalApiClient = kabalApiClient,
+                        kabalApiService = kabalApiService,
                     )
                 }
             ),
@@ -722,7 +747,7 @@ class RegistreringService(
                 klager = registrering.klager?.let {
                     registrering.partViewWithOptionalUtsendingskanal(
                         identifikator = it.value,
-                        kabalApiClient = kabalApiClient
+                        kabalApiService = kabalApiService
                     )
                 }
             ),
@@ -768,7 +793,7 @@ class RegistreringService(
                 avsender = registrering.avsender?.let {
                     registrering.partViewWithOptionalUtsendingskanal(
                         identifikator = it.value,
-                        kabalApiClient = kabalApiClient
+                        kabalApiService = kabalApiService
                     )
                 }
             ),
@@ -892,7 +917,7 @@ class RegistreringService(
         )
     }
 
-    private fun Registrering.getSvarbrevSettings() = kabalApiClient.getSvarbrevSettings(
+    private fun Registrering.getSvarbrevSettings() = kabalApiService.getSvarbrevSettings(
         ytelseId = ytelse!!.id,
         typeId = type!!.id
     )
@@ -1080,7 +1105,7 @@ class RegistreringService(
 
     private fun Registrering.mapToRecipientViews() =
         svarbrevReceivers.map { receiver ->
-            receiver.toRecipientView(registrering = this, kabalApiClient = kabalApiClient)
+            receiver.toRecipientView(registrering = this, kabalApiService = kabalApiService)
         }.sortedBy { it.part.name }
 
     fun deleteRegistrering(registreringId: UUID) {
@@ -1195,7 +1220,7 @@ class RegistreringService(
 
     fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusView {
         val mulighet = getMulighetFromBehandlingId(behandlingId)
-        val status = kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
+        val status = kabalApiService.getBehandlingStatus(behandlingId = behandlingId)
 
         return CreatedBehandlingStatusView(
             typeId = status.typeId,
