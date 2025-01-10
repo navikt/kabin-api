@@ -5,7 +5,6 @@ import no.nav.klage.clients.HandledInKabalInput
 import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.SakFromKlanke
-import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -16,7 +15,6 @@ import java.time.format.DateTimeFormatter
 @Service
 class KlageFssProxyService(
     private val klageFssProxyClient: KlageFssProxyClient,
-    private val tokenUtil: TokenUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -24,21 +22,33 @@ class KlageFssProxyService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getAnkemuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+    fun getAnkemuligheterAsMono(input: IdnummerInput, token: String): Mono<List<SakFromKlanke>> {
         return if (klageFssProxyClient.checkAccess().access) {
-            klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"))
+            klageFssProxyClient.searchKlanke(
+                input = KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"),
+                token = token,
+            )
         } else Mono.empty()
     }
 
-    fun getKlagemuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+    fun getKlagemuligheterAsMono(input: IdnummerInput, token: String): Mono<List<SakFromKlanke>> {
         //Deliberately fail if missing access.
-        val klageSaker = klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"))
+        val klageSaker = klageFssProxyClient.searchKlanke(
+            input = KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"),
+            token = token,
+        )
         return klageSaker
     }
 
-    fun getKlageTilbakebetalingMuligheterAsMono(input: IdnummerInput): Mono<List<SakFromKlanke>> {
+    fun getKlageTilbakebetalingMuligheterAsMono(input: IdnummerInput, token: String): Mono<List<SakFromKlanke>> {
         //Deliberately fail if missing access.
-        val klageTilbakebetalingSaker = klageFssProxyClient.searchKlanke(KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE_TILBAKEBETALING"))
+        val klageTilbakebetalingSaker = klageFssProxyClient.searchKlanke(
+            input = KlankeSearchInput(
+                fnr = input.idnummer,
+                sakstype = "KLAGE_TILBAKEBETALING"
+            ),
+            token = token,
+        )
         return klageTilbakebetalingSaker
     }
 

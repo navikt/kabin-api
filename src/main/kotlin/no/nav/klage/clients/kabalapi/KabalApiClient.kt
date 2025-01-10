@@ -23,12 +23,12 @@ class KabalApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput): Mono<BehandlingIsDuplicateResponse> {
+    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput, token: String): Mono<BehandlingIsDuplicateResponse> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/checkbehandlingisduplicate").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getMaskinTilMaskinAccessTokenWithKabalApiScope()}"
+                token,
             )
             .bodyValue(input)
             .retrieve()
@@ -74,24 +74,24 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<MulighetFromKabal>> {
+    fun getAnkemuligheterByIdnummer(idnummerInput: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/ankemuligheter").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                token,
             )
             .bodyValue(idnummerInput)
             .retrieve()
             .bodyToMono<List<MulighetFromKabal>>()
     }
 
-    fun getOmgjoeringskravmuligheterByIdnummer(idnummerInput: IdnummerInput): Mono<List<MulighetFromKabal>> {
+    fun getOmgjoeringskravmuligheterByIdnummer(idnummerInput: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/omgjoeringskravmuligheter").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                token,
             )
             .bodyValue(idnummerInput)
             .retrieve()

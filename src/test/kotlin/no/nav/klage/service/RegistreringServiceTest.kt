@@ -163,7 +163,8 @@ class ModifySvarbrevReiceversTest {
         val registreringService = RegistreringService(
             registreringRepository = mockk(),
             tokenUtil = mockk(),
-            kabalApiClient = mockk(),
+            kabalApiService = mockk(),
+            klageFssProxyService = mockk(),
             klageService = mockk(),
             ankeService = mockk(),
             omgjoeringskravService = mockk(),

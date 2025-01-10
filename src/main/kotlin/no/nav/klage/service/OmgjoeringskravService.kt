@@ -1,15 +1,12 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.CreatedBehandlingResponse
-import no.nav.klage.api.controller.view.IdnummerInput
-import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.exceptions.IllegalInputException
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 
 @Service
 class OmgjoeringskravService(
@@ -43,10 +40,5 @@ class OmgjoeringskravService(
                 registrering = registrering
             )
         )
-    }
-
-
-    fun getOmgjoeringskravmuligheterFromKabalAsMono(input: IdnummerInput): Mono<List<MulighetFromKabal>> {
-        return kabalApiService.getOmgjoeringskravmuligheterAsMono(input)
     }
 }
