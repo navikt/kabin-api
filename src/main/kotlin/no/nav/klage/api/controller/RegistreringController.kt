@@ -3,10 +3,7 @@ package no.nav.klage.api.controller
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.RegistreringService
-import no.nav.klage.util.TokenUtil
-import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
-import no.nav.klage.util.logMethodDetails
+import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -17,6 +14,7 @@ import java.util.*
 class RegistreringController(
     private val registreringService: RegistreringService,
     private val tokenUtil: TokenUtil,
+    private val auditLogger: AuditLogger,
 ) {
 
     companion object {
@@ -35,6 +33,15 @@ class RegistreringController(
             logger = logger,
         )
         return registreringService.createRegistrering(input = input)
+            .also {
+                auditLogger.log(
+                    AuditLogEvent(
+                        navIdent = tokenUtil.getCurrentIdent(),
+                        personFnr = input.sakenGjelderValue,
+                        message = "Opprettet registrering for å opprette klage eller anke i klageinstans."
+                    )
+                )
+            }
     }
 
     @GetMapping("/ferdige")
