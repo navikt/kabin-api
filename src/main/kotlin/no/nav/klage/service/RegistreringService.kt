@@ -76,7 +76,7 @@ class RegistreringService(
                 saksbehandlerIdent = null,
                 gosysOppgaveId = null,
                 sendSvarbrev = null,
-                svarbrevTitle = "NAV orienterer om saksbehandlingen",
+                svarbrevTitle = "Nav klageinstans orienterer om saksbehandlingen",
                 svarbrevCustomText = null,
                 svarbrevBehandlingstidUnits = null,
                 svarbrevBehandlingstidUnitType = null,
