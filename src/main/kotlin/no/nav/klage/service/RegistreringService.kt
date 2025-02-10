@@ -244,6 +244,8 @@ class RegistreringService(
                     Type.of(typeId)
                 }
                 modified = LocalDateTime.now()
+                behandlingstidUnits = getDefaultBehandlingstidUnits(type)
+                behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
 
                 //empty the properties that no longer make sense if typeId changes.
                 mottattKlageinstans = null
@@ -268,6 +270,18 @@ class RegistreringService(
                 willCreateNewJournalpost = false
 
             }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
+    }
+
+    private fun getDefaultBehandlingstidUnitType(type: Type?): TimeUnitType {
+        return TimeUnitType.WEEKS
+    }
+
+    private fun getDefaultBehandlingstidUnits(type: Type?): Int {
+        return if (type == Type.ANKE) {
+            11
+        } else {
+            12
+        }
     }
 
     fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
