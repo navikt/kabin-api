@@ -157,7 +157,6 @@ KABAL_API_BASE_URL: http://kabal-api
 KABAL_API_APP_NAME: kabal-api
 KABAL_INNSTILLINGER_BASE_URL: http://kabal-innstillinger
 KABAL_INNSTILLINGER_APP_NAME: kabal-innstillinger
-KABAL_JSON_TO_PDF_BASE_URL: http://kabal-json-to-pdf
 
 SERVICE_USER_USERNAME: srvklage-saksbeh
 
