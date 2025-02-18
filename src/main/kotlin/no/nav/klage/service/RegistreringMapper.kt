@@ -46,7 +46,12 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
     return TypeChangeRegistreringView(
         id = id,
         typeId = type?.id,
-        overstyringer = TypeChangeRegistreringView.TypeChangeRegistreringOverstyringerView(),
+        overstyringer = TypeChangeRegistreringView.TypeChangeRegistreringOverstyringerView(
+            behandlingstid = BehandlingstidView(
+                unitTypeId = behandlingstidUnitType.id,
+                units = behandlingstidUnits
+            )
+        ),
         svarbrev = TypeChangeRegistreringView.TypeChangeRegistreringSvarbrevView(
             send = sendSvarbrev,
             behandlingstid = if (svarbrevBehandlingstidUnits != null) {
