@@ -65,6 +65,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
             overrideCustomText = overrideSvarbrevCustomText,
             overrideBehandlingstid = overrideSvarbrevBehandlingstid,
             customText = svarbrevCustomText,
+            initialCustomText = svarbrevInitialCustomText,
         ),
         modified = modified,
         willCreateNewJournalpost = willCreateNewJournalpost,
@@ -129,6 +130,7 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
             overrideCustomText = overrideSvarbrevCustomText,
             overrideBehandlingstid = overrideSvarbrevBehandlingstid,
             customText = svarbrevCustomText,
+            initialCustomText = svarbrevInitialCustomText,
         ),
         modified = modified,
         willCreateNewJournalpost = willCreateNewJournalpost,
@@ -205,6 +207,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
         receivers = toRecipientViews(kabalApiService),
         title = svarbrevTitle,
         customText = svarbrevCustomText,
+        initialCustomText = svarbrevInitialCustomText,
         overrideCustomText = overrideSvarbrevCustomText,
         overrideBehandlingstid = overrideSvarbrevBehandlingstid,
         calculatedFrist = if (mottattKlageinstans != null && svarbrevBehandlingstidUnits != null) {
