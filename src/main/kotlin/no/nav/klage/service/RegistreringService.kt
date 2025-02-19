@@ -78,6 +78,7 @@ class RegistreringService(
                 sendSvarbrev = null,
                 svarbrevTitle = "Nav klageinstans orienterer om saksbehandlingen",
                 svarbrevCustomText = null,
+                svarbrevInitialCustomText = null,
                 svarbrevBehandlingstidUnits = null,
                 svarbrevBehandlingstidUnitType = null,
                 svarbrevFullmektigFritekst = null,
@@ -964,6 +965,24 @@ class RegistreringService(
             id = registrering.id,
             svarbrev = SvarbrevCustomTextChangeRegistreringView.SvarbrevCustomTextChangeRegistreringSvarbrevView(
                 customText = registrering.svarbrevCustomText!!,
+            ),
+            modified = registrering.modified,
+        )
+    }
+
+    fun setSvarbrevInitialCustomText(
+        registreringId: UUID,
+        input: SvarbrevInitialCustomTextInput
+    ): SvarbrevInitialCustomTextChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+            .apply {
+                svarbrevInitialCustomText = input.initialCustomText
+                modified = LocalDateTime.now()
+            }
+        return SvarbrevInitialCustomTextChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = SvarbrevInitialCustomTextChangeRegistreringView.SvarbrevInitialCustomTextChangeRegistreringSvarbrevView(
+                initialCustomText = registrering.svarbrevInitialCustomText,
             ),
             modified = registrering.modified,
         )

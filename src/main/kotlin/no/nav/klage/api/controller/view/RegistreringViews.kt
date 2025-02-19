@@ -346,6 +346,16 @@ data class SvarbrevCustomTextChangeRegistreringView(
     )
 }
 
+data class SvarbrevInitialCustomTextChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevInitialCustomTextChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevInitialCustomTextChangeRegistreringSvarbrevView(
+        val initialCustomText: String?,
+    )
+}
+
 data class HjemmelIdListChangeRegistreringView(
     val id: UUID,
     val overstyringer: HjemmelIdListChangeRegistreringOverstyringerView,

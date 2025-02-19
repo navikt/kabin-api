@@ -84,6 +84,8 @@ class Registrering(
     var overrideSvarbrevCustomText: Boolean,
     @Column(name = "svarbrev_custom_text")
     var svarbrevCustomText: String?,
+    @Column(name = "svarbrev_initial_custom_text")
+    var svarbrevInitialCustomText: String?,
     @Column(name = "override_svarbrev_behandlingstid")
     var overrideSvarbrevBehandlingstid: Boolean,
     @Column(name = "svarbrev_behandlingstid_units")

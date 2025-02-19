@@ -314,6 +314,7 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
 
     return SvarbrevInput(
         title = svarbrevTitle,
+        initialCustomText = svarbrevInitialCustomText,
         customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
         receivers = svarbrevReceivers.map { receiver ->
             SvarbrevInput.Receiver(

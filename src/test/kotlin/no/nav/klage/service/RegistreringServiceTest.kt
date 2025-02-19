@@ -208,6 +208,7 @@ class ModifySvarbrevReiceversTest {
             overrideSvarbrevCustomText = true,
             svarbrevTitle = "a title",
             svarbrevCustomText = "custom text",
+            svarbrevInitialCustomText = "initial custom text",
             svarbrevBehandlingstidUnits = 5,
             svarbrevBehandlingstidUnitType = TimeUnitType.MONTHS,
             svarbrevFullmektigFritekst = "fullmektig fritekst",
