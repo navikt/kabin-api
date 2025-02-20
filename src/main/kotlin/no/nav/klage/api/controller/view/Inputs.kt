@@ -70,6 +70,8 @@ data class SvarbrevFullmektigFritekstInput(val fullmektigFritekst: String?)
 
 data class SvarbrevCustomTextInput(val customText: String)
 
+data class SvarbrevInitialCustomTextInput(val initialCustomText: String)
+
 data class SvarbrevTitleInput(val title: String)
 
 data class SvarbrevRecipientInput(

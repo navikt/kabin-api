@@ -361,6 +361,19 @@ class RegistreringController(
         return registreringService.setSvarbrevCustomText(registreringId = id, input = input)
     }
 
+    @PutMapping("/{id}/svarbrev/initial-custom-text")
+    fun updateSvarbrevInitialCustomText(
+        @PathVariable id: UUID,
+        @RequestBody input: SvarbrevInitialCustomTextInput
+    ): SvarbrevInitialCustomTextChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateSvarbrevInitialCustomText.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setSvarbrevInitialCustomText(registreringId = id, input = input)
+    }
+
     @PutMapping("/{id}/svarbrev/title")
     fun updateSvarbrevTitle(
         @PathVariable id: UUID,

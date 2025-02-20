@@ -58,7 +58,8 @@ data class FullRegistreringView(
         val title: String,
         val overrideCustomText: Boolean,
         val overrideBehandlingstid: Boolean,
-        val customText: String?
+        val customText: String?,
+        val initialCustomText: String?
     )
 }
 
@@ -94,6 +95,7 @@ data class TypeChangeRegistreringView(
         val overrideCustomText: Boolean,
         val overrideBehandlingstid: Boolean,
         val customText: String?,
+        val initialCustomText: String?,
     )
 }
 
@@ -137,6 +139,7 @@ data class MulighetChangeRegistreringView(
         val overrideCustomText: Boolean,
         val overrideBehandlingstid: Boolean,
         val customText: String?,
+        val initialCustomText: String?,
     )
 }
 
@@ -213,6 +216,7 @@ data class YtelseChangeRegistreringView(
         val overrideCustomText: Boolean,
         val overrideBehandlingstid: Boolean,
         val customText: String?,
+        val initialCustomText: String?,
     )
 }
 
@@ -343,6 +347,16 @@ data class SvarbrevCustomTextChangeRegistreringView(
 ) {
     data class SvarbrevCustomTextChangeRegistreringSvarbrevView(
         val customText: String,
+    )
+}
+
+data class SvarbrevInitialCustomTextChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: SvarbrevInitialCustomTextChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class SvarbrevInitialCustomTextChangeRegistreringSvarbrevView(
+        val initialCustomText: String?,
     )
 }
 
