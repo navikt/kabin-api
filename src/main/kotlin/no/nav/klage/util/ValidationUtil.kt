@@ -99,9 +99,16 @@ class ValidationUtil(
         }
 
         if (registrering.klager == null) {
+            val errorMessage = when (registrering.type) {
+                Type.KLAGE -> "Velg en klager."
+                Type.ANKE -> "Velg en ankende part."
+                Type.OMGJOERINGSKRAV -> "Velg den som krever omgjøring."
+                else -> error("Unsupported type")
+            }
+
             saksdataValidationErrors += InvalidProperty(
                 field = Registrering::klager.name,
-                reason = "Velg en ankende part."
+                reason = errorMessage
             )
         }
 
