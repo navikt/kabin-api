@@ -4,11 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.api.controller.view.PartStatus
 import no.nav.klage.api.controller.view.Svarbrev
 import no.nav.klage.api.controller.view.Utsendingskanal
-import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*

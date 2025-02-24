@@ -1,7 +1,10 @@
 package no.nav.klage.util
 
+import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
+import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.kabalapi.GosysOppgaveIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.exceptions.InvalidProperty
@@ -126,6 +129,30 @@ class ValidationUtil(
                     reason = "Legg til minst én mottaker."
                 )
             }
+
+            //TODO: Validering på mottakere
+            registrering.svarbrevReceivers.forEach { mottaker ->
+                val part = kabalApiClient.searchPartWithUtsendingskanal(
+                    searchPartInput = SearchPartWithUtsendingskanalInput(
+                        identifikator = mottaker.part.value,
+                        sakenGjelderId = registrering.sakenGjelder!!.value,
+                        ytelseId = registrering.ytelse!!.id
+                    )
+                )
+
+                if (documentWillGoToCentralPrint(
+                    handling = mottaker.handling,
+                    defaultUtsendingskanal = part.utsendingskanal
+                    )
+                ) {
+                    if (mottaker.overriddenAddress == null && part.address == null) {
+                        svarbrevValidationErrors += InvalidProperty(
+                            field = Registrering::svarbrevReceivers.name,
+                            reason = "Mottaker mangler gyldig addresse."
+                        )
+                    }
+                }
+            }
         }
 
         if (registrering.gosysOppgaveId != null) {
@@ -168,5 +195,13 @@ class ValidationUtil(
                 sections = sectionList
             )
         }
+    }
+
+    private fun documentWillGoToCentralPrint(
+        handling: HandlingEnum,
+        defaultUtsendingskanal: Utsendingskanal,
+    ): Boolean {
+        return handling == HandlingEnum.CENTRAL_PRINT ||
+                (handling == HandlingEnum.AUTO && defaultUtsendingskanal == Utsendingskanal.SENTRAL_UTSKRIFT)
     }
 }

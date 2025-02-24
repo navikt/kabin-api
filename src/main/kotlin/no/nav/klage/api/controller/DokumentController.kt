@@ -6,7 +6,6 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
-import no.nav.klage.util.AuditLogger
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.logMethodDetails
