@@ -161,10 +161,10 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
         mottattVedtaksinstans = mottattVedtaksinstans,
         mottattKlageinstans = mottattKlageinstans,
         behandlingstid =
-        BehandlingstidView(
-            unitTypeId = behandlingstidUnitType.id,
-            units = behandlingstidUnits
-        ),
+            BehandlingstidView(
+                unitTypeId = behandlingstidUnitType.id,
+                units = behandlingstidUnits
+            ),
         calculatedFrist = if (mottattKlageinstans != null) {
             calculateFrist(
                 fromDate = mottattKlageinstans!!,
@@ -322,7 +322,7 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
         receivers = svarbrevReceivers.map { receiver ->
             SvarbrevInput.Receiver(
                 id = receiver.part.value,
-                handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling!!.name),
+                handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
                 overriddenAddress = receiver.overriddenAddress?.let { address ->
                     SvarbrevInput.Receiver.AddressInput(
                         adresselinje1 = address.adresselinje1,
