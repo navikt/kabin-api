@@ -6,7 +6,7 @@ val springRetryVersion = "2.0.11"
 val springDocVersion = "2.8.5"
 val springMockkVersion = "4.0.2"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "1.9.20"
+val klageKodeverkVersion = "1.9.21"
 val testContainersVersion = "1.20.5"
 val otelVersion = "1.47.0"
 
