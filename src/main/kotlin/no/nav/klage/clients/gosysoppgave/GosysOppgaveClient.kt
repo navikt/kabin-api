@@ -63,7 +63,7 @@ class GosysOppgaveClient(
 
     fun fetchGosysOppgaverForAktoerIdAndTema(
         aktoerId: String,
-        tema: Tema?
+        temaList: List<Tema>?
     ): List<GosysOppgaveRecord> {
         val gosysOppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaverForAktoerIdAndTema.name) {
@@ -72,7 +72,7 @@ class GosysOppgaveClient(
                         uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
                         uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
-                        tema?.let { uriBuilder.queryParam("tema", it.navn) }
+                        temaList?.let { uriBuilder.queryParam("tema", temaList.map { it.navn }) }
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)
                         uriBuilder.build()
