@@ -30,9 +30,18 @@ class GosysOppgaveService(
     fun getGosysOppgaveList(fnr: String, tema: Tema?): List<GosysOppgaveView> {
         val aktoerId = pdlClient.hentAktoerIdent(fnr = fnr)
 
+        val temaList = if (tema != null) {
+            if (tema == Tema.MED) {
+                //Legger til TRY når vi søker på MED.
+                listOf(tema, Tema.TRY)
+            } else {
+                listOf(tema)
+            }
+        } else null
+
         val gosysOppgaveList = gosysOppgaveClient.fetchGosysOppgaverForAktoerIdAndTema(
             aktoerId = aktoerId,
-            tema = tema,
+            temaList = temaList,
         )
         //TODO: Legg til filter i spørringen mot oppgave-api
         return gosysOppgaveList.map { it.toOppgaveView() }.filter { it.oppgavetype !in listOf("Journalføring", "Kontakt bruker") }
