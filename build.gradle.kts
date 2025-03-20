@@ -6,12 +6,12 @@ val springRetryVersion = "2.0.11"
 val springDocVersion = "2.8.5"
 val springMockkVersion = "4.0.2"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "1.9.24"
+val klageKodeverkVersion = "1.9.25"
 val testContainersVersion = "1.20.6"
 val otelVersion = "1.48.0"
 
 plugins {
-    val kotlinVersion = "2.1.10"
+    val kotlinVersion = "2.1.20"
     id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version kotlinVersion
