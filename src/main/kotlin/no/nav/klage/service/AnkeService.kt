@@ -86,7 +86,6 @@ class AnkeService(
                 logger.debug("Attempting Gosys-oppgave update")
                 gosysOppgaveService.updateGosysOppgave(
                     gosysOppgaveId = it,
-                    frist = frist,
                     tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
                 )
             }

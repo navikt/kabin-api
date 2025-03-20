@@ -8,7 +8,6 @@ import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -57,21 +56,18 @@ class GosysOppgaveService(
 
     fun updateGosysOppgave(
         gosysOppgaveId: Long,
-        frist: LocalDate,
-        tildeltSaksbehandlerIdent: String?
+        tildeltSaksbehandlerIdent: String?,
     ) {
         val currentUserIdent = tokenUtil.getCurrentIdent()
         val currentUserInfo = microsoftGraphService.getSaksbehandlerPersonligInfo(navIdent = currentUserIdent)
         val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId)
 
-        val newComment = "Overførte oppgaven fra Kabin til Kabal."
-
-        var newBeskrivelsePart = "$newComment\nOppdaterte frist."
+        var comment = "Overførte oppgaven fra Kabin til Kabal."
 
         val (tilordnetRessurs, tildeltEnhetsnr) = if (tildeltSaksbehandlerIdent != null) {
             val tildeltSaksbehandlerInfo =
                 microsoftGraphService.getSaksbehandlerPersonligInfo(tildeltSaksbehandlerIdent)
-            newBeskrivelsePart += "\nTildelte oppgaven til $tildeltSaksbehandlerIdent."
+            comment += "\nTildelte oppgaven til $tildeltSaksbehandlerIdent."
             tildeltSaksbehandlerIdent to tildeltSaksbehandlerInfo.enhet.enhetId
         } else {
             null to null
@@ -80,32 +76,18 @@ class GosysOppgaveService(
             gosysOppgaveId = gosysOppgaveId,
             updateGosysOppgaveInput = UpdateGosysOppgaveInput(
                 versjon = currentGosysOppgave.versjon,
-                fristFerdigstillelse = frist,
-                mappeId = null,
                 endretAvEnhetsnr = currentUserInfo.enhet.enhetId,
                 tilordnetRessurs = tilordnetRessurs,
                 tildeltEnhetsnr = tildeltEnhetsnr,
                 beskrivelse = getNewBeskrivelse(
-                    newBeskrivelsePart = newBeskrivelsePart,
+                    newBeskrivelsePart = comment,
                     existingBeskrivelse = currentGosysOppgave.beskrivelse,
                     currentUserInfo = currentUserInfo
                 ),
                 kommentar = UpdateGosysOppgaveInput.Kommentar(
-                    tekst = newComment,
+                    tekst = comment,
                     automatiskGenerert = true
                 ),
-                tema = null,
-                prioritet = null,
-                orgnr = null,
-                status = null,
-                behandlingstema = null,
-                behandlingstype = null,
-                aktivDato = null,
-                oppgavetype = null,
-                journalpostId = null,
-                saksreferanse = null,
-                behandlesAvApplikasjon = null,
-                personident = null,
             )
         )
     }
