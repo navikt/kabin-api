@@ -41,7 +41,7 @@ class KabalApiService(
         )
     }
 
-    fun searchPart(searchPartInput: SearchPartInput): PartView {
+    fun searchPart(searchPartInput: SearchPartInput): SearchPartView {
         return kabalApiClient.searchPart(searchPartInput = searchPartInput)
     }
 

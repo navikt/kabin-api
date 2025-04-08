@@ -4,7 +4,7 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.Address
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
-import no.nav.klage.clients.kabalapi.PartView
+import no.nav.klage.clients.kabalapi.SearchPartView
 import no.nav.klage.clients.kabalapi.SvarbrevInput
 import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
 import no.nav.klage.domain.entities.*
@@ -258,7 +258,7 @@ fun Registrering.partViewWithOptionalUtsendingskanal(
 
 fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal {
     return PartViewWithOptionalUtsendingskanal(
-        id = id,
+        identifikator = identifikator,
         type = PartType.valueOf(type.name),
         name = name,
         available = available,
@@ -283,9 +283,9 @@ fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal.partViewWithOption
     )
 }
 
-fun PartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal {
+fun SearchPartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal {
     return PartViewWithOptionalUtsendingskanal(
-        id = id,
+        identifikator = identifikator,
         type = PartType.valueOf(type.name),
         name = name,
         available = available,
@@ -321,7 +321,7 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
         customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
         receivers = svarbrevReceivers.map { receiver ->
             SvarbrevInput.Receiver(
-                id = receiver.part.value,
+                identifikator = receiver.part.value,
                 handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
                 overriddenAddress = receiver.overriddenAddress?.let { address ->
                     SvarbrevInput.Receiver.AddressInput(
@@ -345,7 +345,7 @@ fun PartId?.toPartIdInput(): PartIdInput? {
         return null
     }
     return PartIdInput(
-        id = value,
+        identifikator = value,
         type = when (type) {
             PartIdType.PERSON -> PartType.FNR
             PartIdType.VIRKSOMHET -> PartType.ORGNR
@@ -356,7 +356,7 @@ fun PartId?.toPartIdInput(): PartIdInput? {
 fun PartWithUtsendingskanal?.toPartViewWithUtsendingskanal(partStatusList: Set<PartStatus>): PartViewWithUtsendingskanal? {
     return this?.let {
         return PartViewWithUtsendingskanal(
-            id = part.value,
+            identifikator = part.value,
             type = when (part.type) {
                 PartIdType.PERSON -> PartType.FNR
                 PartIdType.VIRKSOMHET -> PartType.ORGNR
@@ -447,7 +447,7 @@ fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal?.toPartWithUtsendi
     return this?.let {
         PartWithUtsendingskanal(
             part = PartId(
-                value = id,
+                value = identifikator,
                 type = when (type) {
                     no.nav.klage.clients.kabalapi.PartType.FNR -> PartIdType.PERSON
                     no.nav.klage.clients.kabalapi.PartType.ORGNR -> PartIdType.VIRKSOMHET

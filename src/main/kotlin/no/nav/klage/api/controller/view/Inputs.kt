@@ -35,7 +35,7 @@ data class SearchUsedJournalpostIdInput(
 
 data class PartIdInput(
     val type: PartType,
-    val id: String,
+    val identifikator: String,
 )
 
 //////////////////////// new inputs ////////////////////////

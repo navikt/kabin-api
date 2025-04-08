@@ -2,18 +2,8 @@ package no.nav.klage.api.controller.view
 
 import java.time.LocalDate
 
-data class PartView(
-    val id: String,
-    val name: String,
-    val type: PartType,
-    val available: Boolean,
-    val language: String?,
-    val statusList: List<PartStatus>,
-    val address: Address?,
-)
-
 data class PartViewWithUtsendingskanal(
-    val id: String,
+    val identifikator: String?,
     val name: String,
     val type: PartType,
     val available: Boolean,
@@ -24,7 +14,7 @@ data class PartViewWithUtsendingskanal(
 )
 
 data class PartViewWithOptionalUtsendingskanal(
-    val id: String,
+    val identifikator: String,
     val name: String,
     val type: PartType,
     val available: Boolean,

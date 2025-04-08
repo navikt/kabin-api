@@ -98,16 +98,16 @@ class KabalApiClient(
             .bodyToMono<List<MulighetFromKabal>>()
     }
 
-    fun searchPart(searchPartInput: SearchPartInput): PartView {
+    fun searchPart(searchPartInput: SearchPartInput): SearchPartView {
         return kabalApiWebClient.post()
-            .uri { it.path("/api/internal/searchpart").build() }
+            .uri { it.path("/searchpart").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
             )
             .bodyValue(searchPartInput)
             .retrieve()
-            .bodyToMono<PartView>()
+            .bodyToMono<SearchPartView>()
             .block() ?: throw RuntimeException("null part returned")
     }
 

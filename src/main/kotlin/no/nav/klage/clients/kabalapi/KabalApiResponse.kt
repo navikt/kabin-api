@@ -152,45 +152,19 @@ data class OversendtPartId(
 enum class OversendtPartIdType { PERSON, VIRKSOMHET }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PartView(
-    val id: String,
+data class SearchPartView(
+    val identifikator: String,
     val type: PartType,
     val name: String,
     val available: Boolean,
     val statusList: List<PartStatus>,
     val address: Address?,
     val language: String?,
-) {
-    fun partView(): no.nav.klage.api.controller.view.PartView {
-        return no.nav.klage.api.controller.view.PartView(
-            id = id,
-            type = no.nav.klage.api.controller.view.PartType.valueOf(type.name),
-            name = name,
-            available = available,
-            statusList = statusList.map { partStatus ->
-                PartStatus(
-                    status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
-                    date = partStatus.date,
-                )
-            },
-            address = address?.let {
-                no.nav.klage.api.controller.view.Address(
-                    adresselinje1 = it.adresselinje1,
-                    adresselinje2 = it.adresselinje2,
-                    adresselinje3 = it.adresselinje3,
-                    landkode = it.landkode,
-                    postnummer = it.postnummer,
-                    poststed = it.poststed,
-                )
-            },
-            language = language,
-        )
-    }
-}
+)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PartViewWithUtsendingskanal(
-    val id: String,
+    val identifikator: String,
     val type: PartType,
     val name: String,
     val available: Boolean,
@@ -202,7 +176,7 @@ data class PartViewWithUtsendingskanal(
 
     fun partViewWithUtsendingskanal(): no.nav.klage.api.controller.view.PartViewWithUtsendingskanal {
         return no.nav.klage.api.controller.view.PartViewWithUtsendingskanal(
-            id = id,
+            identifikator = identifikator,
             type = no.nav.klage.api.controller.view.PartType.valueOf(type.name),
             name = name,
             available = available,

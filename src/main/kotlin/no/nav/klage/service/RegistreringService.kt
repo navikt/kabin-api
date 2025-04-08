@@ -630,7 +630,7 @@ class RegistreringService(
             .apply {
                 //cases
                 //1. fullmektig is set to the same value as before
-                if (fullmektig?.value == input.fullmektig?.id) {
+                if (fullmektig?.value == input.fullmektig?.identifikator) {
                     return@apply
                 }
                 //handle receivers for all cases
@@ -647,7 +647,7 @@ class RegistreringService(
                 } else {
                     //3. fullmektig is set to a new value
                     fullmektig = PartId(
-                        value = input.fullmektig.id,
+                        value = input.fullmektig.identifikator,
                         type = when (input.fullmektig.type) {
                             PartType.FNR -> {
                                 PartIdType.PERSON
@@ -658,7 +658,7 @@ class RegistreringService(
                             }
                         }
                     )
-                    val part = kabalApiService.searchPart(SearchPartInput(identifikator = input.fullmektig.id))
+                    val part = kabalApiService.searchPart(SearchPartInput(identifikator = input.fullmektig.identifikator))
                     svarbrevFullmektigFritekst = part.name
                 }
                 modified = LocalDateTime.now()
@@ -690,7 +690,7 @@ class RegistreringService(
         val svarbrevReceivers = unchangedRegistrering.svarbrevReceivers
 
         //if there is only one receiver, and it is the same as the sakenGjelder (default set), clear it.
-        if (partIdInput != null && svarbrevReceivers.size == 1 && svarbrevReceivers.first().part.value == unchangedRegistrering.sakenGjelder?.value && partIdInput.id != unchangedRegistrering.sakenGjelder?.value) {
+        if (partIdInput != null && svarbrevReceivers.size == 1 && svarbrevReceivers.first().part.value == unchangedRegistrering.sakenGjelder?.value && partIdInput.identifikator != unchangedRegistrering.sakenGjelder?.value) {
             svarbrevReceivers.clear()
         }
 
@@ -723,7 +723,7 @@ class RegistreringService(
             .apply {
                 //cases
                 //1. klager is set to the same value as before
-                if (klager?.value == input.klager?.id) {
+                if (klager?.value == input.klager?.identifikator) {
                     return@apply
                 }
                 //handle receivers for all cases
@@ -739,7 +739,7 @@ class RegistreringService(
                 } else {
                     //3. klager is set to a new value
                     klager = PartId(
-                        value = input.klager.id,
+                        value = input.klager.identifikator,
                         type = when (input.klager.type) {
                             PartType.FNR -> {
                                 PartIdType.PERSON
@@ -776,7 +776,7 @@ class RegistreringService(
             .apply {
                 //cases
                 //1. avsender is set to the same value as before
-                if (avsender?.value == input.avsender?.id) {
+                if (avsender?.value == input.avsender?.identifikator) {
                     return@apply
                 }
 
@@ -786,7 +786,7 @@ class RegistreringService(
                 } else {
                     //3. avsender is set to a new value
                     avsender = PartId(
-                        value = input.avsender.id,
+                        value = input.avsender.identifikator,
                         type = when (input.avsender.type) {
                             PartType.FNR -> {
                                 PartIdType.PERSON
@@ -1062,13 +1062,13 @@ class RegistreringService(
     ): SvarbrevReceiverChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                if (svarbrevReceivers.any { it.part.value == input.part.id }) {
+                if (svarbrevReceivers.any { it.part.value == input.part.identifikator }) {
                     //if the receiver is already in the list, we don't need to do anything.
                 } else {
                     svarbrevReceivers.add(
                         SvarbrevReceiver(
                             part = PartId(
-                                value = input.part.id,
+                                value = input.part.identifikator,
                                 type = when (input.part.type) {
                                     PartType.FNR -> {
                                         PartIdType.PERSON
