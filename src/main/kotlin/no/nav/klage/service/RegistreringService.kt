@@ -206,7 +206,7 @@ class RegistreringService(
 //                }
 
                 val avsenderPartId =
-                    if (document.journalposttype == DokumentReferanse.Journalposttype.I && document.avsenderMottaker != null) {
+                    if (document.journalposttype == DokumentReferanse.Journalposttype.I && document.avsenderMottaker?.id != null && document.avsenderMottaker.type != null) {
                         PartId(
                             value = document.avsenderMottaker.id,
                             type = when (document.avsenderMottaker.type) {
@@ -658,7 +658,8 @@ class RegistreringService(
                             }
                         }
                     )
-                    val part = kabalApiService.searchPart(SearchPartInput(identifikator = input.fullmektig.identifikator))
+                    val part =
+                        kabalApiService.searchPart(SearchPartInput(identifikator = input.fullmektig.identifikator))
                     svarbrevFullmektigFritekst = part.name
                 }
                 modified = LocalDateTime.now()
