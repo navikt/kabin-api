@@ -73,7 +73,7 @@ fun DokumentReferanse.Sak.toView(): no.nav.klage.api.controller.view.DokumentRef
 fun DokumentReferanse.AvsenderMottaker.toView(): no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker {
     return no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker(
         id = id,
-        type = type.toView(),
+        type = type?.toView(),
         //Ta-da:
         name = navn
     )
