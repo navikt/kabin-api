@@ -47,15 +47,17 @@ class DokumentMapper {
                 )
             } else null,
             avsenderMottaker = if (journalpost.avsenderMottaker == null ||
-                (journalpost.avsenderMottaker.id == null ||
-                        journalpost.avsenderMottaker.type == null)
+                (journalpost.avsenderMottaker.id == null && journalpost.avsenderMottaker.navn == null)
             ) {
                 null
             } else {
                 DokumentReferanse.AvsenderMottaker(
                     id = journalpost.avsenderMottaker.id,
-                    type = DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
-                        journalpost.avsenderMottaker.type.name),
+                    type = journalpost.avsenderMottaker.type?.let {
+                        DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
+                            it.name
+                        )
+                    },
                     name = journalpost.avsenderMottaker.navn,
                 )
             },
