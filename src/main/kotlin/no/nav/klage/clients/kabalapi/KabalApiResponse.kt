@@ -303,8 +303,8 @@ data class DokumentReferanse(
     )
 
     data class AvsenderMottaker(
-        val id: String,
-        val type: AvsenderMottakerIdType,
+        val id: String?,
+        val type: AvsenderMottakerIdType?,
         val navn: String?,
     ) {
         enum class AvsenderMottakerIdType {
