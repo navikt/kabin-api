@@ -20,7 +20,7 @@ jobs:
       id-token: write
     steps:
       - name: E2E
-        uses: navikt/kabal-e2e-tests/.github/actions/run@main
+        uses: navikt/kabin-e2e-tests/.github/actions/run@main
         with:
           e2e_tag: ${{ inputs.e2e_tag }}
           nais_management_project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
