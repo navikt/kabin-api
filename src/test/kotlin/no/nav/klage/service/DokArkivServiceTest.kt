@@ -9,7 +9,7 @@ import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
 import no.nav.klage.clients.dokarkiv.Sak
 import no.nav.klage.clients.kabalapi.PartType
-import no.nav.klage.clients.kabalapi.PartView
+import no.nav.klage.clients.kabalapi.SearchPartView
 import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.clients.saf.graphql.Tema.OMS
@@ -44,8 +44,8 @@ class DokArkivServiceTest {
     private val SAKS_ID = "SAKS_ID"
     private val FAGSYSTEM = Fagsystem.FS38
     private val FNR = "28838098519"
-    private val PERSON = PartView(
-        id = FNR,
+    private val PERSON = SearchPartView(
+        identifikator = FNR,
         name = "FORNAVN ETTERNAVN",
         type = PartType.FNR,
         available = true,
@@ -169,7 +169,7 @@ class DokArkivServiceTest {
                 mulighet = mulighet,
                 avsender = PartIdInput(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
-                    id = FNR
+                    identifikator = FNR
                 ),
             )
 
@@ -291,7 +291,7 @@ class DokArkivServiceTest {
                 mulighet = mulighet,
                 avsender = PartIdInput(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
-                    id = FNR
+                    identifikator = FNR
                 ),
             )
 
@@ -392,7 +392,7 @@ class DokArkivServiceTest {
                 mulighet = mulighet,
                 avsender = PartIdInput(
                     type = no.nav.klage.api.controller.view.PartType.FNR,
-                    id = FNR
+                    identifikator = FNR
                 ),
             )
 

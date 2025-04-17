@@ -79,11 +79,11 @@ class DokArkivService(
 
     private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartIdInput): UpdateAvsenderMottakerInJournalpostRequest {
         val avsenderPart = kabalApiService.searchPart(
-            searchPartInput = SearchPartInput(identifikator = avsender.id)
+            searchPartInput = SearchPartInput(identifikator = avsender.identifikator)
         )
         return UpdateAvsenderMottakerInJournalpostRequest(
             avsenderMottaker = AvsenderMottaker(
-                id = avsender.id,
+                id = avsender.identifikator,
                 idType = avsender.type.toAvsenderMottakerIdType(),
                 navn = avsenderPart.name
             ),
@@ -258,7 +258,7 @@ class DokArkivService(
         }
 
         if (journalpostType == Journalposttype.I && avsender != null) {
-            if (journalpostInSaf.avsenderMottaker?.id != avsender.id) {
+            if (journalpostInSaf.avsenderMottaker?.id != avsender.identifikator) {
                 if (canChangeAvsenderInJournalpost(journalpostInSaf)) {
                     logger.debug("updating avsender in journalpost")
                     updateAvsenderInJournalpost(

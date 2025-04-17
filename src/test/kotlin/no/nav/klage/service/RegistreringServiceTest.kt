@@ -20,7 +20,7 @@ import java.util.*
 class ModifySvarbrevReiceversTest {
 
     @Test
-    fun `add fullmektig same id as klager`() {
+    fun `add fullmektig same identifikator as klager`() {
         val registreringService = getRegistreringService()
 
         val registrering = getRegistrering()
@@ -32,7 +32,7 @@ class ModifySvarbrevReiceversTest {
             unchangedRegistrering = registrering,
             partIdInput = PartIdInput(
                 type = PartType.FNR,
-                id = "123",
+                identifikator = "123",
             ),
             partISaken = RegistreringService.PartISaken.FULLMEKTIG
         )
@@ -67,7 +67,7 @@ class ModifySvarbrevReiceversTest {
             unchangedRegistrering = registrering,
             partIdInput = PartIdInput(
                 type = PartType.FNR,
-                id = "fullmektig",
+                identifikator = "fullmektig",
             ),
             partISaken = RegistreringService.PartISaken.FULLMEKTIG
         )
@@ -129,7 +129,7 @@ class ModifySvarbrevReiceversTest {
             unchangedRegistrering = registrering,
             partIdInput = PartIdInput(
                 type = PartType.FNR,
-                id = "berit",
+                identifikator = "berit",
             ),
             partISaken = RegistreringService.PartISaken.FULLMEKTIG
         )

@@ -1,11 +1,14 @@
 package no.nav.klage.api.controller
 
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.CalculateFristInput
+import no.nav.klage.api.controller.view.CreatedBehandlingStatusView
+import no.nav.klage.api.controller.view.GetGosysOppgaveListInput
+import no.nav.klage.api.controller.view.GosysOppgaveView
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.service.KabalApiService
 import no.nav.klage.service.GosysOppgaveService
+import no.nav.klage.service.KabalApiService
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -29,18 +32,6 @@ class CommonController(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
-    }
-
-    @PostMapping("/searchpart")
-    fun searchPart(
-        @RequestBody input: SearchPartInput,
-    ): PartView {
-        logMethodDetails(
-            methodName = ::searchPart.name,
-            innloggetIdent = tokenUtil.getCurrentIdent(),
-            logger = logger,
-        )
-        return kabalApiService.searchPart(searchPartInput = input).partView()
     }
 
     @PostMapping("/calculatefrist")
