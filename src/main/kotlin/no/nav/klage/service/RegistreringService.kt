@@ -66,6 +66,7 @@ class RegistreringService(
                 journalpostId = null,
                 journalpostDatoOpprettet = null,
                 type = null,
+                mulighetBasedOnJournalpost = false,
                 mulighetId = null,
                 mottattVedtaksinstans = null,
                 mottattKlageinstans = null,
@@ -244,6 +245,7 @@ class RegistreringService(
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
                 }
+                mulighetBasedOnJournalpost = false
                 modified = LocalDateTime.now()
                 behandlingstidUnits = getDefaultBehandlingstidUnits(type)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
@@ -269,6 +271,36 @@ class RegistreringService(
                 gosysOppgaveId = null
 
                 willCreateNewJournalpost = false
+
+            }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
+    }
+
+    fun setMulighetBasedOnJournalpost(registreringId: UUID, input: MulighetBasedOnJournalpostInput): TypeChangeRegistreringView {
+        return getRegistreringForUpdate(registreringId)
+            .apply {
+                mulighetBasedOnJournalpost = input.mulighetBasedOnJournalpost
+                //empty the properties that no longer make sense if typeId changes.
+                mottattKlageinstans = null
+                mottattVedtaksinstans = null
+
+                mulighetId = null
+
+                ytelse = null
+                hjemmelIdList = listOf()
+
+                saksbehandlerIdent = null
+
+                sendSvarbrev = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                svarbrevCustomText = null
+
+                gosysOppgaveId = null
+
+                willCreateNewJournalpost = false
+
 
             }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
     }

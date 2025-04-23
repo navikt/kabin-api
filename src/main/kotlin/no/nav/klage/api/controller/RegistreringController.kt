@@ -140,6 +140,20 @@ class RegistreringController(
         return registreringService.setTypeId(registreringId = id, input = input)
     }
 
+    @PutMapping("/{id}/mulighet-based-on-journalpost")
+    fun updateMulighetBasedOnJournalpost(
+        @PathVariable id: UUID,
+        @RequestBody input: MulighetBasedOnJournalpostInput
+    ): //TODO: Ny responsview?
+            TypeChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateMulighetBasedOnJournalpost.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setMulighetBasedOnJournalpost(registreringId = id, input = input)
+    }
+
     @PutMapping("/{id}/mulighet")
     fun updateMulighet(
         @PathVariable id: UUID,

@@ -54,6 +54,8 @@ class Registrering(
     @Convert(converter = TypeConverter::class)
     @Column(name = "type_id")
     var type: Type?,
+    @Column(name = "mulighet_based_on_journalpost")
+    var mulighetBasedOnJournalpost: Boolean,
     @Column(name = "mulighet_id")
     var mulighetId: UUID?,
     @Column(name = "mottatt_vedtaksinstans")

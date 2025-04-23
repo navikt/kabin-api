@@ -194,6 +194,7 @@ class ModifySvarbrevReiceversTest {
             journalpostId = "123456789",
             journalpostDatoOpprettet = LocalDate.now(),
             type = Type.KLAGE,
+            mulighetBasedOnJournalpost = false,
             mulighetId = null,
             mottattVedtaksinstans = LocalDate.now(),
             mottattKlageinstans = LocalDate.now(),

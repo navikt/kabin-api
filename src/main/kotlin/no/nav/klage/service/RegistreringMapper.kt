@@ -46,6 +46,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
     return TypeChangeRegistreringView(
         id = id,
         typeId = type?.id,
+        mulighetBasedOnJournalpost = mulighetBasedOnJournalpost,
         overstyringer = TypeChangeRegistreringView.TypeChangeRegistreringOverstyringerView(
             behandlingstid = BehandlingstidView(
                 unitTypeId = behandlingstidUnitType.id,
@@ -76,9 +77,18 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
     return MulighetChangeRegistreringView(
         id = id,
         mulighet = mulighetId?.let {
-            MulighetIdView(
-                id = it,
-            )
+            if (mulighetBasedOnJournalpost) {
+                val chosenMulighet = muligheter.find { mulighet ->
+                    mulighet.id == mulighetId
+                }
+                MulighetIdView(
+                    id = chosenMulighet!!.currentFagystemTechnicalId
+                )
+            } else {
+                MulighetIdView(
+                    id = it.toString(),
+                )
+            }
         },
         overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(
             ytelseId = ytelse?.id,
@@ -152,10 +162,20 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     journalpostId = journalpostId,
     sakenGjelderValue = sakenGjelder?.value,
     typeId = type?.id,
+    mulighetBasedOnJournalpost = mulighetBasedOnJournalpost,
     mulighet = mulighetId?.let {
-        MulighetIdView(
-            id = it,
-        )
+        if (mulighetBasedOnJournalpost) {
+            val chosenMulighet = muligheter.find { mulighet ->
+                mulighet.id == mulighetId
+            }
+            MulighetIdView(
+                id = chosenMulighet!!.currentFagystemTechnicalId
+            )
+        } else {
+            MulighetIdView(
+                id = it.toString(),
+            )
+        }
     },
     overstyringer = FullRegistreringView.FullRegistreringOverstyringerView(
         mottattVedtaksinstans = mottattVedtaksinstans,
@@ -482,7 +502,7 @@ fun Mulighet.toKlagemulighetView() =
         fagsakId = fagsakId,
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
-        typeId = originalType.id,
+        typeId = originalType!!.id,
         klageBehandlendeEnhet = klageBehandlendeEnhet,
     )
 
@@ -495,7 +515,7 @@ fun Mulighet.toKabalmulighetView(): KabalmulighetView =
         fagsakId = fagsakId,
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
-        typeId = originalType.id,
+        typeId = originalType!!.id,
         sourceOfExistingBehandlinger = sourceOfExistingAnkebehandling.map {
             ExistingBehandling(
                 id = it.ankebehandlingId,

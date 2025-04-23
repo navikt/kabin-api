@@ -46,6 +46,8 @@ data class JournalpostIdInput(val journalpostId: String)
 
 data class TypeIdInput(val typeId: String?)
 
+data class MulighetBasedOnJournalpostInput(val mulighetBasedOnJournalpost: Boolean)
+
 data class MulighetInput(
     val mulighetId: UUID,
 )
