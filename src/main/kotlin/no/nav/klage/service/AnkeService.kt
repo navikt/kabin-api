@@ -34,9 +34,7 @@ class AnkeService(
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
         val journalpostId = dokArkivService.handleJournalpost(
-            mulighet = mulighet,
-            journalpostId = registrering.journalpostId!!,
-            avsender = registrering.avsender.toPartIdInput()
+            registrering = registrering,
         )
 
         return CreatedBehandlingResponse(

@@ -34,9 +34,7 @@ class KlageService(
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
         val journalpostId = dokArkivService.handleJournalpost(
-            journalpostId = registrering.journalpostId!!,
-            mulighet = mulighet,
-            avsender = registrering.avsender.toPartIdInput(),
+            registrering = registrering,
         )
 
         return CreatedBehandlingResponse(

@@ -11,14 +11,13 @@ import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.domain.CreateBehandlingInput
-import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
-import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.canChangeAvsenderInJournalpost
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -139,58 +138,21 @@ class DokArkivService(
         }
     }
 
-    private fun handleJournalpostBasedOnInfotrygdSak(
-        journalpostId: String,
-        mulighet: Mulighet,
-        avsender: PartIdInput?,
-    ): String {
-        return handleJournalpost(
-            journalpostId = journalpostId,
-            avsender = avsender,
-            tema = mulighet.tema,
-            bruker = Bruker(
-                id = mulighet.sakenGjelder.part.value, idType = when (mulighet.sakenGjelder.part.type) {
-                    PartIdType.PERSON -> {
-                        BrukerIdType.FNR
-                    }
-
-                    else -> {
-                        BrukerIdType.ORGNR
-                    }
-                }
-            ),
-            sakInFagsystem = Sak(
-                sakstype = Sakstype.FAGSAK,
-                fagsaksystem = FagsaksSystem.IT01,
-                fagsakid = mulighet.fagsakId
-            ),
-            journalfoerendeEnhet = kabalInnstillingerClient.getBrukerdata().ansattEnhet.id,
-        )
-    }
-
     fun handleJournalpost(
-        mulighet: Mulighet, journalpostId: String, avsender: PartIdInput?
+        registrering: Registrering,
     ): String {
-        return when (MulighetSource.of(mulighet.currentFagsystem)) {
-            MulighetSource.INFOTRYGD -> handleJournalpostBasedOnInfotrygdSak(
-                journalpostId = journalpostId,
-                mulighet = mulighet,
-                avsender = avsender,
-            )
+        val journalpostId = registrering.journalpostId!!
+        val avsender = registrering.avsender.toPartIdInput()
 
-            MulighetSource.KABAL -> handleJournalpostBasedOnKabalKlagebehandling(
-                journalpostId = journalpostId,
-                mulighet = mulighet,
-                avsender = avsender,
-            )
+        val mulighet = registrering.muligheter.find { it.id == registrering.mulighetId }!!
+
+        val fagsaksystem = FagsaksSystem.valueOf(mulighet.originalFagsystem.navn)
+        val journalfoerendeEnhet = if (mulighet.currentFagsystem == Fagsystem.KABAL) {
+            mulighet.klageBehandlendeEnhet
+        } else {
+            kabalInnstillingerClient.getBrukerdata().ansattEnhet.id
         }
-    }
 
-    fun handleJournalpostBasedOnKabalKlagebehandling(
-        journalpostId: String,
-        mulighet: Mulighet,
-        avsender: PartIdInput?,
-    ): String {
         return handleJournalpost(
             journalpostId = journalpostId,
             avsender = avsender,
@@ -208,10 +170,10 @@ class DokArkivService(
             ),
             sakInFagsystem = Sak(
                 sakstype = Sakstype.FAGSAK,
-                fagsaksystem = FagsaksSystem.valueOf(mulighet.originalFagsystem.navn),
+                fagsaksystem = fagsaksystem,
                 fagsakid = mulighet.fagsakId
             ),
-            journalfoerendeEnhet = mulighet.klageBehandlendeEnhet,
+            journalfoerendeEnhet = journalfoerendeEnhet
         )
     }
 
