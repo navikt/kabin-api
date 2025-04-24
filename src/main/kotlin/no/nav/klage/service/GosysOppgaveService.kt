@@ -3,6 +3,7 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.view.GosysOppgaveView
 import no.nav.klage.clients.gosysoppgave.*
 import no.nav.klage.clients.pdl.PdlClient
+import no.nav.klage.clients.pdl.grahql.IdentGruppe
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -27,7 +28,7 @@ class GosysOppgaveService(
     }
 
     fun getGosysOppgaveList(fnr: String, tema: Tema?): List<GosysOppgaveView> {
-        val aktoerId = pdlClient.hentAktoerIdent(fnr = fnr)
+        val aktoerId = pdlClient.hentIdent(ident = fnr, IdentGruppe.AKTORID)
 
         val temaList = if (tema != null) {
             if (tema == Tema.MED) {

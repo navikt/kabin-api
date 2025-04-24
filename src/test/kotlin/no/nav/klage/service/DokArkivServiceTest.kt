@@ -6,6 +6,7 @@ import io.mockk.verify
 import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.clients.saf.graphql.Bruker
 import no.nav.klage.clients.dokarkiv.BrukerIdType
 import no.nav.klage.clients.dokarkiv.Sak
 import no.nav.klage.clients.kabalapi.PartType
@@ -117,7 +118,7 @@ class DokArkivServiceTest {
                     input = eq(
                         UpdateSakInJournalpostRequest(
                             tema = Tema.OMS,
-                            bruker = Bruker(
+                            bruker = no.nav.klage.clients.dokarkiv.Bruker(
                                 id = FNR,
                                 idType = BrukerIdType.FNR
                             ),
@@ -194,7 +195,7 @@ class DokArkivServiceTest {
                     input = eq(
                         UpdateSakInJournalpostRequest(
                             tema = Tema.OMS,
-                            bruker = Bruker(
+                            bruker = no.nav.klage.clients.dokarkiv.Bruker(
                                 id = FNR,
                                 idType = BrukerIdType.FNR
                             ),
@@ -435,6 +436,10 @@ class DokArkivServiceTest {
             tittel = TITTEL,
             journalposttype = Journalposttype.I,
             journalstatus = Journalstatus.MOTTATT,
+            bruker = Bruker(
+                id = FNR,
+                type = Bruker.BrukerIdType.FNR
+            ),
             tema = OMS,
             temanavn = null,
             behandlingstema = null,

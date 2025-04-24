@@ -170,6 +170,7 @@ class ModifySvarbrevReiceversTest {
             omgjoeringskravService = mockk(),
             documentService = mockk(),
             dokArkivService = mockk(),
+            safService = mockk(),
         )
         return registreringService
     }
@@ -194,7 +195,7 @@ class ModifySvarbrevReiceversTest {
             journalpostId = "123456789",
             journalpostDatoOpprettet = LocalDate.now(),
             type = Type.KLAGE,
-            mulighetBasedOnJournalpost = false,
+            mulighetIsBasedOnJournalpost = false,
             mulighetId = null,
             mottattVedtaksinstans = LocalDate.now(),
             mottattKlageinstans = LocalDate.now(),

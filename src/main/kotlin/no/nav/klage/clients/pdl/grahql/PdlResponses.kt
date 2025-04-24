@@ -13,4 +13,5 @@ data class Identer(
 
 data class Ident(
     val ident: String,
+    val gruppe: IdentGruppe,
 )

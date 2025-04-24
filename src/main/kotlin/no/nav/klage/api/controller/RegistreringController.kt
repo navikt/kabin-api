@@ -140,18 +140,18 @@ class RegistreringController(
         return registreringService.setTypeId(registreringId = id, input = input)
     }
 
-    @PutMapping("/{id}/mulighet-based-on-journalpost")
-    fun updateMulighetBasedOnJournalpost(
+    @PutMapping("/{id}/mulighet-is-based-on-journalpost")
+    fun updateMulighetIsBasedOnJournalpost(
         @PathVariable id: UUID,
-        @RequestBody input: MulighetBasedOnJournalpostInput
+        @RequestBody input: MulighetIsBasedOnJournalpostInput
     ): //TODO: Ny responsview?
             TypeChangeRegistreringView {
         logMethodDetails(
-            methodName = ::updateMulighetBasedOnJournalpost.name,
+            methodName = ::updateMulighetIsBasedOnJournalpost.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.setMulighetBasedOnJournalpost(registreringId = id, input = input)
+        return registreringService.setMulighetIsBasedOnJournalpost(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/mulighet")
@@ -165,6 +165,19 @@ class RegistreringController(
             logger = logger,
         )
         return registreringService.setMulighet(registreringId = id, input = input)
+    }
+
+    @PutMapping("/{id}/mulighet-based-on-journalpost")
+    fun updateMulighetBasedOnJournalpost(
+        @PathVariable id: UUID,
+        @RequestBody input: MulighetBasedOnJournalpostInput
+    ): MulighetChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateMulighetBasedOnJournalpost.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setMulighetBasedOnJournalpost(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/overstyringer/mottatt-vedtaksinstans")

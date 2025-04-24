@@ -2,7 +2,8 @@ package no.nav.klage.clients.pdl
 
 
 import no.nav.klage.clients.pdl.grahql.HentIdenterResponse
-import no.nav.klage.clients.pdl.grahql.hentAktoerIdQuery
+import no.nav.klage.clients.pdl.grahql.IdentGruppe
+import no.nav.klage.clients.pdl.grahql.hentIdenterQuery
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getSecureLogger
@@ -38,17 +39,17 @@ class PdlClient(
     }
 
     @Retryable
-    fun hentAktoerIdent(fnr: String): String {
+    fun hentIdent(ident: String, identGruppe: IdentGruppe): String {
         return runWithTiming {
             pdlWebClient.post()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithPdlScope()}")
-                .bodyValue(hentAktoerIdQuery(fnr))
+                .bodyValue(hentIdenterQuery(ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::hentAktoerIdent.name, secureLogger)
+                    logErrorResponse(response, ::hentIdent.name, secureLogger)
                 }
                 .bodyToMono<HentIdenterResponse>()
-                .block()?.data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw RuntimeException("Person not found")
+                .block()?.data?.hentIdenter?.identer?.find { it.gruppe == identGruppe }?.ident ?: throw RuntimeException("Person not found")
         }
     }
 }

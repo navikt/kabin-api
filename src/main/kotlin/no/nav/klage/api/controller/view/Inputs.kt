@@ -46,10 +46,14 @@ data class JournalpostIdInput(val journalpostId: String)
 
 data class TypeIdInput(val typeId: String?)
 
-data class MulighetBasedOnJournalpostInput(val mulighetBasedOnJournalpost: Boolean)
+data class MulighetIsBasedOnJournalpostInput(val mulighetIsBasedOnJournalpost: Boolean)
 
 data class MulighetInput(
     val mulighetId: UUID,
+)
+
+data class MulighetBasedOnJournalpostInput(
+    val journalpostId: String,
 )
 
 data class MottattVedtaksinstansInput(val mottattVedtaksinstans: LocalDate)

@@ -9,6 +9,7 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
+import no.nav.klage.domain.entities.Address
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.Registrering
@@ -42,6 +43,7 @@ class RegistreringService(
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
     private val klageFssProxyService: KlageFssProxyService,
+    private val safService: SafService,
 ) {
 
     companion object {
@@ -66,7 +68,7 @@ class RegistreringService(
                 journalpostId = null,
                 journalpostDatoOpprettet = null,
                 type = null,
-                mulighetBasedOnJournalpost = false,
+                mulighetIsBasedOnJournalpost = false,
                 mulighetId = null,
                 mottattVedtaksinstans = null,
                 mottattKlageinstans = null,
@@ -245,7 +247,7 @@ class RegistreringService(
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
                 }
-                mulighetBasedOnJournalpost = false
+                mulighetIsBasedOnJournalpost = false
                 modified = LocalDateTime.now()
                 behandlingstidUnits = getDefaultBehandlingstidUnits(type)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
@@ -275,10 +277,13 @@ class RegistreringService(
             }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
-    fun setMulighetBasedOnJournalpost(registreringId: UUID, input: MulighetBasedOnJournalpostInput): TypeChangeRegistreringView {
+    fun setMulighetIsBasedOnJournalpost(
+        registreringId: UUID,
+        input: MulighetIsBasedOnJournalpostInput
+    ): TypeChangeRegistreringView {
         return getRegistreringForUpdate(registreringId)
             .apply {
-                mulighetBasedOnJournalpost = input.mulighetBasedOnJournalpost
+                mulighetIsBasedOnJournalpost = input.mulighetIsBasedOnJournalpost
                 //empty the properties that no longer make sense if typeId changes.
                 mottattKlageinstans = null
                 mottattVedtaksinstans = null
@@ -384,6 +389,81 @@ class RegistreringService(
 
                 //What about fullmektig?
             }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
+    }
+
+    fun setMulighetBasedOnJournalpost(
+        registreringId: UUID,
+        input: MulighetBasedOnJournalpostInput
+    ): MulighetChangeRegistreringView {
+        //Lagre ny mulighet
+
+        val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId = input.journalpostId)
+        val registrering = getRegistreringForUpdate(registreringId)
+        val mulighet = journalpost!!.toMulighet(
+            kabalApiService = kabalApiService,
+            registrering = registrering,
+        )
+
+        return registrering.apply {
+            mulighetId = mulighet.id
+
+            val previousYtelse = ytelse
+            val currentYtelseCandidates = getYtelseOrNull(mulighet)
+            if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
+                //don't change ytelse if it is still valid.
+            } else if (currentYtelseCandidates.size == 1) {
+                ytelse = currentYtelseCandidates.first()
+            } else {
+                ytelse = null
+            }
+
+            if (ytelse == null) {
+                //empty the properties that no longer make sense
+                sendSvarbrev = false
+                svarbrevCustomText = null
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
+
+                hjemmelIdList = emptyList()
+
+                saksbehandlerIdent = null
+            } else if (previousYtelse != ytelse) {
+                //set svarbrev settings (and reset old) for the new ytelse
+                setSvarbrevSettings()
+
+                hjemmelIdList = mulighet.hjemmelIdList.ifEmpty {
+                    emptyList()
+                }
+
+                //Could be smarter here.
+                saksbehandlerIdent = null
+            }
+
+            if (type == Type.KLAGE) {
+                mottattKlageinstans = mulighet.vedtakDate
+                mottattVedtaksinstans = journalpostDatoOpprettet
+            } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV)) {
+                handleReceiversWhenChangingPart(
+                    unchangedRegistrering = this,
+                    partIdInput = mulighet.klager?.part.toPartIdInput(),
+                    partISaken = PartISaken.KLAGER,
+                )
+                klager = mulighet.klager?.part
+                mottattKlageinstans = journalpostDatoOpprettet
+                mottattVedtaksinstans = null
+                handleSvarbrevReceivers()
+            }
+
+            modified = LocalDateTime.now()
+
+            willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                journalpostId = this.journalpostId!!,
+                fagsakId = mulighet.fagsakId,
+                fagsystemId = mulighet.originalFagsystem.id,
+            )
+        }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun Registrering.reinitializeMuligheter() {
@@ -1114,7 +1194,7 @@ class RegistreringService(
                             ),
                             handling = input.handling,
                             overriddenAddress = input.overriddenAddress?.let { address ->
-                                no.nav.klage.domain.entities.Address(
+                                Address(
                                     adresselinje1 = address.adresselinje1,
                                     adresselinje2 = address.adresselinje2,
                                     adresselinje3 = address.adresselinje3,
@@ -1149,7 +1229,7 @@ class RegistreringService(
                 receiver.apply {
                     handling = input.handling
                     overriddenAddress = input.overriddenAddress?.let { address ->
-                        no.nav.klage.domain.entities.Address(
+                        Address(
                             adresselinje1 = address.adresselinje1,
                             adresselinje2 = address.adresselinje2,
                             adresselinje3 = address.adresselinje3,
