@@ -9,11 +9,8 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
+import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.Address
-import no.nav.klage.domain.entities.Mulighet
-import no.nav.klage.domain.entities.PartId
-import no.nav.klage.domain.entities.Registrering
-import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.exceptions.*
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
@@ -242,7 +239,15 @@ class RegistreringService(
     }
 
     fun setTypeId(registreringId: UUID, input: TypeIdInput): TypeChangeRegistreringView {
-        return getRegistreringForUpdate(registreringId)
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (registrering.mulighetIsBasedOnJournalpost && registrering.mulighetId != null) {
+            registrering.muligheter.removeIf {
+                it.id == registrering.mulighetId
+            }
+        }
+
+        return registrering
             .apply {
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
@@ -281,7 +286,15 @@ class RegistreringService(
         registreringId: UUID,
         input: MulighetIsBasedOnJournalpostInput
     ): TypeChangeRegistreringView {
-        return getRegistreringForUpdate(registreringId)
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (registrering.mulighetIsBasedOnJournalpost && !input.mulighetIsBasedOnJournalpost && registrering.mulighetId != null) {
+            registrering.muligheter.removeIf {
+                it.id == registrering.mulighetId
+            }
+        }
+
+        return registrering
             .apply {
                 mulighetIsBasedOnJournalpost = input.mulighetIsBasedOnJournalpost
                 //empty the properties that no longer make sense if typeId changes.
@@ -323,7 +336,13 @@ class RegistreringService(
     }
 
     fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
-        return getRegistreringForUpdate(registreringId)
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (registrering.mulighetIsBasedOnJournalpost) {
+            throw IllegalStateException("Mulighet kan ikke settes fordi alternativ for journalpost er valgt.")
+        }
+
+        return registrering
             .apply {
                 mulighetId = input.mulighetId
 
@@ -398,13 +417,25 @@ class RegistreringService(
         //Lagre ny mulighet
         val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId = input.journalpostId)
         val registrering = getRegistreringForUpdate(registreringId)
+
+        if (!registrering.mulighetIsBasedOnJournalpost) {
+            throw IllegalStateException("Mulighet kan ikke settes basert på journalpost fordi det alternativet ikke er valgt.")
+        }
+
         if (registrering.type != Type.OMGJOERINGSKRAV) {
             throw IllegalStateException("Mulighet kan kun settes basert på journalpost for Omgjøringskrav.")
         }
+
+        if (registrering.mulighetId != null) {
+            registrering.muligheter.removeIf { it.id == registrering.mulighetId }
+        }
+
         val mulighet = journalpost!!.toMulighet(
             kabalApiService = kabalApiService,
             registrering = registrering,
         )
+
+        registrering.muligheter.add(mulighet)
 
         return registrering.apply {
             mulighetId = mulighet.id
