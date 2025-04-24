@@ -573,7 +573,7 @@ class RegistreringService(
             .parallel()
             .runOn(Schedulers.parallel())
             .flatMap { mulighetFromInfotrygd ->
-                kabalApiService.checkBehandlingDuplicateInKabal(
+                kabalApiService.checkBehandlingDuplicate(
                     input = BehandlingIsDuplicateInput(
                         fagsystemId = Fagsystem.IT01.id,
                         kildereferanse = mulighetFromInfotrygd.sakId,

@@ -31,12 +31,22 @@ class OmgjoeringskravService(
             registrering = registrering,
         )
 
-        return CreatedBehandlingResponse(
-            behandlingId = kabalApiService.createBehandlingInKabalFromKabalInput(
-                journalpostId = journalpostId,
-                mulighet = mulighet,
-                registrering = registrering
+        return if (registrering.mulighetIsBasedOnJournalpost) {
+            CreatedBehandlingResponse(
+                behandlingId = kabalApiService.createOmgjoeringskravBasedOnJournalpost(
+                    journalpostId = journalpostId,
+                    mulighet = mulighet,
+                    registrering = registrering
+                )
             )
-        )
+        } else {
+            CreatedBehandlingResponse(
+                behandlingId = kabalApiService.createBehandlingFromKabalInput(
+                    journalpostId = journalpostId,
+                    mulighet = mulighet,
+                    registrering = registrering
+                )
+            )
+        }
     }
 }

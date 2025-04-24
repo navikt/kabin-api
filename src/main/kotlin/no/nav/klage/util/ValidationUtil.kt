@@ -38,7 +38,7 @@ class ValidationUtil(
             )
         }
 
-        if (!Fagsystem.of(mulighet.originalFagsystem.id).modernized) {
+        if (!Fagsystem.of(mulighet.originalFagsystem.id).modernized || registrering.mulighetIsBasedOnJournalpost) {
             if (registrering.gosysOppgaveId == null) {
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::gosysOppgaveId.name,
@@ -156,7 +156,7 @@ class ValidationUtil(
         }
 
         if (registrering.gosysOppgaveId != null) {
-            if (kabalApiClient.checkGosysOppgaveDuplicateInKabal(
+            if (kabalApiClient.checkGosysOppgaveDuplicate(
                     input = GosysOppgaveIsDuplicateInput(
                         gosysOppgaveId = registrering.gosysOppgaveId!!
                     )

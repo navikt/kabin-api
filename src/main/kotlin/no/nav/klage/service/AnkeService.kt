@@ -45,7 +45,7 @@ class AnkeService(
                     registrering = registrering
                 )
 
-                MulighetSource.KABAL -> kabalApiService.createBehandlingInKabalFromKabalInput(
+                MulighetSource.KABAL -> kabalApiService.createBehandlingFromKabalInput(
                     journalpostId = journalpostId,
                     mulighet = mulighet,
                     registrering = registrering
@@ -63,7 +63,7 @@ class AnkeService(
             TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
             TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
         }
-        val behandlingId = kabalApiService.createAnkeInKabalFromInfotrygdInput(
+        val behandlingId = kabalApiService.createAnkeFromInfotrygdInput(
             registrering = registrering,
             mulighet = mulighet,
             frist = frist,

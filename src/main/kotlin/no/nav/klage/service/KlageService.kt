@@ -55,7 +55,7 @@ class KlageService(
             TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
             TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
         }
-        val behandlingId = kabalApiService.createKlageInKabalFromInfotrygdInput(
+        val behandlingId = kabalApiService.createKlageFromInfotrygdInput(
             registrering = registrering,
             mulighet = mulighet,
             frist = frist,
