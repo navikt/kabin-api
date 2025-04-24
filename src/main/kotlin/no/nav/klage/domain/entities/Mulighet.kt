@@ -96,7 +96,7 @@ class Mulighet(
     val originalType: Type?,
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
-    /** sakId from Infotrygd or behandlingId from Kabal */
+    /** sakId from Infotrygd, behandlingId from Kabal or journalpostId from dokarkiv */
     @Column(name = "current_fagystem_technical_id")
     val currentFagystemTechnicalId: String,
 

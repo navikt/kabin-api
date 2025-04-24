@@ -396,9 +396,11 @@ class RegistreringService(
         input: MulighetBasedOnJournalpostInput
     ): MulighetChangeRegistreringView {
         //Lagre ny mulighet
-
         val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId = input.journalpostId)
         val registrering = getRegistreringForUpdate(registreringId)
+        if (registrering.type != Type.OMGJOERINGSKRAV) {
+            throw IllegalStateException("Mulighet kan kun settes basert på journalpost for Omgjøringskrav.")
+        }
         val mulighet = journalpost!!.toMulighet(
             kabalApiService = kabalApiService,
             registrering = registrering,
