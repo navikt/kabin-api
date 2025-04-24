@@ -37,8 +37,6 @@ class DokArkivServiceTest {
 
     val safService: SafService = mockk()
 
-    private val fssProxyService: KlageFssProxyService = mockk()
-
     private val kabalInnstillingerClient: KabalInnstillingerClient = mockk()
 
     lateinit var dokArkivService: DokArkivService
@@ -64,7 +62,7 @@ class DokArkivServiceTest {
         available = true,
         language = null,
         address = null,
-        utsendingskanal = no.nav.klage.domain.entities.PartWithUtsendingskanal.Utsendingskanal.NAV_NO,
+        utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO,
     )
     private val avsenderMottaker = AvsenderMottaker(
         id = "12345678910",
@@ -112,12 +110,6 @@ class DokArkivServiceTest {
             every { dokArkivClient.updateSakInJournalpost(any(), any()) } returns Unit
             every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
 
-            /*
-        val journalpostId = registrering.journalpostId!!
-        val avsender = registrering.avsender.toPartIdInput()
-
-        val mulighet = registrering.muligheter.find { it.id == registrering.mulighetId }!!
-             */
             every { registrering.journalpostId } returns JOURNALPOST_ID
             every { registrering.avsender } returns null
             every { registrering.muligheter } returns mutableSetOf(mulighet)
