@@ -47,7 +47,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
     return TypeChangeRegistreringView(
         id = id,
         typeId = type?.id,
-        mulighetBasedOnJournalpost = mulighetIsBasedOnJournalpost,
+        mulighetIsBasedOnJournalpost = mulighetIsBasedOnJournalpost,
         overstyringer = TypeChangeRegistreringView.TypeChangeRegistreringOverstyringerView(
             behandlingstid = BehandlingstidView(
                 unitTypeId = behandlingstidUnitType.id,
@@ -163,7 +163,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     journalpostId = journalpostId,
     sakenGjelderValue = sakenGjelder?.value,
     typeId = type?.id,
-    mulighetBasedOnJournalpost = mulighetIsBasedOnJournalpost,
+    mulighetIsBasedOnJournalpost = mulighetIsBasedOnJournalpost,
     mulighet = mulighetId?.let {
         if (mulighetIsBasedOnJournalpost) {
             val chosenMulighet = muligheter.find { mulighet ->
