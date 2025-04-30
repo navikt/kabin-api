@@ -90,5 +90,6 @@ enum class FagsaksSystem {
     EF,
     KONT,
     SUPSTONAD,
-    OMSORGSPENGER
+    OMSORGSPENGER,
+    KELVIN,
 }
