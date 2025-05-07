@@ -6,7 +6,6 @@ import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
-import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
@@ -27,8 +26,8 @@ class KabalApiService(
         return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
     }
 
-    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput, token: String): Mono<BehandlingIsDuplicateResponse> {
-        return kabalApiClient.checkBehandlingDuplicateInKabal(input = input, token = token)
+    fun checkBehandlingDuplicate(input: BehandlingIsDuplicateInput, token: String): Mono<BehandlingIsDuplicateResponse> {
+        return kabalApiClient.checkBehandlingDuplicate(input = input, token = token)
     }
 
     fun getBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatus {
@@ -36,7 +35,7 @@ class KabalApiService(
     }
 
     fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean {
-        return kabalApiClient.checkGosysOppgaveDuplicateInKabal(
+        return kabalApiClient.checkGosysOppgaveDuplicate(
             input = GosysOppgaveIsDuplicateInput(gosysOppgaveId = gosysOppgaveId)
         )
     }
@@ -59,7 +58,7 @@ class KabalApiService(
         )
     }
 
-    fun createAnkeInKabalFromInfotrygdInput(
+    fun createAnkeFromInfotrygdInput(
         registrering: Registrering,
         mulighet: Mulighet,
         frist: LocalDate,
@@ -69,7 +68,7 @@ class KabalApiService(
             ytelseId = registrering.ytelse!!.id,
             typeId = registrering.type!!.id,
         )
-        return kabalApiClient.createAnkeFromInfotrygdInputInKabal(
+        return kabalApiClient.createAnkeFromInfotrygdInput(
             CreateAnkeBasedOnKabinInput(
                 sakenGjelder = OversendtPartId(
                     type = OversendtPartIdType.PERSON,
@@ -78,8 +77,7 @@ class KabalApiService(
                 klager = registrering.klager.toOversendtPartId(),
                 fullmektig = registrering.fullmektig.toOversendtPartId(),
                 fagsakId = mulighet.fagsakId,
-                //TODO: Tilpass når vi får flere fagsystemer.
-                fagsystemId = Fagsystem.IT01.id,
+                fagsystemId = mulighet.originalFagsystem.id,
                 hjemmelIdList = registrering.hjemmelIdList,
                 forrigeBehandlendeEnhet = mulighet.klageBehandlendeEnhet,
                 ankeJournalpostId = journalpostId,
@@ -94,7 +92,43 @@ class KabalApiService(
         ).behandlingId
     }
 
-    fun createBehandlingInKabalFromKabalInput(
+    fun createOmgjoeringskravBasedOnJournalpost(
+        registrering: Registrering,
+        mulighet: Mulighet,
+        journalpostId: String,
+    ): UUID {
+        val svarbrevSettings = getSvarbrevSettings(
+            ytelseId = registrering.ytelse!!.id,
+            typeId = registrering.type!!.id,
+        )
+        return kabalApiClient.createOmgjoeringskravBasedOnJournalpost(
+            CreateOmgjoeringskravBasedOnJournalpostInput(
+                sakenGjelder = OversendtPartId(
+                    type = OversendtPartIdType.PERSON,
+                    value = mulighet.sakenGjelder.part.value
+                ),
+                klager = registrering.klager.toOversendtPartId(),
+                fullmektig = registrering.fullmektig.toOversendtPartId(),
+                fagsakId = mulighet.fagsakId,
+                fagsystemId = mulighet.originalFagsystem.id,
+                hjemmelIdList = registrering.hjemmelIdList,
+                forrigeBehandlendeEnhet = mulighet.klageBehandlendeEnhet,
+                receivedDocumentJournalpostId = journalpostId,
+                mottattNav = registrering.mottattKlageinstans!!,
+                frist = when (registrering.behandlingstidUnitType) {
+                    TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
+                    TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
+                },
+                ytelseId = registrering.ytelse!!.id,
+                kildereferanse = mulighet.currentFagystemTechnicalId,
+                saksbehandlerIdent = registrering.saksbehandlerIdent,
+                svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
+                gosysOppgaveId = registrering.gosysOppgaveId,
+            )
+        ).behandlingId
+    }
+
+    fun createBehandlingFromKabalInput(
         journalpostId: String,
         mulighet: Mulighet,
         registrering: Registrering
@@ -104,8 +138,7 @@ class KabalApiService(
                 typeId = registrering.type!!.id,
             )
 
-
-        return kabalApiClient.createBehandlingInKabal(
+        return kabalApiClient.createBehandling(
             CreateBehandlingBasedOnKabalInput(
                 typeId = mulighet.type.id,
                 sourceBehandlingId = UUID.fromString(mulighet.currentFagystemTechnicalId),
@@ -125,7 +158,7 @@ class KabalApiService(
         ).behandlingId
     }
 
-    fun createKlageInKabalFromInfotrygdInput(
+    fun createKlageFromInfotrygdInput(
         registrering: Registrering,
         frist: LocalDate,
         mulighet: Mulighet,
@@ -136,7 +169,7 @@ class KabalApiService(
             typeId = registrering.type!!.id,
         )
 
-        return kabalApiClient.createKlageInKabal(
+        return kabalApiClient.createKlage(
             input = CreateKlageBasedOnKabinInput(
                 sakenGjelder = OversendtPartId(
                     type = OversendtPartIdType.PERSON,
@@ -145,8 +178,7 @@ class KabalApiService(
                 klager = registrering.klager.toOversendtPartId(),
                 fullmektig = registrering.fullmektig.toOversendtPartId(),
                 fagsakId = mulighet.fagsakId,
-                //TODO: Tilpass når vi får flere fagsystemer.
-                fagsystemId = Fagsystem.IT01.id,
+                fagsystemId = mulighet.originalFagsystem.id,
                 hjemmelIdList = registrering.hjemmelIdList,
                 forrigeBehandlendeEnhet = mulighet.klageBehandlendeEnhet,
                 klageJournalpostId = journalpostId,

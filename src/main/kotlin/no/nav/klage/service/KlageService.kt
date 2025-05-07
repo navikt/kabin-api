@@ -34,9 +34,7 @@ class KlageService(
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
         val journalpostId = dokArkivService.handleJournalpost(
-            journalpostId = registrering.journalpostId!!,
-            mulighet = mulighet,
-            avsender = registrering.avsender.toPartIdInput(),
+            registrering = registrering,
         )
 
         return CreatedBehandlingResponse(
@@ -57,7 +55,7 @@ class KlageService(
             TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
             TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
         }
-        val behandlingId = kabalApiService.createKlageInKabalFromInfotrygdInput(
+        val behandlingId = kabalApiService.createKlageFromInfotrygdInput(
             registrering = registrering,
             mulighet = mulighet,
             frist = frist,

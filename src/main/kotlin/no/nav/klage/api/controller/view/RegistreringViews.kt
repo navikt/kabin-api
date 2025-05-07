@@ -20,6 +20,7 @@ data class FullRegistreringView(
     val sakenGjelderValue: String?,
     val journalpostId: String?,
     val typeId: String?,
+    val mulighetIsBasedOnJournalpost: Boolean,
     val mulighet: MulighetIdView?,
     val overstyringer: FullRegistreringOverstyringerView,
     val svarbrev: FullRegistreringSvarbrevView,
@@ -66,6 +67,7 @@ data class FullRegistreringView(
 data class TypeChangeRegistreringView(
     val id: UUID,
     val typeId: String?,
+    val mulighetIsBasedOnJournalpost: Boolean,
     val mulighet: MulighetIdView? = null,
     val overstyringer: TypeChangeRegistreringOverstyringerView,
     val svarbrev: TypeChangeRegistreringSvarbrevView,
@@ -100,7 +102,7 @@ data class TypeChangeRegistreringView(
 }
 
 data class MulighetIdView(
-    val id: UUID,
+    val id: String,
 )
 
 data class BehandlingstidView(

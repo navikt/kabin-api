@@ -26,6 +26,7 @@ data class Journalpost(
     val tittel: String?,
     val journalposttype: Journalposttype,
     val journalstatus: Journalstatus?,
+    val bruker: Bruker,
     val tema: Tema,
     val temanavn: String?,
     val behandlingstema: String?,
@@ -59,6 +60,20 @@ data class AvsenderMottaker(
         FNR, ORGNR, HPRNR, UTL_ORG, UKJENT, NULL
     }
 }
+
+data class Bruker(
+    val id: String,
+    val type: BrukerIdType,
+) {
+    enum class BrukerIdType {
+        ORGNR,
+        AKTOERID,
+        FNR,
+    }
+}
+
+
+
 
 data class Utsendingsinfo(
     val epostVarselSendt: EpostVarselSendt?,

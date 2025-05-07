@@ -9,10 +9,8 @@ import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
-import no.nav.klage.domain.entities.Mulighet
-import no.nav.klage.domain.entities.PartId
-import no.nav.klage.domain.entities.Registrering
-import no.nav.klage.domain.entities.SvarbrevReceiver
+import no.nav.klage.domain.entities.*
+import no.nav.klage.domain.entities.Address
 import no.nav.klage.exceptions.*
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
@@ -42,6 +40,7 @@ class RegistreringService(
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
     private val klageFssProxyService: KlageFssProxyService,
+    private val safService: SafService,
 ) {
 
     companion object {
@@ -66,6 +65,7 @@ class RegistreringService(
                 journalpostId = null,
                 journalpostDatoOpprettet = null,
                 type = null,
+                mulighetIsBasedOnJournalpost = false,
                 mulighetId = null,
                 mottattVedtaksinstans = null,
                 mottattKlageinstans = null,
@@ -239,11 +239,20 @@ class RegistreringService(
     }
 
     fun setTypeId(registreringId: UUID, input: TypeIdInput): TypeChangeRegistreringView {
-        return getRegistreringForUpdate(registreringId)
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (registrering.mulighetIsBasedOnJournalpost && registrering.mulighetId != null) {
+            registrering.muligheter.removeIf {
+                it.id == registrering.mulighetId
+            }
+        }
+
+        return registrering
             .apply {
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
                 }
+                mulighetIsBasedOnJournalpost = false
                 modified = LocalDateTime.now()
                 behandlingstidUnits = getDefaultBehandlingstidUnits(type)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
@@ -273,6 +282,47 @@ class RegistreringService(
             }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
+    fun setMulighetIsBasedOnJournalpost(
+        registreringId: UUID,
+        input: MulighetIsBasedOnJournalpostInput
+    ): TypeChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (registrering.mulighetIsBasedOnJournalpost && !input.mulighetIsBasedOnJournalpost && registrering.mulighetId != null) {
+            registrering.muligheter.removeIf {
+                it.id == registrering.mulighetId
+            }
+        }
+
+        return registrering
+            .apply {
+                mulighetIsBasedOnJournalpost = input.mulighetIsBasedOnJournalpost
+                //empty the properties that no longer make sense if typeId changes.
+                mottattKlageinstans = null
+                mottattVedtaksinstans = null
+
+                mulighetId = null
+
+                ytelse = null
+                hjemmelIdList = listOf()
+
+                saksbehandlerIdent = null
+
+                sendSvarbrev = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                svarbrevCustomText = null
+
+                gosysOppgaveId = null
+
+                willCreateNewJournalpost = false
+
+
+            }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
+    }
+
     private fun getDefaultBehandlingstidUnitType(type: Type?): TimeUnitType {
         return TimeUnitType.WEEKS
     }
@@ -286,7 +336,13 @@ class RegistreringService(
     }
 
     fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
-        return getRegistreringForUpdate(registreringId)
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (registrering.mulighetIsBasedOnJournalpost) {
+            throw IllegalStateException("Mulighet kan ikke settes fordi alternativ for journalpost er valgt.")
+        }
+
+        return registrering
             .apply {
                 mulighetId = input.mulighetId
 
@@ -352,6 +408,95 @@ class RegistreringService(
 
                 //What about fullmektig?
             }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
+    }
+
+    fun setMulighetBasedOnJournalpost(
+        registreringId: UUID,
+        input: MulighetBasedOnJournalpostInput
+    ): MulighetChangeRegistreringView {
+        //Lagre ny mulighet
+        val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId = input.journalpostId)
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (!registrering.mulighetIsBasedOnJournalpost) {
+            throw IllegalStateException("Mulighet kan ikke settes basert på journalpost fordi det alternativet ikke er valgt.")
+        }
+
+        if (registrering.type != Type.OMGJOERINGSKRAV) {
+            throw IllegalStateException("Mulighet kan kun settes basert på journalpost for Omgjøringskrav.")
+        }
+
+        if (registrering.mulighetId != null) {
+            registrering.muligheter.removeIf { it.id == registrering.mulighetId }
+        }
+
+        val mulighet = journalpost!!.toMulighet(
+            kabalApiService = kabalApiService,
+            registrering = registrering,
+        )
+
+        registrering.muligheter.add(mulighet)
+
+        return registrering.apply {
+            mulighetId = mulighet.id
+
+            val previousYtelse = ytelse
+            val currentYtelseCandidates = getYtelseOrNull(mulighet)
+            if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
+                //don't change ytelse if it is still valid.
+            } else if (currentYtelseCandidates.size == 1) {
+                ytelse = currentYtelseCandidates.first()
+            } else {
+                ytelse = null
+            }
+
+            if (ytelse == null) {
+                //empty the properties that no longer make sense
+                sendSvarbrev = false
+                svarbrevCustomText = null
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
+
+                hjemmelIdList = emptyList()
+
+                saksbehandlerIdent = null
+            } else if (previousYtelse != ytelse) {
+                //set svarbrev settings (and reset old) for the new ytelse
+                setSvarbrevSettings()
+
+                hjemmelIdList = mulighet.hjemmelIdList.ifEmpty {
+                    emptyList()
+                }
+
+                //Could be smarter here.
+                saksbehandlerIdent = null
+            }
+
+            if (type == Type.KLAGE) {
+                mottattKlageinstans = mulighet.vedtakDate
+                mottattVedtaksinstans = journalpostDatoOpprettet
+            } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV)) {
+                handleReceiversWhenChangingPart(
+                    unchangedRegistrering = this,
+                    partIdInput = mulighet.klager?.part.toPartIdInput(),
+                    partISaken = PartISaken.KLAGER,
+                )
+                klager = mulighet.klager?.part
+                mottattKlageinstans = journalpostDatoOpprettet
+                mottattVedtaksinstans = null
+                handleSvarbrevReceivers()
+            }
+
+            modified = LocalDateTime.now()
+
+            willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                journalpostId = this.journalpostId!!,
+                fagsakId = mulighet.fagsakId,
+                fagsystemId = mulighet.originalFagsystem.id,
+            )
+        }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun Registrering.reinitializeMuligheter() {
@@ -428,7 +573,7 @@ class RegistreringService(
             .parallel()
             .runOn(Schedulers.parallel())
             .flatMap { mulighetFromInfotrygd ->
-                kabalApiService.checkBehandlingDuplicateInKabal(
+                kabalApiService.checkBehandlingDuplicate(
                     input = BehandlingIsDuplicateInput(
                         fagsystemId = Fagsystem.IT01.id,
                         kildereferanse = mulighetFromInfotrygd.sakId,
@@ -1082,7 +1227,7 @@ class RegistreringService(
                             ),
                             handling = input.handling,
                             overriddenAddress = input.overriddenAddress?.let { address ->
-                                no.nav.klage.domain.entities.Address(
+                                Address(
                                     adresselinje1 = address.adresselinje1,
                                     adresselinje2 = address.adresselinje2,
                                     adresselinje3 = address.adresselinje3,
@@ -1117,7 +1262,7 @@ class RegistreringService(
                 receiver.apply {
                     handling = input.handling
                     overriddenAddress = input.overriddenAddress?.let { address ->
-                        no.nav.klage.domain.entities.Address(
+                        Address(
                             adresselinje1 = address.adresselinje1,
                             adresselinje2 = address.adresselinje2,
                             adresselinje3 = address.adresselinje3,

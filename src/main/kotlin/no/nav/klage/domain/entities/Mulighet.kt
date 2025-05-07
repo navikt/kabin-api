@@ -65,6 +65,7 @@ class Mulighet(
     val fullmektig: PartWithUtsendingskanal?,
     @Convert(converter = FagsystemConverter::class)
     @Column(name = "current_fagsystem_id")
+    //Denne og originalFagsystem vil være like for nytt omgjøringskrav
     val currentFagsystem: Fagsystem,
     @Convert(converter = FagsystemConverter::class)
     @Column(name = "original_fagsystem_id")
@@ -91,10 +92,11 @@ class Mulighet(
     val type: Type,
     @Convert(converter = TypeConverter::class)
     @Column(name = "original_type_id")
-    val originalType: Type,
+    //Ikke tilgjenglig for nytt omgjøringskrav. Brukes kun til visning i klient.
+    val originalType: Type?,
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
-    /** sakId from Infotrygd or behandlingId from Kabal */
+    /** sakId from Infotrygd, behandlingId from Kabal or journalpostId from dokarkiv */
     @Column(name = "current_fagystem_technical_id")
     val currentFagystemTechnicalId: String,
 

@@ -7,6 +7,7 @@ import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.SearchPartView
 import no.nav.klage.clients.kabalapi.SvarbrevInput
 import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
+import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.PartStatus
 import no.nav.klage.kodeverk.Fagsystem
@@ -46,6 +47,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
     return TypeChangeRegistreringView(
         id = id,
         typeId = type?.id,
+        mulighetIsBasedOnJournalpost = mulighetIsBasedOnJournalpost,
         overstyringer = TypeChangeRegistreringView.TypeChangeRegistreringOverstyringerView(
             behandlingstid = BehandlingstidView(
                 unitTypeId = behandlingstidUnitType.id,
@@ -76,9 +78,18 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
     return MulighetChangeRegistreringView(
         id = id,
         mulighet = mulighetId?.let {
-            MulighetIdView(
-                id = it,
-            )
+            if (mulighetIsBasedOnJournalpost) {
+                val chosenMulighet = muligheter.find { mulighet ->
+                    mulighet.id == mulighetId
+                }
+                MulighetIdView(
+                    id = chosenMulighet!!.currentFagystemTechnicalId
+                )
+            } else {
+                MulighetIdView(
+                    id = it.toString(),
+                )
+            }
         },
         overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(
             ytelseId = ytelse?.id,
@@ -152,10 +163,20 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     journalpostId = journalpostId,
     sakenGjelderValue = sakenGjelder?.value,
     typeId = type?.id,
+    mulighetIsBasedOnJournalpost = mulighetIsBasedOnJournalpost,
     mulighet = mulighetId?.let {
-        MulighetIdView(
-            id = it,
-        )
+        if (mulighetIsBasedOnJournalpost) {
+            val chosenMulighet = muligheter.find { mulighet ->
+                mulighet.id == mulighetId
+            }
+            MulighetIdView(
+                id = chosenMulighet!!.currentFagystemTechnicalId
+            )
+        } else {
+            MulighetIdView(
+                id = it.toString(),
+            )
+        }
     },
     overstyringer = FullRegistreringView.FullRegistreringOverstyringerView(
         mottattVedtaksinstans = mottattVedtaksinstans,
@@ -230,7 +251,9 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     ankemuligheter = muligheter.filter { it.type == Type.ANKE }.map { mulighet ->
         mulighet.toKabalmulighetView()
     },
-    omgjoeringskravmuligheter = muligheter.filter { it.type == Type.OMGJOERINGSKRAV }.map { mulighet ->
+    omgjoeringskravmuligheter = muligheter.filter {
+        it.type == Type.OMGJOERINGSKRAV && !(mulighetIsBasedOnJournalpost && it.id == mulighetId)
+    }.map { mulighet ->
         mulighet.toKabalmulighetView()
     },
     muligheterFetched = muligheterFetched,
@@ -443,6 +466,35 @@ fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
     )
 }
 
+fun Journalpost.toMulighet(kabalApiService: KabalApiService, registrering: Registrering): Mulighet {
+    return Mulighet(
+        type = registrering.type!!,
+        originalType = null,
+        tema = Tema.valueOf(tema.name),
+        //Vurder om vi skal sette noe annet enn null her
+        vedtakDate = null,
+        sakenGjelder = kabalApiService.searchPartWithUtsendingskanal(
+            SearchPartWithUtsendingskanalInput(
+                identifikator = registrering.sakenGjelder!!.value,
+                sakenGjelderId = registrering.sakenGjelder!!.value,
+                //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
+                ytelseId = Ytelse.entries.find { y -> y.toTema().navn == tema.name }!!.id,
+            )
+        ).toPartWithUtsendingskanal()!!,
+        fagsakId = sak!!.fagsakId!!,
+        originalFagsystem = Fagsystem.valueOf(sak.fagsaksystem!!),
+        currentFagsystem = Fagsystem.valueOf(sak.fagsaksystem),
+        ytelse = null,
+        klager = null,
+        fullmektig = null,
+        klageBehandlendeEnhet = journalfoerendeEnhet!!,
+        currentFagystemTechnicalId = journalpostId,
+        previousSaksbehandlerIdent = null,
+        previousSaksbehandlerName = null,
+        hjemmelIdList = emptyList(),
+    )
+}
+
 fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal?.toPartWithUtsendingskanal(): PartWithUtsendingskanal? {
     return this?.let {
         PartWithUtsendingskanal(
@@ -482,7 +534,7 @@ fun Mulighet.toKlagemulighetView() =
         fagsakId = fagsakId,
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
-        typeId = originalType.id,
+        typeId = originalType!!.id,
         klageBehandlendeEnhet = klageBehandlendeEnhet,
     )
 
@@ -495,7 +547,7 @@ fun Mulighet.toKabalmulighetView(): KabalmulighetView =
         fagsakId = fagsakId,
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
-        typeId = originalType.id,
+        typeId = originalType!!.id,
         sourceOfExistingBehandlinger = sourceOfExistingAnkebehandling.map {
             ExistingBehandling(
                 id = it.ankebehandlingId,

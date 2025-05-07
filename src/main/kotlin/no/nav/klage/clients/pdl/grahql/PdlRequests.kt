@@ -6,11 +6,19 @@ data class PersonGraphqlQuery(
 )
 
 data class IdentVariables(
-    val ident: String
+    val ident: String,
+    val grupper: List<IdentGruppe>,
 )
 
-fun hentAktoerIdQuery(ident: String): PersonGraphqlQuery {
+enum class IdentGruppe{
+    FOLKEREGISTERIDENT,
+    AKTORID,
+}
+
+
+
+fun hentIdenterQuery(ident: String): PersonGraphqlQuery {
     val query =
         PersonGraphqlQuery::class.java.getResource("/pdl/hentIdenter.graphql").cleanForGraphql()
-    return PersonGraphqlQuery(query, IdentVariables(ident))
+    return PersonGraphqlQuery(query, IdentVariables(ident = ident, grupper = listOf(IdentGruppe.FOLKEREGISTERIDENT, IdentGruppe.AKTORID)))
 }

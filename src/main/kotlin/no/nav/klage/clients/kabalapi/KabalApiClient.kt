@@ -23,7 +23,7 @@ class KabalApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun checkBehandlingDuplicateInKabal(input: BehandlingIsDuplicateInput, token: String): Mono<BehandlingIsDuplicateResponse> {
+    fun checkBehandlingDuplicate(input: BehandlingIsDuplicateInput, token: String): Mono<BehandlingIsDuplicateResponse> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/checkbehandlingisduplicate").build() }
             .header(
@@ -35,7 +35,7 @@ class KabalApiClient(
             .bodyToMono<BehandlingIsDuplicateResponse>()
     }
 
-    fun checkGosysOppgaveDuplicateInKabal(input: GosysOppgaveIsDuplicateInput): Boolean {
+    fun checkGosysOppgaveDuplicate(input: GosysOppgaveIsDuplicateInput): Boolean {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/oppgaveisduplicate").build() }
             .header(
@@ -48,7 +48,7 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun createBehandlingInKabal(input: CreateBehandlingBasedOnKabalInput): CreatedBehandlingResponse {
+    fun createBehandling(input: CreateBehandlingBasedOnKabalInput): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/createbehandling").build() }
             .header(
@@ -61,9 +61,35 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun createAnkeFromInfotrygdInputInKabal(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
+    fun createKlage(input: CreateKlageBasedOnKabinInput): CreatedBehandlingResponse {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/createklage").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .bodyToMono<CreatedBehandlingResponse>()
+            .block() ?: throw RuntimeException("No response")
+    }
+
+    fun createAnkeFromInfotrygdInput(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/createankefromcompleteinput").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .bodyToMono<CreatedBehandlingResponse>()
+            .block() ?: throw RuntimeException("No response")
+    }
+
+    fun createOmgjoeringskravBasedOnJournalpost(input: CreateOmgjoeringskravBasedOnJournalpostInput): CreatedBehandlingResponse {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/create-omgjoeringskrav-based-on-journalpost").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
@@ -147,19 +173,6 @@ class KabalApiClient(
             .retrieve()
             .bodyToMono<List<String>>()
             .block() ?: throw RuntimeException("null returned for getUsedJournalpostIdListForPerson")
-    }
-
-    fun createKlageInKabal(input: CreateKlageBasedOnKabinInput): CreatedBehandlingResponse {
-        return kabalApiWebClient.post()
-            .uri { it.path("/api/internal/createklage").build() }
-            .header(
-                HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
-            )
-            .bodyValue(input)
-            .retrieve()
-            .bodyToMono<CreatedBehandlingResponse>()
-            .block() ?: throw RuntimeException("No response")
     }
 
     fun getSvarbrevSettings(ytelseId: String, typeId: String): SvarbrevSettingsView {

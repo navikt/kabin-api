@@ -28,17 +28,25 @@ class OmgjoeringskravService(
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
         val journalpostId = dokArkivService.handleJournalpost(
-            mulighet = mulighet,
-            journalpostId = registrering.journalpostId!!,
-            avsender = registrering.avsender.toPartIdInput()
+            registrering = registrering,
         )
 
-        return CreatedBehandlingResponse(
-            behandlingId = kabalApiService.createBehandlingInKabalFromKabalInput(
-                journalpostId = journalpostId,
-                mulighet = mulighet,
-                registrering = registrering
+        return if (registrering.mulighetIsBasedOnJournalpost) {
+            CreatedBehandlingResponse(
+                behandlingId = kabalApiService.createOmgjoeringskravBasedOnJournalpost(
+                    journalpostId = journalpostId,
+                    mulighet = mulighet,
+                    registrering = registrering
+                )
             )
-        )
+        } else {
+            CreatedBehandlingResponse(
+                behandlingId = kabalApiService.createBehandlingFromKabalInput(
+                    journalpostId = journalpostId,
+                    mulighet = mulighet,
+                    registrering = registrering
+                )
+            )
+        }
     }
 }

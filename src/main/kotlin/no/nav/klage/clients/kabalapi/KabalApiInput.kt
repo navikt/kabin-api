@@ -45,6 +45,24 @@ data class CreateAnkeBasedOnKabinInput(
     val gosysOppgaveId: Long?,
 )
 
+data class CreateOmgjoeringskravBasedOnJournalpostInput(
+    val sakenGjelder: OversendtPartId,
+    val klager: OversendtPartId?,
+    val fullmektig: OversendtPartId?,
+    val fagsakId: String,
+    val fagsystemId: String,
+    val hjemmelIdList: List<String>,
+    val forrigeBehandlendeEnhet: String,
+    val receivedDocumentJournalpostId: String,
+    val mottattNav: LocalDate,
+    val frist: LocalDate,
+    val ytelseId: String,
+    val kildereferanse: String,
+    val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
+    val gosysOppgaveId: Long?,
+)
+
 data class CreateKlageBasedOnKabinInput(
     val sakenGjelder: OversendtPartId,
     val klager: OversendtPartId?,
