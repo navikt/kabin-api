@@ -21,6 +21,7 @@ import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.calculateFrist
 import no.nav.klage.util.getLogger
+import no.nav.klage.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -207,16 +208,9 @@ class RegistreringService(
 
                 val avsenderPartId =
                     if (document.journalposttype == DokumentReferanse.Journalposttype.I && document.avsenderMottaker?.id != null && document.avsenderMottaker.type != null) {
-                        PartId(
-                            value = document.avsenderMottaker.id,
-                            type = when (document.avsenderMottaker.type) {
-                                AvsenderMottakerIdType.FNR -> PartIdType.PERSON
-                                AvsenderMottakerIdType.ORGNR -> PartIdType.VIRKSOMHET
-                                AvsenderMottakerIdType.HPRNR -> TODO()
-                                AvsenderMottakerIdType.UTL_ORG -> TODO()
-                                AvsenderMottakerIdType.UKJENT -> TODO()
-                                AvsenderMottakerIdType.NULL -> TODO()
-                            }
+                        getPartIdFromIdentifikator(
+                            identifikator = document.avsenderMottaker.id,
+                            throwErrorIfInvalid = false
                         )
                     } else {
                         null
@@ -927,22 +921,11 @@ class RegistreringService(
                 }
 
                 //2. avsender is set to null
-                if (input.avsender == null) {
-                    avsender = null
+                avsender = if (input.avsender == null) {
+                    null
                 } else {
                     //3. avsender is set to a new value
-                    avsender = PartId(
-                        value = input.avsender.identifikator,
-                        type = when (input.avsender.type) {
-                            PartType.FNR -> {
-                                PartIdType.PERSON
-                            }
-
-                            PartType.ORGNR -> {
-                                PartIdType.VIRKSOMHET
-                            }
-                        }
-                    )
+                    getPartIdFromIdentifikator(identifikator = input.avsender.identifikator, throwErrorIfInvalid = true)
                 }
                 modified = LocalDateTime.now()
             }
