@@ -33,7 +33,7 @@ data class DokumentReferanse(
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
     val canChangeAvsender: Boolean,
-    //Deprecated
+    /** Should only be used for "journalpost as mulighet". */
     var alreadyUsed: Boolean = false,
 ) {
 
