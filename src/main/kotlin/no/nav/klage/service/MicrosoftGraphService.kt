@@ -3,7 +3,6 @@ package no.nav.klage.service
 import no.nav.klage.clients.azure.MicrosoftGraphClient
 import no.nav.klage.exceptions.EnhetNotFoundForSaksbehandlerException
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
 import no.nav.klage.kodeverk.Enhet as KodeverkEnhet
 
@@ -15,7 +14,6 @@ class MicrosoftGraphService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getSaksbehandlerPersonligInfo(navIdent: String): SaksbehandlerPersonligInfo {

@@ -2,7 +2,7 @@ package no.nav.klage.clients.saf.graphql
 
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
+import no.nav.klage.util.getTeamLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -18,7 +18,7 @@ class SafGraphQlClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     fun getDokumentoversiktBruker(
@@ -93,8 +93,8 @@ class SafGraphQlClient(
         previousPageRef: String?
     ) {
         if (response.errors != null) {
-            logger.error("Error from SAF, see securelogs")
-            secureLogger.error("Error from SAF when making call with following parameters: fnr=$fnr, pagesize=$pageSize, previousPageRef=$previousPageRef. Error is ${response.errors}")
+            logger.error("Error from SAF, see team-logs")
+            teamLogger.error("Error from SAF when making call with following parameters: fnr=$fnr, pagesize=$pageSize, previousPageRef=$previousPageRef. Error is ${response.errors}")
         }
     }
 
@@ -103,15 +103,15 @@ class SafGraphQlClient(
         journalpostId: String
     ) {
         if (response.errors != null) {
-            logger.error("Error from SAF, see securelogs")
-            secureLogger.error("Error from SAF when making call with following parameters: journalpostId=$journalpostId. Error is ${response.errors}")
+            logger.error("Error from SAF when making call with following parameters: journalpostId=$journalpostId. See more in team-logs")
+            teamLogger.error("Error from SAF when making call with following parameters: journalpostId=$journalpostId. Error is ${response.errors}")
         }
     }
 
     fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
         try {
-            return block.invoke().let { secureLogger.debug("Received response: {}", it); it }
+            return block.invoke()
         } finally {
             val end = System.currentTimeMillis()
             logger.debug("Time it took to call saf: ${end - start} millis")

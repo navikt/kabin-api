@@ -6,7 +6,6 @@ import no.nav.klage.clients.KlageFssProxyClient
 import no.nav.klage.clients.KlankeSearchInput
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.LocalDate
@@ -19,7 +18,6 @@ class KlageFssProxyService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getAnkemuligheterAsMono(input: IdnummerInput, token: String): Mono<List<SakFromKlanke>> {

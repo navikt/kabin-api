@@ -1,12 +1,12 @@
 package no.nav.klage.config
 
 import no.nav.klage.exceptions.*
-import no.nav.klage.util.getSecureLogger
+import no.nav.klage.util.getLogger
+import no.nav.klage.util.getTeamLogger
 import org.springframework.http.*
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
@@ -16,7 +16,8 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
-        private val secureLogger = getSecureLogger()
+        private val ourLogger = getLogger(javaClass.enclosingClass)
+        private val teamLogger = getTeamLogger()
     }
 
     /* Override to get better info when client gets 400-error */
@@ -33,77 +34,66 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     @ExceptionHandler
     fun handleResponseStatusException(
         ex: WebClientResponseException,
-        request: NativeWebRequest
     ): ProblemDetail =
         createProblemForWebClientResponseException(ex)
 
     @ExceptionHandler
     fun handleJournalpostNotFoundException(
         ex: JournalpostNotFoundException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
     fun handleRegistreringNotFoundException(
         ex: RegistreringNotFoundException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
     fun handleMulighetNotFoundException(
         ex: MulighetNotFoundException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
     fun handleGosysOppgaveClientException(
         ex: GosysOppgaveClientException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
 
     @ExceptionHandler
     fun handleInvalidSourceException(
         ex: InvalidSourceException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
     fun handleMissingAccessException(
         ex: MissingAccessException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.FORBIDDEN, ex)
 
     @ExceptionHandler
     fun handleIllegalUpdateException(
         ex: IllegalUpdateException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
     fun handleIllegalInputException(
         ex: IllegalInputException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
     fun handleRuntimeException(
         ex: RuntimeException,
-        request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
 
     @ExceptionHandler
     fun handleSectionedValidationErrorWithDetailsException(
         ex: SectionedValidationErrorWithDetailsException,
-        request: NativeWebRequest
     ): ProblemDetail =
         createSectionedValidationProblem(ex)
 
@@ -150,11 +140,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     private fun logError(httpStatus: HttpStatus, errorMessage: String, exception: Exception) {
         when {
             httpStatus.is5xxServerError -> {
-                secureLogger.error("Exception thrown to client: ${httpStatus.reasonPhrase}, $errorMessage", exception)
+                ourLogger.error("Exception thrown to client: ${exception.javaClass.name}. See team-logs for more details.")
+                teamLogger.error("Exception thrown to client: ${httpStatus.reasonPhrase}, $errorMessage", exception)
             }
 
             else -> {
-                secureLogger.warn("Exception thrown to client: ${httpStatus.reasonPhrase}, $errorMessage", exception)
+                ourLogger.warn("Exception thrown to client: ${exception.javaClass.name}. See team-logs for more details.")
+                teamLogger.warn("Exception thrown to client: ${httpStatus.reasonPhrase}, $errorMessage", exception)
             }
         }
     }
