@@ -9,7 +9,6 @@ import no.nav.klage.clients.saf.rest.ArkivertDokument
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.mapper.DokumentMapper
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
 import org.springframework.stereotype.Service
 
 @Service
@@ -22,7 +21,6 @@ class DocumentService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
         private val dokumentMapper = DokumentMapper()
     }
 

@@ -12,7 +12,6 @@ import no.nav.klage.service.KabalApiService
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
 import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
@@ -31,7 +30,6 @@ class CommonController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     @PostMapping("/calculatefrist")

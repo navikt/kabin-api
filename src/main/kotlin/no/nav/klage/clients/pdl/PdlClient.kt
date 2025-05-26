@@ -6,7 +6,6 @@ import no.nav.klage.clients.pdl.grahql.IdentGruppe
 import no.nav.klage.clients.pdl.grahql.hentIdenterQuery
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
 import no.nav.klage.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -25,7 +24,6 @@ class PdlClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun <T> runWithTiming(block: () -> T): T {
@@ -46,7 +44,11 @@ class PdlClient(
                 .bodyValue(hentIdenterQuery(ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::hentIdent.name, secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::hentIdent.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<HentIdenterResponse>()
                 .block()?.data?.hentIdenter?.identer?.find { it.gruppe == identGruppe }?.ident ?: throw RuntimeException("Person not found")

@@ -2,7 +2,6 @@ package no.nav.klage.clients.azure
 
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
 import no.nav.klage.util.logErrorResponse
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
@@ -18,7 +17,6 @@ class MicrosoftGraphClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
 
         private const val userSelect =
             "onPremisesSamAccountName,displayName,givenName,surname,userPrincipalName,streetAddress"
@@ -39,11 +37,14 @@ class MicrosoftGraphClient(
             .header("ConsistencyLevel", "eventual")
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getSaksbehandlerInfo.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getSaksbehandlerInfo.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<AzureUserList>()
             .block()?.value?.firstOrNull()
-            ?.let { secureLogger.debug("Saksbehandler: {}", it); it }
             ?: throw RuntimeException("AzureAD data about user by nav ident could not be fetched")
     }
 }

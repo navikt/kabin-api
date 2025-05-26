@@ -20,7 +20,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.util.canChangeAvsenderInJournalpost
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.getSecureLogger
+import no.nav.klage.util.getTeamLogger
 import org.springframework.stereotype.Service
 
 @Service
@@ -35,7 +35,7 @@ class DokArkivService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     private fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
@@ -185,11 +185,11 @@ class DokArkivService(
         sakInFagsystem: Sak,
         journalfoerendeEnhet: String,
     ): String {
-        logger.debug("handleJournalpost called")
+        logger.debug("handleJournalpost with id $journalpostId called. See details about journalpost in team-logs.")
         val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
             ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
 
-        secureLogger.debug(
+        teamLogger.debug(
             "handleJournalpost called. Fetched journalpostInSaf: {}, sak: {}, tema: {}",
             journalpostInSaf,
             sakInFagsystem,
@@ -244,11 +244,6 @@ class DokArkivService(
                     "createNewJournalpostBasedOnExistingJournalpost. Old journalpost id: {}",
                     journalpostInSaf.journalpostId
                 )
-                secureLogger.debug(
-                    "createNewJournalpostBasedOnExistingJournalpost. JournalpostinSaf: {}, sak: {}",
-                    journalpostInSaf,
-                    sakInFagsystem
-                )
                 val newJournalpostId = createNewJournalpostBasedOnExistingJournalpost(
                     oldJournalpost = journalpostInSaf,
                     sak = sakInFagsystem,
@@ -260,7 +255,6 @@ class DokArkivService(
             }
         } else {
             logger.debug("Journalpost is not finalized")
-            secureLogger.debug("Journalpost is not finalized: {}", journalpostInSaf)
 
             if (!journalpostIsConnectedToSakInFagsystem(
                     journalpostInSaf = journalpostInSaf,
