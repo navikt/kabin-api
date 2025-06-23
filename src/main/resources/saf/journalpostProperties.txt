@@ -71,6 +71,7 @@ dokumenter {
     dokumentvarianter {
         variantformat
         filnavn
+        filtype
         saksbehandlerHarTilgang
         skjerming
     }

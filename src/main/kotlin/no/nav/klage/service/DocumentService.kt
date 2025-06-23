@@ -60,16 +60,21 @@ class DocumentService(
     }
 
     fun fetchDokument(
-       journalpostId: String,
+        journalpostId: String,
     ): DokumentReferanse {
         val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId)!!
         return dokumentMapper.mapJournalpostToDokumentReferanse(journalpost)
     }
 
-    fun getArkivertDokument(journalpostId: String, dokumentInfoId: String): ArkivertDokument {
+    fun getArkivertDokument(
+        journalpostId: String,
+        dokumentInfoId: String,
+        variantFormat: DokumentReferanse.Variant.Format
+    ): ArkivertDokument {
         return safService.getDokument(
             journalpostId = journalpostId,
-            dokumentInfoId = dokumentInfoId
+            dokumentInfoId = dokumentInfoId,
+            variantFormat = variantFormat,
         )
     }
 

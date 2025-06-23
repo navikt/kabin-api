@@ -1,6 +1,9 @@
 package no.nav.klage.service
 
-import no.nav.klage.clients.saf.graphql.*
+import no.nav.klage.api.controller.view.DokumentReferanse
+import no.nav.klage.clients.saf.graphql.DokumentoversiktBruker
+import no.nav.klage.clients.saf.graphql.Journalpost
+import no.nav.klage.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.clients.saf.rest.ArkivertDokument
 import no.nav.klage.clients.saf.rest.SafRestClient
 import no.nav.klage.kodeverk.Tema
@@ -26,10 +29,15 @@ class SafService(
         )
     }
 
-    fun getDokument(journalpostId: String, dokumentInfoId: String): ArkivertDokument {
+    fun getDokument(
+        journalpostId: String,
+        dokumentInfoId: String,
+        variantFormat: DokumentReferanse.Variant.Format,
+    ): ArkivertDokument {
         return safRestClient.getDokument(
             dokumentInfoId = dokumentInfoId,
-            journalpostId = journalpostId
+            journalpostId = journalpostId,
+            variantFormat = variantFormat.name,
         )
     }
 

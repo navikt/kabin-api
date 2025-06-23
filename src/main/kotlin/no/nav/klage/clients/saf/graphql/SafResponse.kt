@@ -129,6 +129,7 @@ data class DokumentInfo(
 data class Dokumentvariant(
     val variantformat: Variantformat,
     val filnavn: String?,
+    val filtype: String?,
     val saksbehandlerHarTilgang: Boolean,
     val skjerming: SkjermingType?
 )

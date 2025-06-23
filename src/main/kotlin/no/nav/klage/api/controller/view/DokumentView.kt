@@ -35,7 +35,22 @@ data class DokumentReferanse(
     val canChangeAvsender: Boolean,
     /** Should only be used for "journalpost as mulighet". */
     var alreadyUsed: Boolean = false,
+    val varianter: List<Variant>,
 ) {
+
+    data class Variant(
+        val format: Format,
+        val filtype: Filtype,
+        val hasAccess: Boolean,
+    ) {
+        enum class Format {
+            ARKIV, SLADDET
+        }
+    }
+
+    enum class Filtype {
+        PDF, JPEG, PNG, TIFF, XLSX, JSON, XML, AXML, DXML, RTF
+    }
 
     enum class Journalstatus {
         //Journalposten er mottatt, men ikke journalført. "Mottatt" er et annet ord for "arkivert" eller "midlertidig journalført"
