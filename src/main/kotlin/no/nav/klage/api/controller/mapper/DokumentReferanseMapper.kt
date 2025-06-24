@@ -39,8 +39,8 @@ fun DokumentReferanse.toReceiptView(): DokumentReferanseForReceipt {
     )
 }
 
-fun DokumentReferanse.VedleggReferanse.toView(): no.nav.klage.api.controller.view.DokumentReferanse.VedleggReferanse {
-    return no.nav.klage.api.controller.view.DokumentReferanse.VedleggReferanse(
+fun DokumentReferanse.VedleggReferanse.toView(): no.nav.klage.api.controller.view.DokumentReferanse.VedleggReferanseForReceipt {
+    return no.nav.klage.api.controller.view.DokumentReferanse.VedleggReferanseForReceipt(
         dokumentInfoId = dokumentInfoId,
         tittel = tittel,
         harTilgangTilArkivvariant = harTilgangTilArkivvariant,

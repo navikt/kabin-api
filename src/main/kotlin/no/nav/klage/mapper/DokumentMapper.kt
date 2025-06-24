@@ -145,7 +145,8 @@ class DokumentMapper {
                             tittel = it.tittel,
                             logiskVedleggId = it.logiskVedleggId,
                         )
-                    }
+                    },
+                    varianter = vedlegg.toVarianter(),
                 )
             } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
         } else {
