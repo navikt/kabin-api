@@ -38,6 +38,7 @@ data class Journalpost(
     val opprettetAvNavn: String?,
     val skjerming: String?,
     val datoOpprettet: LocalDateTime,
+    val datoSortering: LocalDateTime,
     val dokumenter: List<DokumentInfo>?,
     val relevanteDatoer: List<RelevantDato>?,
     val antallRetur: String?,

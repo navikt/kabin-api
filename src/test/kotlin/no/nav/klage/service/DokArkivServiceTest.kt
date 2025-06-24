@@ -482,6 +482,7 @@ class DokArkivServiceTest {
             opprettetAvNavn = null,
             skjerming = null,
             datoOpprettet = LocalDateTime.now(),
+            datoSortering = LocalDateTime.now(),
             dokumenter = listOf(
                 DokumentInfo(
                     dokumentInfoId = "",
