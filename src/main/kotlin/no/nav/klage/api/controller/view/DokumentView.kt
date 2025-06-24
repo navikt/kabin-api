@@ -26,6 +26,7 @@ data class DokumentReferanse(
     val opprettetAvNavn: String?,
     val logiskeVedlegg: List<LogiskVedlegg>?,
     val datoOpprettet: LocalDateTime,
+    val datoSortering: LocalDateTime,
     val relevanteDatoer: List<RelevantDato>?,
     val antallRetur: Int?,
     val tilleggsopplysninger: List<Tilleggsopplysning>?,
