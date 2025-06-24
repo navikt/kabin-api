@@ -71,6 +71,7 @@ class DokumentMapper {
                 )
             },
             datoOpprettet = journalpost.datoOpprettet,
+            datoSortering = journalpost.datoSortering,
             relevanteDatoer = journalpost.relevanteDatoer?.map {
                 DokumentReferanse.RelevantDato(
                     dato = it.dato,
