@@ -1,18 +1,18 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val tokenValidationVersion = "5.0.29"
+val tokenValidationVersion = "5.0.30"
 val logstashVersion = "8.1"
 val springRetryVersion = "2.0.12"
-val springDocVersion = "2.8.8"
+val springDocVersion = "2.8.9"
 val springMockkVersion = "4.0.2"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "1.10.15"
-val testContainersVersion = "1.21.1"
-val otelVersion = "1.50.0"
+val klageKodeverkVersion = "1.10.17"
+val testContainersVersion = "1.21.2"
+val otelVersion = "1.51.0"
 
 plugins {
-    val kotlinVersion = "2.1.21"
-    id("org.springframework.boot") version "3.5.0"
+    val kotlinVersion = "2.2.0"
+    id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
