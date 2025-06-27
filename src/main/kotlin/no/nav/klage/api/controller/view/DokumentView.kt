@@ -36,7 +36,28 @@ data class DokumentReferanse(
     val canChangeAvsender: Boolean,
     /** Should only be used for "journalpost as mulighet". */
     var alreadyUsed: Boolean = false,
+    val varianter: List<Variant>,
 ) {
+
+    data class Variant(
+        val format: Format,
+        val filtype: Filtype,
+        val hasAccess: Boolean,
+        val skjerming: SkjermingType?,
+    ) {
+        enum class Format {
+            ARKIV, SLADDET
+        }
+
+        enum class SkjermingType {
+            POL,
+            FEIL,
+        }
+    }
+
+    enum class Filtype {
+        PDF, JPEG, PNG, TIFF, XLSX, JSON, XML, AXML, DXML, RTF
+    }
 
     enum class Journalstatus {
         //Journalposten er mottatt, men ikke journalført. "Mottatt" er et annet ord for "arkivert" eller "midlertidig journalført"
@@ -104,6 +125,14 @@ data class DokumentReferanse(
     }
 
     data class VedleggReferanse(
+        val dokumentInfoId: String,
+        val tittel: String?,
+        val harTilgangTilArkivvariant: Boolean,
+        val logiskeVedlegg: List<LogiskVedlegg>?,
+        val varianter: List<Variant>,
+    )
+
+    data class VedleggReferanseForReceipt(
         val dokumentInfoId: String,
         val tittel: String?,
         val harTilgangTilArkivvariant: Boolean,
@@ -183,7 +212,7 @@ data class DokumentReferanseForReceipt(
     val tema: String,
     val temaId: String,
     val harTilgangTilArkivvariant: Boolean,
-    val vedlegg: MutableList<VedleggReferanse> = mutableListOf(),
+    val vedlegg: MutableList<VedleggReferanseForReceipt> = mutableListOf(),
     val logiskeVedlegg: List<LogiskVedlegg>?,
     val journalposttype: Journalposttype?,
     val journalstatus: Journalstatus?,

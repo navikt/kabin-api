@@ -76,6 +76,7 @@ class DokumentController(
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
+        @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): ResponseEntity<ByteArray> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
@@ -85,7 +86,8 @@ class DokumentController(
 
         val arkivertDokument = documentService.getArkivertDokument(
             journalpostId = journalpostId,
-            dokumentInfoId = dokumentInfoId
+            dokumentInfoId = dokumentInfoId,
+            variantFormat = variantFormat,
         )
 
         val responseHeaders = HttpHeaders()

@@ -31,7 +31,7 @@ class DokumentMapper {
             temaId = Tema.fromNavn(journalpost.tema.name).id,
             dokumentInfoId = hoveddokument.dokumentInfoId,
             journalpostId = journalpost.journalpostId,
-            harTilgangTilArkivvariant = harTilgangTilArkivvariant(hoveddokument),
+            harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
             journalposttype = DokumentReferanse.Journalposttype.valueOf(journalpost.journalposttype.name),
             journalstatus = if (journalpost.journalstatus != null) {
                 DokumentReferanse.Journalstatus.valueOf(journalpost.journalstatus.name)
@@ -89,6 +89,7 @@ class DokumentMapper {
             kanalnavn = journalpost.kanalnavn,
             utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
             canChangeAvsender = canChangeAvsenderInJournalpost(journalpost),
+            varianter = hoveddokument.toVarianter(),
         )
 
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost))
@@ -138,13 +139,14 @@ class DokumentMapper {
                 DokumentReferanse.VedleggReferanse(
                     tittel = vedlegg.tittel,
                     dokumentInfoId = vedlegg.dokumentInfoId,
-                    harTilgangTilArkivvariant = harTilgangTilArkivvariant(vedlegg),
+                    harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(vedlegg),
                     logiskeVedlegg = vedlegg.logiskeVedlegg?.map {
                         DokumentReferanse.LogiskVedlegg(
                             tittel = it.tittel,
                             logiskVedleggId = it.logiskVedleggId,
                         )
-                    }
+                    },
+                    varianter = vedlegg.toVarianter(),
                 )
             } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
         } else {
@@ -152,8 +154,44 @@ class DokumentMapper {
         }
     }
 
-    private fun harTilgangTilArkivvariant(dokumentInfo: DokumentInfo?): Boolean =
+    private fun DokumentInfo.toVarianter(): List<DokumentReferanse.Variant> {
+        return this.dokumentvarianter.filter {
+            it.variantformat in listOf(
+                Variantformat.ARKIV,
+                Variantformat.SLADDET
+            )
+        }.map { variant ->
+            DokumentReferanse.Variant(
+                format = when (variant.variantformat) {
+                    Variantformat.ARKIV -> {
+                        DokumentReferanse.Variant.Format.ARKIV
+                    }
+                    Variantformat.SLADDET -> {
+                        DokumentReferanse.Variant.Format.SLADDET
+                    }
+                    else -> throw RuntimeException("Unknown variantformat: ${variant.variantformat}")
+                },
+                filtype = variant.filtype.toFiltype(),
+                hasAccess = variant.saksbehandlerHarTilgang,
+                skjerming = variant.skjerming?.let {
+                    DokumentReferanse.Variant.SkjermingType.valueOf(it.name)
+                }
+            )
+        }
+    }
+
+    private fun String?.toFiltype(): DokumentReferanse.Filtype {
+        return if (this != null) {
+            DokumentReferanse.Filtype.valueOf(this)
+        } else {
+            logger.warn("Filtype was null. Returning PDF as default.")
+            return DokumentReferanse.Filtype.PDF
+        }
+    }
+
+    private fun harTilgangTilArkivEllerSladdetVariant(dokumentInfo: DokumentInfo?): Boolean =
         dokumentInfo?.dokumentvarianter?.any { dv ->
-            dv.variantformat == Variantformat.ARKIV && dv.saksbehandlerHarTilgang
-        } == true
+            (dv.variantformat == Variantformat.ARKIV && dv.saksbehandlerHarTilgang) ||
+                    (dv.variantformat == Variantformat.SLADDET && dv.saksbehandlerHarTilgang)
+        } ?: false
 }

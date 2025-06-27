@@ -22,7 +22,7 @@ class SafRestClient(
     fun getDokument(
         dokumentInfoId: String,
         journalpostId: String,
-        variantFormat: String = "ARKIV"
+        variantFormat: String,
     ): ArkivertDokument {
         return try {
             runWithTimingAndLogging {
