@@ -3,7 +3,6 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
-import no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
@@ -323,7 +322,7 @@ class RegistreringService(
 
     private fun getDefaultBehandlingstidUnits(type: Type?): Int {
         return if (type == Type.ANKE) {
-            11
+            0
         } else {
             12
         }
