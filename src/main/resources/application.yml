@@ -10,8 +10,6 @@ spring:
     log-request-details: true
   lifecycle:
     timeout-per-shutdown-phase: 20s
-  codec:
-    max-in-memory-size: 256MB
   datasource:
     url: ${NAIS_DATABASE_KABIN_API_KABIN_API_JDBC_URL}
     driver-class-name: org.postgresql.Driver

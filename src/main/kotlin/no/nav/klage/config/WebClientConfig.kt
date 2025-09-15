@@ -11,6 +11,7 @@ import reactor.netty.http.client.HttpClient
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
+
 @Configuration
 class WebClientConfig {
 
@@ -30,6 +31,11 @@ class WebClientConfig {
     fun webClientBuilder(httpClient: HttpClient): WebClient.Builder {
         val connector = ReactorClientHttpConnector(httpClient)
         return WebClient.builder()
+            .codecs { configurer ->
+                configurer
+                    .defaultCodecs()
+                    .maxInMemorySize(256 * 1024 * 1024)
+            }
             .clientConnector(connector)
     }
 
