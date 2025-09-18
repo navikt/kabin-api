@@ -87,7 +87,7 @@ class KabalApiService(
                 kildereferanse = mulighet.currentFagystemTechnicalId,
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
                 svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
-                gosysOppgaveId = registrering.gosysOppgaveId,
+                gosysOppgaveId = registrering.gosysOppgaveId!!,
             )
         ).behandlingId
     }
@@ -139,7 +139,7 @@ class KabalApiService(
                 typeId = registrering.type!!.id,
             )
 
-        return kabalApiClient.createBehandling(
+        return kabalApiClient.createBehandlingBasedOnKabal(
             CreateBehandlingBasedOnKabalInput(
                 typeId = mulighet.type.id,
                 sourceBehandlingId = UUID.fromString(mulighet.currentFagystemTechnicalId),

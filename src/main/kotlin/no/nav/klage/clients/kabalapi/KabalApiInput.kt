@@ -42,7 +42,7 @@ data class CreateAnkeBasedOnKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val gosysOppgaveId: Long?,
+    val gosysOppgaveId: Long,
 )
 
 data class CreateOmgjoeringskravBasedOnJournalpostInput(

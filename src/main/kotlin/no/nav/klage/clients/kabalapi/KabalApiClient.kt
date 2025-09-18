@@ -48,7 +48,7 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun createBehandling(input: CreateBehandlingBasedOnKabalInput): CreatedBehandlingResponse {
+    fun createBehandlingBasedOnKabal(input: CreateBehandlingBasedOnKabalInput): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/createbehandling").build() }
             .header(
