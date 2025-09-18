@@ -60,7 +60,7 @@ data class CreateOmgjoeringskravBasedOnJournalpostInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val gosysOppgaveId: Long?,
+    val gosysOppgaveId: Long,
 )
 
 data class CreateKlageBasedOnKabinInput(
@@ -78,7 +78,7 @@ data class CreateKlageBasedOnKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val gosysOppgaveId: Long?,
+    val gosysOppgaveId: Long,
     val svarbrevInput: SvarbrevInput?,
 )
 

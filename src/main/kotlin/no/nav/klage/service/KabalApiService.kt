@@ -123,7 +123,8 @@ class KabalApiService(
                 kildereferanse = mulighet.currentFagystemTechnicalId,
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
                 svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
-                gosysOppgaveId = registrering.gosysOppgaveId,
+                //Gosys-oppgave is ensured in validation step.
+                gosysOppgaveId = registrering.gosysOppgaveId!!,
             )
         ).behandlingId
     }
@@ -188,7 +189,8 @@ class KabalApiService(
                 ytelseId = registrering.ytelse!!.id,
                 kildereferanse = mulighet.currentFagystemTechnicalId,
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
-                gosysOppgaveId = registrering.gosysOppgaveId,
+                //Gosys-oppgave is ensured in validation step.
+                gosysOppgaveId = registrering.gosysOppgaveId!!,
                 svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
             )
         ).behandlingId

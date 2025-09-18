@@ -12,6 +12,7 @@ class OmgjoeringskravService(
     private val validationUtil: ValidationUtil,
     private val dokArkivService: DokArkivService,
     private val kabalApiService: KabalApiService,
+    private val gosysOppgaveService: GosysOppgaveService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -29,16 +30,27 @@ class OmgjoeringskravService(
             registrering = registrering,
         )
 
-        return if (registrering.mulighetIsBasedOnJournalpost) {
-            CreatedBehandlingResponse(
+        if (registrering.mulighetIsBasedOnJournalpost) {
+            val kabalResponse = CreatedBehandlingResponse(
                 behandlingId = kabalApiService.createOmgjoeringskravBasedOnJournalpost(
                     journalpostId = journalpostId,
                     mulighet = mulighet,
                     registrering = registrering
                 )
             )
+            try {
+                //Gosys-oppgave is ensured in validation step.
+                logger.debug("Attempting Gosys-oppgave update")
+                gosysOppgaveService.updateGosysOppgave(
+                    gosysOppgaveId = registrering.gosysOppgaveId!!,
+                    tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
+                )
+            } catch (e: Exception) {
+                logger.error("Failed to update Gosys-oppgave", e)
+            }
+            return kabalResponse
         } else {
-            CreatedBehandlingResponse(
+            return CreatedBehandlingResponse(
                 behandlingId = kabalApiService.createBehandlingFromKabalInput(
                     journalpostId = journalpostId,
                     mulighet = mulighet,
