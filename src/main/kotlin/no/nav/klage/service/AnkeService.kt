@@ -78,13 +78,11 @@ class AnkeService(
         }
 
         try {
-            registrering.gosysOppgaveId?.let {
-                logger.debug("Attempting Gosys-oppgave update")
-                gosysOppgaveService.updateGosysOppgave(
-                    gosysOppgaveId = it,
-                    tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
-                )
-            }
+            logger.debug("Attempting Gosys-oppgave update")
+            gosysOppgaveService.updateGosysOppgave(
+                gosysOppgaveId = registrering.gosysOppgaveId!!,
+                tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
+            )
         } catch (e: Exception) {
             logger.error("Failed to update Gosys-oppgave", e)
         }
