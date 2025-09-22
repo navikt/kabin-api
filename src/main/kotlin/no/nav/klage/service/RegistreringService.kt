@@ -1188,8 +1188,13 @@ class RegistreringService(
         registreringId: UUID,
         input: SvarbrevRecipientInput
     ): SvarbrevReceiverChangeRegistreringView {
+        logger.debug("Adding svarbrev receiver: for registrering: $registreringId, with input: $input")
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
+                svarbrevReceivers.forEach {
+                    logger.debug("Svarbrev receiver: ${it.part.value}, type: ${it.part.type}, handling: ${it.handling}, overriddenAddress: ${it.overriddenAddress}")
+                }
+
                 if (svarbrevReceivers.any { it.part.value == input.part.identifikator }) {
                     //if the receiver is already in the list, we don't need to do anything.
                 } else {
