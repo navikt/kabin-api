@@ -1188,13 +1188,8 @@ class RegistreringService(
         registreringId: UUID,
         input: SvarbrevRecipientInput
     ): SvarbrevReceiverChangeRegistreringView {
-        logger.debug("Adding svarbrev receiver: for registrering: $registreringId, with input: $input")
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                svarbrevReceivers.forEach {
-                    logger.debug("Svarbrev receiver: ${it.part.value}, type: ${it.part.type}, handling: ${it.handling}, overriddenAddress: ${it.overriddenAddress}")
-                }
-
                 if (svarbrevReceivers.any { it.part.value == input.part.identifikator }) {
                     //if the receiver is already in the list, we don't need to do anything.
                 } else {
@@ -1242,14 +1237,8 @@ class RegistreringService(
         svarbrevReceiverId: UUID,
         input: ModifySvarbrevRecipientInput
     ): SvarbrevReceiverChangeRegistreringView {
-        logger.debug("Modifying svarbrev receiver: $svarbrevReceiverId for registrering: $registreringId, with input: $input")
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
-                //log svarbrev receivers
-                svarbrevReceivers.forEach {
-                    logger.debug("Svarbrev receiver: ${it.part.value}, type: ${it.part.type}, handling: ${it.handling}, overriddenAddress: ${it.overriddenAddress}")
-                }
-
                 val receiver = svarbrevReceivers.find { it.id == svarbrevReceiverId }
                     ?: throw ReceiverNotFoundException("Mottaker ikke funnet.")
                 receiver.apply {
@@ -1302,11 +1291,6 @@ class RegistreringService(
 
     fun finishRegistrering(registreringId: UUID): FerdigstiltRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-
-        //log svarbrev receivers
-        registrering.svarbrevReceivers.forEach {
-            logger.debug("Svarbrev receiver: ${it.part.value}, type: ${it.part.type}, handling: ${it.handling}, overriddenAddress: ${it.overriddenAddress}")
-        }
 
         val response: CreatedBehandlingResponse = when (registrering.type) {
             Type.ANKE -> {
