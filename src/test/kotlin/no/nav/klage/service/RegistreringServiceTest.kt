@@ -168,6 +168,7 @@ class ModifySvarbrevReiceversTest {
             klageService = mockk(),
             ankeService = mockk(),
             omgjoeringskravService = mockk(),
+            gjenopptakService = mockk(),
             documentService = mockk(),
             dokArkivService = mockk(),
             safService = mockk(),

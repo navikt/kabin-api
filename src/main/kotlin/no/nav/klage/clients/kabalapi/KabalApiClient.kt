@@ -87,9 +87,9 @@ class KabalApiClient(
             .block() ?: throw RuntimeException("No response")
     }
 
-    fun createOmgjoeringskravBasedOnJournalpost(input: CreateOmgjoeringskravBasedOnJournalpostInput): CreatedBehandlingResponse {
+    fun createBehandlingBasedOnJournalpost(input: CreateBehandlingBasedOnJournalpostInput): CreatedBehandlingResponse {
         return kabalApiWebClient.post()
-            .uri { it.path("/api/internal/create-omgjoeringskrav-based-on-journalpost").build() }
+            .uri { it.path("/api/internal/create-behandling-based-on-journalpost").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
@@ -115,6 +115,18 @@ class KabalApiClient(
     fun getOmgjoeringskravmuligheterByIdnummer(idnummerInput: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
         return kabalApiWebClient.post()
             .uri { it.path("/api/internal/omgjoeringskravmuligheter").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                token,
+            )
+            .bodyValue(idnummerInput)
+            .retrieve()
+            .bodyToMono<List<MulighetFromKabal>>()
+    }
+
+    fun getGjenopptaksmuligheterByIdnummer(idnummerInput: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/gjenopptaksmuligheter").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 token,

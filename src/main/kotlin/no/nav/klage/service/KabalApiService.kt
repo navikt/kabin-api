@@ -58,6 +58,13 @@ class KabalApiService(
         )
     }
 
+    fun getGjenopptaksmuligheterAsMono(input: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
+        return kabalApiClient.getGjenopptaksmuligheterByIdnummer(
+            idnummerInput = input,
+            token = token,
+        )
+    }
+
     fun createAnkeFromInfotrygdInput(
         registrering: Registrering,
         mulighet: Mulighet,
@@ -92,7 +99,7 @@ class KabalApiService(
         ).behandlingId
     }
 
-    fun createOmgjoeringskravBasedOnJournalpost(
+    fun createBehandlingBasedOnJournalpost(
         registrering: Registrering,
         mulighet: Mulighet,
         journalpostId: String,
@@ -101,8 +108,9 @@ class KabalApiService(
             ytelseId = registrering.ytelse!!.id,
             typeId = registrering.type!!.id,
         )
-        return kabalApiClient.createOmgjoeringskravBasedOnJournalpost(
-            CreateOmgjoeringskravBasedOnJournalpostInput(
+        return kabalApiClient.createBehandlingBasedOnJournalpost(
+            CreateBehandlingBasedOnJournalpostInput(
+                typeId = registrering.type!!.id,
                 sakenGjelder = OversendtPartId(
                     type = OversendtPartIdType.PERSON,
                     value = mulighet.sakenGjelder.part.value

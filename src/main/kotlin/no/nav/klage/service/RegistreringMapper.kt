@@ -256,6 +256,11 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     }.map { mulighet ->
         mulighet.toKabalmulighetView()
     },
+    gjenopptaksmuligheter = muligheter.filter {
+        it.type == Type.BEGJAERING_OM_GJENOPPTAK && !(mulighetIsBasedOnJournalpost && it.id == mulighetId)
+    }.map { mulighet ->
+        mulighet.toKabalmulighetView()
+    },
     muligheterFetched = muligheterFetched,
 )
 

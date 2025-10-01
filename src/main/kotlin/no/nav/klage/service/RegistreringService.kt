@@ -37,6 +37,7 @@ class RegistreringService(
     private val klageService: KlageService,
     private val ankeService: AnkeService,
     private val omgjoeringskravService: OmgjoeringskravService,
+    private val gjenopptakService: GjenopptakService,
     private val documentService: DocumentService,
     private val dokArkivService: DokArkivService,
     private val klageFssProxyService: KlageFssProxyService,
@@ -188,7 +189,7 @@ class RegistreringService(
                             mottattVedtaksinstans = journalpostDatoOpprettet
                         }
 
-                        Type.ANKE, Type.OMGJOERINGSKRAV -> {
+                        Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK -> {
                             mottattKlageinstans = journalpostDatoOpprettet
                         }
 
@@ -379,7 +380,7 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = newMulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV)) {
+                } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = newMulighet.klager?.part.toPartIdInput(),
@@ -415,8 +416,8 @@ class RegistreringService(
             throw IllegalStateException("Mulighet kan ikke settes basert på journalpost fordi det alternativet ikke er valgt.")
         }
 
-        if (registrering.type != Type.OMGJOERINGSKRAV) {
-            throw IllegalStateException("Mulighet kan kun settes basert på journalpost for Omgjøringskrav.")
+        if (registrering.type !in listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+            throw IllegalStateException("Mulighet kan kun settes basert på journalpost for Omgjøringskrav og Begjæring om gjenopptak.")
         }
 
         if (registrering.mulighetId != null) {
@@ -470,7 +471,7 @@ class RegistreringService(
             if (type == Type.KLAGE) {
                 mottattKlageinstans = mulighet.vedtakDate
                 mottattVedtaksinstans = journalpostDatoOpprettet
-            } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV)) {
+            } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
                 handleReceiversWhenChangingPart(
                     unchangedRegistrering = this,
                     partIdInput = mulighet.klager?.part.toPartIdInput(),
@@ -524,6 +525,12 @@ class RegistreringService(
                 input = input,
                 token = saksbehandlerAccessTokenWithKabalApiScope,
             )
+        val gjenopptaksmuligheterFromKabalMono =
+            kabalApiService.getGjenopptaksmuligheterAsMono(
+                input = input,
+                token = saksbehandlerAccessTokenWithKabalApiScope,
+            )
+
 
         val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
         val muligheterFromKabal = mutableListOf<MulighetFromKabal>()
@@ -537,6 +544,7 @@ class RegistreringService(
             ankemuligheterFromInfotrygdMono,
             ankemuligheterFromKabalMono,
             omgjoeringskravmuligheterFromKabalMono,
+            gjenopptaksmuligheterFromKabalMono,
         ).parallel()
             .runOn(Schedulers.parallel())
             .doOnNext { mulighetList ->
@@ -1311,6 +1319,12 @@ class RegistreringService(
                 )
             }
 
+            Type.BEGJAERING_OM_GJENOPPTAK -> {
+                gjenopptakService.createGjenopptak(
+                    registrering = registrering
+                )
+            }
+
             else -> {
                 throw IllegalInputException("Registreringen er av en type som ikke støttes: ${registrering.type}.")
             }
@@ -1336,6 +1350,7 @@ class RegistreringService(
         val klagemuligheter = mutableListOf<Mulighet>()
         val ankemuligheter = mutableListOf<Mulighet>()
         val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
+        val gjenopptaksmuligheter = mutableListOf<Mulighet>()
 
         registrering.muligheter.forEach { mulighet ->
             when (mulighet.type) {
@@ -1349,6 +1364,10 @@ class RegistreringService(
 
                 Type.OMGJOERINGSKRAV -> {
                     omgjoeringskravmuligheter.add(mulighet)
+                }
+
+                Type.BEGJAERING_OM_GJENOPPTAK -> {
+                    gjenopptaksmuligheter.add(mulighet)
                 }
 
                 else -> error("Not valid mulighet type: ${mulighet.type}")
@@ -1367,10 +1386,15 @@ class RegistreringService(
             omgjoeringskravmulighet.toKabalmulighetView()
         }
 
+        val gjenopptaksmuligheterView = gjenopptaksmuligheter.map { gjenopptaksmulighet ->
+            gjenopptaksmulighet.toKabalmulighetView()
+        }
+
         return MuligheterView(
             klagemuligheter = klagemuligheterView,
             ankemuligheter = ankemuligheterView,
             omgjoeringskravmuligheter = omgjoeringskravmuligheterView,
+            gjenopptaksmuligheter = gjenopptaksmuligheterView,
             muligheterFetched = registrering.muligheterFetched!!,
         )
     }
