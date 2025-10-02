@@ -8,7 +8,7 @@ import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
 
 @Service
-class OmgjoeringskravService(
+class GjenopptakService(
     private val validationUtil: ValidationUtil,
     private val dokArkivService: DokArkivService,
     private val kabalApiService: KabalApiService,
@@ -19,7 +19,7 @@ class OmgjoeringskravService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createOmgjoeringskrav(registrering: Registrering): CreatedBehandlingResponse {
+    fun createGjenopptak(registrering: Registrering): CreatedBehandlingResponse {
         val mulighet = registrering.mulighetId?.let { mulighetId ->
             registrering.muligheter.find { it.id == mulighetId }
         } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")

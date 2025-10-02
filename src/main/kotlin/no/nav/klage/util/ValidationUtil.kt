@@ -106,6 +106,7 @@ class ValidationUtil(
                 Type.KLAGE -> "Velg en klager."
                 Type.ANKE -> "Velg en ankende part."
                 Type.OMGJOERINGSKRAV -> "Velg den som krever omgjøring."
+                Type.BEGJAERING_OM_GJENOPPTAK -> "Velg den som begjærer gjenopptak."
                 else -> error("Unsupported type")
             }
 

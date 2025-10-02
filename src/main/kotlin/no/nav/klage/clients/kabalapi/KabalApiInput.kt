@@ -45,7 +45,8 @@ data class CreateAnkeBasedOnKabinInput(
     val gosysOppgaveId: Long,
 )
 
-data class CreateOmgjoeringskravBasedOnJournalpostInput(
+data class CreateBehandlingBasedOnJournalpostInput(
+    val typeId: String,
     val sakenGjelder: OversendtPartId,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,

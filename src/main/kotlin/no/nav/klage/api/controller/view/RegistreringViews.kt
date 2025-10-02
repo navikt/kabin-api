@@ -33,6 +33,7 @@ data class FullRegistreringView(
     val klagemuligheter: List<KlagemulighetView>,
     val ankemuligheter: List<KabalmulighetView>,
     val omgjoeringskravmuligheter: List<KabalmulighetView>,
+    val gjenopptaksmuligheter: List<KabalmulighetView>,
     val muligheterFetched: LocalDateTime?,
 ) {
 
