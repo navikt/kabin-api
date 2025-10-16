@@ -439,6 +439,7 @@ fun MulighetFromKabal.toMulighet(): Mulighet {
         }.toMutableSet(),
         klageBehandlendeEnhet = klageBehandlendeEnhet,
         currentFagystemTechnicalId = behandlingId.toString(),
+        requiresGosysOppgave = gosysOppgaveRequired,
     )
 }
 
@@ -468,6 +469,7 @@ fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
         previousSaksbehandlerIdent = null,
         previousSaksbehandlerName = null,
         hjemmelIdList = emptyList(),
+        requiresGosysOppgave = true,
     )
 }
 
@@ -497,6 +499,7 @@ fun Journalpost.toMulighet(kabalApiService: KabalApiService, registrering: Regis
         previousSaksbehandlerIdent = null,
         previousSaksbehandlerName = null,
         hjemmelIdList = emptyList(),
+        requiresGosysOppgave = true,
     )
 }
 
@@ -541,6 +544,7 @@ fun Mulighet.toKlagemulighetView() =
         currentFagsystemId = currentFagsystem.id,
         typeId = originalType!!.id,
         klageBehandlendeEnhet = klageBehandlendeEnhet,
+        requiresGosysOppgave = requiresGosysOppgave,
     )
 
 fun Mulighet.toKabalmulighetView(): KabalmulighetView =
@@ -570,4 +574,5 @@ fun Mulighet.toKabalmulighetView(): KabalmulighetView =
                 navn = previousSaksbehandlerName ?: "navn mangler for $it",
             )
         },
+        requiresGosysOppgave = requiresGosysOppgave,
     )

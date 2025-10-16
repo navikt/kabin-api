@@ -130,8 +130,8 @@ class RegistreringRepositoryTest {
                     status = PartStatus.Status.DEAD,
                     date = LocalDate.now()
                 )
-            )
-
+            ),
+            requiresGosysOppgave = false,
         )
 
         val registrering = testEntityManager.persistAndFlush(
