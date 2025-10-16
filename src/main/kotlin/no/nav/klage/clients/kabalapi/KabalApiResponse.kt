@@ -41,6 +41,7 @@ data class MulighetFromKabal(
     val klageBehandlendeEnhet: String,
     val tildeltSaksbehandlerIdent: String?,
     val tildeltSaksbehandlerNavn: String?,
+    val gosysOppgaveRequired: Boolean,
 )
 
 data class ExistingAnkebehandling(

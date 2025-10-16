@@ -120,6 +120,8 @@ class Mulighet(
     @CollectionTable(name = "mulighet_fullmektig_part_status", schema = "klage", joinColumns = [JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)] )
     val fullmektigStatusList: MutableSet<PartStatus> = mutableSetOf(),
 
+    @Column(name = "requires_gosys_oppgave")
+    val requiresGosysOppgave: Boolean,
     ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
