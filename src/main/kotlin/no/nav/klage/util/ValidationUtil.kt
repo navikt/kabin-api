@@ -10,7 +10,6 @@ import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
-import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import org.springframework.stereotype.Service
@@ -38,7 +37,7 @@ class ValidationUtil(
             )
         }
 
-        if (!Fagsystem.of(mulighet.originalFagsystem.id).modernized || registrering.mulighetIsBasedOnJournalpost) {
+        if (mulighet.requiresGosysOppgave) {
             if (registrering.gosysOppgaveId == null) {
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::gosysOppgaveId.name,
