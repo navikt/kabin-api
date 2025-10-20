@@ -107,6 +107,8 @@ class DokArkivServiceTest {
         every { mulighet.fagsakId } returns SAKS_ID
         every { mulighet.klageBehandlendeEnhet } returns ENHET
         every { mulighet.sakenGjelder } returns PART_WITH_UTSENDINGSKANAL
+        every { tokenUtil.getCurrentIdent() } returns "ident"
+        every { microsoftGraphService.getSaksbehandlerPersonligInfo(any()) } returns mockk { every { enhet.enhetId } returns ENHET }
     }
 
     @Nested
