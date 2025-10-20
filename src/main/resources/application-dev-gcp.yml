@@ -13,7 +13,7 @@ FSS_CLUSTER: dev-fss
 PDL_BASE_URL: https://pdl-api.dev-fss-pub.nais.io/graphql
 PDL_SCOPE: dev-fss.pdl.pdl-api
 
-GOSYS_OPPGAVE_BASE_URL: https://oppgave.dev-fss-pub.nais.io/api/v1
+GOSYS_OPPGAVE_BASE_URL: https://oppgave.intern.dev.nav.no/api/v1
 GOSYS_OPPGAVE_SCOPE: dev-fss.oppgavehandtering.oppgave
 
 spring:

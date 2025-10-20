@@ -21,6 +21,7 @@ import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.util.TokenUtil
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -36,6 +37,10 @@ class DokArkivServiceTest {
     val kabalApiService: KabalApiService = mockk()
 
     val safService: SafService = mockk()
+
+    val tokenUtil: TokenUtil = mockk()
+
+    val microsoftGraphService: MicrosoftGraphService = mockk()
 
     private val kabalInnstillingerClient: KabalInnstillingerClient = mockk()
 
@@ -91,6 +96,8 @@ class DokArkivServiceTest {
             kabalInnstillingerClient = kabalInnstillingerClient,
             kabalApiService = kabalApiService,
             gosysOppgaveClient = mockk(relaxed = true),
+            tokenUtil = tokenUtil,
+            microsoftGraphService = microsoftGraphService,
         )
 
         every { mulighet.id } returns MULIGHET_ID
