@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -29,6 +30,7 @@ class GosysOppgaveClient(
         private val teamLogger = getTeamLogger()
     }
 
+    @Retryable
     fun fetchJournalfoeringsoppgave(
         journalpostId: String,
     ): GosysOppgaveRecord? {
@@ -61,6 +63,7 @@ class GosysOppgaveClient(
         return gosysOppgaveResponse.oppgaver.firstOrNull()
     }
 
+    @Retryable
     fun fetchGosysOppgaverForAktoerIdAndTema(
         aktoerId: String,
         temaList: List<Tema>?
@@ -91,6 +94,7 @@ class GosysOppgaveClient(
         return gosysOppgaveResponse.oppgaver
     }
 
+    @Retryable
     fun ferdigstillGosysOppgave(ferdigstillGosysOppgaveRequest: FerdigstillGosysOppgaveRequest): GosysOppgaveRecord {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::ferdigstillGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
@@ -111,6 +115,7 @@ class GosysOppgaveClient(
         }
     }
 
+    @Retryable
     fun getGosysOppgave(gosysOppgaveId: Long): GosysOppgaveRecord {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
             gosysOppgaveWebClient.get()
@@ -129,6 +134,7 @@ class GosysOppgaveClient(
         }
     }
 
+    @Retryable
     fun updateGosysOppgave(gosysOppgaveId: Long, updateGosysOppgaveInput: UpdateGosysOppgaveInput): GosysOppgaveRecord {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
