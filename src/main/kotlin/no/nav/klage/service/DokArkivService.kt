@@ -18,6 +18,7 @@ import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.canChangeAvsenderInJournalpost
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getTeamLogger
@@ -30,6 +31,8 @@ class DokArkivService(
     private val kabalInnstillingerClient: KabalInnstillingerClient,
     private val kabalApiService: KabalApiService,
     private val gosysOppgaveClient: GosysOppgaveClient,
+    private val microsoftGraphService: MicrosoftGraphService,
+    private val tokenUtil: TokenUtil,
 ) {
 
     companion object {
@@ -285,10 +288,14 @@ class DokArkivService(
                 return journalpostId
             }
 
+            val currentUserIdent = tokenUtil.getCurrentIdent()
+            val currentUserInfo = microsoftGraphService.getSaksbehandlerPersonligInfo(navIdent = currentUserIdent)
+
             gosysOppgaveClient.ferdigstillGosysOppgave(
                 FerdigstillGosysOppgaveRequest(
                     oppgaveId = gosysOppgave.id,
                     versjon = gosysOppgave.versjon,
+                    endretAvEnhetsnr = currentUserInfo.enhet.enhetId,
                 )
             )
             logger.debug("Ferdigstilt journalfoeringsoppgave")

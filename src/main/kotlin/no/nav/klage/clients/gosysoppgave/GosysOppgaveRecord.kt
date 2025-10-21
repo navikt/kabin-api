@@ -88,9 +88,3 @@ data class GosysOppgaveResponse(
     val antallTreffTotalt: Int,
     val oppgaver: List<GosysOppgaveRecord>
 )
-
-data class FerdigstillGosysOppgaveRequest(
-    val oppgaveId: Long,
-    val versjon: Int,
-    val status: Status = Status.FERDIGSTILT,
-)
