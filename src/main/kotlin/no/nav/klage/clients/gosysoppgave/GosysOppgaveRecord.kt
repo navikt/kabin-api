@@ -36,7 +36,6 @@ data class GosysOppgaveRecord(
     val ferdigstiltTidspunkt: LocalDateTime?,
     val behandlesAvApplikasjon: String?,
     val journalpostkilde: String?,
-    val identer: List<Ident>?,
     val metadata: Map<String, String>?,
     val bnr: String?,
     val samhandlernr: String?,
@@ -65,18 +64,6 @@ enum class Prioritet {
     HOY,
     NORM,
     LAV
-}
-
-data class Ident(
-    val id: Long?,
-    val identType: IdentType,
-    val verdi: String,
-    val folkeregisterident: String?,
-    val registrertDato: LocalDate?
-)
-
-enum class IdentType {
-    AKTOERID, ORGNR, SAMHANDLERNR, BNR
 }
 
 enum class Statuskategori {
