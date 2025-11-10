@@ -322,6 +322,19 @@ class RegistreringController(
         return registreringService.setSendSvarbrev(registreringId = id, input = input)
     }
 
+    @PutMapping("/{id}/svarbrev/reason-no-letter")
+    fun updateReasonNoLetter(
+        @PathVariable id: UUID,
+        @RequestBody input: ReasonNoLetterInput
+    ): ReasonNoLetterChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateReasonNoLetter.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setReasonNoLetter(registreringId = id, input = input)
+    }
+
     @PutMapping("/{id}/svarbrev/override-custom-text")
     fun updateOverrideSvarbrevCustomText(
         @PathVariable id: UUID,

@@ -12,7 +12,7 @@ data class CreateBehandlingBasedOnKabalInput(
     val fullmektig: OversendtPartId?,
     val receivedDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val hjemmelIdList: List<String>,
     val gosysOppgaveId: Long?,
 )
@@ -41,7 +41,7 @@ data class CreateAnkeBasedOnKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
 )
 
@@ -60,7 +60,7 @@ data class CreateBehandlingBasedOnJournalpostInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
 )
 
@@ -80,7 +80,7 @@ data class CreateKlageBasedOnKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val gosysOppgaveId: Long,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
 )
 
 data class SvarbrevInput(
@@ -91,6 +91,8 @@ data class SvarbrevInput(
     val initialCustomText: String?,
     val varsletBehandlingstidUnits: Int,
     val varsletBehandlingstidUnitTypeId: String,
+    val doNotSendLetter: Boolean,
+    val reasonNoLetter: String?,
 
     ) {
     data class Receiver(

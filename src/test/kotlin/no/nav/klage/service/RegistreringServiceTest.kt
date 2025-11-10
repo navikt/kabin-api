@@ -221,6 +221,7 @@ class ModifySvarbrevReiceversTest {
             behandlingId = UUID.randomUUID(),
             willCreateNewJournalpost = false,
             muligheterFetched = null,
+            reasonNoLetter = null,
         )
     }
 }
