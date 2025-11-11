@@ -61,7 +61,8 @@ data class FullRegistreringView(
         val overrideCustomText: Boolean,
         val overrideBehandlingstid: Boolean,
         val customText: String?,
-        val initialCustomText: String?
+        val initialCustomText: String?,
+        val reasonNoLetter: String?,
     )
 }
 
@@ -99,6 +100,7 @@ data class TypeChangeRegistreringView(
         val overrideBehandlingstid: Boolean,
         val customText: String?,
         val initialCustomText: String?,
+        val reasonNoLetter: String?,
     )
 }
 
@@ -143,6 +145,7 @@ data class MulighetChangeRegistreringView(
         val overrideBehandlingstid: Boolean,
         val customText: String?,
         val initialCustomText: String?,
+        val reasonNoLetter: String?,
     )
 }
 
@@ -220,6 +223,7 @@ data class YtelseChangeRegistreringView(
         val overrideBehandlingstid: Boolean,
         val customText: String?,
         val initialCustomText: String?,
+        val reasonNoLetter: String?,
     )
 }
 
@@ -307,6 +311,17 @@ data class SendSvarbrevChangeRegistreringView(
 ) {
     data class SendSvarbrevChangeRegistreringSvarbrevView(
         val send: Boolean,
+        val reasonNoLetter: String?
+    )
+}
+
+data class ReasonNoLetterChangeRegistreringView(
+    val id: UUID,
+    val svarbrev: ReasonNoLetterChangeRegistreringSvarbrevView,
+    val modified: LocalDateTime,
+) {
+    data class ReasonNoLetterChangeRegistreringSvarbrevView(
+        val reasonNoLetter: String,
     )
 }
 

@@ -72,6 +72,8 @@ data class GosysOppgaveIdInput(val gosysOppgaveId: Long?)
 
 data class SendSvarbrevInput(val send: Boolean)
 
+data class ReasonNoLetterInput(val reasonNoLetter: String)
+
 data class SvarbrevFullmektigFritekstInput(val fullmektigFritekst: String?)
 
 data class SvarbrevCustomTextInput(val customText: String)

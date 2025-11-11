@@ -90,6 +90,7 @@ class RegistreringService(
                 behandlingId = null,
                 willCreateNewJournalpost = false,
                 muligheterFetched = null,
+                reasonNoLetter = null
             )
         )
 
@@ -765,7 +766,8 @@ class RegistreringService(
                 overrideCustomText = registrering.overrideSvarbrevCustomText,
                 overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
                 customText = registrering.svarbrevCustomText,
-                initialCustomText = registrering.svarbrevInitialCustomText
+                initialCustomText = registrering.svarbrevInitialCustomText,
+                reasonNoLetter = registrering.reasonNoLetter,
             ),
             modified = registrering.modified,
         )
@@ -995,10 +997,31 @@ class RegistreringService(
                 modified = LocalDateTime.now()
             }
 
+        if (input.send) {
+            registrering.apply { reasonNoLetter = null }
+        }
+
         return SendSvarbrevChangeRegistreringView(
             id = registrering.id,
             svarbrev = SendSvarbrevChangeRegistreringView.SendSvarbrevChangeRegistreringSvarbrevView(
                 send = registrering.sendSvarbrev!!,
+                reasonNoLetter = registrering.reasonNoLetter
+            ),
+            modified = registrering.modified,
+        )
+    }
+
+    fun setReasonNoLetter(registreringId: UUID, input: ReasonNoLetterInput): ReasonNoLetterChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+            .apply {
+                reasonNoLetter = input.reasonNoLetter
+                modified = LocalDateTime.now()
+            }
+
+        return ReasonNoLetterChangeRegistreringView(
+            id = registrering.id,
+            svarbrev = ReasonNoLetterChangeRegistreringView.ReasonNoLetterChangeRegistreringSvarbrevView(
+                reasonNoLetter = registrering.reasonNoLetter!!,
             ),
             modified = registrering.modified,
         )

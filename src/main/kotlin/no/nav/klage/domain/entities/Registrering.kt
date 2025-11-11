@@ -117,6 +117,8 @@ class Registrering(
     val muligheter: MutableSet<Mulighet> = mutableSetOf(),
     @Column(name = "muligheter_fetched")
     var muligheterFetched: LocalDateTime?,
+    @Column(name = "reason_no_letter")
+    var reasonNoLetter: String?,
 ) {
 
     override fun equals(other: Any?): Boolean {

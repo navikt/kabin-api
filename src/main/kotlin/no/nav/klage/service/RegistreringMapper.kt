@@ -68,6 +68,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
             overrideBehandlingstid = overrideSvarbrevBehandlingstid,
             customText = svarbrevCustomText,
             initialCustomText = svarbrevInitialCustomText,
+            reasonNoLetter = reasonNoLetter,
         ),
         modified = modified,
         willCreateNewJournalpost = willCreateNewJournalpost,
@@ -142,6 +143,7 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
             overrideBehandlingstid = overrideSvarbrevBehandlingstid,
             customText = svarbrevCustomText,
             initialCustomText = svarbrevInitialCustomText,
+            reasonNoLetter = reasonNoLetter,
         ),
         modified = modified,
         willCreateNewJournalpost = willCreateNewJournalpost,
@@ -238,6 +240,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
                 unitType = svarbrevBehandlingstidUnitType!!
             )
         } else null,
+        reasonNoLetter = reasonNoLetter
     ),
     created = created,
     modified = modified,
@@ -338,16 +341,12 @@ fun SearchPartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUt
     )
 }
 
-fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): SvarbrevInput? {
-    if (sendSvarbrev != true) {
-        return null
-    }
-
+fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): SvarbrevInput {
     return SvarbrevInput(
         title = svarbrevTitle,
         initialCustomText = svarbrevInitialCustomText,
         customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
-        receivers = svarbrevReceivers.map { receiver ->
+        receivers = if (sendSvarbrev!!) svarbrevReceivers.map { receiver ->
             SvarbrevInput.Receiver(
                 identifikator = receiver.part.value,
                 handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
@@ -361,10 +360,12 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
                     )
                 }
             )
-        },
+        } else emptyList(),
         fullmektigFritekst = svarbrevFullmektigFritekst,
         varsletBehandlingstidUnits = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnits!! else svarbrevSettings.behandlingstidUnits,
         varsletBehandlingstidUnitTypeId = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnitType!!.id else svarbrevSettings.behandlingstidUnitTypeId,
+        doNotSendLetter = !sendSvarbrev!!,
+        reasonNoLetter = reasonNoLetter,
     )
 }
 

@@ -199,7 +199,8 @@ class RegistreringRepositoryTest {
                 behandlingId = UUID.randomUUID(),
                 willCreateNewJournalpost = false,
                 muligheterFetched = LocalDateTime.now(),
-                muligheter = mutableSetOf(klagemulighet)
+                muligheter = mutableSetOf(klagemulighet),
+                reasonNoLetter = null,
             )
         )
 
@@ -339,6 +340,7 @@ class RegistreringRepositoryTest {
                 behandlingId = UUID.randomUUID(),
                 willCreateNewJournalpost = false,
                 muligheterFetched = LocalDateTime.now(),
+                reasonNoLetter = null,
             )
         )
 
@@ -419,6 +421,7 @@ class RegistreringRepositoryTest {
                 behandlingId = null,
                 willCreateNewJournalpost = false,
                 muligheterFetched = LocalDateTime.now(),
+                reasonNoLetter = null,
             )
         )
 
