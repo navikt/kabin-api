@@ -161,14 +161,16 @@ class ValidationUtil(
                     }
                 }
             }
-        } else {
-            if (registrering.reasonNoLetter.isNullOrEmpty()) {
-                svarbrevValidationErrors += InvalidProperty(
-                    field = Registrering::reasonNoLetter.name,
-                    reason = "Oppgi hvorfor det ikke skal sendes noe svarbrev."
-                )
-            }
         }
+        //TODO: Introduce after client changes.
+//        else {
+//            if (registrering.reasonNoLetter.isNullOrEmpty()) {
+//                svarbrevValidationErrors += InvalidProperty(
+//                    field = Registrering::reasonNoLetter.name,
+//                    reason = "Oppgi hvorfor det ikke skal sendes noe svarbrev."
+//                )
+//            }
+//        }
 
         if (registrering.gosysOppgaveId != null) {
             if (kabalApiClient.checkGosysOppgaveDuplicate(

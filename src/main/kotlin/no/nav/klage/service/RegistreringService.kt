@@ -767,8 +767,7 @@ class RegistreringService(
                 overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
                 customText = registrering.svarbrevCustomText,
                 initialCustomText = registrering.svarbrevInitialCustomText,
-                reasonNoLetter = registrering.reasonNoLetter
-
+                reasonNoLetter = registrering.reasonNoLetter,
             ),
             modified = registrering.modified,
         )
