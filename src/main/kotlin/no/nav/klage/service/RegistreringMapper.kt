@@ -346,7 +346,7 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
         title = svarbrevTitle,
         initialCustomText = svarbrevInitialCustomText,
         customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
-        receivers = svarbrevReceivers.map { receiver ->
+        receivers = if (sendSvarbrev!!) svarbrevReceivers.map { receiver ->
             SvarbrevInput.Receiver(
                 identifikator = receiver.part.value,
                 handling = SvarbrevInput.Receiver.HandlingEnum.valueOf(receiver.handling.name),
@@ -360,7 +360,7 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
                     )
                 }
             )
-        },
+        } else emptyList(),
         fullmektigFritekst = svarbrevFullmektigFritekst,
         varsletBehandlingstidUnits = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnits!! else svarbrevSettings.behandlingstidUnits,
         varsletBehandlingstidUnitTypeId = if (overrideSvarbrevBehandlingstid) svarbrevBehandlingstidUnitType!!.id else svarbrevSettings.behandlingstidUnitTypeId,
