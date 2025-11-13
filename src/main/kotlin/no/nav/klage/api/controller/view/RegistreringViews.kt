@@ -311,7 +311,8 @@ data class SendSvarbrevChangeRegistreringView(
 ) {
     data class SendSvarbrevChangeRegistreringSvarbrevView(
         val send: Boolean,
-        val reasonNoLetter: String?
+        val reasonNoLetter: String?,
+        val calculatedFrist: LocalDate?,
     )
 }
 
