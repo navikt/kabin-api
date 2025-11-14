@@ -1006,11 +1006,11 @@ class RegistreringService(
             svarbrev = SendSvarbrevChangeRegistreringView.SendSvarbrevChangeRegistreringSvarbrevView(
                 send = registrering.sendSvarbrev!!,
                 reasonNoLetter = registrering.reasonNoLetter,
-                calculatedFrist = if (registrering.mottattKlageinstans != null) {
+                calculatedFrist = if (registrering.mottattKlageinstans != null && registrering.svarbrevBehandlingstidUnits != null) {
                     calculateFrist(
                         fromDate = registrering.mottattKlageinstans!!,
-                        units = registrering.behandlingstidUnits.toLong(),
-                        unitType = registrering.behandlingstidUnitType
+                        units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
+                        unitType = registrering.svarbrevBehandlingstidUnitType!!
                     )
                 } else null
             ),
