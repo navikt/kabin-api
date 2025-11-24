@@ -34,7 +34,7 @@ class GosysOppgaveService(
                 listOf(tema, Tema.TRY)
             } else {
                 listOf(tema)
-            }
+            }.plus(Tema.KTR).distinct() //Tema KTR er relevant for alle områder.
         } else null
 
         val gosysOppgaveList = gosysOppgaveClient.fetchGosysOppgaverForAktoerIdAndTema(
