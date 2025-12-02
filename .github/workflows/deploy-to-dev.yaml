@@ -4,9 +4,9 @@ on:
   workflow_call:
     inputs:
       e2e_tag:
-        description: "Tag of E2E image to run"
+        description: "Git ref (branch, tag or commit) of E2E image to run"
         required: false
-        default: latest
+        default: main
         type: string
     secrets:
       NAIS_WORKLOAD_IDENTITY_PROVIDER:
@@ -18,9 +18,9 @@ on:
   workflow_dispatch:
     inputs:
       e2e_tag:
-        description: "Tag of E2E image to run"
+        description: "Git ref (branch, tag or commit) of E2E image to run"
         required: false
-        default: latest
+        default: main
         type: string
 
 run-name: Dev deploy of ${{ github.ref_name }}

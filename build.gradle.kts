@@ -13,7 +13,7 @@ val otelVersion = "1.54.0"
 
 plugins {
     val kotlinVersion = "2.2.20"
-    id("org.springframework.boot") version "3.5.5"
+    id("org.springframework.boot") version "3.5.8"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
