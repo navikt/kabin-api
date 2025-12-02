@@ -6,7 +6,7 @@ on:
       e2e_tag:
         description: "Git ref (branch, tag or commit) of E2E image to run"
         required: false
-        default: main
+        default: latest
         type: string
 
 run-name: E2E (${{ inputs.e2e_tag }})
