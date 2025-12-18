@@ -70,13 +70,12 @@ class GosysOppgaveClient(
     ): List<GosysOppgaveRecord> {
         val gosysOppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaverForAktoerIdAndTema.name) {
-                val temaNameList = temaList?.map { it.navn }?.joinToString { ", " }
                 gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
                         uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
-                        temaNameList?.let { uriBuilder.queryParam("tema", temaNameList) }
+                        uriBuilder.queryParam("tema", temaList?.map { it.navn })
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)
                         uriBuilder.build()
