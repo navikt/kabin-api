@@ -75,7 +75,7 @@ class GosysOppgaveClient(
                         uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
                         uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
-                        temaList?.let { uriBuilder.queryParam("tema", temaList.map { it.navn }) }
+                        temaList?.let { uriBuilder.queryParam("tema", temaList?.map { it.navn }) }
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)
                         uriBuilder.build()

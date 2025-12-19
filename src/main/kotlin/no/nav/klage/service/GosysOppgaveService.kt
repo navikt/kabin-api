@@ -117,9 +117,9 @@ class GosysOppgaveService(
             beskrivelse = beskrivelse,
             endretAv = endretAv,
             endretAvEnhetsnr = endretAvEnhetsnr,
-            endretTidspunkt = endretTidspunkt,
+            endretTidspunkt = endretTidspunkt?.toLocalDateTime(),
             opprettetAvEnhetsnr = opprettetAvEnhetsnr,
-            opprettetTidspunkt = opprettetTidspunkt,
+            opprettetTidspunkt = opprettetTidspunkt.toLocalDateTime(),
             fristFerdigstillelse = fristFerdigstillelse,
             alreadyUsed = alreadyUsed,
         )
