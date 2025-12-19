@@ -1,9 +1,8 @@
 package no.nav.klage.clients.gosysoppgave
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GosysOppgaveRecord(
@@ -28,12 +27,9 @@ data class GosysOppgaveRecord(
     val aktivDato: String?,
     val opprettetAv: String?,
     val endretAv: String?,
-    @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
-    val opprettetTidspunkt: LocalDateTime,
-    @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
-    val endretTidspunkt: LocalDateTime?,
-    @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
-    val ferdigstiltTidspunkt: LocalDateTime?,
+    val opprettetTidspunkt: OffsetDateTime,
+    val endretTidspunkt: OffsetDateTime?,
+    val ferdigstiltTidspunkt: OffsetDateTime?,
     val behandlesAvApplikasjon: String?,
     val journalpostkilde: String?,
     val metadata: Map<String, String>?,
