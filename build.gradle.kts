@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val tokenValidationVersion = "6.0.0"
 val logstashVersion = "9.0"
-val springRetryVersion = "2.0.12"
 val springDocVersion = "3.0.0"
 val springMockkVersion = "5.0.1"
 val logbackSyslog4jVersion = "1.0.0"
@@ -13,7 +12,7 @@ val otelVersion = "1.57.0"
 
 plugins {
     val kotlinVersion = "2.3.0"
-    id("org.springframework.boot") version "4.0.0"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
@@ -62,8 +61,6 @@ dependencies {
 
     implementation("no.nav.security:token-validation-spring:$tokenValidationVersion")
     implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
-
-    implementation("org.springframework.retry:spring-retry:$springRetryVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

@@ -11,7 +11,7 @@ externalHosts:
 #Some FE app
 inboundApplications:
   - application: kabin
-springProfile: dev-gcp
+springProfile: dev
 tenant: trygdeetaten.no
 
 adRoles:
@@ -43,4 +43,4 @@ envs:
 db_tier: db-f1-micro
 db_size: 10
 db_ha: false
-db_type: POSTGRES_14
+db_type: POSTGRES_15

@@ -9,7 +9,7 @@ externalHosts:
   - host: pdl-api.prod-fss-pub.nais.io
 inboundApplications:
   - application: kabin
-springProfile: prod-gcp
+springProfile: prod
 tenant: nav.no
 
 adRoles:
@@ -39,4 +39,4 @@ envs:
 db_tier: db-custom-1-3840
 db_size: 10
 db_ha: true
-db_type: POSTGRES_14
+db_type: POSTGRES_15
