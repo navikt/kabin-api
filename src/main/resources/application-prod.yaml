@@ -15,3 +15,9 @@ PDL_SCOPE: prod-fss.pdl.pdl-api
 
 GOSYS_OPPGAVE_BASE_URL: https://oppgave.prod-fss-pub.nais.io/api/v1
 GOSYS_OPPGAVE_SCOPE: prod-fss.oppgavehandtering.oppgave
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
