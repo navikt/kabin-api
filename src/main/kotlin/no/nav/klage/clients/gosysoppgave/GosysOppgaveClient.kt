@@ -50,7 +50,7 @@ class GosysOppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
-//                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<GosysOppgaveResponse>()
@@ -84,7 +84,7 @@ class GosysOppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
-//                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<GosysOppgaveResponse>()
@@ -126,7 +126,7 @@ class GosysOppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
-//                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
@@ -146,7 +146,7 @@ class GosysOppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
-//                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
@@ -167,7 +167,7 @@ class GosysOppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
-//                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<Gjelder>>()
@@ -190,7 +190,7 @@ class GosysOppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
-//                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<GosysOppgavetypeResponse>>()
