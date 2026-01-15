@@ -50,7 +50,7 @@ class GosysOppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
-                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+//                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<GosysOppgaveResponse>()
