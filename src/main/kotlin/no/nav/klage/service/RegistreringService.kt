@@ -1404,21 +1404,27 @@ class RegistreringService(
             }
         }
 
-        val klagemuligheterView = klagemuligheter.map { klagemulighet ->
-            klagemulighet.toKlagemulighetView()
-        }
+        val klagemuligheterView = klagemuligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
+            .map { klagemulighet ->
+                klagemulighet.toKlagemulighetView()
+            }
 
-        val ankemuligheterView = ankemuligheter.map { ankemulighet ->
-            ankemulighet.toKabalmulighetView()
-        }
+        val ankemuligheterView = ankemuligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
+            .map { ankemulighet ->
+                ankemulighet.toKabalmulighetView()
+            }
 
-        val omgjoeringskravmuligheterView = omgjoeringskravmuligheter.map { omgjoeringskravmulighet ->
-            omgjoeringskravmulighet.toKabalmulighetView()
-        }
+        val omgjoeringskravmuligheterView =
+            omgjoeringskravmuligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
+                .map { omgjoeringskravmulighet ->
+                    omgjoeringskravmulighet.toKabalmulighetView()
+                }
 
-        val gjenopptaksmuligheterView = gjenopptaksmuligheter.map { gjenopptaksmulighet ->
-            gjenopptaksmulighet.toKabalmulighetView()
-        }
+        val gjenopptaksmuligheterView =
+            gjenopptaksmuligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
+                .map { gjenopptaksmulighet ->
+                    gjenopptaksmulighet.toKabalmulighetView()
+                }
 
         return MuligheterView(
             klagemuligheter = klagemuligheterView,
