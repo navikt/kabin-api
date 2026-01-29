@@ -8,12 +8,14 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
-@Table(name = "mulighet_existing_ankebehandling", schema = "klage")
-class ExistingAnkebehandling(
+@Table(name = "mulighet_existing_behandling", schema = "klage")
+class ExistingBehandling(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "ankebehandling_id")
-    val ankebehandlingId: UUID,
+    @Column(name = "type_id")
+    val typeId: String,
+    @Column(name = "behandling_id")
+    val behandlingId: UUID,
     @Column(name = "created")
     val created: LocalDateTime,
     @Column(name = "completed")

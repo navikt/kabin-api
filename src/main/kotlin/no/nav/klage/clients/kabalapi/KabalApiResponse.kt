@@ -28,7 +28,7 @@ data class MulighetFromKabal(
     val behandlingId: UUID,
     val originalTypeId: String,
     val typeId: String,
-    val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
+    val existingBehandlingList: List<ExistingBehandling>,
     val ytelseId: String,
     val hjemmelIdList: List<String>,
     val vedtakDate: LocalDateTime,
@@ -44,7 +44,8 @@ data class MulighetFromKabal(
     val gosysOppgaveRequired: Boolean,
 )
 
-data class ExistingAnkebehandling(
+data class ExistingBehandling(
+    val typeId: String,
     val id: UUID,
     val created: LocalDateTime,
     val completed: LocalDateTime?,
