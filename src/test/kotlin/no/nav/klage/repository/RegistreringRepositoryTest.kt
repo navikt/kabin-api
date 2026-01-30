@@ -94,9 +94,10 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
             originalType = Type.ANKE,
             klageBehandlendeEnhet = "4200",
             currentFagystemTechnicalId = UUID.randomUUID().toString(),
-            sourceOfExistingAnkebehandling = mutableSetOf(
-                ExistingAnkebehandling(
-                    ankebehandlingId = UUID.randomUUID(),
+            existingBehandlingList = mutableSetOf(
+                ExistingBehandling(
+                    typeId = Type.ANKE.id,
+                    behandlingId = UUID.randomUUID(),
                     created = LocalDateTime.now(),
                     completed = LocalDateTime.now().plusDays(1)
                 )

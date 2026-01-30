@@ -105,7 +105,7 @@ class Mulighet(
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)
-    val sourceOfExistingAnkebehandling: MutableSet<ExistingAnkebehandling> = mutableSetOf(),
+    val existingBehandlingList: MutableSet<ExistingBehandling> = mutableSetOf(),
 
     //TODO: Maybe move these to embedded class PartStatus
     @ElementCollection
@@ -137,7 +137,8 @@ class Mulighet(
     }
 
     override fun toString(): String {
-        return "Mulighet(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, currentFagsystem=$currentFagsystem, originalFagsystem=$originalFagsystem, fagsakId='$fagsakId', tema=$tema, vedtakDate=$vedtakDate, ytelse=$ytelse, hjemmelIdList=$hjemmelIdList, previousSaksbehandlerIdent=$previousSaksbehandlerIdent, previousSaksbehandlerName=$previousSaksbehandlerName, type=$type, klageBehandlendeEnhet=$klageBehandlendeEnhet, currentFagystemTechnicalId=$currentFagystemTechnicalId, created=$created, sourceOfExistingAnkebehandling=$sourceOfExistingAnkebehandling, sakenGjelderStatusList=$sakenGjelderStatusList, klagerStatusList=$klagerStatusList, fullmektigStatusList=$fullmektigStatusList)"
+        return "Mulighet(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, currentFagsystem=$currentFagsystem, originalFagsystem=$originalFagsystem, fagsakId='$fagsakId', tema=$tema, vedtakDate=$vedtakDate, ytelse=$ytelse, hjemmelIdList=$hjemmelIdList, previousSaksbehandlerIdent=$previousSaksbehandlerIdent, previousSaksbehandlerName=$previousSaksbehandlerName, type=$type, originalType=$originalType, klageBehandlendeEnhet='$klageBehandlendeEnhet', currentFagystemTechnicalId='$currentFagystemTechnicalId', created=$created, existingBehandlingList=$existingBehandlingList, sakenGjelderStatusList=$sakenGjelderStatusList, klagerStatusList=$klagerStatusList, fullmektigStatusList=$fullmektigStatusList, requiresGosysOppgave=$requiresGosysOppgave)"
     }
+
 
 }

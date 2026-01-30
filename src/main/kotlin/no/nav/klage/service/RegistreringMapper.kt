@@ -431,9 +431,10 @@ fun MulighetFromKabal.toMulighet(): Mulighet {
         fullmektig = fullmektig.toPartWithUtsendingskanal(),
         previousSaksbehandlerIdent = tildeltSaksbehandlerIdent,
         previousSaksbehandlerName = tildeltSaksbehandlerNavn,
-        sourceOfExistingAnkebehandling = sourceOfExistingAnkebehandling.map {
-            no.nav.klage.domain.entities.ExistingAnkebehandling(
-                ankebehandlingId = it.id,
+        existingBehandlingList = existingBehandlingList.map {
+            no.nav.klage.domain.entities.ExistingBehandling(
+                typeId = it.typeId,
+                behandlingId = it.id,
                 created = it.created,
                 completed = it.completed,
             )
@@ -558,9 +559,10 @@ fun Mulighet.toKabalmulighetView(): KabalmulighetView =
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
         typeId = originalType!!.id,
-        sourceOfExistingBehandlinger = sourceOfExistingAnkebehandling.map {
-            ExistingBehandling(
-                id = it.ankebehandlingId,
+        sourceOfExistingBehandlinger = existingBehandlingList.map {
+            ExistingBehandlingView(
+                typeId = it.typeId,
+                id = it.behandlingId,
                 created = it.created,
                 completed = it.completed,
             )
