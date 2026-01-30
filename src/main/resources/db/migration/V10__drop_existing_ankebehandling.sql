@@ -1,0 +1,1 @@
+DROP TABLE klage.mulighet_existing_ankebehandling;
