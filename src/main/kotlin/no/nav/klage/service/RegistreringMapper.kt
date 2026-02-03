@@ -265,7 +265,68 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
         mulighet.toKabalmulighetView()
     },
     muligheterFetched = muligheterFetched,
+    muligheter = toMuligheterView(),
 )
+
+private fun getMuligheterSorted(muligheter: MutableList<Mulighet>): List<Mulighet> =
+    muligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
+
+fun Registrering.toMuligheterView() : MuligheterView {
+    val klagemuligheter = mutableListOf<Mulighet>()
+    val ankemuligheter = mutableListOf<Mulighet>()
+    val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
+    val gjenopptaksmuligheter = mutableListOf<Mulighet>()
+
+    muligheter.forEach { mulighet ->
+        when (mulighet.type) {
+            Type.KLAGE -> {
+                klagemuligheter.add(mulighet)
+            }
+
+            Type.ANKE -> {
+                ankemuligheter.add(mulighet)
+            }
+
+            Type.OMGJOERINGSKRAV -> {
+                omgjoeringskravmuligheter.add(mulighet)
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK -> {
+                gjenopptaksmuligheter.add(mulighet)
+            }
+
+            else -> error("Not valid mulighet type: ${mulighet.type}")
+        }
+    }
+
+    val klagemuligheterView = getMuligheterSorted(klagemuligheter)
+        .map { klagemulighet ->
+            klagemulighet.toKlagemulighetView()
+        }
+
+    val ankemuligheterView = getMuligheterSorted(ankemuligheter)
+        .map { ankemulighet ->
+            ankemulighet.toKabalmulighetView()
+        }
+
+    val omgjoeringskravmuligheterView = getMuligheterSorted(omgjoeringskravmuligheter)
+        .map { omgjoeringskravmulighet ->
+            omgjoeringskravmulighet.toKabalmulighetView()
+        }
+
+    val gjenopptaksmuligheterView = getMuligheterSorted(gjenopptaksmuligheter)
+        .map { gjenopptaksmulighet ->
+            gjenopptaksmulighet.toKabalmulighetView()
+        }
+
+    return MuligheterView(
+        klagemuligheter = klagemuligheterView,
+        ankemuligheter = ankemuligheterView,
+        omgjoeringskravmuligheter = omgjoeringskravmuligheterView,
+        gjenopptaksmuligheter = gjenopptaksmuligheterView,
+        muligheterFetched = muligheterFetched!!,
+    )
+}
 
 fun Registrering.partViewWithOptionalUtsendingskanal(
     identifikator: String,

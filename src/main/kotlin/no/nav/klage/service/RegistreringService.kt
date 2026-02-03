@@ -1376,63 +1376,7 @@ class RegistreringService(
     fun getMuligheter(registreringId: UUID): MuligheterView {
         val registrering = getRegistreringForUpdate(registreringId)
         registrering.reinitializeMuligheter()
-
-        val klagemuligheter = mutableListOf<Mulighet>()
-        val ankemuligheter = mutableListOf<Mulighet>()
-        val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
-        val gjenopptaksmuligheter = mutableListOf<Mulighet>()
-
-        registrering.muligheter.forEach { mulighet ->
-            when (mulighet.type) {
-                Type.KLAGE -> {
-                    klagemuligheter.add(mulighet)
-                }
-
-                Type.ANKE -> {
-                    ankemuligheter.add(mulighet)
-                }
-
-                Type.OMGJOERINGSKRAV -> {
-                    omgjoeringskravmuligheter.add(mulighet)
-                }
-
-                Type.BEGJAERING_OM_GJENOPPTAK -> {
-                    gjenopptaksmuligheter.add(mulighet)
-                }
-
-                else -> error("Not valid mulighet type: ${mulighet.type}")
-            }
-        }
-
-        val klagemuligheterView = klagemuligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
-            .map { klagemulighet ->
-                klagemulighet.toKlagemulighetView()
-            }
-
-        val ankemuligheterView = ankemuligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
-            .map { ankemulighet ->
-                ankemulighet.toKabalmulighetView()
-            }
-
-        val omgjoeringskravmuligheterView =
-            omgjoeringskravmuligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
-                .map { omgjoeringskravmulighet ->
-                    omgjoeringskravmulighet.toKabalmulighetView()
-                }
-
-        val gjenopptaksmuligheterView =
-            gjenopptaksmuligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
-                .map { gjenopptaksmulighet ->
-                    gjenopptaksmulighet.toKabalmulighetView()
-                }
-
-        return MuligheterView(
-            klagemuligheter = klagemuligheterView,
-            ankemuligheter = ankemuligheterView,
-            omgjoeringskravmuligheter = omgjoeringskravmuligheterView,
-            gjenopptaksmuligheter = gjenopptaksmuligheterView,
-            muligheterFetched = registrering.muligheterFetched!!,
-        )
+        return registrering.toMuligheterView()
     }
 
     fun getMulighetFromBehandlingId(behandlingId: UUID): Mulighet {
