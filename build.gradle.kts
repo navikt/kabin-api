@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val tokenValidationVersion = "6.0.1"
+val tokenValidationVersion = "6.0.2"
 val logstashVersion = "9.0"
 val springDocVersion = "3.0.1"
 val springMockkVersion = "5.0.1"
