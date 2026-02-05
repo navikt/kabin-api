@@ -30,16 +30,6 @@ data class FullRegistreringView(
     val finished: LocalDateTime?,
     val behandlingId: UUID?,
     val willCreateNewJournalpost: Boolean,
-    @Deprecated("Use muligheter instead")
-    val klagemuligheter: List<KlagemulighetView>,
-    @Deprecated("Use muligheter instead")
-    val ankemuligheter: List<KabalmulighetView>,
-    @Deprecated("Use muligheter instead")
-    val omgjoeringskravmuligheter: List<KabalmulighetView>,
-    @Deprecated("Use muligheter instead")
-    val gjenopptaksmuligheter: List<KabalmulighetView>,
-    @Deprecated("Use muligheter instead")
-    val muligheterFetched: LocalDateTime?,
     val muligheter: MuligheterView,
 ) {
 
