@@ -248,23 +248,6 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     finished = finished,
     behandlingId = behandlingId,
     willCreateNewJournalpost = willCreateNewJournalpost,
-    klagemuligheter = muligheter.filter { it.type == Type.KLAGE }.map { mulighet ->
-        mulighet.toKlagemulighetView()
-    },
-    ankemuligheter = muligheter.filter { it.type == Type.ANKE }.map { mulighet ->
-        mulighet.toKabalmulighetView()
-    },
-    omgjoeringskravmuligheter = muligheter.filter {
-        it.type == Type.OMGJOERINGSKRAV && !(mulighetIsBasedOnJournalpost && it.id == mulighetId)
-    }.map { mulighet ->
-        mulighet.toKabalmulighetView()
-    },
-    gjenopptaksmuligheter = muligheter.filter {
-        it.type == Type.BEGJAERING_OM_GJENOPPTAK && !(mulighetIsBasedOnJournalpost && it.id == mulighetId)
-    }.map { mulighet ->
-        mulighet.toKabalmulighetView()
-    },
-    muligheterFetched = muligheterFetched,
     muligheter = toMuligheterView(),
 )
 
