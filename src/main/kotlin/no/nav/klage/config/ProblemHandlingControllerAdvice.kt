@@ -32,9 +32,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     }
 
     @ExceptionHandler
-    fun handleResponseStatusException(
-        ex: WebClientResponseException,
-    ): ProblemDetail =
+    fun handleResponseStatusException(ex: WebClientResponseException): ResponseEntity<Any> =
         createProblemForWebClientResponseException(ex)
 
     @ExceptionHandler
@@ -97,17 +95,30 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ): ProblemDetail =
         createSectionedValidationProblem(ex)
 
-    private fun createProblemForWebClientResponseException(ex: WebClientResponseException): ProblemDetail {
+    private fun createProblemForWebClientResponseException(ex: WebClientResponseException): ResponseEntity<Any> {
         logError(
             httpStatus = HttpStatus.valueOf(ex.statusCode.value()),
-            errorMessage = ex.statusText + ": " + ex.responseBodyAsString,
+            errorMessage = ex.statusText,
             exception = ex
         )
 
-        return ProblemDetail.forStatus(ex.statusCode).apply {
+        val contentType = ex.headers.contentType
+        if (contentType != null && MediaType.APPLICATION_PROBLEM_JSON.isCompatibleWith(contentType)) {
+            logger.debug("Upstream returned problem+json compatible error, passing through as-is.")
+            // Pass through as-is when upstream already returned problem+json
+            val body = ex.responseBodyAsByteArray
+            return ResponseEntity.status(ex.statusCode).contentType(contentType).body(body)
+        }
+
+        // Fallback: wrap into a ProblemDetail
+        val problemDetail = ProblemDetail.forStatus(ex.statusCode).apply {
             title = ex.statusText
             detail = ex.responseBodyAsString
         }
+        return ResponseEntity
+            .status(ex.statusCode)
+            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+            .body(problemDetail)
     }
 
     private fun createSectionedValidationProblem(ex: SectionedValidationErrorWithDetailsException): ProblemDetail {
