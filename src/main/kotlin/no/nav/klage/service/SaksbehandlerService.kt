@@ -18,7 +18,7 @@ class SaksbehandlerService(
         val data = try {
             klageLookupClient.getUserInfo(navIdent = navIdent)
         } catch (e: Exception) {
-            logger.warn("Failed to call getSaksbehandler", e)
+            logger.warn("Failed to call getUserInfo", e)
             throw e
         }
         return SaksbehandlerPersonligInfo(
