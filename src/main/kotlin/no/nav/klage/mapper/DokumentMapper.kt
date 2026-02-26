@@ -185,7 +185,7 @@ class DokumentMapper {
             DokumentReferanse.Filtype.valueOf(this)
         } else {
             logger.warn("Filtype was null. Returning PDF as default.")
-            return DokumentReferanse.Filtype.PDF
+            DokumentReferanse.Filtype.PDF
         }
     }
 

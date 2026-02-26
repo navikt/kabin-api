@@ -30,7 +30,7 @@ class DokArkivClient(
         try {
             val journalpostResponse = dokArkivWebClient.put()
                 .uri("/journalpost/${oldJournalpostId}/knyttTilAnnenSak")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}")
                 .header("Nav-Consumer-Id", applicationName)
                 .header("Nav-User-Id", tokenUtil.getCurrentIdent())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -55,7 +55,7 @@ class DokArkivClient(
                 .uri("/journalpost/${journalpostId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(input)
@@ -78,7 +78,7 @@ class DokArkivClient(
                 .uri("/journalpost/${journalpostId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(input)
@@ -102,7 +102,7 @@ class DokArkivClient(
                 .uri("/journalpost/${journalpostId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(input)
@@ -126,7 +126,7 @@ class DokArkivClient(
                 .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(
@@ -156,7 +156,7 @@ class DokArkivClient(
                 .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(
@@ -183,7 +183,7 @@ class DokArkivClient(
                 .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
                 )
                 .retrieve()
                 .bodyToMono<Void>()
@@ -201,7 +201,7 @@ class DokArkivClient(
                 .uri("/journalpost/${journalpostId}/ferdigstill")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
                 )
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(FerdigstillJournalpostPayload(journalfoerendeEnhet))

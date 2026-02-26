@@ -476,7 +476,7 @@ fun MulighetFromKabal.toMulighet(): Mulighet {
         previousSaksbehandlerIdent = tildeltSaksbehandlerIdent,
         previousSaksbehandlerName = tildeltSaksbehandlerNavn,
         existingBehandlingList = existingBehandlingList.map {
-            no.nav.klage.domain.entities.ExistingBehandling(
+            ExistingBehandling(
                 typeId = it.typeId,
                 behandlingId = it.id,
                 created = it.created,
@@ -572,7 +572,7 @@ fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal?.toPartWithUtsendi
                 )
             },
             language = language,
-            utsendingskanal = no.nav.klage.domain.entities.PartWithUtsendingskanal.Utsendingskanal.valueOf(
+            utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.valueOf(
                 utsendingskanal.name
             ),
         )

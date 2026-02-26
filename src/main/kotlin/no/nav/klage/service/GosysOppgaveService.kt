@@ -16,7 +16,7 @@ class GosysOppgaveService(
     private val gosysOppgaveClient: GosysOppgaveClient,
     private val pdlClient: PdlClient,
     private val kabalApiService: KabalApiService,
-    private val microsoftGraphService: MicrosoftGraphService,
+    private val saksbehandlerService: SaksbehandlerService,
     private val tokenUtil: TokenUtil,
 ) {
 
@@ -58,14 +58,14 @@ class GosysOppgaveService(
         tildeltSaksbehandlerIdent: String?,
     ) {
         val currentUserIdent = tokenUtil.getCurrentIdent()
-        val currentUserInfo = microsoftGraphService.getSaksbehandlerPersonligInfo(navIdent = currentUserIdent)
+        val currentUserInfo = saksbehandlerService.getSaksbehandlerPersonligInfo(navIdent = currentUserIdent)
         val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId)
 
         var comment = "Overførte oppgaven fra Kabin til Kabal."
 
         val (tilordnetRessurs, tildeltEnhetsnr) = if (tildeltSaksbehandlerIdent != null) {
             val tildeltSaksbehandlerInfo =
-                microsoftGraphService.getSaksbehandlerPersonligInfo(tildeltSaksbehandlerIdent)
+                saksbehandlerService.getSaksbehandlerPersonligInfo(tildeltSaksbehandlerIdent)
             comment += "\nTildelte oppgaven til $tildeltSaksbehandlerIdent."
             tildeltSaksbehandlerIdent to tildeltSaksbehandlerInfo.enhet.enhetId
         } else {
@@ -94,7 +94,7 @@ class GosysOppgaveService(
     private fun getNewBeskrivelse(
         newBeskrivelsePart: String,
         existingBeskrivelse: String?,
-        currentUserInfo: MicrosoftGraphService.SaksbehandlerPersonligInfo,
+        currentUserInfo: SaksbehandlerService.SaksbehandlerPersonligInfo,
     ): String {
         val formattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
 

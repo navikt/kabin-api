@@ -48,7 +48,7 @@ class GosysOppgaveClient(
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
                     )
                     .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
@@ -82,7 +82,7 @@ class GosysOppgaveClient(
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
                     )
                     .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
@@ -104,7 +104,7 @@ class GosysOppgaveClient(
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
                 )
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
@@ -124,7 +124,7 @@ class GosysOppgaveClient(
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
                 )
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
@@ -144,7 +144,7 @@ class GosysOppgaveClient(
                 .bodyValue(updateGosysOppgaveInput)
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
                 )
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
@@ -165,7 +165,7 @@ class GosysOppgaveClient(
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
                     )
                     .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
@@ -188,7 +188,7 @@ class GosysOppgaveClient(
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
                     )
                     .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)

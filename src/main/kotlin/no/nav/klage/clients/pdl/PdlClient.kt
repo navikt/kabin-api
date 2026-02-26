@@ -40,7 +40,7 @@ class PdlClient(
     fun hentIdent(ident: String, identGruppe: IdentGruppe): String {
         return runWithTiming {
             pdlWebClient.post()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithPdlScope()}")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getOnBehalfOfTokenWithPdlScope()}")
                 .bodyValue(hentIdenterQuery(ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->

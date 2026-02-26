@@ -42,13 +42,13 @@ class DevOnlyController(
     @Unprotected
     @GetMapping("/internal/dokarkivtoken")
     fun getDokarkivToken(): String {
-        return tokenUtil.getSaksbehandlerAccessTokenWithDokArkivScope()
+        return tokenUtil.getOnBehalfOfTokenWithDokArkivScope()
     }
 
     @Unprotected
     @GetMapping("/internal/gosysoppgavetoken")
     fun getGosysOppgaveToken(): String {
-        return tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()
+        return tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()
     }
 
     @GetMapping("/gosysoppgaver/{fnr}")

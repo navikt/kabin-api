@@ -17,7 +17,7 @@ class KabalInnstillingerClient(
             .uri("/me/brukerdata")
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalInnstillingerScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalInnstillingerScope()}"
             )
             .retrieve()
             .bodyToMono<SaksbehandlerView>()

@@ -95,6 +95,12 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ): ProblemDetail =
         createSectionedValidationProblem(ex)
 
+    @ExceptionHandler
+    fun handleUserNotFoundException(
+        ex: UserNotFoundException,
+    ): ProblemDetail =
+        create(HttpStatus.NOT_FOUND, ex)
+
     private fun createProblemForWebClientResponseException(ex: WebClientResponseException): ResponseEntity<Any> {
         logError(
             httpStatus = HttpStatus.valueOf(ex.statusCode.value()),

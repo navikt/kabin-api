@@ -40,7 +40,7 @@ class DokArkivServiceTest {
 
     val tokenUtil: TokenUtil = mockk()
 
-    val microsoftGraphService: MicrosoftGraphService = mockk()
+    val saksbehandlerService: SaksbehandlerService = mockk()
 
     private val kabalInnstillingerClient: KabalInnstillingerClient = mockk()
 
@@ -97,7 +97,7 @@ class DokArkivServiceTest {
             kabalApiService = kabalApiService,
             gosysOppgaveClient = mockk(relaxed = true),
             tokenUtil = tokenUtil,
-            microsoftGraphService = microsoftGraphService,
+            saksbehandlerService = saksbehandlerService,
         )
 
         every { mulighet.id } returns MULIGHET_ID
@@ -108,7 +108,7 @@ class DokArkivServiceTest {
         every { mulighet.klageBehandlendeEnhet } returns ENHET
         every { mulighet.sakenGjelder } returns PART_WITH_UTSENDINGSKANAL
         every { tokenUtil.getCurrentIdent() } returns "ident"
-        every { microsoftGraphService.getSaksbehandlerPersonligInfo(any()) } returns mockk { every { enhet.enhetId } returns ENHET }
+        every { saksbehandlerService.getSaksbehandlerPersonligInfo(any()) } returns mockk { every { enhet.enhetId } returns ENHET }
     }
 
     @Nested

@@ -33,7 +33,7 @@ class SafGraphQlClient(
                 .uri("graphql")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithSafScope()}"
                 )
                 .bodyValue(hentDokumentoversiktBrukerQuery(idnummer, tema, pageSize, previousPageRef))
                 .retrieve()
@@ -54,7 +54,7 @@ class SafGraphQlClient(
 
     fun getJournalpostAsSaksbehandler(journalpostId: String): Journalpost? {
         return runWithTimingAndLogging {
-            val token = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
+            val token = tokenUtil.getOnBehalfOfTokenWithSafScope()
             getJournalpostWithToken(journalpostId, token)
         }
     }

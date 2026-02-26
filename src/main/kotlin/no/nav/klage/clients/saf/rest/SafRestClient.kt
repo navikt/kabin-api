@@ -35,7 +35,7 @@ class SafRestClient(
                     )
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithSafScope()}"
                     )
                     .retrieve()
                     .toEntity(ByteArray::class.java)
