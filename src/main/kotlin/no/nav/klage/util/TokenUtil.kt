@@ -18,43 +18,43 @@ class TokenUtil(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getSaksbehandlerAccessTokenWithPdlScope(): String {
+    fun getOnBehalfOfTokenWithPdlScope(): String {
         val clientProperties = clientConfigurationProperties.registration["pdl-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
 
-    fun getSaksbehandlerAccessTokenWithKabalApiScope(): String {
+    fun getOnBehalfOfTokenWithKabalApiScope(): String {
         val clientProperties = clientConfigurationProperties.registration["kabal-api-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
 
-    fun getMaskinTilMaskinAccessTokenWithKabalApiScope(): String {
+    fun getMaskinTilMaskinTokenWithKabalApiScope(): String {
         val clientProperties = clientConfigurationProperties.registration["kabal-api-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
 
-    fun getSaksbehandlerAccessTokenWithKabalInnstillingerScope(): String {
+    fun getOnBehalfOfTokenWithKabalInnstillingerScope(): String {
         val clientProperties = clientConfigurationProperties.registration["kabal-innstillinger-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
 
-    fun getSaksbehandlerAccessTokenWithSafScope(): String {
+    fun getOnBehalfOfTokenWithSafScope(): String {
         val clientProperties = clientConfigurationProperties.registration["saf-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
 
-    fun getSaksbehandlerAccessTokenWithGosysOppgaveScope(): String {
+    fun getOnBehalfOfTokenWithGosysOppgaveScope(): String {
         val clientProperties = clientConfigurationProperties.registration["gosys-oppgave-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
 
-    fun getSaksbehandlerAccessTokenWithDokArkivScope(): String {
+    fun getOnBehalfOfTokenWithDokArkivScope(): String {
         val clientProperties = clientConfigurationProperties.registration["dok-arkiv-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
@@ -66,14 +66,20 @@ class TokenUtil(
         return response.access_token!!
     }
 
-    fun getAppAccessTokenWithKlageFSSProxyScope(): String {
+    fun getMaskinTilMaskinTokenWithKlageFSSProxyScope(): String {
         val clientProperties = clientConfigurationProperties.registration["klage-fss-proxy-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
 
-    fun getAppAccessTokenWithGraphScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["azure-maskintilmaskin"]!!
+    fun getOnBehalfOfTokenWithKlageLookupScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["klage-lookup-onbehalfof"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
+    }
+
+    fun getMaskinTilMaskinTokenWithKlageLookupScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["klage-lookup-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
@@ -86,4 +92,31 @@ class TokenUtil(
             ?.jwtTokenClaims?.get("NAVident")?.toString()
             ?: throw RuntimeException("Ident not found in token")
 
+    fun getCurrentTokenType(): TokenType {
+        val validationContext = runCatching { tokenValidationContextHolder.getTokenValidationContext() }.getOrNull()
+        val tokenType = if (validationContext == null) {
+            TokenType.UNAUTHENTICATED
+        } else {
+            val idtype =
+                runCatching { validationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)?.jwtTokenClaims?.get("idtyp") }.getOrNull()
+            val navIdent =
+                runCatching {
+                    validationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)?.jwtTokenClaims?.get("NAVident")
+                }.getOrNull()
+            if (idtype != null && idtype == "app") {
+                TokenType.CC
+            } else if (navIdent != null) {
+                TokenType.OBO
+            } else {
+                TokenType.UNAUTHENTICATED
+            }
+        }
+        return tokenType
+    }
+
+    enum class TokenType {
+        CC,
+        OBO,
+        UNAUTHENTICATED,
+    }
 }

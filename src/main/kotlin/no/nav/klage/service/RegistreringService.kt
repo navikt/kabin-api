@@ -514,7 +514,7 @@ class RegistreringService(
         )
 
         val saksbehandlerAccessTokenWithKabalApiScope =
-            "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+            "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
 
         val ankemuligheterFromKabalMono =
             kabalApiService.getAnkemuligheterAsMono(
@@ -569,7 +569,7 @@ class RegistreringService(
         var duplicateCheckStart = System.currentTimeMillis()
 
         val maskinTilMaskinAccessTokenWithKabalApiScope =
-            "Bearer ${tokenUtil.getMaskinTilMaskinAccessTokenWithKabalApiScope()}"
+            "Bearer ${tokenUtil.getMaskinTilMaskinTokenWithKabalApiScope()}"
 
         val behandlingIsDuplicateResponses = Flux.fromIterable(muligheterFromInfotrygd)
             .parallel()

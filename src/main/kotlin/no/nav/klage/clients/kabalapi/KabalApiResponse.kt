@@ -184,7 +184,7 @@ data class PartViewWithUtsendingskanal(
             available = available,
             statusList = statusList.map { partStatus ->
                 PartStatus(
-                    status = no.nav.klage.api.controller.view.PartStatus.Status.valueOf(partStatus.status.name),
+                    status = PartStatus.Status.valueOf(partStatus.status.name),
                     date = partStatus.date,
                 )
             },

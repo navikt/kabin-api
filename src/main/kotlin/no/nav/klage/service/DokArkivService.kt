@@ -31,7 +31,7 @@ class DokArkivService(
     private val kabalInnstillingerClient: KabalInnstillingerClient,
     private val kabalApiService: KabalApiService,
     private val gosysOppgaveClient: GosysOppgaveClient,
-    private val microsoftGraphService: MicrosoftGraphService,
+    private val saksbehandlerService: SaksbehandlerService,
     private val tokenUtil: TokenUtil,
 ) {
 
@@ -289,7 +289,7 @@ class DokArkivService(
             }
 
             val currentUserIdent = tokenUtil.getCurrentIdent()
-            val currentUserInfo = microsoftGraphService.getSaksbehandlerPersonligInfo(navIdent = currentUserIdent)
+            val currentUserInfo = saksbehandlerService.getSaksbehandlerPersonligInfo(navIdent = currentUserIdent)
 
             gosysOppgaveClient.ferdigstillGosysOppgave(
                 FerdigstillGosysOppgaveRequest(

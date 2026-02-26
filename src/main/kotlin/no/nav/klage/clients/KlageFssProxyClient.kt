@@ -38,7 +38,7 @@ class KlageFssProxyClient(
             .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}"
+                "Bearer ${tokenUtil.getMaskinTilMaskinTokenWithKlageFSSProxyScope()}"
             )
             .bodyValue(
                 GetSakAppAccessInput(

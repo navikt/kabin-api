@@ -134,18 +134,18 @@ no.nav.security.jwt:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
           client-auth-method: private_key_jwt
-      azure-onbehalfof:
+      klage-lookup-onbehalfof:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
         grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: https://graph.microsoft.com/.default
+        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KLAGE_LOOKUP_APP_NAME}/.default
         authentication:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
           client-auth-method: private_key_jwt
-      azure-maskintilmaskin:
+      klage-lookup-maskintilmaskin:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
         grant-type: client_credentials
-        scope: https://graph.microsoft.com/.default
+        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KLAGE_LOOKUP_APP_NAME}/.default
         authentication:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
@@ -155,6 +155,8 @@ KABAL_API_BASE_URL: http://kabal-api
 KABAL_API_APP_NAME: kabal-api
 KABAL_INNSTILLINGER_BASE_URL: http://kabal-innstillinger
 KABAL_INNSTILLINGER_APP_NAME: kabal-innstillinger
+KLAGE_LOOKUP_APP_NAME: klage-lookup
+KLAGE_LOOKUP_BASE_URL: http://klage-lookup
 
 SERVICE_USER_USERNAME: srvklage-saksbeh
 

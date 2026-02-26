@@ -91,6 +91,7 @@ spec:
       rules:
         - application: kabal-api
         - application: kabal-innstillinger
+        - application: klage-lookup
         - application: logging
           namespace: nais-system
       external:

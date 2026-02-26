@@ -8,7 +8,6 @@ import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.service.GosysOppgaveService
-import no.nav.klage.service.KabalApiService
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -22,7 +21,6 @@ import java.util.*
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class CommonController(
     private val tokenUtil: TokenUtil,
-    private val kabalApiService: KabalApiService,
     private val gosysOppgaveService: GosysOppgaveService,
     private val registreringService: RegistreringService,
 ) {

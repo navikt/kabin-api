@@ -40,7 +40,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/oppgaveisduplicate").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .bodyValue(input)
             .retrieve()
@@ -53,7 +53,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/createbehandling").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .bodyValue(input)
             .retrieve()
@@ -66,7 +66,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/createklage").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .bodyValue(input)
             .retrieve()
@@ -79,7 +79,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/createankefromcompleteinput").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .bodyValue(input)
             .retrieve()
@@ -92,7 +92,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/create-behandling-based-on-journalpost").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .bodyValue(input)
             .retrieve()
@@ -141,7 +141,7 @@ class KabalApiClient(
             .uri { it.path("/searchpart").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .bodyValue(searchPartInput)
             .retrieve()
@@ -154,7 +154,7 @@ class KabalApiClient(
             .uri { it.path("/searchpartwithutsendingskanal").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .bodyValue(searchPartInput)
             .retrieve()
@@ -167,7 +167,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/behandlinger/{behandlingId}/status").build(behandlingId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .retrieve()
             .bodyToMono<CreatedBehandlingStatus>()
@@ -179,7 +179,7 @@ class KabalApiClient(
             .uri { it.path("/api/internal/searchusedjournalpostid").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .bodyValue(SearchUsedJournalpostIdInput(fnr = fnr))
             .retrieve()
@@ -192,7 +192,7 @@ class KabalApiClient(
             .uri { it.path("/svarbrev-settings/ytelser/{ytelseId}/typer/{typeId}").build(ytelseId, typeId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalApiScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
             )
             .retrieve()
             .bodyToMono<SvarbrevSettingsView>()
