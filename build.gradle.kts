@@ -20,6 +20,10 @@ plugins {
     idea
 }
 
+// CVE GHSA-72hv-8253-57qq: jackson-core async parser DoS. Remove when Spring has updated.
+extra["jackson-2-bom.version"] = "2.21.1"
+extra["jackson-bom.version"] = "3.1.0"
+
 java.sourceCompatibility = JavaVersion.VERSION_21
 
 repositories {
