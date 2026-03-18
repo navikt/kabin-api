@@ -171,6 +171,7 @@ enum class Tema {
     ARP, //Arbeidsrådgivning - psykologtjenester
     ARS, //Arbeidsrådgivning - skjermet
     BAR, //Barnetrygd
+    BBF, //Barnebortføring
     BID, //Bidrag
     BIL, //Bil
     DAG, //Dagpenger
