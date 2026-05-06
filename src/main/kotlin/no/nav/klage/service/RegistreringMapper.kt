@@ -72,6 +72,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
         ),
         modified = modified,
         willCreateNewJournalpost = willCreateNewJournalpost,
+        muligheter = toMuligheterView(),
     )
 }
 
@@ -255,6 +256,16 @@ private fun getMuligheterSorted(muligheter: MutableList<Mulighet>): List<Mulighe
     muligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
 
 fun Registrering.toMuligheterView() : MuligheterView {
+    if (mulighetIsBasedOnJournalpost) {
+        return MuligheterView(
+            klagemuligheter = emptyList(),
+            ankemuligheter = emptyList(),
+            omgjoeringskravmuligheter = emptyList(),
+            gjenopptaksmuligheter = emptyList(),
+            muligheterFetched = muligheterFetched!!,
+        )
+    }
+
     val klagemuligheter = mutableListOf<Mulighet>()
     val ankemuligheter = mutableListOf<Mulighet>()
     val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
