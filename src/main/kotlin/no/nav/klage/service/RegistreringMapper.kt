@@ -72,6 +72,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
         ),
         modified = modified,
         willCreateNewJournalpost = willCreateNewJournalpost,
+        muligheter = toMuligheterView(),
     )
 }
 

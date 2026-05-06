@@ -71,6 +71,7 @@ data class TypeChangeRegistreringView(
     val svarbrev: TypeChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
     val willCreateNewJournalpost: Boolean,
+    val muligheter: MuligheterView,
 ) {
 
     data class TypeChangeRegistreringOverstyringerView(

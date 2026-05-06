@@ -313,8 +313,6 @@ class RegistreringService(
                 gosysOppgaveId = null
 
                 willCreateNewJournalpost = false
-
-
             }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
