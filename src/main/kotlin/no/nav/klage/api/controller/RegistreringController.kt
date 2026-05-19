@@ -172,7 +172,7 @@ class RegistreringController(
         @RequestBody input: MulighetInput
     ): AdditionalKabalMulighetChangeRegistreringView {
         logMethodDetails(
-            methodName = ::updateMulighet.name,
+            methodName = ::updateAdditionalKabalMulighet.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
