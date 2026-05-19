@@ -58,6 +58,8 @@ class Registrering(
     var mulighetIsBasedOnJournalpost: Boolean,
     @Column(name = "mulighet_id")
     var mulighetId: UUID?,
+    @Column(name = "additional_kabal_mulighet_id")
+    var additionalKabalMulighetId: UUID?,
     @Column(name = "mottatt_vedtaksinstans")
     var mottattVedtaksinstans: LocalDate?,
     @Column(name = "mottatt_klageinstans")
@@ -75,8 +77,7 @@ class Registrering(
     var ytelse: Ytelse?,
     @Column(name = "saksbehandler_ident")
     var saksbehandlerIdent: String?,
-    //TODO: Rename databasekolonne
-    @Column(name = "oppgave_id")
+    @Column(name = "gosys_oppgave_id")
     var gosysOppgaveId: Long?,
     @Column(name = "send_svarbrev")
     var sendSvarbrev: Boolean?,
@@ -103,7 +104,7 @@ class Registrering(
     @Column(name = "created")
     val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified")
-    var modified: LocalDateTime = LocalDateTime.now(),
+    var modified: LocalDateTime = created,
     @Column(name = "created_by")
     val createdBy: String,
     @Column(name = "finished")
@@ -159,19 +160,31 @@ class Registrering(
             )
         }
     }
-}
 
-@Converter
-class StringListConverter : AttributeConverter<List<String>, String> {
-    override fun convertToDatabaseColumn(attribute: List<String>?): String? {
-        return if (attribute.isNullOrEmpty()) {
-            null
-        } else {
-            attribute.joinToString(",")
+    fun getCurrentMulighet(): Mulighet? {
+        return mulighetId?.let { mulighetId ->
+            muligheter.find { it.id == mulighetId }
         }
     }
 
-    override fun convertToEntityAttribute(dbData: String?): List<String> {
-        return dbData?.split(",") ?: emptyList()
+    fun getCurrentAdditionalKabalMulighet(): Mulighet? {
+        return additionalKabalMulighetId?.let { mulighetId ->
+            muligheter.find { it.id == mulighetId }
+        }
+    }
+
+    @Converter
+    class StringListConverter : AttributeConverter<List<String>, String> {
+        override fun convertToDatabaseColumn(attribute: List<String>?): String? {
+            return if (attribute.isNullOrEmpty()) {
+                null
+            } else {
+                attribute.joinToString(",")
+            }
+        }
+
+        override fun convertToEntityAttribute(dbData: String?): List<String> {
+            return dbData?.split(",") ?: emptyList()
+        }
     }
 }

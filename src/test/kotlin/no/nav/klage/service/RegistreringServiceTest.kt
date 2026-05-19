@@ -870,6 +870,7 @@ class RegistreringServiceTest {
             type = Type.KLAGE,
             mulighetIsBasedOnJournalpost = false,
             mulighetId = null,
+            additionalKabalMulighetId = null,
             mottattVedtaksinstans = LocalDate.now(),
             mottattKlageinstans = LocalDate.now(),
             behandlingstidUnits = 12,

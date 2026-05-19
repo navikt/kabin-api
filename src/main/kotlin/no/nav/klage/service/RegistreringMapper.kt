@@ -54,6 +54,11 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
                 units = behandlingstidUnits
             )
         ),
+        additionalKabalMulighet = additionalKabalMulighetId?.let {
+            MulighetIdView(
+                id = it.toString(),
+            )
+        },
         svarbrev = TypeChangeRegistreringView.TypeChangeRegistreringSvarbrevView(
             send = sendSvarbrev,
             behandlingstid = if (svarbrevBehandlingstidUnits != null) {
@@ -73,6 +78,7 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
         modified = modified,
         willCreateNewJournalpost = willCreateNewJournalpost,
         muligheter = toMuligheterView(),
+        additionalKabalMuligheter = getAdditionalKabalMuligheter(),
     )
 }
 
@@ -81,9 +87,7 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
         id = id,
         mulighet = mulighetId?.let {
             if (mulighetIsBasedOnJournalpost) {
-                val chosenMulighet = muligheter.find { mulighet ->
-                    mulighet.id == mulighetId
-                }
+                val chosenMulighet = getCurrentMulighet()
                 MulighetIdView(
                     id = chosenMulighet!!.currentFagystemTechnicalId
                 )
@@ -92,6 +96,11 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
                     id = it.toString(),
                 )
             }
+        },
+        additionalKabalMulighet = additionalKabalMulighetId?.let {
+            MulighetIdView(
+                id = it.toString(),
+            )
         },
         overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(
             ytelseId = ytelse?.id,
@@ -148,8 +157,17 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
         ),
         modified = modified,
         willCreateNewJournalpost = willCreateNewJournalpost,
+        muligheter = toMuligheterView(),
+        additionalKabalMuligheter = getAdditionalKabalMuligheter(),
     )
 }
+
+fun Registrering.toKabalMulighetBasedOnInfotrygdSakChangeRegistreringView(): AdditionalKabalMulighetChangeRegistreringView =
+    AdditionalKabalMulighetChangeRegistreringView(
+        id = id,
+        additionalKabalMulighetId = additionalKabalMulighetId,
+        ytelseId = ytelse!!.id
+    )
 
 fun Registrering.toFinishedRegistreringView(): FinishedRegistreringView = FinishedRegistreringView(
     id = id,
@@ -169,9 +187,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     mulighetIsBasedOnJournalpost = mulighetIsBasedOnJournalpost,
     mulighet = mulighetId?.let {
         if (mulighetIsBasedOnJournalpost) {
-            val chosenMulighet = muligheter.find { mulighet ->
-                mulighet.id == mulighetId
-            }
+            val chosenMulighet = getCurrentMulighet()
             MulighetIdView(
                 id = chosenMulighet!!.currentFagystemTechnicalId
             )
@@ -180,6 +196,11 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
                 id = it.toString(),
             )
         }
+    },
+    additionalKabalMulighet = additionalKabalMulighetId?.let {
+        MulighetIdView(
+            id = it.toString(),
+        )
     },
     overstyringer = FullRegistreringView.FullRegistreringOverstyringerView(
         mottattVedtaksinstans = mottattVedtaksinstans,
@@ -250,12 +271,21 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     behandlingId = behandlingId,
     willCreateNewJournalpost = willCreateNewJournalpost,
     muligheter = toMuligheterView(),
+    additionalKabalMuligheter = getAdditionalKabalMuligheter(),
 )
 
 private fun getMuligheterSorted(muligheter: MutableList<Mulighet>): List<Mulighet> =
     muligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
 
-fun Registrering.toMuligheterView() : MuligheterView {
+fun Registrering.getAdditionalKabalMuligheter(): List<KabalmulighetView> {
+    if (mulighetIsBasedOnJournalpost) return emptyList()
+    val additionalKabalMuligheter =
+        muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toMutableList()
+    return getMuligheterSorted(additionalKabalMuligheter)
+        .map { it.toKabalmulighetView() }
+}
+
+fun Registrering.toMuligheterView(): MuligheterView {
     if (mulighetIsBasedOnJournalpost) {
         return MuligheterView(
             klagemuligheter = emptyList(),
@@ -278,7 +308,9 @@ fun Registrering.toMuligheterView() : MuligheterView {
             }
 
             Type.ANKE -> {
-                ankemuligheter.add(mulighet)
+                if (!mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
+                    ankemuligheter.add(mulighet)
+                }
             }
 
             Type.OMGJOERINGSKRAV -> {

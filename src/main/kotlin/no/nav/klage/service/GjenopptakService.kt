@@ -20,9 +20,7 @@ class GjenopptakService(
     }
 
     fun createGjenopptak(registrering: Registrering): CreatedBehandlingResponse {
-        val mulighet = registrering.mulighetId?.let { mulighetId ->
-            registrering.muligheter.find { it.id == mulighetId }
-        } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+        val mulighet = registrering.getCurrentMulighet() ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
 
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 

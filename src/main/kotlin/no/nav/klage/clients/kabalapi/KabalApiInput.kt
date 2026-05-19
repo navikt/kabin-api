@@ -43,6 +43,7 @@ data class CreateAnkeBasedOnKabinInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
+    val previousKabalBehandlingId: UUID?,
 )
 
 data class CreateBehandlingBasedOnJournalpostInput(

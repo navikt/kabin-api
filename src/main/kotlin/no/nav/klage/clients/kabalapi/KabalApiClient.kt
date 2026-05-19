@@ -1,9 +1,6 @@
 package no.nav.klage.clients.kabalapi
 
-import no.nav.klage.api.controller.view.IdnummerInput
-import no.nav.klage.api.controller.view.SearchPartInput
-import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
-import no.nav.klage.api.controller.view.SearchUsedJournalpostIdInput
+import no.nav.klage.api.controller.view.*
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
@@ -122,6 +119,19 @@ class KabalApiClient(
             .bodyValue(idnummerInput)
             .retrieve()
             .bodyToMono<List<MulighetFromKabal>>()
+    }
+
+    fun getKabalMuligheterFromInfotrygdSak(infotrygdSakIdInput: InfotrygdSakIdInput, token: String): List<MulighetFromKabal> {
+        return kabalApiWebClient.post()
+            .uri { it.path("/api/internal/kabal-muligheter-from-infotrygd-sak").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                token,
+            )
+            .bodyValue(infotrygdSakIdInput)
+            .retrieve()
+            .bodyToMono<List<MulighetFromKabal>>()
+            .block() ?: throw RuntimeException("No response")
     }
 
     fun getGjenopptaksmuligheterByIdnummer(idnummerInput: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {

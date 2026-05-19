@@ -7,6 +7,8 @@ import java.util.*
 
 data class IdnummerInput(val idnummer: String)
 
+data class InfotrygdSakIdInput(val infotrygdSakId: String)
+
 data class SearchPartInput(
     val identifikator: String
 )

@@ -166,6 +166,19 @@ class RegistreringController(
         return registreringService.setMulighet(registreringId = id, input = input)
     }
 
+    @PutMapping("/{id}/additional-kabal-mulighet")
+    fun updateAdditionalKabalMulighet(
+        @PathVariable id: UUID,
+        @RequestBody input: MulighetInput
+    ): AdditionalKabalMulighetChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateMulighet.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setAdditionalKabalMulighet(registreringId = id, input = input)
+    }
+
     @PutMapping("/{id}/mulighet-based-on-journalpost")
     fun updateMulighetBasedOnJournalpost(
         @PathVariable id: UUID,
