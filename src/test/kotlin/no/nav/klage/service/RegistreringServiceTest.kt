@@ -2,14 +2,9 @@ package no.nav.klage.service
 
 import io.mockk.*
 import no.nav.klage.api.controller.view.*
-import no.nav.klage.domain.entities.HandlingEnum
-import no.nav.klage.domain.entities.PartId
-import no.nav.klage.domain.entities.Registrering
-import no.nav.klage.domain.entities.SvarbrevReceiver
+import no.nav.klage.domain.entities.*
 import no.nav.klage.exceptions.*
-import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
@@ -849,6 +844,156 @@ class RegistreringServiceTest {
         }
     }
 
+    // ============ setTypeId - additionalKabalMulighetId reset ============
+
+    @Nested
+    inner class SetTypeIdAdditionalFieldsTest {
+        @Test
+        fun `setTypeId resets additionalKabalMulighetId`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.additionalKabalMulighetId = UUID.randomUUID()
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            registreringService.setTypeId(id, TypeIdInput(typeId = Type.KLAGE.id))
+
+            assertThat(registrering.additionalKabalMulighetId).isNull()
+        }
+    }
+
+    // ============ getCurrentMulighet ============
+
+    @Nested
+    inner class GetCurrentMulighetTest {
+        @Test
+        fun `getCurrentMulighet returns null when mulighetId is null`() {
+            val registrering = getUnfinishedRegistrering()
+            registrering.mulighetId = null
+
+            assertThat(registrering.getCurrentMulighet()).isNull()
+        }
+
+        @Test
+        fun `getCurrentMulighet returns mulighet when found`() {
+            val mulighetId = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering()
+            registrering.mulighetId = mulighetId
+            val mulighet = createMulighet(id = mulighetId)
+            registrering.muligheter.add(mulighet)
+
+            assertThat(registrering.getCurrentMulighet()).isEqualTo(mulighet)
+        }
+
+        @Test
+        fun `getCurrentMulighet returns null when mulighetId does not match any mulighet`() {
+            val registrering = getUnfinishedRegistrering()
+            registrering.mulighetId = UUID.randomUUID()
+
+            assertThat(registrering.getCurrentMulighet()).isNull()
+        }
+    }
+
+    // ============ getCurrentAdditionalKabalMulighet ============
+
+    @Nested
+    inner class GetCurrentAdditionalKabalMulighetTest {
+        @Test
+        fun `getCurrentAdditionalKabalMulighet returns null when additionalKabalMulighetId is null`() {
+            val registrering = getUnfinishedRegistrering()
+            registrering.additionalKabalMulighetId = null
+
+            assertThat(registrering.getCurrentAdditionalKabalMulighet()).isNull()
+        }
+
+        @Test
+        fun `getCurrentAdditionalKabalMulighet returns mulighet when found`() {
+            val mulighetId = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering()
+            registrering.additionalKabalMulighetId = mulighetId
+            val mulighet = createMulighet(id = mulighetId)
+            registrering.muligheter.add(mulighet)
+
+            assertThat(registrering.getCurrentAdditionalKabalMulighet()).isEqualTo(mulighet)
+        }
+    }
+
+    // ============ Mulighet helper methods ============
+
+    @Nested
+    inner class MulighetHelperMethodsTest {
+        @Test
+        fun `isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak returns true for correct combination`() {
+            val mulighet = createMulighet(
+                originalFagsystem = Fagsystem.IT01,
+                currentFagsystem = Fagsystem.KABAL,
+                type = Type.ANKE,
+                originalType = Type.KLAGE,
+            )
+
+            assertThat(mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()).isTrue()
+        }
+
+        @Test
+        fun `isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak returns false for wrong originalFagsystem`() {
+            val mulighet = createMulighet(
+                originalFagsystem = Fagsystem.KABAL,
+                currentFagsystem = Fagsystem.KABAL,
+                type = Type.ANKE,
+                originalType = Type.KLAGE,
+            )
+
+            assertThat(mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()).isFalse()
+        }
+
+        @Test
+        fun `isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak returns false when type is KLAGE`() {
+            val mulighet = createMulighet(
+                originalFagsystem = Fagsystem.IT01,
+                currentFagsystem = Fagsystem.KABAL,
+                type = Type.KLAGE,
+                originalType = Type.KLAGE,
+            )
+
+            assertThat(mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()).isFalse()
+        }
+
+        @Test
+        fun `isAnkeMulighetFromInfotrygd returns true for correct combination`() {
+            val mulighet = createMulighet(
+                originalFagsystem = Fagsystem.IT01,
+                currentFagsystem = Fagsystem.IT01,
+                type = Type.ANKE,
+                originalType = Type.ANKE,
+            )
+
+            assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isTrue()
+        }
+
+        @Test
+        fun `isAnkeMulighetFromInfotrygd returns false when currentFagsystem is KABAL`() {
+            val mulighet = createMulighet(
+                originalFagsystem = Fagsystem.IT01,
+                currentFagsystem = Fagsystem.KABAL,
+                type = Type.ANKE,
+                originalType = Type.ANKE,
+            )
+
+            assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isFalse()
+        }
+
+        @Test
+        fun `isAnkeMulighetFromInfotrygd returns false when type is KLAGE`() {
+            val mulighet = createMulighet(
+                originalFagsystem = Fagsystem.IT01,
+                currentFagsystem = Fagsystem.IT01,
+                type = Type.KLAGE,
+                originalType = Type.ANKE,
+            )
+
+            assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isFalse()
+        }
+    }
+
     // ============ Helpers ============
 
     private fun getSvarbrevRecipient(value: String): SvarbrevReceiver {
@@ -918,6 +1063,7 @@ class RegistreringServiceTest {
             type = null,
             mulighetIsBasedOnJournalpost = false,
             mulighetId = null,
+            additionalKabalMulighetId = null,
             mottattVedtaksinstans = null,
             mottattKlageinstans = null,
             behandlingstidUnits = 12,
@@ -943,6 +1089,42 @@ class RegistreringServiceTest {
             muligheter = mutableSetOf(),
             muligheterFetched = LocalDateTime.now(),
             reasonNoLetter = null,
+        )
+    }
+
+    private fun createMulighet(
+        id: UUID = UUID.randomUUID(),
+        originalFagsystem: Fagsystem = Fagsystem.IT01,
+        currentFagsystem: Fagsystem = Fagsystem.IT01,
+        type: Type = Type.ANKE,
+        originalType: Type? = Type.ANKE,
+    ): Mulighet {
+        return Mulighet(
+            id = id,
+            sakenGjelder = PartWithUtsendingskanal(
+                part = PartId(type = PartIdType.PERSON, value = "12345678901"),
+                address = null,
+                name = "Test Person",
+                available = true,
+                language = null,
+                utsendingskanal = null,
+            ),
+            klager = null,
+            fullmektig = null,
+            currentFagsystem = currentFagsystem,
+            originalFagsystem = originalFagsystem,
+            fagsakId = "123",
+            tema = Tema.SYK,
+            vedtakDate = null,
+            ytelse = Ytelse.OMS_PSB,
+            hjemmelIdList = emptyList(),
+            previousSaksbehandlerIdent = null,
+            previousSaksbehandlerName = null,
+            type = type,
+            originalType = originalType,
+            klageBehandlendeEnhet = "4291",
+            currentFagystemTechnicalId = "tech-id-1",
+            requiresGosysOppgave = false,
         )
     }
 }
