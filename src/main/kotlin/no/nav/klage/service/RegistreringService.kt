@@ -506,7 +506,8 @@ class RegistreringService(
         input: MulighetInput
     ): AdditionalKabalMulighetChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        val mulighetToBeSet = registrering.muligheter.find { it.id == input.mulighetId }!!
+        val mulighetToBeSet = registrering.muligheter.find { it.id == input.mulighetId }
+            ?: throw MulighetNotFoundException("Fant ikke mulighet med id ${input.mulighetId}")
         if (!mulighetToBeSet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
             throw IllegalStateException("Dette feltet kan bare settes for anker basert på Infotrygd-saker.")
         }
