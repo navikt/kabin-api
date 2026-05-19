@@ -169,7 +169,7 @@ class RegistreringService(
 
         val registrering = getRegistreringForUpdate(registreringId)
         registrering.additionalKabalMulighetId = null
-        registrering.reinitializeKabalMuligheterBasedOnInfotrygdsak()
+        registrering.reinitializeAdditionalKabalMuligheter()
         registrering
             .apply {
                 journalpostId = input.journalpostId
@@ -247,9 +247,9 @@ class RegistreringService(
                 it.id == registrering.mulighetId
             }
         }
-
+        registrering.mulighetId = null
         registrering.additionalKabalMulighetId = null
-        registrering.reinitializeKabalMuligheterBasedOnInfotrygdsak()
+        registrering.reinitializeAdditionalKabalMuligheter()
 
         return registrering
             .apply {
@@ -264,8 +264,6 @@ class RegistreringService(
                 //empty the properties that no longer make sense if typeId changes.
                 mottattKlageinstans = null
                 mottattVedtaksinstans = null
-
-                mulighetId = null
 
                 ytelse = null
                 hjemmelIdList = listOf()
@@ -349,7 +347,7 @@ class RegistreringService(
         )
         registrering.mulighetId = input.mulighetId
         registrering.additionalKabalMulighetId = null
-        registrering.reinitializeKabalMuligheterBasedOnInfotrygdsak()
+        registrering.reinitializeAdditionalKabalMuligheter()
 
         return registrering
             .apply {
@@ -664,14 +662,14 @@ class RegistreringService(
         muligheterFetched = LocalDateTime.now()
     }
 
-    fun Registrering.removeAllKabalMuligheterBasedOnInfotrygdSak() {
+    fun Registrering.removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak() {
         val kabalMuligheterBasedOnInfotrygdSak =
             muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toSet()
         muligheter.removeAll(kabalMuligheterBasedOnInfotrygdSak)
     }
 
-    fun Registrering.reinitializeKabalMuligheterBasedOnInfotrygdsak() {
-        removeAllKabalMuligheterBasedOnInfotrygdSak()
+    fun Registrering.reinitializeAdditionalKabalMuligheter() {
+        removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
         val currentMulighet = getCurrentMulighet() ?: return
         if (currentMulighet.isAnkeMulighetFromInfotrygd()) {
             val saksbehandlerAccessTokenWithKabalApiScope =
