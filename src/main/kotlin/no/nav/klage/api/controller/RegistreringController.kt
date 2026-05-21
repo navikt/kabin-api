@@ -508,4 +508,17 @@ class RegistreringController(
         return registreringService.getMuligheter(registreringId = id)
     }
 
+    @GetMapping("/{id}/additional-kabal-muligheter", produces = ["application/json"])
+    fun getAdditionalKabalMuligheter(
+        @PathVariable id: UUID,
+    ): List<KabalmulighetView> {
+        logMethodDetails(
+            methodName = ::getAdditionalKabalMuligheter.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        return registreringService.getAdditionalKabalMuligheter(registreringId = id)
+    }
+
 }

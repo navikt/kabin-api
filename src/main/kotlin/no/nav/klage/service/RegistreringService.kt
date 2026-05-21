@@ -1438,6 +1438,12 @@ class RegistreringService(
         return registrering.toMuligheterView()
     }
 
+    fun getAdditionalKabalMuligheter(registreringId: UUID): List<KabalmulighetView> {
+        val registrering = getRegistreringForUpdate(registreringId)
+        registrering.reinitializeAdditionalKabalMuligheter()
+        return registrering.getAdditionalKabalMuligheter()
+    }
+
     fun getMulighetFromBehandlingId(behandlingId: UUID): Mulighet {
         val registrering = registreringRepository.findByBehandlingId(behandlingId)
         return registrering.getCurrentMulighet()!!
