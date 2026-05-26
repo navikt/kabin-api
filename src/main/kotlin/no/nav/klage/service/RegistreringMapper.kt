@@ -573,8 +573,10 @@ fun Journalpost.toMulighet(kabalApiService: KabalApiService, registrering: Regis
             SearchPartWithUtsendingskanalInput(
                 identifikator = registrering.sakenGjelder!!.value,
                 sakenGjelderId = registrering.sakenGjelder!!.value,
-                //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
-                ytelseId = Ytelse.entries.find { y -> y.toTema().navn == tema.name }!!.id,
+                //Hack for handling case where tema is FEI in joark. Permissible here, as it's only used for part lookup.
+                ytelseId = if (tema.name == Tema.FEI.name) {
+                    Ytelse.AAP_AAP.id
+                } else Ytelse.entries.find { y -> y.toTema().navn == tema.name }!!.id,
             )
         ).toPartWithUtsendingskanal()!!,
         fagsakId = sak!!.fagsakId!!,
