@@ -100,7 +100,7 @@ class DokArkivServiceTest {
             saksbehandlerService = saksbehandlerService,
         )
 
-        every { mulighet.id } returns MULIGHET_ID
+        every { registrering.getCurrentMulighet() } returns mulighet
         every { mulighet.tema } returns Tema.OMS
         every { mulighet.currentFagsystem } returns Fagsystem.KABAL
         every { mulighet.originalFagsystem } returns Fagsystem.FS38
@@ -121,8 +121,6 @@ class DokArkivServiceTest {
 
             every { registrering.journalpostId } returns JOURNALPOST_ID
             every { registrering.avsender } returns null
-            every { registrering.muligheter } returns mutableSetOf(mulighet)
-            every { registrering.mulighetId } returns mulighet.id
 
             val resultingJournalpost = dokArkivService.handleJournalpost(
                 registrering = registrering
@@ -186,8 +184,6 @@ class DokArkivServiceTest {
                 type = PartIdType.PERSON,
                 value = FNR
             )
-            every { registrering.muligheter } returns mutableSetOf(mulighet)
-            every { registrering.mulighetId } returns mulighet.id
 
             val resultingJournalpost = dokArkivService.handleJournalpost(
                 registrering = registrering
@@ -252,8 +248,6 @@ class DokArkivServiceTest {
 
             every { registrering.journalpostId } returns JOURNALPOST_ID
             every { registrering.avsender } returns null
-            every { registrering.muligheter } returns mutableSetOf(mulighet)
-            every { registrering.mulighetId } returns mulighet.id
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
                 dokArkivService.handleJournalpost(
@@ -268,8 +262,6 @@ class DokArkivServiceTest {
 
             every { registrering.journalpostId } returns JOURNALPOST_ID
             every { registrering.avsender } returns null
-            every { registrering.muligheter } returns mutableSetOf(mulighet)
-            every { registrering.mulighetId } returns mulighet.id
 
             val resultingJournalpost = dokArkivService.handleJournalpost(
                 registrering = registrering
@@ -317,8 +309,6 @@ class DokArkivServiceTest {
                 type = PartIdType.PERSON,
                 value = FNR
             )
-            every { registrering.muligheter } returns mutableSetOf(mulighet)
-            every { registrering.mulighetId } returns mulighet.id
 
             val resultingJournalpost = dokArkivService.handleJournalpost(
                 registrering = registrering
@@ -375,8 +365,6 @@ class DokArkivServiceTest {
 
             every { registrering.journalpostId } returns JOURNALPOST_ID
             every { registrering.avsender } returns null
-            every { registrering.muligheter } returns mutableSetOf(mulighet)
-            every { registrering.mulighetId } returns mulighet.id
 
             val resultingJournalpost = dokArkivService.handleJournalpost(
                 registrering = registrering
@@ -424,8 +412,6 @@ class DokArkivServiceTest {
                 type = PartIdType.PERSON,
                 value = FNR
             )
-            every { registrering.muligheter } returns mutableSetOf(mulighet)
-            every { registrering.mulighetId } returns mulighet.id
 
             val resultingJournalpost = dokArkivService.handleJournalpost(
                 registrering = registrering

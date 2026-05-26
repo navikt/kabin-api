@@ -13,6 +13,7 @@ import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.domain.CreateBehandlingInput
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.exceptions.InvalidProperty
+import no.nav.klage.exceptions.MulighetNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
@@ -147,7 +148,7 @@ class DokArkivService(
         val journalpostId = registrering.journalpostId!!
         val avsender = registrering.avsender.toPartIdInput()
 
-        val mulighet = registrering.muligheter.find { it.id == registrering.mulighetId }!!
+        val mulighet = registrering.getCurrentMulighet() ?: throw MulighetNotFoundException("Muligheten som registreringen refererer til finnes ikke.")
 
         val fagsaksystem = FagsaksSystem.valueOf(mulighet.originalFagsystem.navn)
         val journalfoerendeEnhet = if (mulighet.currentFagsystem == Fagsystem.KABAL) {

@@ -1,6 +1,7 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.InfotrygdSakIdInput
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.clients.kabalapi.*
@@ -26,7 +27,10 @@ class KabalApiService(
         return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
     }
 
-    fun checkBehandlingDuplicate(input: BehandlingIsDuplicateInput, token: String): Mono<BehandlingIsDuplicateResponse> {
+    fun checkBehandlingDuplicate(
+        input: BehandlingIsDuplicateInput,
+        token: String
+    ): Mono<BehandlingIsDuplicateResponse> {
         return kabalApiClient.checkBehandlingDuplicate(input = input, token = token)
     }
 
@@ -65,11 +69,19 @@ class KabalApiService(
         )
     }
 
+    fun getKabalMuligheterFromInfotrygdSak(input: InfotrygdSakIdInput, token: String): List<MulighetFromKabal> {
+        return kabalApiClient.getKabalMuligheterFromInfotrygdSak(
+            infotrygdSakIdInput = input,
+            token = token,
+        )
+    }
+
     fun createAnkeFromInfotrygdInput(
         registrering: Registrering,
         mulighet: Mulighet,
         frist: LocalDate,
         journalpostId: String,
+        additionalKabalMulighet: Mulighet?,
     ): UUID {
         val svarbrevSettings = getSvarbrevSettings(
             ytelseId = registrering.ytelse!!.id,
@@ -95,6 +107,7 @@ class KabalApiService(
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
                 svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
                 gosysOppgaveId = registrering.gosysOppgaveId!!,
+                previousKabalBehandlingId = additionalKabalMulighet?.let { UUID.fromString(it.currentFagystemTechnicalId) },
             )
         ).behandlingId
     }
@@ -143,9 +156,9 @@ class KabalApiService(
         registrering: Registrering
     ): UUID {
         val svarbrevSettings = getSvarbrevSettings(
-                ytelseId = registrering.ytelse!!.id,
-                typeId = registrering.type!!.id,
-            )
+            ytelseId = registrering.ytelse!!.id,
+            typeId = registrering.type!!.id,
+        )
 
         return kabalApiClient.createBehandlingBasedOnKabal(
             CreateBehandlingBasedOnKabalInput(

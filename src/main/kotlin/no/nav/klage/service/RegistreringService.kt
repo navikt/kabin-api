@@ -68,6 +68,7 @@ class RegistreringService(
                 type = null,
                 mulighetIsBasedOnJournalpost = false,
                 mulighetId = null,
+                additionalKabalMulighetId = null,
                 mottattVedtaksinstans = null,
                 mottattKlageinstans = null,
                 behandlingstidUnits = 12,
@@ -135,6 +136,7 @@ class RegistreringService(
 
                 //empty the properties that no longer make sense if sakenGjelder changes.
                 mulighetId = null
+                additionalKabalMulighetId = null
                 reinitializeMuligheter()
 
                 journalpostId = null
@@ -164,7 +166,11 @@ class RegistreringService(
     }
 
     fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): FullRegistreringView {
+
         val registrering = getRegistreringForUpdate(registreringId)
+        registrering.additionalKabalMulighetId = null
+        registrering.reinitializeAdditionalKabalMuligheter()
+        registrering
             .apply {
                 journalpostId = input.journalpostId
                 modified = LocalDateTime.now()
@@ -182,7 +188,7 @@ class RegistreringService(
 
                 //Slett klager hvis klager ikke kom fra muligheten
 
-                val mulighet = muligheter.find { it.id == mulighetId }
+                val mulighet = getCurrentMulighet()
 
                 if (mulighet != null) {
                     when (type) {
@@ -241,6 +247,9 @@ class RegistreringService(
                 it.id == registrering.mulighetId
             }
         }
+        registrering.mulighetId = null
+        registrering.additionalKabalMulighetId = null
+        registrering.reinitializeAdditionalKabalMuligheter()
 
         return registrering
             .apply {
@@ -255,8 +264,6 @@ class RegistreringService(
                 //empty the properties that no longer make sense if typeId changes.
                 mottattKlageinstans = null
                 mottattVedtaksinstans = null
-
-                mulighetId = null
 
                 ytelse = null
                 hjemmelIdList = listOf()
@@ -335,13 +342,15 @@ class RegistreringService(
             throw IllegalStateException("Mulighet kan ikke settes fordi alternativ for journalpost er valgt.")
         }
 
+        val newMulighet = registrering.muligheter.find { it.id == input.mulighetId } ?: throw MulighetNotFoundException(
+            "Mulighet ikke funnet."
+        )
+        registrering.mulighetId = input.mulighetId
+        registrering.additionalKabalMulighetId = null
+        registrering.reinitializeAdditionalKabalMuligheter()
+
         return registrering
             .apply {
-                mulighetId = input.mulighetId
-
-                val newMulighet = muligheter.find { it.id == input.mulighetId }
-                    ?: throw MulighetNotFoundException("Mulighet ikke funnet.")
-
                 val previousYtelse = ytelse
                 val currentYtelseCandidates = getYtelseOrNull(newMulighet)
                 if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
@@ -492,6 +501,36 @@ class RegistreringService(
         }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
+    fun setAdditionalKabalMulighet(
+        registreringId: UUID,
+        input: MulighetInput
+    ): AdditionalKabalMulighetChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        val mulighetToBeSet = registrering.muligheter.find { it.id == input.mulighetId }
+            ?: throw MulighetNotFoundException("Fant ikke mulighet med id ${input.mulighetId}")
+        if (!mulighetToBeSet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
+            throw IllegalStateException("Dette feltet kan bare settes for anker basert på Infotrygd-saker.")
+        }
+
+        //TODO: Finn sideeffekter
+        return registrering
+            .apply {
+                additionalKabalMulighetId = input.mulighetId
+                val previousYtelse = ytelse
+                val currentYtelseCandidates = getYtelseOrNull(mulighetToBeSet)
+                if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
+                    //don't change ytelse if it is still valid.
+                } else if (currentYtelseCandidates.size == 1) {
+                    ytelse = currentYtelseCandidates.first()
+                } else {
+                    logger.error("Impossible situation, mulighetToBeSet is taken from Kabal and should always include ytelse.")
+                    ytelse = null
+                }
+
+                modified = LocalDateTime.now()
+            }.toKabalMulighetBasedOnInfotrygdSakChangeRegistreringView()
+    }
+
     fun Registrering.reinitializeMuligheter() {
         val input = IdnummerInput(idnummer = sakenGjelder!!.value)
 
@@ -608,7 +647,7 @@ class RegistreringService(
         if (mulighetId == null) {
             muligheter.clear()
         } else {
-            val previouslyChosenMulighet = muligheter.find { it.id == mulighetId }
+            val previouslyChosenMulighet = getCurrentMulighet()
             muligheter.removeIf {
                 !(it.currentFagystemTechnicalId == previouslyChosenMulighet?.currentFagystemTechnicalId
                         && it.currentFagsystem == previouslyChosenMulighet.currentFagsystem)
@@ -622,6 +661,28 @@ class RegistreringService(
         muligheter.addAll(muligheterToStoreInDB)
 
         muligheterFetched = LocalDateTime.now()
+    }
+
+    fun Registrering.removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak() {
+        val kabalMuligheterBasedOnInfotrygdSak =
+            muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toSet()
+        muligheter.removeAll(kabalMuligheterBasedOnInfotrygdSak)
+    }
+
+    fun Registrering.reinitializeAdditionalKabalMuligheter() {
+        removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
+        val currentMulighet = getCurrentMulighet() ?: return
+        if (currentMulighet.isAnkeMulighetFromInfotrygd()) {
+            val saksbehandlerAccessTokenWithKabalApiScope =
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
+
+            val newKabalMuligheterFromInfotrygdSak = kabalApiService.getKabalMuligheterFromInfotrygdSak(
+                input = InfotrygdSakIdInput(currentMulighet.currentFagystemTechnicalId),
+                token = saksbehandlerAccessTokenWithKabalApiScope
+            ).map { it.toMulighet() }
+
+            muligheter.addAll(newKabalMuligheterFromInfotrygdSak)
+        }
     }
 
     private fun Registrering.setSvarbrevSettings() {
@@ -1377,9 +1438,15 @@ class RegistreringService(
         return registrering.toMuligheterView()
     }
 
+    fun getAdditionalKabalMuligheter(registreringId: UUID): List<KabalmulighetView> {
+        val registrering = getRegistreringForUpdate(registreringId)
+        registrering.reinitializeAdditionalKabalMuligheter()
+        return registrering.getAdditionalKabalMuligheter()
+    }
+
     fun getMulighetFromBehandlingId(behandlingId: UUID): Mulighet {
         val registrering = registreringRepository.findByBehandlingId(behandlingId)
-        return registrering.muligheter.find { it.id == registrering.mulighetId }!!
+        return registrering.getCurrentMulighet()!!
     }
 
     fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusView {

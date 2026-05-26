@@ -25,9 +25,8 @@ class AnkeService(
     }
 
     fun createAnke(registrering: Registrering): CreatedBehandlingResponse {
-        val mulighet = registrering.mulighetId?.let { mulighetId ->
-            registrering.muligheter.find { it.id == mulighetId }
-        } ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+        val mulighet = registrering.getCurrentMulighet() ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+        val additionalKabalMulighet = registrering.getCurrentAdditionalKabalMulighet()
 
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
@@ -40,7 +39,8 @@ class AnkeService(
                 MulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(
                     journalpostId = journalpostId,
                     mulighet = mulighet,
-                    registrering = registrering
+                    registrering = registrering,
+                    additionalKabalMulighet = additionalKabalMulighet,
                 )
 
                 MulighetSource.KABAL -> kabalApiService.createBehandlingFromKabalInput(
@@ -55,7 +55,8 @@ class AnkeService(
     private fun createAnkeFromInfotrygdSak(
         journalpostId: String,
         mulighet: Mulighet,
-        registrering: Registrering
+        registrering: Registrering,
+        additionalKabalMulighet: Mulighet?,
     ): UUID {
         val frist = when (registrering.behandlingstidUnitType) {
             TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
@@ -66,6 +67,7 @@ class AnkeService(
             mulighet = mulighet,
             frist = frist,
             journalpostId = journalpostId,
+            additionalKabalMulighet = additionalKabalMulighet,
         )
 
         try {

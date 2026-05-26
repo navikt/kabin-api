@@ -21,6 +21,7 @@ data class FullRegistreringView(
     val journalpostId: String?,
     val typeId: String?,
     val mulighetIsBasedOnJournalpost: Boolean,
+    val additionalKabalMulighet: MulighetIdView?,
     val mulighet: MulighetIdView?,
     val overstyringer: FullRegistreringOverstyringerView,
     val svarbrev: FullRegistreringSvarbrevView,
@@ -31,6 +32,7 @@ data class FullRegistreringView(
     val behandlingId: UUID?,
     val willCreateNewJournalpost: Boolean,
     val muligheter: MuligheterView,
+    val additionalKabalMuligheter: List<KabalmulighetView>
 ) {
 
     data class FullRegistreringOverstyringerView(
@@ -67,11 +69,13 @@ data class TypeChangeRegistreringView(
     val typeId: String?,
     val mulighetIsBasedOnJournalpost: Boolean,
     val mulighet: MulighetIdView? = null,
+    val additionalKabalMulighet: MulighetIdView?,
     val overstyringer: TypeChangeRegistreringOverstyringerView,
     val svarbrev: TypeChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
     val willCreateNewJournalpost: Boolean,
     val muligheter: MuligheterView,
+    val additionalKabalMuligheter: List<KabalmulighetView>,
 ) {
 
     data class TypeChangeRegistreringOverstyringerView(
@@ -110,13 +114,23 @@ data class BehandlingstidView(
     val units: Int,
 )
 
+data class AdditionalKabalMulighetChangeRegistreringView(
+    val id: UUID,
+    val additionalKabalMulighetId: UUID?,
+    val ytelseId: String,
+    //Sikkert mer
+)
+
 data class MulighetChangeRegistreringView(
     val id: UUID,
     val mulighet: MulighetIdView?,
+    val additionalKabalMulighet: MulighetIdView?,
     val overstyringer: MulighetChangeRegistreringOverstyringerView,
     val svarbrev: MulighetChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
     val willCreateNewJournalpost: Boolean,
+    val muligheter: MuligheterView,
+    val additionalKabalMuligheter: List<KabalmulighetView>,
 ) {
 
     data class MulighetChangeRegistreringOverstyringerView(
