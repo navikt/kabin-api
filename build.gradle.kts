@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val tokenValidationVersion = "6.0.5"
+val tokenValidationVersion = "6.0.8"
 val logstashVersion = "9.0"
 val springDocVersion = "3.0.3"
 val springMockkVersion = "5.0.1"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "3.2.11"
+val klageKodeverkVersion = "3.2.15"
 val testContainersVersion = "2.0.5"
-val otelVersion = "1.61.0"
+val otelVersion = "1.62.0"
 
 plugins {
     val kotlinVersion = "2.3.21"
