@@ -31,11 +31,16 @@ class GosysOppgaveService(
         val temaList = if (tema != null) {
             if (tema == Tema.MED) {
                 //Legger til TRY når vi søker på MED.
-                listOf(tema, Tema.TRY)
+                mutableListOf(tema, Tema.TRY)
+            } else if (tema == Tema.FEI) {
+                //Når tema er FEI så gjøres et uspesifisert søk.
+                null
             } else {
-                listOf(tema)
-            }.plus(Tema.KTR).distinct() //Tema KTR er relevant for alle områder.
+                mutableListOf(tema)
+            }
         } else null
+
+        temaList?.add(Tema.KTR)
 
         val gosysOppgaveList = gosysOppgaveClient.fetchGosysOppgaverForAktoerIdAndTema(
             aktoerId = aktoerId,
