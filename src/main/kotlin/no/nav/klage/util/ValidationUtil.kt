@@ -12,6 +12,7 @@ import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.service.getAdditionalKabalMuligheter
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -181,6 +182,15 @@ class ValidationUtil(
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::gosysOppgaveId.name,
                     reason = "Gosys-oppgaven er allerede i bruk i en åpen behandling i Kabal."
+                )
+            }
+        }
+
+        if (registrering.getAdditionalKabalMuligheter().isNotEmpty()) {
+            if (registrering.additionalKabalMulighetId == null) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::additionalKabalMulighetId.name,
+                    reason = "Du må velge tidligere behandling i Kabal som anken gjelder. Dersom disse ikke er riktige, så må du gi beskjed til Team Klage på Teams."
                 )
             }
         }
