@@ -40,7 +40,9 @@ class GosysOppgaveService(
             }
         } else null
 
-        temaList?.add(Tema.KTR)
+        if (temaList != null && Tema.KTR !in temaList) {
+            temaList.add(Tema.KTR)
+        }
 
         val gosysOppgaveList = gosysOppgaveClient.fetchGosysOppgaverForAktoerIdAndTema(
             aktoerId = aktoerId,
