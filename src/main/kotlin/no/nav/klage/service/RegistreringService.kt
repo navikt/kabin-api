@@ -434,7 +434,7 @@ class RegistreringService(
         )
 
         if (registrering.type in listOf(Type.KLAGE, Type.ANKE)) {
-            if (mulighet.originalFagsystem == Fagsystem.AO01) {
+            if (mulighet.originalFagsystem != Fagsystem.AO01) {
                 throw IllegalStateException("Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.")
             }
         }
