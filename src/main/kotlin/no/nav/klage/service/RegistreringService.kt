@@ -256,7 +256,6 @@ class RegistreringService(
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
                 }
-                mulighetIsBasedOnJournalpost = false
                 modified = LocalDateTime.now()
                 behandlingstidUnits = getDefaultBehandlingstidUnits(type)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
