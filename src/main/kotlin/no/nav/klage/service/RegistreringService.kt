@@ -703,7 +703,7 @@ class RegistreringService(
         if (mulighet.ytelse != null) {
             return listOf(mulighet.ytelse!!)
         } else {
-            val possibleYtelser = Ytelse.entries.filter { it.toTema() == mulighet.tema }
+            val possibleYtelser = mulighet.tema.toYtelserCurrentlyInUse()
             return possibleYtelser
         }
     }

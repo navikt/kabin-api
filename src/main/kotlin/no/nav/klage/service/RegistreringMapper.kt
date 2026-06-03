@@ -544,7 +544,7 @@ fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
                 identifikator = fnr,
                 sakenGjelderId = fnr,
                 //don't care which ytelse is picked, as long as Tema is correct. Could be prettier.
-                ytelseId = Ytelse.entries.find { y -> y.toTema().navn == tema }!!.id,
+                ytelseId = Tema.fromNavn(tema).toYtelserCurrentlyInUse().first().id
             )
         ).toPartWithUtsendingskanal()!!,
         fagsakId = fagsakId,
@@ -576,7 +576,7 @@ fun Journalpost.toMulighet(kabalApiService: KabalApiService, registrering: Regis
                 //Hack for handling case where tema is FEI in joark. Permissible here, as it's only used for part lookup.
                 ytelseId = if (tema.name == Tema.FEI.name) {
                     Ytelse.AAP_AAP.id
-                } else Ytelse.entries.find { y -> y.toTema().navn == tema.name }!!.id,
+                } else Tema.fromNavn(tema.name).toYtelserCurrentlyInUse().first().id
             )
         ).toPartWithUtsendingskanal()!!,
         fagsakId = sak!!.fagsakId!!,
