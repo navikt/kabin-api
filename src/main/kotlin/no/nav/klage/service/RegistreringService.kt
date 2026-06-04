@@ -256,6 +256,8 @@ class RegistreringService(
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
                 }
+                //TODO: Remove after FE adjusts in prod.
+                mulighetIsBasedOnJournalpost = false
                 modified = LocalDateTime.now()
                 behandlingstidUnits = getDefaultBehandlingstidUnits(type)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
