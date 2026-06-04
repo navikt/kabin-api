@@ -256,6 +256,7 @@ class RegistreringService(
                 type = input.typeId?.let { typeId ->
                     Type.of(typeId)
                 }
+                //TODO: Remove after FE adjusts in prod.
                 mulighetIsBasedOnJournalpost = false
                 modified = LocalDateTime.now()
                 behandlingstidUnits = getDefaultBehandlingstidUnits(type)
@@ -424,10 +425,6 @@ class RegistreringService(
             throw IllegalStateException("Mulighet kan ikke settes basert på journalpost fordi det alternativet ikke er valgt.")
         }
 
-        if (registrering.type !in listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
-            throw IllegalStateException("Mulighet kan kun settes basert på journalpost for Omgjøringskrav og Begjæring om gjenopptak.")
-        }
-
         if (registrering.mulighetId != null) {
             registrering.muligheter.removeIf { it.id == registrering.mulighetId }
         }
@@ -436,6 +433,12 @@ class RegistreringService(
             kabalApiService = kabalApiService,
             registrering = registrering,
         )
+
+        if (registrering.type in listOf(Type.KLAGE, Type.ANKE)) {
+            if (mulighet.originalFagsystem != Fagsystem.AO01) {
+                throw IllegalStateException("Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.")
+            }
+        }
 
         registrering.muligheter.add(mulighet)
 

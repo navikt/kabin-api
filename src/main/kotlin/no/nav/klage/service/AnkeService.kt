@@ -25,7 +25,8 @@ class AnkeService(
     }
 
     fun createAnke(registrering: Registrering): CreatedBehandlingResponse {
-        val mulighet = registrering.getCurrentMulighet() ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+        val mulighet = registrering.getCurrentMulighet()
+            ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
         val additionalKabalMulighet = registrering.getCurrentAdditionalKabalMulighet()
 
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
@@ -34,22 +35,43 @@ class AnkeService(
             registrering = registrering,
         )
 
-        return CreatedBehandlingResponse(
-            behandlingId = when (MulighetSource.of(mulighet.currentFagsystem)) {
-                MulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(
+        return if (registrering.mulighetIsBasedOnJournalpost) {
+            val kabalResponse = CreatedBehandlingResponse(
+                behandlingId = kabalApiService.createBehandlingBasedOnJournalpost(
                     journalpostId = journalpostId,
                     mulighet = mulighet,
                     registrering = registrering,
-                    additionalKabalMulighet = additionalKabalMulighet,
                 )
-
-                MulighetSource.KABAL -> kabalApiService.createBehandlingFromKabalInput(
-                    journalpostId = journalpostId,
-                    mulighet = mulighet,
-                    registrering = registrering
+            )
+            try {
+                //Gosys-oppgave is ensured in validation step.
+                logger.debug("Attempting Gosys-oppgave update")
+                gosysOppgaveService.updateGosysOppgave(
+                    gosysOppgaveId = registrering.gosysOppgaveId!!,
+                    tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
                 )
+            } catch (e: Exception) {
+                logger.error("Failed to update Gosys-oppgave", e)
             }
-        )
+            kabalResponse
+        } else {
+            CreatedBehandlingResponse(
+                behandlingId = when (MulighetSource.of(mulighet.currentFagsystem)) {
+                    MulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(
+                        journalpostId = journalpostId,
+                        mulighet = mulighet,
+                        registrering = registrering,
+                        additionalKabalMulighet = additionalKabalMulighet,
+                    )
+
+                    MulighetSource.KABAL -> kabalApiService.createBehandlingFromKabalInput(
+                        journalpostId = journalpostId,
+                        mulighet = mulighet,
+                        registrering = registrering
+                    )
+                }
+            )
+        }
     }
 
     private fun createAnkeFromInfotrygdSak(

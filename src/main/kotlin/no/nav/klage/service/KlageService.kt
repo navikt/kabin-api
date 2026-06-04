@@ -33,13 +33,34 @@ class KlageService(
             registrering = registrering,
         )
 
-        return CreatedBehandlingResponse(
-            behandlingId = createKlageFromInfotrygdSak(
-                journalpostId = journalpostId,
-                mulighet = mulighet,
-                registrering = registrering
-            ),
-        )
+        return if (registrering.mulighetIsBasedOnJournalpost) {
+            val kabalResponse = CreatedBehandlingResponse(
+                behandlingId = kabalApiService.createBehandlingBasedOnJournalpost(
+                    journalpostId = journalpostId,
+                    mulighet = mulighet,
+                    registrering = registrering
+                )
+            )
+            try {
+                //Gosys-oppgave is ensured in validation step.
+                logger.debug("Attempting Gosys-oppgave update")
+                gosysOppgaveService.updateGosysOppgave(
+                    gosysOppgaveId = registrering.gosysOppgaveId!!,
+                    tildeltSaksbehandlerIdent = registrering.saksbehandlerIdent,
+                )
+            } catch (e: Exception) {
+                logger.error("Failed to update Gosys-oppgave", e)
+            }
+            kabalResponse
+        } else {
+            CreatedBehandlingResponse(
+                behandlingId = createKlageFromInfotrygdSak(
+                    journalpostId = journalpostId,
+                    mulighet = mulighet,
+                    registrering = registrering
+                ),
+            )
+        }
     }
 
     private fun createKlageFromInfotrygdSak(
