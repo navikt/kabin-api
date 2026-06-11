@@ -123,7 +123,7 @@ class DokArkivClient(
     ): AddLogiskVedleggResponse {
         try {
             val response = dokArkivWebClient.post()
-                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/")
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
