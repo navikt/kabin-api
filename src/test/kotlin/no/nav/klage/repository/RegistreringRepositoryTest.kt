@@ -141,6 +141,7 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
                 behandlingstidUnitType = TimeUnitType.WEEKS,
                 hjemmelIdList = listOf("123", "456"),
                 ytelse = Ytelse.OMS_PSB,
+                forrigeBehandlendeEnhetId = "4200",
                 saksbehandlerIdent = "S223456",
                 gosysOppgaveId = 923456789,
                 sendSvarbrev = true,
@@ -214,6 +215,7 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
         assertThat(registreringFromDb.behandlingstidUnitType).isEqualTo(registrering.behandlingstidUnitType)
         assertThat(registreringFromDb.hjemmelIdList).isEqualTo(registrering.hjemmelIdList)
         assertThat(registreringFromDb.ytelse).isEqualTo(registrering.ytelse)
+        assertThat(registreringFromDb.forrigeBehandlendeEnhetId).isEqualTo(registrering.forrigeBehandlendeEnhetId)
         assertThat(registreringFromDb.saksbehandlerIdent).isEqualTo(registrering.saksbehandlerIdent)
         assertThat(registreringFromDb.gosysOppgaveId).isEqualTo(registrering.gosysOppgaveId)
         assertThat(registreringFromDb.sendSvarbrev).isEqualTo(registrering.sendSvarbrev)
@@ -283,6 +285,7 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
                 behandlingstidUnitType = TimeUnitType.WEEKS,
                 hjemmelIdList = listOf("123", "456"),
                 ytelse = Ytelse.OMS_PSB,
+                forrigeBehandlendeEnhetId = "4200",
                 saksbehandlerIdent = "S223456",
                 gosysOppgaveId = 923456789,
                 sendSvarbrev = true,
@@ -365,6 +368,7 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
                 behandlingstidUnitType = TimeUnitType.WEEKS,
                 hjemmelIdList = listOf("123", "456"),
                 ytelse = Ytelse.OMS_PSB,
+                forrigeBehandlendeEnhetId = "4200",
                 saksbehandlerIdent = "S223456",
                 gosysOppgaveId = 923456789,
                 sendSvarbrev = true,

@@ -31,6 +31,13 @@ class ValidationUtil(
             )
         }
 
+        if (registrering.forrigeBehandlendeEnhetId.isNullOrBlank()) {
+            saksdataValidationErrors += InvalidProperty(
+                field = Registrering::forrigeBehandlendeEnhetId.name,
+                reason = "Sett forrige behandlende enhet."
+            )
+        }
+
         if (registrering.type == null) {
             saksdataValidationErrors += InvalidProperty(
                 field = Registrering::type.name,

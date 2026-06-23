@@ -68,6 +68,8 @@ data class HjemmelIdListInput(val hjemmelIdList: List<String>)
 
 data class YtelseIdInput(val ytelseId: String?)
 
+data class ForrigeBehandlendeEnhetIdInput(val forrigeBehandlendeEnhetId: String)
+
 data class SaksbehandlerIdentInput(val saksbehandlerIdent: String?)
 
 data class GosysOppgaveIdInput(val gosysOppgaveId: Long?)

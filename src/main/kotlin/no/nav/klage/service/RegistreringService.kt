@@ -11,10 +11,7 @@ import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.Address
 import no.nav.klage.exceptions.*
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
@@ -75,6 +72,7 @@ class RegistreringService(
                 behandlingstidUnitType = TimeUnitType.WEEKS,
                 hjemmelIdList = listOf(),
                 ytelse = null,
+                forrigeBehandlendeEnhetId = null,
                 saksbehandlerIdent = null,
                 gosysOppgaveId = null,
                 sendSvarbrev = null,
@@ -141,6 +139,7 @@ class RegistreringService(
 
                 journalpostId = null
                 ytelse = null
+                forrigeBehandlendeEnhetId = null
                 type = null
                 mottattVedtaksinstans = null
                 mottattKlageinstans = null
@@ -267,6 +266,7 @@ class RegistreringService(
                 mottattVedtaksinstans = null
 
                 ytelse = null
+                forrigeBehandlendeEnhetId = null
                 hjemmelIdList = listOf()
 
                 saksbehandlerIdent = null
@@ -307,6 +307,7 @@ class RegistreringService(
                 mulighetId = null
 
                 ytelse = null
+                forrigeBehandlendeEnhetId = null
                 hjemmelIdList = listOf()
 
                 saksbehandlerIdent = null
@@ -385,6 +386,8 @@ class RegistreringService(
                     //Could be smarter here.
                     saksbehandlerIdent = null
                 }
+
+                forrigeBehandlendeEnhetId = newMulighet.klageBehandlendeEnhet
 
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = newMulighet.vedtakDate
@@ -477,6 +480,12 @@ class RegistreringService(
 
                 //Could be smarter here.
                 saksbehandlerIdent = null
+            }
+
+            forrigeBehandlendeEnhetId = if (type in listOf(Type.KLAGE, Type.ANKE)) {
+                null
+            } else {
+                mulighet.klageBehandlendeEnhet
             }
 
             if (type == Type.KLAGE) {
@@ -830,6 +839,48 @@ class RegistreringService(
                 customText = registrering.svarbrevCustomText,
                 initialCustomText = registrering.svarbrevInitialCustomText,
                 reasonNoLetter = registrering.reasonNoLetter,
+            ),
+            modified = registrering.modified,
+        )
+    }
+
+    fun setForrigeBehandlendeEnhetId(
+        registreringId: UUID,
+        input: ForrigeBehandlendeEnhetIdInput,
+    ): ForrigeBehandlendeEnhetIdChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+            .apply {
+                if (ytelse == null) {
+                    throw IllegalStateException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
+                }
+
+                if (type !in listOf(Type.KLAGE, Type.ANKE)) {
+                    throw IllegalStateException("Forrige behandlende enhet kan bare settes for klager og anker")
+                }
+
+                if (!mulighetIsBasedOnJournalpost) {
+                    throw IllegalStateException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
+                }
+
+                val trimmed = input.forrigeBehandlendeEnhetId.trim()
+                if (trimmed.isEmpty()) {
+                    throw IllegalStateException("Forrige behandlende enhet kan ikke være tom.")
+                }
+
+                if (!(Enhet.entries.map { it.navn }.contains(trimmed))) {
+                    throw IllegalStateException("Oppgitt enhetId fins ikke i kodeverket.")
+                }
+
+                //TODO: Verifiser at oppgitt enhet er i hhv ytelseToVedtaksenhet eller ytelseToKlageenhet, avhengig av klage eller anke
+
+                forrigeBehandlendeEnhetId = trimmed
+                modified = LocalDateTime.now()
+            }
+
+        return ForrigeBehandlendeEnhetIdChangeRegistreringView(
+            id = registrering.id,
+            overstyringer = ForrigeBehandlendeEnhetIdChangeRegistreringView.ForrigeBehandlendeEnhetIdChangeRegistreringOverstyringerView(
+                forrigeBehandlendeEnhetId = registrering.forrigeBehandlendeEnhetId!!,
             ),
             modified = registrering.modified,
         )

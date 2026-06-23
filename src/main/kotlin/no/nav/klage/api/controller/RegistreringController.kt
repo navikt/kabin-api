@@ -257,6 +257,19 @@ class RegistreringController(
         return registreringService.setYtelseId(registreringId = id, input = input)
     }
 
+    @PutMapping("/{id}/overstyringer/forrige-behandlende-enhet-id")
+    fun updateForrigeBehandlendeEnhetId(
+        @PathVariable id: UUID,
+        @RequestBody input: ForrigeBehandlendeEnhetIdInput
+    ): ForrigeBehandlendeEnhetIdChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateForrigeBehandlendeEnhetId.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setForrigeBehandlendeEnhetId(registreringId = id, input = input)
+    }
+
     @PutMapping("/{id}/overstyringer/fullmektig")
     fun updateFullmektig(
         @PathVariable id: UUID,
