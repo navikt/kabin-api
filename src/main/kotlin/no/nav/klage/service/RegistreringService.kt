@@ -867,7 +867,7 @@ class RegistreringService(
                     throw IllegalStateException("Forrige behandlende enhet kan ikke være tom.")
                 }
 
-                if (!(Enhet.entries.map { it.navn }.contains(trimmed))) {
+                if (Enhet.entries.none { it.navn == trimmed }) {
                     throw IllegalStateException("Oppgitt enhetId fins ikke i kodeverket.")
                 }
 
