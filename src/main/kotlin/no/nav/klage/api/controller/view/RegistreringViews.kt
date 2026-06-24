@@ -42,6 +42,7 @@ data class FullRegistreringView(
         val calculatedFrist: LocalDate?,
         val hjemmelIdList: List<String>,
         val ytelseId: String?,
+        val forrigeBehandlendeEnhetId: String?,
         val fullmektig: PartViewWithOptionalUtsendingskanal?,
         val klager: PartViewWithOptionalUtsendingskanal?,
         val avsender: PartViewWithOptionalUtsendingskanal?,
@@ -85,6 +86,7 @@ data class TypeChangeRegistreringView(
         val calculatedFrist: LocalDate? = null,
         val hjemmelIdList: List<String> = emptyList(),
         val ytelseId: String? = null,
+        val forrigeBehandlendeEnhetId: String? = null,
         val fullmektig: PartViewWithUtsendingskanal? = null,
         val klager: PartViewWithUtsendingskanal? = null,
         val avsender: PartViewWithUtsendingskanal? = null,
@@ -140,6 +142,7 @@ data class MulighetChangeRegistreringView(
         val calculatedFrist: LocalDate?,
         val hjemmelIdList: List<String>,
         val ytelseId: String?,
+        val forrigeBehandlendeEnhetId: String?,
         val fullmektig: PartViewWithOptionalUtsendingskanal?,
         val klager: PartViewWithOptionalUtsendingskanal?,
         val avsender: PartViewWithOptionalUtsendingskanal?,
@@ -397,6 +400,16 @@ data class HjemmelIdListChangeRegistreringView(
 ) {
     data class HjemmelIdListChangeRegistreringOverstyringerView(
         val hjemmelIdList: List<String>,
+    )
+}
+
+data class ForrigeBehandlendeEnhetIdChangeRegistreringView(
+    val id: UUID,
+    val overstyringer: ForrigeBehandlendeEnhetIdChangeRegistreringOverstyringerView,
+    val modified: LocalDateTime,
+) {
+    data class ForrigeBehandlendeEnhetIdChangeRegistreringOverstyringerView(
+        val forrigeBehandlendeEnhetId: String,
     )
 }
 

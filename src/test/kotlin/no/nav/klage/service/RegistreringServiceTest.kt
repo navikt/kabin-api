@@ -420,6 +420,43 @@ class RegistreringServiceTest {
         }
     }
 
+    // ============ setForrigeBehandlendeEnhet ============
+
+    @Nested
+    inner class SetForrigeBehandlendeEnhetTest {
+        @Test
+        fun `throws when ytelse is not set`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setForrigeBehandlendeEnhetId(
+                    id,
+                    ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "4200")
+                )
+            }.isInstanceOf(IllegalStateException::class.java)
+        }
+
+        @Test
+        fun `throws exception when illegal input value`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.type = Type.KLAGE
+            registrering.mulighetIsBasedOnJournalpost = true
+            registrering.ytelse = Ytelse.OMS_PSB
+
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setForrigeBehandlendeEnhetId(
+                    id,
+                    ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "1234")
+                )
+            }.isInstanceOf(IllegalArgumentException::class.java)
+        }
+    }
+
     // ============ setSendSvarbrev ============
 
     @Nested
@@ -1022,6 +1059,7 @@ class RegistreringServiceTest {
             behandlingstidUnitType = TimeUnitType.WEEKS,
             hjemmelIdList = listOf("123", "456"),
             ytelse = Ytelse.OMS_PSB,
+            forrigeBehandlendeEnhetId = "4200",
             saksbehandlerIdent = "S223456",
             gosysOppgaveId = 923456789,
             sendSvarbrev = true,
@@ -1070,6 +1108,7 @@ class RegistreringServiceTest {
             behandlingstidUnitType = TimeUnitType.WEEKS,
             hjemmelIdList = emptyList(),
             ytelse = null,
+            forrigeBehandlendeEnhetId = null,
             saksbehandlerIdent = null,
             gosysOppgaveId = null,
             sendSvarbrev = null,

@@ -52,7 +52,8 @@ fun Registrering.toTypeChangeRegistreringView(kabalApiService: KabalApiService):
             behandlingstid = BehandlingstidView(
                 unitTypeId = behandlingstidUnitType.id,
                 units = behandlingstidUnits
-            )
+            ),
+            forrigeBehandlendeEnhetId = forrigeBehandlendeEnhetId,
         ),
         additionalKabalMulighet = additionalKabalMulighetId?.let {
             MulighetIdView(
@@ -104,6 +105,7 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
         },
         overstyringer = MulighetChangeRegistreringView.MulighetChangeRegistreringOverstyringerView(
             ytelseId = ytelse?.id,
+            forrigeBehandlendeEnhetId = forrigeBehandlendeEnhetId,
             mottattVedtaksinstans = mottattVedtaksinstans,
             mottattKlageinstans = mottattKlageinstans,
             behandlingstid = BehandlingstidView(
@@ -219,6 +221,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
         } else null,
         hjemmelIdList = hjemmelIdList,
         ytelseId = ytelse?.id,
+        forrigeBehandlendeEnhetId = forrigeBehandlendeEnhetId,
         fullmektig = fullmektig?.let {
             partViewWithOptionalUtsendingskanal(
                 identifikator = it.value,
