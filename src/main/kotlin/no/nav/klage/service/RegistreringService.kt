@@ -862,18 +862,10 @@ class RegistreringService(
                     throw IllegalStateException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
                 }
 
-                val trimmed = input.forrigeBehandlendeEnhetId.trim()
-                if (trimmed.isEmpty()) {
-                    throw IllegalStateException("Forrige behandlende enhet kan ikke være tom.")
-                }
-
-                if (Enhet.entries.none { it.navn == trimmed }) {
-                    throw IllegalStateException("Oppgitt enhetId fins ikke i kodeverket.")
-                }
-
                 //TODO: Verifiser at oppgitt enhet er i hhv ytelseToVedtaksenhet eller ytelseToKlageenhet, avhengig av klage eller anke
 
-                forrigeBehandlendeEnhetId = trimmed
+                val enhet = Enhet.fromNavn(input.forrigeBehandlendeEnhetId)
+                forrigeBehandlendeEnhetId = enhet.navn
                 modified = LocalDateTime.now()
             }
 
