@@ -862,8 +862,6 @@ class RegistreringService(
                     throw IllegalStateException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
                 }
 
-                //TODO: Verifiser at oppgitt enhet er i hhv ytelseToVedtaksenhet eller ytelseToKlageenhet, avhengig av klage eller anke
-
                 val enhet = Enhet.fromNavn(input.forrigeBehandlendeEnhetId)
                 forrigeBehandlendeEnhetId = enhet.navn
                 modified = LocalDateTime.now()
