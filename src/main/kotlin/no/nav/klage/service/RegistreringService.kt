@@ -862,8 +862,8 @@ class RegistreringService(
                     throw IllegalStateException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
                 }
 
-                val enhet = Enhet.fromNavn(input.forrigeBehandlendeEnhetId)
-                forrigeBehandlendeEnhetId = enhet.navn
+                //Enhet.fromNavn() validates the input.
+                forrigeBehandlendeEnhetId = Enhet.fromNavn(input.forrigeBehandlendeEnhetId).navn
                 modified = LocalDateTime.now()
             }
 
