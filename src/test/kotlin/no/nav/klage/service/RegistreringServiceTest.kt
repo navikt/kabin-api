@@ -439,7 +439,7 @@ class RegistreringServiceTest {
         }
 
         @Test
-        fun `sets trimmed value when ytelse is set`() {
+        fun `throws exception when illegal input value`() {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
             registrering.type = Type.KLAGE
@@ -448,13 +448,12 @@ class RegistreringServiceTest {
 
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setForrigeBehandlendeEnhetId(
-                id,
-                ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "  4295  ")
-            )
-
-            assertThat(registrering.forrigeBehandlendeEnhetId).isEqualTo("4295")
-            assertThat(result.overstyringer.forrigeBehandlendeEnhetId).isEqualTo("4295")
+            assertThatThrownBy {
+                registreringService.setForrigeBehandlendeEnhetId(
+                    id,
+                    ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "1234")
+                )
+            }.isInstanceOf(IllegalArgumentException::class.java)
         }
     }
 
