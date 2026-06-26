@@ -110,4 +110,5 @@ enum class FagsaksSystem {
     REMEDY,
     EKSPERTBISTAND,
     ARGUS,
+    SPEIL,
 }
