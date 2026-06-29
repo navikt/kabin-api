@@ -168,7 +168,8 @@ fun Registrering.toKabalMulighetBasedOnInfotrygdSakChangeRegistreringView(): Add
     AdditionalKabalMulighetChangeRegistreringView(
         id = id,
         additionalKabalMulighetId = additionalKabalMulighetId,
-        ytelseId = ytelse!!.id
+        ytelseId = ytelse!!.id,
+        hjemmelIdList = hjemmelIdList,
     )
 
 fun Registrering.toFinishedRegistreringView(): FinishedRegistreringView = FinishedRegistreringView(

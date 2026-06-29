@@ -539,6 +539,10 @@ class RegistreringService(
                     ytelse = null
                 }
 
+                hjemmelIdList = mulighetToBeSet.hjemmelIdList.ifEmpty {
+                    emptyList()
+                }
+
                 modified = LocalDateTime.now()
             }.toKabalMulighetBasedOnInfotrygdSakChangeRegistreringView()
     }
