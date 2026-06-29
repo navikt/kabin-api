@@ -683,6 +683,7 @@ class RegistreringService(
         val kabalMuligheterBasedOnInfotrygdSak =
             muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toSet()
         muligheter.removeAll(kabalMuligheterBasedOnInfotrygdSak)
+        hjemmelIdList = emptyList()
     }
 
     fun Registrering.reinitializeAdditionalKabalMuligheter() {
