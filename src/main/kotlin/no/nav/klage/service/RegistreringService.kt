@@ -692,6 +692,8 @@ class RegistreringService(
             val currentKabalMuligheterBasedOnInfotrygdSak =
                 muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toSet()
 
+            logger.debug("Ids and technincal id in currentKabalMuligheterBasedOnInfotrygdSak: {}", currentKabalMuligheterBasedOnInfotrygdSak.map { it.id to it.currentFagystemTechnicalId })
+
             val saksbehandlerAccessTokenWithKabalApiScope =
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
 
@@ -700,18 +702,25 @@ class RegistreringService(
                 token = saksbehandlerAccessTokenWithKabalApiScope
             ).map { it.toMulighet() }
 
+            logger.debug("Ids and technincal id in newKabalMuligheterFromInfotrygdSak: {}", newKabalMuligheterFromInfotrygdSak.map { it.id to it.currentFagystemTechnicalId })
+
             val (kabalMuligheterToRemove, kabalMuligheterToKeep) = currentKabalMuligheterBasedOnInfotrygdSak.partition {
                 it.currentFagystemTechnicalId in newKabalMuligheterFromInfotrygdSak.map { newKabalMulighet -> newKabalMulighet.currentFagystemTechnicalId }
             }
+            logger.debug("Ids and technincal id in kabalMuligheterToRemove: {}", kabalMuligheterToRemove.map { it.id to it.currentFagystemTechnicalId })
+            logger.debug("Ids and technincal id in kabalMuligheterToKeep: {}", kabalMuligheterToKeep.map { it.id to it.currentFagystemTechnicalId })
 
             val kabalMuligheterToAdd =
                 newKabalMuligheterFromInfotrygdSak.filter { it.currentFagystemTechnicalId !in kabalMuligheterToKeep.map { kabalMulighetToKeep -> kabalMulighetToKeep.currentFagystemTechnicalId } }
+
+            logger.debug("Ids and technincal id in kabalMuligheterToAdd: {}", kabalMuligheterToAdd.map { it.id to it.currentFagystemTechnicalId })
 
             muligheter.removeAll(kabalMuligheterToRemove.toSet())
             muligheter.addAll(kabalMuligheterToKeep)
             muligheter.addAll(kabalMuligheterToAdd)
 
             if (additionalKabalMulighetId !in kabalMuligheterToKeep.map { it.id }) {
+                logger.debug ("Removing additionalKabalMulighetId {}", additionalKabalMulighetId)
                 additionalKabalMulighetId = null
                 hjemmelIdList = emptyList()
             }
