@@ -704,7 +704,7 @@ class RegistreringService(
 
             logger.debug("Ids and technincal id in newKabalMuligheterFromInfotrygdSak: {}", newKabalMuligheterFromInfotrygdSak.map { it.id to it.currentFagystemTechnicalId })
 
-            val (kabalMuligheterToRemove, kabalMuligheterToKeep) = currentKabalMuligheterBasedOnInfotrygdSak.partition {
+            val (kabalMuligheterToKeep, kabalMuligheterToRemove) = currentKabalMuligheterBasedOnInfotrygdSak.partition {
                 it.currentFagystemTechnicalId in newKabalMuligheterFromInfotrygdSak.map { newKabalMulighet -> newKabalMulighet.currentFagystemTechnicalId }
             }
             logger.debug("Ids and technincal id in kabalMuligheterToRemove: {}", kabalMuligheterToRemove.map { it.id to it.currentFagystemTechnicalId })
