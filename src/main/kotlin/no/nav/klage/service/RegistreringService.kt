@@ -687,9 +687,11 @@ class RegistreringService(
     }
 
     fun Registrering.reinitializeAdditionalKabalMuligheter() {
-        removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
-        val currentMulighet = getCurrentMulighet() ?: return
+        val currentMulighet = getCurrentMulighet() ?: return removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
         if (currentMulighet.isAnkeMulighetFromInfotrygd()) {
+            val currentKabalMuligheterBasedOnInfotrygdSak =
+                muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toSet()
+
             val saksbehandlerAccessTokenWithKabalApiScope =
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
 
@@ -698,8 +700,23 @@ class RegistreringService(
                 token = saksbehandlerAccessTokenWithKabalApiScope
             ).map { it.toMulighet() }
 
-            muligheter.addAll(newKabalMuligheterFromInfotrygdSak)
-        }
+            val (kabalMuligheterToRemove, kabalMuligheterToKeep) = currentKabalMuligheterBasedOnInfotrygdSak.partition {
+                it.currentFagystemTechnicalId in newKabalMuligheterFromInfotrygdSak.map { newKabalMulighet -> newKabalMulighet.currentFagystemTechnicalId }
+            }
+
+            val kabalMuligheterToAdd =
+                newKabalMuligheterFromInfotrygdSak.filter { it.currentFagystemTechnicalId !in kabalMuligheterToKeep.map { kabalMulighetToKeep -> kabalMulighetToKeep.currentFagystemTechnicalId } }
+
+            muligheter.removeAll(kabalMuligheterToRemove.toSet())
+            muligheter.addAll(kabalMuligheterToKeep)
+            muligheter.addAll(kabalMuligheterToAdd)
+
+            if (additionalKabalMulighetId !in kabalMuligheterToKeep.map { it.id }) {
+                additionalKabalMulighetId = null
+                hjemmelIdList = emptyList()
+            }
+
+        } else removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
     }
 
     private fun Registrering.setSvarbrevSettings() {

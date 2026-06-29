@@ -202,6 +202,15 @@ class ValidationUtil(
             }
         }
 
+        if (registrering.additionalKabalMulighetId != null) {
+            if (registrering.additionalKabalMulighetId !in registrering.getAdditionalKabalMuligheter().map { it.id }) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::additionalKabalMulighetId.name,
+                    reason = "Du må velge tidligere behandling i Kabal som anken gjelder. Dersom disse ikke er riktige, så må du gi beskjed til Team Klage på Teams."
+                )
+            }
+        }
+
         val sectionList = mutableListOf<ValidationSection>()
 
         if (saksdataValidationErrors.isNotEmpty()) {
