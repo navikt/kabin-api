@@ -683,39 +683,47 @@ class RegistreringService(
         val kabalMuligheterBasedOnInfotrygdSak =
             muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toSet()
         muligheter.removeAll(kabalMuligheterBasedOnInfotrygdSak)
-        hjemmelIdList = emptyList()
     }
 
     fun Registrering.reinitializeAdditionalKabalMuligheter() {
         val currentMulighet = getCurrentMulighet() ?: return removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
         if (currentMulighet.isAnkeMulighetFromInfotrygd()) {
-            val currentKabalMuligheterBasedOnInfotrygdSak =
+            val existing =
                 muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toSet()
 
             val saksbehandlerAccessTokenWithKabalApiScope =
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
 
-            val newKabalMuligheterFromInfotrygdSak = kabalApiService.getKabalMuligheterFromInfotrygdSak(
+            val latest = kabalApiService.getKabalMuligheterFromInfotrygdSak(
                 input = InfotrygdSakIdInput(currentMulighet.currentFagystemTechnicalId),
                 token = saksbehandlerAccessTokenWithKabalApiScope
             ).map { it.toMulighet() }
 
-            val (kabalMuligheterToKeep, kabalMuligheterToRemove) = currentKabalMuligheterBasedOnInfotrygdSak.partition {
-                it.currentFagystemTechnicalId in newKabalMuligheterFromInfotrygdSak.map { newKabalMulighet -> newKabalMulighet.currentFagystemTechnicalId }
-            }
+            val latestTechnicalIds = latest.map { it.currentFagystemTechnicalId }.toSet()
 
-            val kabalMuligheterToAdd =
-                newKabalMuligheterFromInfotrygdSak.filter { it.currentFagystemTechnicalId !in kabalMuligheterToKeep.map { kabalMulighetToKeep -> kabalMulighetToKeep.currentFagystemTechnicalId } }
+            val toRemove = existing
+                .filter { it.currentFagystemTechnicalId !in latestTechnicalIds }
 
-            muligheter.removeAll(kabalMuligheterToRemove.toSet())
-            muligheter.addAll(kabalMuligheterToKeep)
-            muligheter.addAll(kabalMuligheterToAdd)
+            val existingTechnicalIds = existing
+                .map { it.currentFagystemTechnicalId }
+                .toSet()
 
-            if (additionalKabalMulighetId !in kabalMuligheterToKeep.map { it.id }) {
+            val toAdd = latest
+                .filter { it.currentFagystemTechnicalId !in existingTechnicalIds }
+
+            muligheter.removeAll(toRemove.toSet())
+            muligheter.addAll(toAdd)
+
+            val stillValidSelectedId = additionalKabalMulighetId != null &&
+                    muligheter.any {
+                        it.id == additionalKabalMulighetId &&
+                                it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()
+                    }
+
+            if (!stillValidSelectedId) {
                 additionalKabalMulighetId = null
                 hjemmelIdList = emptyList()
             }
-
         } else removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
     }
 
