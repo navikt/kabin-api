@@ -539,6 +539,10 @@ class RegistreringService(
                     ytelse = null
                 }
 
+                hjemmelIdList = mulighetToBeSet.hjemmelIdList.ifEmpty {
+                    emptyList()
+                }
+
                 modified = LocalDateTime.now()
             }.toKabalMulighetBasedOnInfotrygdSakChangeRegistreringView()
     }
@@ -682,19 +686,45 @@ class RegistreringService(
     }
 
     fun Registrering.reinitializeAdditionalKabalMuligheter() {
-        removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
-        val currentMulighet = getCurrentMulighet() ?: return
+        val currentMulighet = getCurrentMulighet() ?: return removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
         if (currentMulighet.isAnkeMulighetFromInfotrygd()) {
+            val existing =
+                muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toSet()
+
             val saksbehandlerAccessTokenWithKabalApiScope =
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
 
-            val newKabalMuligheterFromInfotrygdSak = kabalApiService.getKabalMuligheterFromInfotrygdSak(
+            val latest = kabalApiService.getKabalMuligheterFromInfotrygdSak(
                 input = InfotrygdSakIdInput(currentMulighet.currentFagystemTechnicalId),
                 token = saksbehandlerAccessTokenWithKabalApiScope
             ).map { it.toMulighet() }
 
-            muligheter.addAll(newKabalMuligheterFromInfotrygdSak)
-        }
+            val latestTechnicalIds = latest.map { it.currentFagystemTechnicalId }.toSet()
+
+            val toRemove = existing
+                .filter { it.currentFagystemTechnicalId !in latestTechnicalIds }
+
+            val existingTechnicalIds = existing
+                .map { it.currentFagystemTechnicalId }
+                .toSet()
+
+            val toAdd = latest
+                .filter { it.currentFagystemTechnicalId !in existingTechnicalIds }
+
+            muligheter.removeAll(toRemove.toSet())
+            muligheter.addAll(toAdd)
+
+            val stillValidSelectedId = additionalKabalMulighetId != null &&
+                    muligheter.any {
+                        it.id == additionalKabalMulighetId &&
+                                it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()
+                    }
+
+            if (!stillValidSelectedId) {
+                additionalKabalMulighetId = null
+                hjemmelIdList = emptyList()
+            }
+        } else removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
     }
 
     private fun Registrering.setSvarbrevSettings() {

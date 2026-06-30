@@ -120,6 +120,7 @@ data class AdditionalKabalMulighetChangeRegistreringView(
     val id: UUID,
     val additionalKabalMulighetId: UUID?,
     val ytelseId: String,
+    val hjemmelIdList: List<String>,
     //Sikkert mer
 )
 

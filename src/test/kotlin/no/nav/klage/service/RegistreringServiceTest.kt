@@ -881,6 +881,81 @@ class RegistreringServiceTest {
         }
     }
 
+    // ============ setAdditionalKabalMulighet ============
+
+    @Nested
+    inner class SetAdditionalKabalMulighetTest {
+        @Test
+        fun `sets additionalKabalMulighetId and hjemmelIdList for valid additional kabal mulighet`() {
+            val id = UUID.randomUUID()
+            val additionalMulighetId = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.ytelse = null
+
+            val mulighet = createMulighet(
+                id = additionalMulighetId,
+                originalFagsystem = Fagsystem.IT01,
+                currentFagsystem = Fagsystem.KABAL,
+                type = Type.ANKE,
+                originalType = Type.KLAGE,
+            ).apply {
+                hjemmelIdList = listOf("h1", "h2")
+            }
+            registrering.muligheter.add(mulighet)
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            val result = registreringService.setAdditionalKabalMulighet(
+                registreringId = id,
+                input = MulighetInput(mulighetId = additionalMulighetId),
+            )
+
+            assertThat(registrering.additionalKabalMulighetId).isEqualTo(additionalMulighetId)
+            assertThat(registrering.ytelse).isEqualTo(mulighet.ytelse)
+            assertThat(registrering.hjemmelIdList).containsExactly("h1", "h2")
+            assertThat(result.additionalKabalMulighetId).isEqualTo(additionalMulighetId)
+            assertThat(result.ytelseId).isEqualTo(mulighet.ytelse!!.id)
+            assertThat(result.hjemmelIdList).containsExactly("h1", "h2")
+        }
+
+        @Test
+        fun `throws MulighetNotFoundException when mulighet does not exist`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setAdditionalKabalMulighet(
+                    registreringId = id,
+                    input = MulighetInput(mulighetId = UUID.randomUUID()),
+                )
+            }.isInstanceOf(MulighetNotFoundException::class.java)
+        }
+
+        @Test
+        fun `throws IllegalStateException when mulighet is not additional kabal anke based on infotrygd sak`() {
+            val id = UUID.randomUUID()
+            val mulighetId = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.muligheter.add(
+                createMulighet(
+                    id = mulighetId,
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.IT01,
+                    type = Type.ANKE,
+                    originalType = Type.ANKE,
+                )
+            )
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setAdditionalKabalMulighet(
+                    registreringId = id,
+                    input = MulighetInput(mulighetId = mulighetId),
+                )
+            }.isInstanceOf(IllegalStateException::class.java)
+        }
+    }
+
     // ============ setTypeId - additionalKabalMulighetId reset ============
 
     @Nested
