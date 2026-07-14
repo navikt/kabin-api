@@ -8,7 +8,7 @@ val springMockkVersion = "5.0.1"
 val logbackSyslog4jVersion = "1.0.0"
 val klageKodeverkVersion = "3.3.10"
 val testContainersVersion = "2.0.5"
-val otelVersion = "1.63.0"
+val otelVersion = "1.64.0"
 
 plugins {
     val kotlinVersion = "2.4.0"
