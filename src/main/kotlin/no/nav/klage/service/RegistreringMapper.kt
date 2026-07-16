@@ -2,11 +2,11 @@ package no.nav.klage.service
 
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.Address
-import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.SearchPartView
 import no.nav.klage.clients.kabalapi.SvarbrevInput
 import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
+import no.nav.klage.clients.klanke.SakFromKlanke
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.PartStatus

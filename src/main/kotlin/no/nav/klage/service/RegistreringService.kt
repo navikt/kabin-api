@@ -4,10 +4,10 @@ import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
-import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
+import no.nav.klage.clients.klanke.SakFromKlanke
 import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.Address
 import no.nav.klage.exceptions.*

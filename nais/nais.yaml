@@ -92,6 +92,7 @@ spec:
         - application: kabal-api
         - application: kabal-innstillinger
         - application: klage-lookup
+        - application: klage-unleash-proxy
         - application: logging
           namespace: nais-system
       external:

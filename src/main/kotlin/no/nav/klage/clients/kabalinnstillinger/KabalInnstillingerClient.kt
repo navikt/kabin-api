@@ -1,4 +1,4 @@
-package no.nav.klage.clients
+package no.nav.klage.clients.kabalinnstillinger
 
 import no.nav.klage.util.TokenUtil
 import org.springframework.http.HttpHeaders

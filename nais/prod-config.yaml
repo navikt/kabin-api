@@ -4,9 +4,11 @@ externalHosts:
   - host: login.microsoftonline.com
   - host: saf.prod-fss-pub.nais.io
   - host: dokarkiv.prod-fss-pub.nais.io
+  - host: klage-fss-proxy.prod-fss-pub.nais.io
   - host: pdl-api.prod-fss-pub.nais.io
   - host: oppgave.prod-fss-pub.nais.io
   - host: pdl-api.prod-fss-pub.nais.io
+  - host: klanke.prod-fss-pub.nais.io
 inboundApplications:
   - application: kabin
 springProfile: prod

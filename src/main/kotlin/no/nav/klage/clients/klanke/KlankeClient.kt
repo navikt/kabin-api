@@ -1,6 +1,5 @@
-package no.nav.klage.clients
+package no.nav.klage.clients.klanke
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
@@ -8,11 +7,10 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import java.time.LocalDate
 
 @Component
-class KlageFssProxyClient(
-    private val klageFssProxyWebClient: WebClient,
+class KlankeClient(
+    private val klankeWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
 
@@ -21,12 +19,12 @@ class KlageFssProxyClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun searchKlanke(input: KlankeSearchInput, token: String): Mono<List<SakFromKlanke>> {
-        return klageFssProxyWebClient.post()
-            .uri("/klanke/saker")
+    fun searchKlanke(input: KlankeSearchInput): Mono<List<SakFromKlanke>> {
+        return klankeWebClient.post()
+            .uri("/rest/saker")
             .header(
                 HttpHeaders.AUTHORIZATION,
-                token,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlankeScope()}"
             )
             .bodyValue(input)
             .retrieve()
@@ -34,11 +32,11 @@ class KlageFssProxyClient(
     }
 
     fun getSakAppAccess(sakId: String, saksbehandlerIdent: String): SakFromKlanke {
-        return klageFssProxyWebClient.post()
-            .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
+        return klankeWebClient.post()
+            .uri { it.path("/rest/saker/{sakId}").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getMaskinTilMaskinTokenWithKlageFSSProxyScope()}"
+                "Bearer ${tokenUtil.getMaskinTilMaskinTokenWithKlankeScope()}"
             )
             .bodyValue(
                 GetSakAppAccessInput(
@@ -51,16 +49,12 @@ class KlageFssProxyClient(
             ?: throw RuntimeException("Empty result")
     }
 
-    data class GetSakAppAccessInput(
-        val saksbehandlerIdent: String
-    )
-
     fun checkAccess(): Access {
-        return klageFssProxyWebClient.get()
-            .uri { it.path("/klanke/access").build() }
+        return klankeWebClient.get()
+            .uri { it.path("/rest/access").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlankeScope()}"
             )
             .retrieve()
             .bodyToMono<Access>()
@@ -69,11 +63,11 @@ class KlageFssProxyClient(
     }
 
     fun setToHandledInKabal(sakId: String, input: HandledInKabalInput) {
-        klageFssProxyWebClient.post()
-            .uri { it.path("/klanke/saker/{sakId}/handledinkabal").build(sakId) }
+        klankeWebClient.post()
+            .uri { it.path("/rest/saker/{sakId}/handledinkabal").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlankeScope()}"
             )
             .bodyValue(input)
             .retrieve()
@@ -81,27 +75,3 @@ class KlageFssProxyClient(
             .block()
     }
 }
-
-data class KlankeSearchInput(
-    val fnr: String,
-    val sakstype: String,
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class SakFromKlanke(
-    val sakId: String,
-    val fagsakId: String,
-    val tema: String,
-    val enhetsnummer: String,
-    val vedtaksdato: LocalDate,
-    val fnr: String,
-    val sakstype: String,
-)
-
-data class HandledInKabalInput(
-    val fristAsString: String
-)
-
-data class Access(
-    val access: Boolean
-)
