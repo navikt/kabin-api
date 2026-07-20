@@ -3,12 +3,12 @@ package no.nav.klage.service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.dokarkiv.BrukerIdType
 import no.nav.klage.clients.dokarkiv.Sak
 import no.nav.klage.clients.kabalapi.PartType
 import no.nav.klage.clients.kabalapi.SearchPartView
+import no.nav.klage.clients.kabalinnstillinger.KabalInnstillingerClient
 import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.clients.saf.graphql.Bruker

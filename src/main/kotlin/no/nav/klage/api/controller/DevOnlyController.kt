@@ -2,12 +2,12 @@ package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Hidden
 import no.nav.klage.api.controller.view.GosysOppgaveView
-import no.nav.klage.clients.KlageFssProxyClient
-import no.nav.klage.clients.SakFromKlanke
 import no.nav.klage.clients.gosysoppgave.Gjelder
+import no.nav.klage.clients.klanke.SakFromKlanke
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.GosysOppgaveService
+import no.nav.klage.service.KlankeService
 import no.nav.klage.util.TokenUtil
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.Unprotected
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @Hidden
 class DevOnlyController(
-    private val klageFssProxyClient: KlageFssProxyClient,
+    private val klankeService: KlankeService,
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
 ) {
@@ -30,7 +30,7 @@ class DevOnlyController(
     fun getSakFromKlankeAppAccess(
         @PathVariable sakId: String
     ): SakFromKlanke {
-        return klageFssProxyClient.getSakAppAccess(sakId = sakId, saksbehandlerIdent = tokenUtil.getCurrentIdent())
+        return klankeService.getSakAppAccess(sakId = sakId, saksbehandlerIdent = tokenUtil.getCurrentIdent())
     }
 
     @Unprotected

@@ -3,10 +3,10 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.SearchPartInput
-import no.nav.klage.clients.KabalInnstillingerClient
 import no.nav.klage.clients.dokarkiv.*
 import no.nav.klage.clients.gosysoppgave.FerdigstillGosysOppgaveRequest
 import no.nav.klage.clients.gosysoppgave.GosysOppgaveClient
+import no.nav.klage.clients.kabalinnstillinger.KabalInnstillingerClient
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
