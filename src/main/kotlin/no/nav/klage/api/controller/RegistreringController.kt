@@ -126,6 +126,101 @@ class RegistreringController(
         return registreringService.setJournalpostId(registreringId = id, input = input)
     }
 
+    @PostMapping("/{id}/documents/upload-url")
+    fun createDokumentUploadUrl(
+        @PathVariable id: UUID,
+        @RequestBody input: DokumentUploadUrlInput,
+    ): DokumentUploadUrlView {
+        logMethodDetails(
+            methodName = ::createDokumentUploadUrl.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.createDokumentUploadUrl(registreringId = id, input = input)
+    }
+
+    @PostMapping("/{id}/documents/{dokumentId}/confirm")
+    fun confirmDokument(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+    ): FullRegistreringView {
+        logMethodDetails(
+            methodName = ::confirmDokument.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.confirmDokument(
+            registreringId = id,
+            dokumentId = dokumentId,
+        )
+    }
+
+    @PutMapping("/{id}/documents/{dokumentId}/name")
+    fun setDokumentName(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+        @RequestBody input: DokumentNameInput,
+    ): FullRegistreringView {
+        logMethodDetails(
+            methodName = ::setDokumentName.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setDokumentName(registreringId = id, dokumentId = dokumentId, input = input)
+    }
+
+    @PutMapping("/{id}/documents/{dokumentId}/hoveddokument")
+    fun setHoveddokument(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+    ): FullRegistreringView {
+        logMethodDetails(
+            methodName = ::setHoveddokument.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setHoveddokument(registreringId = id, dokumentId = dokumentId)
+    }
+
+    @GetMapping("/{id}/documents/{dokumentId}/view-url")
+    fun getDokumentViewUrl(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+    ): DokumentViewUrlView {
+        logMethodDetails(
+            methodName = ::getDokumentViewUrl.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.getDokumentViewUrl(registreringId = id, dokumentId = dokumentId)
+    }
+
+    @DeleteMapping("/{id}/documents/{dokumentId}")
+    fun deleteDokument(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+    ): FullRegistreringView {
+        logMethodDetails(
+            methodName = ::deleteDokument.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.deleteDokument(registreringId = id, dokumentId = dokumentId)
+    }
+
+    @PutMapping("/{id}/documents/inngaaende-kanal")
+    fun updateInngaaendeKanal(
+        @PathVariable id: UUID,
+        @RequestBody input: InngaaendeKanalInput
+    ): FullRegistreringView {
+        logMethodDetails(
+            methodName = ::updateInngaaendeKanal.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setInngaaendeKanal(registreringId = id, input = input)
+    }
+
     @PutMapping("/{id}/type-id")
     fun updateTypeId(
         @PathVariable id: UUID,

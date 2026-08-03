@@ -276,6 +276,19 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     willCreateNewJournalpost = willCreateNewJournalpost,
     muligheter = toMuligheterView(),
     additionalKabalMuligheter = getAdditionalKabalMuligheter(),
+    inngaaendeKanal = inngaaendeKanal?.name,
+    dokumenter = dokumenter.sortedWith(
+        compareByDescending<RegistreringDokument> { it.isHoveddokument }.thenBy { it.created }
+    ).map {
+        RegistreringDokumentView(
+            id = it.id,
+            name = it.name,
+            size = it.size,
+            isHoveddokument = it.isHoveddokument,
+            confirmed = it.confirmed,
+            created = it.created,
+        )
+    },
 )
 
 private fun getMuligheterSorted(muligheter: MutableList<Mulighet>): List<Mulighet> =

@@ -32,3 +32,9 @@ class GosysOppgaveClientException : RuntimeException {
 }
 
 class UserNotFoundException(msg: String) : RuntimeException(msg)
+
+class AttachmentTooLargeException(override val message: String = "TOO_LARGE") : RuntimeException()
+
+class AttachmentHasVirusException(override val message: String = "VIRUS") : RuntimeException()
+
+class AttachmentCouldNotBeConvertedException(override val message: String = "FILE_COULD_NOT_BE_CONVERTED") : RuntimeException()

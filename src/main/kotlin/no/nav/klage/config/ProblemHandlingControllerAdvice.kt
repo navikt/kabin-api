@@ -48,6 +48,24 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
+    fun handleAttachmentTooLargeException(
+        ex: AttachmentTooLargeException,
+    ): ProblemDetail =
+        create(HttpStatus.CONTENT_TOO_LARGE, ex)
+
+    @ExceptionHandler
+    fun handleAttachmentHasVirusException(
+        ex: AttachmentHasVirusException,
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
+    fun handleAttachmentCouldNotBeConvertedException(
+        ex: AttachmentCouldNotBeConvertedException,
+    ): ProblemDetail =
+        create(HttpStatus.UNPROCESSABLE_CONTENT, ex)
+
+    @ExceptionHandler
     fun handleMulighetNotFoundException(
         ex: MulighetNotFoundException,
     ): ProblemDetail =

@@ -122,7 +122,22 @@ class Registrering(
     var muligheterFetched: LocalDateTime?,
     @Column(name = "reason_no_letter")
     var reasonNoLetter: String?,
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JoinColumn(name = "registrering_id", referencedColumnName = "id", nullable = false)
+    val dokumenter: MutableSet<RegistreringDokument> = mutableSetOf(),
+    @Column(name = "inngaaende_kanal")
+    @Enumerated(EnumType.STRING)
+    var inngaaendeKanal: InngaaendeKanal? = null,
 ) {
+
+    fun getHoveddokument(): RegistreringDokument? = dokumenter.find { it.confirmed && it.isHoveddokument }
+
+    fun getVedlegg(): List<RegistreringDokument> =
+        dokumenter.filter { it.confirmed && !it.isHoveddokument }.sortedBy { it.created }
+
+    fun getHoveddokumentCount(): Int = dokumenter.count { it.confirmed && it.isHoveddokument }
+
+    fun isBasedOnUploadedDocument(): Boolean = dokumenter.any { it.confirmed }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -32,7 +32,9 @@ data class FullRegistreringView(
     val behandlingId: UUID?,
     val willCreateNewJournalpost: Boolean,
     val muligheter: MuligheterView,
-    val additionalKabalMuligheter: List<KabalmulighetView>
+    val additionalKabalMuligheter: List<KabalmulighetView>,
+    val inngaaendeKanal: String?,
+    val dokumenter: List<RegistreringDokumentView>,
 ) {
 
     data class FullRegistreringOverstyringerView(
@@ -109,6 +111,27 @@ data class TypeChangeRegistreringView(
 
 data class MulighetIdView(
     val id: String,
+)
+
+data class RegistreringDokumentView(
+    val id: UUID,
+    val name: String,
+    val size: Long,
+    val isHoveddokument: Boolean,
+    val confirmed: Boolean,
+    val created: LocalDateTime,
+)
+
+data class DokumentUploadUrlView(
+    val dokumentId: UUID,
+    val uploadUrl: String,
+    val fields: Map<String, String>,
+    val contentType: String,
+    val maxSize: Long,
+)
+
+data class DokumentViewUrlView(
+    val viewUrl: String,
 )
 
 data class BehandlingstidView(

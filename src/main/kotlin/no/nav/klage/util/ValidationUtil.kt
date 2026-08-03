@@ -123,11 +123,44 @@ class ValidationUtil(
             )
         }
 
-        if (registrering.journalpostId == null) {
+        val hasJournalpost = registrering.journalpostId != null
+        val hasUploadedDocument = registrering.isBasedOnUploadedDocument()
+
+        if (hasJournalpost && hasUploadedDocument) {
             saksdataValidationErrors += InvalidProperty(
                 field = Registrering::journalpostId.name,
-                reason = "Velg en journalpost."
+                reason = "Kan ikke både velge journalpost og laste opp dokument."
             )
+        } else if (!hasJournalpost && !hasUploadedDocument) {
+            saksdataValidationErrors += InvalidProperty(
+                field = Registrering::journalpostId.name,
+                reason = "Velg en journalpost eller last opp et dokument."
+            )
+        } else if (hasUploadedDocument) {
+            when (registrering.getHoveddokumentCount()) {
+                1 -> {}
+                0 -> saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::dokumenter.name,
+                    reason = "Velg hvilket opplastet dokument som skal være hoveddokument."
+                )
+
+                else -> saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::dokumenter.name,
+                    reason = "Det kan bare være ett hoveddokument."
+                )
+            }
+            if (registrering.inngaaendeKanal == null) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::inngaaendeKanal.name,
+                    reason = "Velg inngående kanal for det opplastede dokumentet."
+                )
+            }
+            if (registrering.avsender == null) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::avsender.name,
+                    reason = "Velg avsender for det opplastede dokumentet."
+                )
+            }
         }
 
         if (registrering.sendSvarbrev == true) {

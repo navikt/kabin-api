@@ -7,6 +7,8 @@ import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.clients.kabalapi.*
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.RegistreringDokument
+import no.nav.klage.exceptions.IllegalInputException
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
@@ -80,7 +82,7 @@ class KabalApiService(
         registrering: Registrering,
         mulighet: Mulighet,
         frist: LocalDate,
-        journalpostId: String,
+        journalpostId: String?,
         additionalKabalMulighet: Mulighet?,
     ): UUID {
         val svarbrevSettings = getSvarbrevSettings(
@@ -100,6 +102,7 @@ class KabalApiService(
                 hjemmelIdList = registrering.hjemmelIdList,
                 forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
                 ankeJournalpostId = journalpostId,
+                uploadedDocument = registrering.toUploadedDocumentInput(),
                 mottattNav = registrering.mottattKlageinstans!!,
                 frist = frist,
                 ytelseId = registrering.ytelse!!.id,
@@ -115,7 +118,7 @@ class KabalApiService(
     fun createBehandlingBasedOnJournalpost(
         registrering: Registrering,
         mulighet: Mulighet,
-        journalpostId: String,
+        journalpostId: String?,
     ): UUID {
         val svarbrevSettings = getSvarbrevSettings(
             ytelseId = registrering.ytelse!!.id,
@@ -135,6 +138,7 @@ class KabalApiService(
                 hjemmelIdList = registrering.hjemmelIdList,
                 forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
                 receivedDocumentJournalpostId = journalpostId,
+                uploadedDocument = registrering.toUploadedDocumentInput(),
                 mottattNav = registrering.mottattKlageinstans!!,
                 frist = when (registrering.behandlingstidUnitType) {
                     TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
@@ -151,7 +155,7 @@ class KabalApiService(
     }
 
     fun createBehandlingFromKabalInput(
-        journalpostId: String,
+        journalpostId: String?,
         mulighet: Mulighet,
         registrering: Registrering
     ): UUID {
@@ -172,6 +176,7 @@ class KabalApiService(
                 klager = registrering.klager.toOversendtPartId(),
                 fullmektig = registrering.fullmektig.toOversendtPartId(),
                 receivedDocumentJournalpostId = journalpostId,
+                uploadedDocument = registrering.toUploadedDocumentInput(),
                 saksbehandlerIdent = registrering.saksbehandlerIdent,
                 svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
                 hjemmelIdList = registrering.hjemmelIdList,
@@ -184,7 +189,7 @@ class KabalApiService(
         registrering: Registrering,
         frist: LocalDate,
         mulighet: Mulighet,
-        journalpostId: String,
+        journalpostId: String?,
     ): UUID {
         val svarbrevSettings = getSvarbrevSettings(
             ytelseId = registrering.ytelse!!.id,
@@ -204,6 +209,7 @@ class KabalApiService(
                 hjemmelIdList = registrering.hjemmelIdList,
                 forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
                 klageJournalpostId = journalpostId,
+                uploadedDocument = registrering.toUploadedDocumentInput(),
                 brukersHenvendelseMottattNav = registrering.mottattVedtaksinstans!!,
                 sakMottattKa = registrering.mottattKlageinstans!!,
                 frist = frist,
@@ -224,5 +230,25 @@ class KabalApiService(
     fun getSvarbrevSettings(ytelseId: String, typeId: String): SvarbrevSettingsView {
         return kabalApiClient.getSvarbrevSettings(ytelseId = ytelseId, typeId = typeId)
     }
+
+    private fun Registrering.toUploadedDocumentInput(): UploadedDocumentInput? {
+        if (!isBasedOnUploadedDocument()) return null
+        val hoveddokument = getHoveddokument()
+            ?: throw IllegalInputException("Ett av de opplastede dokumentene må være hoveddokument.")
+        return UploadedDocumentInput(
+            avsender = avsender.toOversendtPartId()
+                ?: throw IllegalInputException("Avsender må være satt når dokument lastes opp."),
+            inngaaendeKanal = inngaaendeKanal
+                ?: throw IllegalInputException("Inngående kanal må være satt når dokument lastes opp."),
+            hoveddokument = hoveddokument.toMellomlagretDocumentInput(),
+            vedlegg = getVedlegg().map { it.toMellomlagretDocumentInput() },
+        )
+    }
+
+    private fun RegistreringDokument.toMellomlagretDocumentInput() = MellomlagretDocumentInput(
+        mellomlagerId = mellomlagerId,
+        name = name,
+        size = size,
+    )
 
 }

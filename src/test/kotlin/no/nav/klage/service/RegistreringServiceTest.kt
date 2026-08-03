@@ -46,6 +46,7 @@ class RegistreringServiceTest {
             documentService = mockk(),
             dokArkivService = mockk(),
             safService = mockk(),
+            fileApiClient = mockk(),
         )
     }
 
@@ -815,6 +816,7 @@ class RegistreringServiceTest {
                 documentService = mockk(),
                 dokArkivService = mockk(),
                 safService = mockk(),
+                fileApiClient = mockk(),
             )
 
             service.finishRegistrering(id)
@@ -847,6 +849,7 @@ class RegistreringServiceTest {
                 documentService = mockk(),
                 dokArkivService = mockk(),
                 safService = mockk(),
+                fileApiClient = mockk(),
             )
 
             val result = service.finishRegistrering(id)
