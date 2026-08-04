@@ -143,6 +143,7 @@ class DokumentConfirmService(
                 registreringId = registreringId,
                 dokumentId = dokumentId,
                 status = DokumentStatus.UPLOADED,
+                size = metadata.size,
             )
         }
 
@@ -182,6 +183,7 @@ class DokumentConfirmService(
                     registreringId = registreringId,
                     dokumentId = dokumentId,
                     scannedGeneration = scanResult.generation,
+                    size = scanResult.size,
                 )
             } else {
                 val size = scanResult.size ?: 0L
@@ -295,23 +297,31 @@ class DokumentStateService(
         getRegistrering(registreringId = registreringId, lock = false).findDokument(dokumentId).toState()
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun setStatus(registreringId: UUID, dokumentId: UUID, status: DokumentStatus): DokumentState {
+    fun setStatus(registreringId: UUID, dokumentId: UUID, status: DokumentStatus, size: Long? = null): DokumentState {
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
         dokument.status = status
+        if (size != null) {
+            dokument.size = size
+        }
         registrering.modified = LocalDateTime.now()
 
         return dokument.toState()
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun setScanned(registreringId: UUID, dokumentId: UUID, scannedGeneration: Long): DokumentState {
+    fun setScanned(registreringId: UUID, dokumentId: UUID, scannedGeneration: Long, size: Long?): DokumentState {
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
         dokument.scannedGeneration = scannedGeneration
         dokument.status = DokumentStatus.CONVERTING
+        //The size before conversion. Better than nothing while the conversion is running, and it is
+        //replaced with the size of the PDF when the document is done.
+        if (size != null) {
+            dokument.size = size
+        }
         registrering.modified = LocalDateTime.now()
 
         return dokument.toState()
