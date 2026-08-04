@@ -151,7 +151,7 @@ class FileApiClient(
                         RuntimeException("Error deleting document from kabal-file-api")
                     }
                 }
-                .bodyToMono<Boolean>()
+                .toBodilessEntity()
                 .block()
         } catch (e: Exception) {
             logger.error("Could not delete document ($id) from kabal-file-api", e)
