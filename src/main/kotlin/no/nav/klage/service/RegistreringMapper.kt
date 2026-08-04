@@ -277,18 +277,26 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     muligheter = toMuligheterView(),
     additionalKabalMuligheter = getAdditionalKabalMuligheter(),
     inngaaendeKanal = inngaaendeKanal?.name,
-    dokumenter = dokumenter.sortedWith(
-        compareByDescending<RegistreringDokument> { it.isHoveddokument }.thenBy { it.created }
-    ).map {
-        RegistreringDokumentView(
-            id = it.id,
-            name = it.name,
-            size = it.size,
-            isHoveddokument = it.isHoveddokument,
-            confirmed = it.confirmed,
-            created = it.created,
-        )
-    },
+    dokumenter = toRegistreringDokumentViews(),
+)
+
+fun Registrering.toRegistreringDokumentViews(): List<RegistreringDokumentView> = dokumenter.sortedWith(
+    compareByDescending<RegistreringDokument> { it.isHoveddokument }.thenBy { it.created }
+).map {
+    RegistreringDokumentView(
+        id = it.id,
+        name = it.name,
+        size = it.size,
+        isHoveddokument = it.isHoveddokument,
+        status = it.status,
+        created = it.created,
+    )
+}
+
+fun Registrering.toDokumenterChangeRegistreringView() = DokumenterChangeRegistreringView(
+    id = id,
+    dokumenter = toRegistreringDokumentViews(),
+    modified = modified,
 )
 
 private fun getMuligheterSorted(muligheter: MutableList<Mulighet>): List<Mulighet> =

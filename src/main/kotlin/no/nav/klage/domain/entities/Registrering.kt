@@ -130,14 +130,17 @@ class Registrering(
     var inngaaendeKanal: InngaaendeKanal? = null,
 ) {
 
-    fun getHoveddokument(): RegistreringDokument? = dokumenter.find { it.confirmed && it.isHoveddokument }
+    fun getHoveddokument(): RegistreringDokument? = dokumenter.find { it.isDone && it.isHoveddokument }
 
     fun getVedlegg(): List<RegistreringDokument> =
-        dokumenter.filter { it.confirmed && !it.isHoveddokument }.sortedBy { it.created }
+        dokumenter.filter { it.isDone && !it.isHoveddokument }.sortedBy { it.created }
 
-    fun getHoveddokumentCount(): Int = dokumenter.count { it.confirmed && it.isHoveddokument }
+    //Counts documents of any status, since hoveddokument can be chosen before the upload is finished.
+    fun getHoveddokumentCount(): Int = dokumenter.count { it.isHoveddokument }
 
-    fun isBasedOnUploadedDocument(): Boolean = dokumenter.any { it.confirmed }
+    fun hasUnfinishedDokumenter(): Boolean = dokumenter.any { !it.isDone }
+
+    fun isBasedOnUploadedDocument(): Boolean = dokumenter.any { it.isDone }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -15,10 +15,7 @@ import no.nav.klage.exceptions.*
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
-import no.nav.klage.util.TokenUtil
-import no.nav.klage.util.calculateFrist
-import no.nav.klage.util.getLogger
-import no.nav.klage.util.getPartIdFromIdentifikator
+import no.nav.klage.util.*
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -1509,11 +1506,18 @@ class RegistreringService(
         )
     }
 
-    fun setInngaaendeKanal(registreringId: UUID, input: InngaaendeKanalInput): FullRegistreringView {
+    fun setInngaaendeKanal(
+        registreringId: UUID,
+        input: InngaaendeKanalInput
+    ): InngaaendeKanalChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         registrering.inngaaendeKanal = input.inngaaendeKanal
         registrering.modified = LocalDateTime.now()
-        return registrering.toRegistreringView(kabalApiService = kabalApiService)
+        return InngaaendeKanalChangeRegistreringView(
+            id = registrering.id,
+            inngaaendeKanal = registrering.inngaaendeKanal?.name,
+            modified = registrering.modified,
+        )
     }
 
     fun createDokumentUploadUrl(registreringId: UUID, input: DokumentUploadUrlInput): DokumentUploadUrlView {
@@ -1521,14 +1525,15 @@ class RegistreringService(
 
         val uploadPolicy = fileApiClient.createUploadPolicy(contentType = input.contentType)
 
-        //The document row is created up front so the client only ever deals with one id. It stays
-        //unconfirmed (and is ignored by validation) until the upload has been verified and processed.
+        //The document row is created up front so the client only ever deals with one id. It starts out
+        //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
+        //Convenience: the first document becomes hoveddokument. The client can change it later.
         val dokument = RegistreringDokument(
             mellomlagerId = uploadPolicy.id,
             name = validateDokumentName(input.name),
             size = 0,
-            isHoveddokument = false,
-            confirmed = false,
+            isHoveddokument = registrering.dokumenter.none { it.isHoveddokument },
+            status = DokumentStatus.UPLOADING,
         )
         registrering.dokumenter.add(dokument)
         registrering.modified = LocalDateTime.now()
@@ -1542,129 +1547,74 @@ class RegistreringService(
         )
     }
 
-    fun confirmDokument(
+    fun setDokumentName(
         registreringId: UUID,
         dokumentId: UUID,
-    ): FullRegistreringView {
+        input: DokumentNameInput
+    ): DokumenterChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         val dokument = registrering.dokumenter.find { it.id == dokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-        if (dokument.confirmed) {
-            throw IllegalInputException("Dokumentet er allerede bekreftet.")
-        }
-
-        val metadata = fileApiClient.getDocumentMetadata(dokument.mellomlagerId)
-
-        if (!metadata.exists) {
-            throw IllegalInputException("Fant ikke opplastet dokument. Ble opplastingen fullført?")
-        }
-
-        //Scan for viruses and, if the upload was an image, convert it to PDF (in kabal-file-api).
-        val processResult = fileApiClient.processDocument(dokument.mellomlagerId)
-
-        if (processResult.hasVirus) {
-            fileApiClient.deleteDocument(dokument.mellomlagerId)
-            registrering.dokumenter.remove(dokument)
-            throw AttachmentHasVirusException()
-        }
-
-        //Enforce the size limit on the FINAL (converted) file, since that is what gets journalført
-        //to Joark via kabal-document. 512 MB.
-        val finalSize = processResult.size ?: 0L
-        if (finalSize > 536870912) {
-            fileApiClient.deleteDocument(dokument.mellomlagerId)
-            registrering.dokumenter.remove(dokument)
-            throw AttachmentTooLargeException()
-        }
-
-        if (processResult.wasConverted) {
-            dokument.name = validateDokumentName("${dokument.name.substringBeforeLast('.')}.pdf")
-        }
-        dokument.size = finalSize
-        dokument.confirmed = true
-
-        //Convenience: the first confirmed document becomes hoveddokument. The client can change it later.
-        if (registrering.getHoveddokumentCount() == 0) {
-            dokument.isHoveddokument = true
-        }
-
+        //Renaming is allowed regardless of status, but the extension has to keep describing the file
+        //we actually have stored.
+        dokument.name = renameKeepingExtension(currentName = dokument.name, newName = input.name)
         registrering.modified = LocalDateTime.now()
 
-        return registrering.toRegistreringView(kabalApiService = kabalApiService)
+        return registrering.toDokumenterChangeRegistreringView()
     }
 
-    fun setDokumentName(registreringId: UUID, dokumentId: UUID, input: DokumentNameInput): FullRegistreringView {
+    fun setHoveddokument(registreringId: UUID, dokumentId: UUID): DokumenterChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         val dokument = registrering.dokumenter.find { it.id == dokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-        dokument.name = validateDokumentName(input.name)
-        registrering.modified = LocalDateTime.now()
-
-        return registrering.toRegistreringView(kabalApiService = kabalApiService)
-    }
-
-    private fun validateDokumentName(name: String): String {
-        val trimmed = name.trim()
-        if (trimmed.isEmpty()) {
-            throw IllegalInputException("Dokumentnavnet kan ikke være tomt.")
-        }
-        if (trimmed.length > RegistreringDokument.MAX_NAME_LENGTH) {
-            throw IllegalInputException(
-                "Dokumentnavnet kan ikke være lenger enn ${RegistreringDokument.MAX_NAME_LENGTH} tegn."
-            )
-        }
-        return trimmed
-    }
-
-    fun setHoveddokument(registreringId: UUID, dokumentId: UUID): FullRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-        val dokument = registrering.dokumenter.find { it.id == dokumentId }
-            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
-
-        if (!dokument.confirmed) {
-            throw IllegalInputException("Dokumentet er ikke ferdig opplastet.")
-        }
-
-        //Exactly one hoveddokument: the previous one is demoted to vedlegg, not deleted.
+        //Exactly one hoveddokument: the previous one is demoted to vedlegg, not deleted. Allowed
+        //regardless of status, so the client does not have to wait for the upload to finish.
         registrering.dokumenter.forEach { it.isHoveddokument = it.id == dokument.id }
         registrering.modified = LocalDateTime.now()
 
-        return registrering.toRegistreringView(kabalApiService = kabalApiService)
+        return registrering.toDokumenterChangeRegistreringView()
     }
 
-    fun getDokumentViewUrl(registreringId: UUID, dokumentId: UUID): DokumentViewUrlView {
+    fun getDokumentViewUrl(registreringId: UUID, dokumentId: UUID): String {
         val registrering = getRegistreringForUpdate(registreringId)
         val dokument = registrering.dokumenter.find { it.id == dokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-        if (!dokument.confirmed) {
+        if (!dokument.isDone) {
             throw IllegalInputException("Dokumentet er ikke ferdig opplastet.")
         }
 
         //Uploaded documents are always stored as PDF (images are converted at confirm time).
-        val viewUrl = fileApiClient.getDocumentViewUrl(
+        return fileApiClient.getDocumentViewUrl(
             id = dokument.mellomlagerId,
             headers = mapOf(
                 "content-type" to MediaType.APPLICATION_PDF_VALUE,
                 "content-disposition" to "inline; filename=\"${dokument.name}\"",
             ),
         )
-
-        return DokumentViewUrlView(viewUrl = viewUrl)
     }
 
-    fun deleteDokument(registreringId: UUID, dokumentId: UUID): FullRegistreringView {
+    fun deleteDokument(registreringId: UUID, dokumentId: UUID): DokumenterChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         val dokument = registrering.dokumenter.find { it.id == dokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
         fileApiClient.deleteDocument(dokument.mellomlagerId)
-        registrering.dokumenter.remove(dokument)
+        removeDokument(registrering = registrering, dokument = dokument)
         registrering.modified = LocalDateTime.now()
 
-        return registrering.toRegistreringView(kabalApiService = kabalApiService)
+        return registrering.toDokumenterChangeRegistreringView()
+    }
+
+    //Keeps at most one hoveddokument: if the removed document was hoveddokument, the oldest
+    //remaining document is promoted.
+    private fun removeDokument(registrering: Registrering, dokument: RegistreringDokument) {
+        registrering.dokumenter.remove(dokument)
+        if (dokument.isHoveddokument) {
+            registrering.dokumenter.minByOrNull { it.created }?.isHoveddokument = true
+        }
     }
 
     fun getMuligheter(registreringId: UUID): MuligheterView {

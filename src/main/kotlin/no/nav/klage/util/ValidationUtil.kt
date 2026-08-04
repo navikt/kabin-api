@@ -124,7 +124,18 @@ class ValidationUtil(
         }
 
         val hasJournalpost = registrering.journalpostId != null
-        val hasUploadedDocument = registrering.isBasedOnUploadedDocument()
+        //Any document row counts here, also the ones that never finished: they still mean the user
+        //went for opplasting rather than journalpost.
+        val hasUploadedDocument = registrering.dokumenter.isNotEmpty()
+
+        //Only documents that reached DONE can be journalført, and we do not silently drop the rest, so
+        //the user has to delete them before finishing.
+        if (registrering.hasUnfinishedDokumenter()) {
+            saksdataValidationErrors += InvalidProperty(
+                field = Registrering::dokumenter.name,
+                reason = "Fjern dokumenter som ikke er ferdig opplastet."
+            )
+        }
 
         if (hasJournalpost && hasUploadedDocument) {
             saksdataValidationErrors += InvalidProperty(

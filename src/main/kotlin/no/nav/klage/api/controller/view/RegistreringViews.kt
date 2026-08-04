@@ -1,5 +1,6 @@
 package no.nav.klage.api.controller.view
 
+import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.HandlingEnum
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -118,7 +119,7 @@ data class RegistreringDokumentView(
     val name: String,
     val size: Long,
     val isHoveddokument: Boolean,
-    val confirmed: Boolean,
+    val status: DokumentStatus,
     val created: LocalDateTime,
 )
 
@@ -130,8 +131,16 @@ data class DokumentUploadUrlView(
     val maxSize: Long,
 )
 
-data class DokumentViewUrlView(
-    val viewUrl: String,
+data class DokumenterChangeRegistreringView(
+    val id: UUID,
+    val dokumenter: List<RegistreringDokumentView>,
+    val modified: LocalDateTime,
+)
+
+data class InngaaendeKanalChangeRegistreringView(
+    val id: UUID,
+    val inngaaendeKanal: String?,
+    val modified: LocalDateTime,
 )
 
 data class BehandlingstidView(

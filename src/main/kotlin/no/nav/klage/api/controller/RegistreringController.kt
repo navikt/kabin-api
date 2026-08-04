@@ -1,11 +1,18 @@
 package no.nav.klage.api.controller
 
+import jakarta.servlet.http.HttpServletResponse
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.service.DokumentConfirmService
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
+import org.springframework.http.CacheControl
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.net.URI
 import java.util.*
 
 @RestController
@@ -13,6 +20,7 @@ import java.util.*
 @RequestMapping("/registreringer")
 class RegistreringController(
     private val registreringService: RegistreringService,
+    private val dokumentConfirmService: DokumentConfirmService,
     private val tokenUtil: TokenUtil,
     private val auditLogger: AuditLogger,
 ) {
@@ -139,20 +147,51 @@ class RegistreringController(
         return registreringService.createDokumentUploadUrl(registreringId = id, input = input)
     }
 
-    @PostMapping("/{id}/documents/{dokumentId}/confirm")
+    /**
+     * Server-sent events stream that reports the status of an uploaded document as it is verified,
+     * virus scanned and (if needed) converted to PDF, e.g.
+     *
+     * ```
+     * event: status
+     * data: virus_scanning
+     * ```
+     *
+     * The stream ends when the document reaches a terminal status (`done`, `virus_found` or
+     * `conversion_failed`). It is idempotent and resumable: reconnecting sends the current status
+     * right away and then continues from there, without redoing work that is already done.
+     *
+     * Unexpected failures after the stream has started are reported as an `error` event, since the
+     * HTTP status has already been sent by then.
+     */
+    @GetMapping("/{id}/documents/{dokumentId}/confirm", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun confirmDokument(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
-    ): FullRegistreringView {
+        response: HttpServletResponse,
+    ) {
         logMethodDetails(
             methodName = ::confirmDokument.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.confirmDokument(
-            registreringId = id,
-            dokumentId = dokumentId,
-        )
+
+        val sse = SseWriter(response)
+
+        try {
+            dokumentConfirmService.confirmDokument(
+                registreringId = id,
+                dokumentId = dokumentId,
+            ) { status ->
+                sse.send(event = "status", data = status.name)
+            }
+        } catch (e: Exception) {
+            //Nothing has been sent yet, so let the normal error handling produce a proper response.
+            if (!sse.hasStarted) {
+                throw e
+            }
+            logger.error("Failed while streaming status for document $dokumentId", e)
+            sse.send(event = "error", data = e.message ?: "UNKNOWN_ERROR")
+        }
     }
 
     @PutMapping("/{id}/documents/{dokumentId}/name")
@@ -160,7 +199,7 @@ class RegistreringController(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
         @RequestBody input: DokumentNameInput,
-    ): FullRegistreringView {
+    ): DokumenterChangeRegistreringView {
         logMethodDetails(
             methodName = ::setDokumentName.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -173,7 +212,7 @@ class RegistreringController(
     fun setHoveddokument(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
-    ): FullRegistreringView {
+    ): DokumenterChangeRegistreringView {
         logMethodDetails(
             methodName = ::setHoveddokument.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -182,24 +221,30 @@ class RegistreringController(
         return registreringService.setHoveddokument(registreringId = id, dokumentId = dokumentId)
     }
 
-    @GetMapping("/{id}/documents/{dokumentId}/view-url")
+    @GetMapping("/{id}/documents/{dokumentId}/view")
     fun getDokumentViewUrl(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
-    ): DokumentViewUrlView {
+    ): ResponseEntity<Unit> {
         logMethodDetails(
             methodName = ::getDokumentViewUrl.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.getDokumentViewUrl(registreringId = id, dokumentId = dokumentId)
+        val viewUrl = registreringService.getDokumentViewUrl(registreringId = id, dokumentId = dokumentId)
+
+        return ResponseEntity
+            .status(HttpStatus.FOUND)
+            .location(URI.create(viewUrl))
+            .cacheControl(CacheControl.noStore())
+            .build()
     }
 
     @DeleteMapping("/{id}/documents/{dokumentId}")
     fun deleteDokument(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
-    ): FullRegistreringView {
+    ): DokumenterChangeRegistreringView {
         logMethodDetails(
             methodName = ::deleteDokument.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -212,7 +257,7 @@ class RegistreringController(
     fun updateInngaaendeKanal(
         @PathVariable id: UUID,
         @RequestBody input: InngaaendeKanalInput
-    ): FullRegistreringView {
+    ): InngaaendeKanalChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateInngaaendeKanal.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
