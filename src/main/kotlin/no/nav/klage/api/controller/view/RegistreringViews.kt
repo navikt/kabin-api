@@ -124,12 +124,16 @@ data class RegistreringDokumentView(
 )
 
 data class DokumentUploadUrlView(
-    val dokumentId: UUID,
-    val uploadUrl: String,
-    val fields: Map<String, String>,
-    val contentType: String,
-    val maxSize: Long,
-)
+    val upload: Upload,
+    val dokument: RegistreringDokumentView,
+) {
+    data class Upload(
+        val uploadUrl: String,
+        val fields: Map<String, String>,
+        val contentType: String,
+        val maxSize: Long,
+    )
+}
 
 data class DokumenterChangeRegistreringView(
     val id: UUID,

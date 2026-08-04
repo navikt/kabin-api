@@ -1539,11 +1539,13 @@ class RegistreringService(
         registrering.modified = LocalDateTime.now()
 
         return DokumentUploadUrlView(
-            dokumentId = dokument.id,
-            uploadUrl = uploadPolicy.url,
-            fields = uploadPolicy.fields,
-            contentType = uploadPolicy.contentType,
-            maxSize = uploadPolicy.maxSize,
+            upload = DokumentUploadUrlView.Upload(
+                uploadUrl = uploadPolicy.url,
+                fields = uploadPolicy.fields,
+                contentType = uploadPolicy.contentType,
+                maxSize = uploadPolicy.maxSize,
+            ),
+            dokument = dokument.toRegistreringDokumentView(),
         )
     }
 

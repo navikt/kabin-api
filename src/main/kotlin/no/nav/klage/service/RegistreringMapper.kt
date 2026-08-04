@@ -282,16 +282,16 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
 
 fun Registrering.toRegistreringDokumentViews(): List<RegistreringDokumentView> = dokumenter.sortedWith(
     compareByDescending<RegistreringDokument> { it.isHoveddokument }.thenBy { it.created }
-).map {
-    RegistreringDokumentView(
-        id = it.id,
-        name = it.name,
-        size = it.size,
-        isHoveddokument = it.isHoveddokument,
-        status = it.status,
-        created = it.created,
-    )
-}
+).map { it.toRegistreringDokumentView() }
+
+fun RegistreringDokument.toRegistreringDokumentView(): RegistreringDokumentView = RegistreringDokumentView(
+    id = id,
+    name = name,
+    size = size,
+    isHoveddokument = isHoveddokument,
+    status = status,
+    created = created,
+)
 
 fun Registrering.toDokumenterChangeRegistreringView() = DokumenterChangeRegistreringView(
     id = id,
