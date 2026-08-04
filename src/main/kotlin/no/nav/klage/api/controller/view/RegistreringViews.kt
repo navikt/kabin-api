@@ -123,6 +123,11 @@ data class RegistreringDokumentView(
     val created: LocalDateTime,
 )
 
+data class DokumentStatusEventView(
+    val status: DokumentStatus,
+    val size: Long,
+)
+
 data class DokumentUploadUrlView(
     val upload: Upload,
     val dokument: RegistreringDokumentView,

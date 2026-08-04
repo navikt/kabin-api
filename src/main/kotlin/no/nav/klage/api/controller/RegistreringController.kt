@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.net.URI
 import java.util.*
 
@@ -28,6 +29,7 @@ class RegistreringController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val objectMapper = jacksonObjectMapper()
     }
 
     @PostMapping
@@ -149,15 +151,17 @@ class RegistreringController(
 
     /**
      * Server-sent events stream that reports the status of an uploaded document as it is verified,
-     * virus scanned and (if needed) converted to PDF, e.g.
+     * virus scanned and (if needed) converted to PDF. The data of every `status` event is a JSON
+     * object with the current status and the size of the file as it is currently stored, so the
+     * client can update the UI after e.g. a conversion, e.g.
      *
      * ```
      * event: status
-     * data: virus_scanning
+     * data: {"status":"VIRUS_SCANNING","size":123456}
      * ```
      *
-     * The stream ends when the document reaches a terminal status (`done`, `virus_found` or
-     * `conversion_failed`). It is idempotent and resumable: reconnecting sends the current status
+     * The stream ends when the document reaches a terminal status (`DONE`, `VIRUS_FOUND` or
+     * `CONVERSION_FAILED`). It is idempotent and resumable: reconnecting sends the current status
      * right away and then continues from there, without redoing work that is already done.
      *
      * Unexpected failures after the stream has started are reported as an `error` event, since the
@@ -181,8 +185,16 @@ class RegistreringController(
             dokumentConfirmService.confirmDokument(
                 registreringId = id,
                 dokumentId = dokumentId,
-            ) { status ->
-                sse.send(event = "status", data = status.name)
+            ) { state ->
+                sse.send(
+                    event = "status",
+                    data = objectMapper.writeValueAsString(
+                        DokumentStatusEventView(
+                            status = state.status,
+                            size = state.size,
+                        )
+                    ),
+                )
             }
         } catch (e: Exception) {
             //Nothing has been sent yet, so let the normal error handling produce a proper response.

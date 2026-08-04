@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock
 
 /**
  * Drives an uploaded document from [DokumentStatus.UPLOADING] to a terminal status, reporting every
- * status change to the caller through `emit` as it happens.
+ * state change to the caller through `emit` as it happens.
  *
  * The whole thing is idempotent and resumable: every status change is committed on its own, so a
  * client that loses the connection (or a request that dies) can simply call confirm again and the
@@ -55,21 +55,22 @@ class DokumentConfirmService(
     }
 
     /**
-     * Blocks until the document reaches a terminal status, calling [emit] for the current status and
-     * for every status change along the way.
+     * Blocks until the document reaches a terminal status, calling [emit] with the current state and
+     * with every state change along the way.
      *
      * Errors that happen before anything has been emitted are thrown, so the caller can turn them
-     * into a normal error response. Once the first status has been emitted, failures are reported as
+     * into a normal error response. Once the first state has been emitted, failures are reported as
      * terminal statuses instead.
      */
-    fun confirmDokument(registreringId: UUID, dokumentId: UUID, emit: (DokumentStatus) -> Unit) {
+    fun confirmDokument(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
         val deadline = System.currentTimeMillis() + TOTAL_TIMEOUT_MILLIS
-        var lastEmitted: DokumentStatus? = null
+        var lastEmitted: Pair<DokumentStatus, Long>? = null
 
-        val emitOnChange: (DokumentStatus) -> Unit = { status ->
-            if (status != lastEmitted) {
-                emit(status)
-                lastEmitted = status
+        val emitOnChange: (DokumentState) -> Unit = { state ->
+            val current = state.status to state.size
+            if (current != lastEmitted) {
+                emit(state)
+                lastEmitted = current
             }
         }
 
@@ -77,7 +78,7 @@ class DokumentConfirmService(
             val state = dokumentStateService.getState(registreringId = registreringId, dokumentId = dokumentId)
 
             if (state.status.isTerminal()) {
-                emitOnChange(state.status)
+                emitOnChange(state)
                 return
             }
 
@@ -129,7 +130,7 @@ class DokumentConfirmService(
         }
     }
 
-    private fun drive(registreringId: UUID, dokumentId: UUID, emit: (DokumentStatus) -> Unit) {
+    private fun drive(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
         var state = dokumentStateService.getState(registreringId = registreringId, dokumentId = dokumentId)
 
         //Nothing has been emitted yet, so a missing upload can still be reported as a normal error.
@@ -147,7 +148,7 @@ class DokumentConfirmService(
 
         //Always let the client know where we are before doing any more work, so a resumed stream is
         //immediately useful.
-        emit(state.status)
+        emit(state)
 
         //A document left in CONVERTING without a scanned generation cannot be converted safely, so
         //it goes through the scan again.
@@ -160,7 +161,7 @@ class DokumentConfirmService(
                 dokumentId = dokumentId,
                 status = DokumentStatus.VIRUS_SCANNING,
             )
-            emit(state.status)
+            emit(state)
 
             val scanResult = try {
                 fileApiClient.scanDocument(state.mellomlagerId)
@@ -194,7 +195,7 @@ class DokumentConfirmService(
                     size = size,
                 )
             }
-            emit(state.status)
+            emit(state)
         }
 
         if (state.status == DokumentStatus.CONVERTING) {
@@ -219,7 +220,7 @@ class DokumentConfirmService(
                 dokumentId = dokumentId,
                 size = size,
             )
-            emit(state.status)
+            emit(state)
         }
     }
 
@@ -232,31 +233,32 @@ class DokumentConfirmService(
         return true
     }
 
-    private fun fail(registreringId: UUID, dokumentId: UUID, status: DokumentStatus): DokumentStatus =
+    private fun fail(registreringId: UUID, dokumentId: UUID, status: DokumentStatus): DokumentState =
         dokumentStateService.setStatus(
             registreringId = registreringId,
             dokumentId = dokumentId,
             status = status,
-        ).status
+        )
 
     /**
      * Follows the progress made by another request. Returns true if the document reached a terminal
      * status, and false if nothing happened for [FOLLOW_STALL_TIMEOUT_MILLIS], meaning the caller
      * should take over the work.
      */
-    private fun followProgress(registreringId: UUID, dokumentId: UUID, emit: (DokumentStatus) -> Unit): Boolean {
-        var lastSeen: DokumentStatus? = null
+    private fun followProgress(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit): Boolean {
+        var lastSeen: Pair<DokumentStatus, Long>? = null
         var lastChange = System.currentTimeMillis()
 
         while (System.currentTimeMillis() - lastChange < FOLLOW_STALL_TIMEOUT_MILLIS) {
-            val status = dokumentStateService.getState(
+            val state = dokumentStateService.getState(
                 registreringId = registreringId,
                 dokumentId = dokumentId,
-            ).status
+            )
+            val status = state.status
 
-            if (status != lastSeen) {
-                emit(status)
-                lastSeen = status
+            if ((status to state.size) != lastSeen) {
+                emit(state)
+                lastSeen = status to state.size
                 lastChange = System.currentTimeMillis()
             }
 
@@ -273,6 +275,7 @@ class DokumentConfirmService(
 
 data class DokumentState(
     val status: DokumentStatus,
+    val size: Long,
     val mellomlagerId: String,
     val scannedGeneration: Long?,
 )
@@ -354,6 +357,7 @@ class DokumentStateService(
 
     private fun RegistreringDokument.toState() = DokumentState(
         status = status,
+        size = size,
         mellomlagerId = mellomlagerId,
         scannedGeneration = scannedGeneration,
     )

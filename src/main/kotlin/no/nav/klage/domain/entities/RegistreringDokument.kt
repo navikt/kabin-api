@@ -51,8 +51,8 @@ class RegistreringDokument(
 }
 
 /**
- * Lifecycle of an uploaded document. Stored as the (upper case) enum name, but exposed to clients as
- * the lower case value, both in JSON and as SSE data in the confirm stream.
+ * Lifecycle of an uploaded document. Stored and exposed to clients as the enum name, both in JSON and
+ * in the data of the `status` events in the confirm stream.
  */
 enum class DokumentStatus {
     /** Initial status. The row exists, but the client has not (successfully) uploaded anything yet. */
