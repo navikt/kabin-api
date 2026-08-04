@@ -289,7 +289,7 @@ class DokumentStateService(
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     fun getState(registreringId: UUID, dokumentId: UUID): DokumentState =
-        getRegistrering(registreringId).findDokument(dokumentId).toState()
+        getRegistrering(registreringId = registreringId, lock = false).findDokument(dokumentId).toState()
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun setStatus(registreringId: UUID, dokumentId: UUID, status: DokumentStatus): DokumentState {
@@ -331,17 +331,22 @@ class DokumentStateService(
         return dokument.toState()
     }
 
-    private fun getRegistrering(registreringId: UUID): Registrering =
-        registreringRepository.findById(registreringId)
-            .orElseThrow { RegistreringNotFoundException("Registrering ikke funnet.") }
-            .also {
-                if (it.createdBy != tokenUtil.getCurrentIdent()) {
-                    throw MissingAccessException("Registreringen tilhører ikke deg.")
-                }
-                if (it.finished != null) {
-                    throw IllegalUpdateException("Registreringen er allerede ferdigstilt.")
-                }
-            }
+    private fun getRegistrering(registreringId: UUID, lock: Boolean = true): Registrering {
+        val registrering = if (lock) {
+            registreringRepository.findById(registreringId).orElse(null)
+        } else {
+            registreringRepository.findByIdWithoutLock(registreringId)
+        } ?: throw RegistreringNotFoundException("Registrering ikke funnet.")
+
+        if (registrering.createdBy != tokenUtil.getCurrentIdent()) {
+            throw MissingAccessException("Registreringen tilhører ikke deg.")
+        }
+        if (registrering.finished != null) {
+            throw IllegalUpdateException("Registreringen er allerede ferdigstilt.")
+        }
+
+        return registrering
+    }
 
     private fun Registrering.findDokument(dokumentId: UUID): RegistreringDokument =
         dokumenter.find { it.id == dokumentId }
