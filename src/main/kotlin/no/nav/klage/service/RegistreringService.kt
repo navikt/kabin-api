@@ -1541,35 +1541,40 @@ class RegistreringService(
         )
     }
 
-    fun createDokumentUploadUrl(registreringId: UUID, input: DokumentUploadUrlInput): DokumentUploadUrlView {
+    fun createDokumentUploadUrls(registreringId: UUID, input: List<DokumentUploadUrlInput>): List<DokumentUploadUrlView> {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        val uploadPolicy = fileApiClient.createUploadPolicy(contentType = input.contentType)
+        val uploadUrls = input.map { dokumentUploadUrlInput ->
+            val uploadPolicy = fileApiClient.createUploadPolicy(contentType = dokumentUploadUrlInput.contentType)
 
-        //The document row is created up front so the client only ever deals with one id. It starts out
-        //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
-        //Convenience: the first document becomes hoveddokument. The client can change it later.
-        val dokument = RegistreringDokument(
-            mellomlagerId = uploadPolicy.id,
-            name = validateDokumentName(input.name),
-            size = 0,
-            status = DokumentStatus.UPLOADING,
-        )
-        registrering.dokumenter.add(dokument)
-        if (registrering.hoveddokumentId == null) {
-            registrering.hoveddokumentId = dokument.id
+            //The document row is created up front so the client only ever deals with one id. It starts out
+            //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
+            //Convenience: the first document becomes hoveddokument. The client can change it later.
+            val dokument = RegistreringDokument(
+                mellomlagerId = uploadPolicy.id,
+                name = validateDokumentName(dokumentUploadUrlInput.name),
+                size = 0,
+                status = DokumentStatus.UPLOADING,
+            )
+            registrering.dokumenter.add(dokument)
+            if (registrering.hoveddokumentId == null) {
+                registrering.hoveddokumentId = dokument.id
+            }
+
+            DokumentUploadUrlView(
+                upload = DokumentUploadUrlView.Upload(
+                    uploadUrl = uploadPolicy.url,
+                    fields = uploadPolicy.fields,
+                    contentType = uploadPolicy.contentType,
+                    maxSize = uploadPolicy.maxSize,
+                ),
+                dokument = dokument.toRegistreringDokumentView(),
+            )
         }
+
         registrering.modified = LocalDateTime.now()
 
-        return DokumentUploadUrlView(
-            upload = DokumentUploadUrlView.Upload(
-                uploadUrl = uploadPolicy.url,
-                fields = uploadPolicy.fields,
-                contentType = uploadPolicy.contentType,
-                maxSize = uploadPolicy.maxSize,
-            ),
-            dokument = dokument.toRegistreringDokumentView(),
-        )
+        return uploadUrls
     }
 
     fun setDokumentName(
@@ -1589,13 +1594,11 @@ class RegistreringService(
         return registrering.toDokumenterChangeRegistreringView()
     }
 
-    fun setHoveddokument(registreringId: UUID, dokumentId: UUID): DokumenterChangeRegistreringView {
+    fun setHoveddokument(registreringId: UUID, input: HoveddokumentInput): DokumenterChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        val dokument = registrering.dokumenter.find { it.id == dokumentId }
+        val dokument = registrering.dokumenter.find { it.id == input.hoveddokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-        //Exactly one hoveddokument: the previous one is demoted to vedlegg, not deleted. Allowed
-        //regardless of status, so the client does not have to wait for the upload to finish.
         //Exactly one hoveddokument: the previous one is demoted to vedlegg, not deleted. Allowed
         //regardless of status, so the client does not have to wait for the upload to finish.
         registrering.hoveddokumentId = dokument.id

@@ -61,6 +61,10 @@ data class DokumentNameInput(
     val name: String,
 )
 
+data class HoveddokumentInput(
+    val hoveddokumentId: UUID,
+)
+
 data class TypeIdInput(val typeId: String?)
 
 data class MulighetIsBasedOnJournalpostInput(val mulighetIsBasedOnJournalpost: Boolean)

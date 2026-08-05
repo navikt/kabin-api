@@ -139,14 +139,14 @@ class RegistreringController(
     @PostMapping("/{id}/uploaded-documents/dokumenter/upload-url")
     fun createDokumentUploadUrl(
         @PathVariable id: UUID,
-        @RequestBody input: DokumentUploadUrlInput,
-    ): DokumentUploadUrlView {
+        @RequestBody input: List<DokumentUploadUrlInput>,
+    ): List<DokumentUploadUrlView> {
         logMethodDetails(
             methodName = ::createDokumentUploadUrl.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.createDokumentUploadUrl(registreringId = id, input = input)
+        return registreringService.createDokumentUploadUrls(registreringId = id, input = input)
     }
 
     /**
@@ -220,17 +220,17 @@ class RegistreringController(
         return registreringService.setDokumentName(registreringId = id, dokumentId = dokumentId, input = input)
     }
 
-    @PutMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/hoveddokument")
+    @PutMapping("/{id}/uploaded-documents/hoveddokument-id")
     fun setHoveddokument(
         @PathVariable id: UUID,
-        @PathVariable dokumentId: UUID,
+        @RequestBody input: HoveddokumentInput,
     ): DokumenterChangeRegistreringView {
         logMethodDetails(
             methodName = ::setHoveddokument.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.setHoveddokument(registreringId = id, dokumentId = dokumentId)
+        return registreringService.setHoveddokument(registreringId = id, input = input)
     }
 
     @GetMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/view")
