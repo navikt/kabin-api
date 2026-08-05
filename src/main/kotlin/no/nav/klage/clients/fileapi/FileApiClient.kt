@@ -19,24 +19,24 @@ class FileApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createUploadPolicy(contentType: String): UploadPostPolicyResponse {
-        logger.debug("Requesting signed upload policy from kabal-file-api for content type {}", contentType)
+    fun createUploadPolicies(contentTypes: List<String>): List<UploadPostPolicyResponse> {
+        logger.debug("Requesting {} signed upload policies from kabal-file-api", contentTypes.size)
 
         val token = tokenUtil.getOnBehalfOfTokenWithKabalFileApiScope()
 
         return fileWebClient
             .post()
-            .uri("/document/uploadpolicy")
+            .uri("/document/uploadpolicies")
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-            .bodyValue(UploadUrlRequest(contentType = contentType))
+            .bodyValue(UploadUrlsRequest(contentTypes = contentTypes))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { clientResponse ->
                 clientResponse.bodyToMono(String::class.java).map { body ->
-                    logger.error("Error requesting signed upload policy from kabal-file-api: $body")
-                    RuntimeException("Error requesting signed upload policy from kabal-file-api")
+                    logger.error("Error requesting signed upload policies from kabal-file-api: $body")
+                    RuntimeException("Error requesting signed upload policies from kabal-file-api")
                 }
             }
-            .bodyToMono<UploadPostPolicyResponse>()
+            .bodyToMono<List<UploadPostPolicyResponse>>()
             .block() ?: throw RuntimeException("No response from kabal-file-api on upload policy request")
     }
 
@@ -167,8 +167,8 @@ data class UploadPostPolicyResponse(
     val maxSize: Long,
 )
 
-data class UploadUrlRequest(
-    val contentType: String,
+data class UploadUrlsRequest(
+    val contentTypes: List<String>,
 )
 
 data class DocumentMetadataResponse(

@@ -1544,15 +1544,19 @@ class RegistreringService(
     fun createDokumentUploadUrls(registreringId: UUID, input: List<DokumentUploadUrlInput>): List<DokumentUploadUrlView> {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        val uploadUrls = input.map { dokumentUploadUrlInput ->
-            val uploadPolicy = fileApiClient.createUploadPolicy(contentType = dokumentUploadUrlInput.contentType)
+        //Names are validated before we ask for any policies, so a single invalid name doesn't leave
+        //unused policies behind.
+        val validatedNames = input.map { validateDokumentName(it.name) }
 
+        val uploadPolicies = fileApiClient.createUploadPolicies(contentTypes = input.map { it.contentType })
+
+        val uploadUrls = uploadPolicies.zip(validatedNames) { uploadPolicy, name ->
             //The document row is created up front so the client only ever deals with one id. It starts out
             //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
             //Convenience: the first document becomes hoveddokument. The client can change it later.
             val dokument = RegistreringDokument(
                 mellomlagerId = uploadPolicy.id,
-                name = validateDokumentName(dokumentUploadUrlInput.name),
+                name = name,
                 size = 0,
                 status = DokumentStatus.UPLOADING,
             )
