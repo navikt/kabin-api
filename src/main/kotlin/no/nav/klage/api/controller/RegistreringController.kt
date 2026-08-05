@@ -136,7 +136,7 @@ class RegistreringController(
         return registreringService.setJournalpostId(registreringId = id, input = input)
     }
 
-    @PostMapping("/{id}/documents/upload-url")
+    @PostMapping("/{id}/uploaded-documents/dokumenter/upload-url")
     fun createDokumentUploadUrl(
         @PathVariable id: UUID,
         @RequestBody input: DokumentUploadUrlInput,
@@ -167,7 +167,7 @@ class RegistreringController(
      * Unexpected failures after the stream has started are reported as an `error` event, since the
      * HTTP status has already been sent by then.
      */
-    @GetMapping("/{id}/documents/{dokumentId}/confirm", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    @GetMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/confirm", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun confirmDokument(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
@@ -206,7 +206,7 @@ class RegistreringController(
         }
     }
 
-    @PutMapping("/{id}/documents/{dokumentId}/name")
+    @PutMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/name")
     fun setDokumentName(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
@@ -220,7 +220,7 @@ class RegistreringController(
         return registreringService.setDokumentName(registreringId = id, dokumentId = dokumentId, input = input)
     }
 
-    @PutMapping("/{id}/documents/{dokumentId}/hoveddokument")
+    @PutMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/hoveddokument")
     fun setHoveddokument(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
@@ -233,7 +233,7 @@ class RegistreringController(
         return registreringService.setHoveddokument(registreringId = id, dokumentId = dokumentId)
     }
 
-    @GetMapping("/{id}/documents/{dokumentId}/view")
+    @GetMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/view")
     fun getDokumentViewUrl(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
@@ -252,7 +252,7 @@ class RegistreringController(
             .build()
     }
 
-    @DeleteMapping("/{id}/documents/{dokumentId}")
+    @DeleteMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}")
     fun deleteDokument(
         @PathVariable id: UUID,
         @PathVariable dokumentId: UUID,
@@ -265,7 +265,7 @@ class RegistreringController(
         return registreringService.deleteDokument(registreringId = id, dokumentId = dokumentId)
     }
 
-    @PutMapping("/{id}/documents/inngaaende-kanal")
+    @PutMapping("/{id}/uploaded-documents/dokumenter/inngaaende-kanal")
     fun updateInngaaendeKanal(
         @PathVariable id: UUID,
         @RequestBody input: InngaaendeKanalInput
@@ -276,6 +276,19 @@ class RegistreringController(
             logger = logger,
         )
         return registreringService.setInngaaendeKanal(registreringId = id, input = input)
+    }
+
+    @PutMapping("/{id}/source")
+    fun updateSource(
+        @PathVariable id: UUID,
+        @RequestBody input: SourceInput
+    ): SourceChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateSource.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setSource(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/type-id")

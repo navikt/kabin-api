@@ -2,6 +2,7 @@ package no.nav.klage.api.controller.view
 
 import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.HandlingEnum
+import no.nav.klage.domain.entities.RegistreringSource
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -34,8 +35,8 @@ data class FullRegistreringView(
     val willCreateNewJournalpost: Boolean,
     val muligheter: MuligheterView,
     val additionalKabalMuligheter: List<KabalmulighetView>,
-    val inngaaendeKanal: String?,
-    val dokumenter: List<RegistreringDokumentView>,
+    val source: RegistreringSource,
+    val uploadedDocuments: UploadedDocumentsView,
 ) {
 
     data class FullRegistreringOverstyringerView(
@@ -118,7 +119,6 @@ data class RegistreringDokumentView(
     val id: UUID,
     val name: String,
     val size: Long,
-    val isHoveddokument: Boolean,
     val status: DokumentStatus,
     val created: LocalDateTime,
 )
@@ -140,15 +140,36 @@ data class DokumentUploadUrlView(
     )
 }
 
+data class UploadedDocumentsView(
+    val inngaaendeKanal: String?,
+    val dokumenter: List<RegistreringDokumentView>,
+    val hoveddokumentId: UUID?,
+)
+
 data class DokumenterChangeRegistreringView(
     val id: UUID,
-    val dokumenter: List<RegistreringDokumentView>,
+    val uploadedDocuments: DokumenterChangeUploadedDocumentsView,
     val modified: LocalDateTime,
-)
+) {
+    data class DokumenterChangeUploadedDocumentsView(
+        val dokumenter: List<RegistreringDokumentView>,
+        val hoveddokumentId: UUID?,
+    )
+}
 
 data class InngaaendeKanalChangeRegistreringView(
     val id: UUID,
-    val inngaaendeKanal: String?,
+    val uploadedDocuments: InngaaendeKanalChangeUploadedDocumentsView,
+    val modified: LocalDateTime,
+) {
+    data class InngaaendeKanalChangeUploadedDocumentsView(
+        val inngaaendeKanal: String?,
+    )
+}
+
+data class SourceChangeRegistreringView(
+    val id: UUID,
+    val source: RegistreringSource,
     val modified: LocalDateTime,
 )
 

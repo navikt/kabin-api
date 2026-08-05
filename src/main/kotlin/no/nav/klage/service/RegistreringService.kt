@@ -1498,6 +1498,11 @@ class RegistreringService(
         registrering.finished = now
         registrering.modified = now
 
+        //The uploaded documents were not used, so there is no reason to keep them around.
+        if (registrering.source == RegistreringSource.JOURNALPOST) {
+            deleteAllDokumenter(registrering = registrering)
+        }
+
         return FerdigstiltRegistreringView(
             id = registrering.id,
             modified = registrering.modified,
@@ -1515,7 +1520,23 @@ class RegistreringService(
         registrering.modified = LocalDateTime.now()
         return InngaaendeKanalChangeRegistreringView(
             id = registrering.id,
-            inngaaendeKanal = registrering.inngaaendeKanal?.name,
+            uploadedDocuments = InngaaendeKanalChangeRegistreringView.InngaaendeKanalChangeUploadedDocumentsView(
+                inngaaendeKanal = registrering.inngaaendeKanal?.name,
+            ),
+            modified = registrering.modified,
+        )
+    }
+
+    fun setSource(
+        registreringId: UUID,
+        input: SourceInput
+    ): SourceChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        registrering.source = input.source
+        registrering.modified = LocalDateTime.now()
+        return SourceChangeRegistreringView(
+            id = registrering.id,
+            source = registrering.source,
             modified = registrering.modified,
         )
     }
@@ -1532,10 +1553,12 @@ class RegistreringService(
             mellomlagerId = uploadPolicy.id,
             name = validateDokumentName(input.name),
             size = 0,
-            isHoveddokument = registrering.dokumenter.none { it.isHoveddokument },
             status = DokumentStatus.UPLOADING,
         )
         registrering.dokumenter.add(dokument)
+        if (registrering.hoveddokumentId == null) {
+            registrering.hoveddokumentId = dokument.id
+        }
         registrering.modified = LocalDateTime.now()
 
         return DokumentUploadUrlView(
@@ -1573,7 +1596,9 @@ class RegistreringService(
 
         //Exactly one hoveddokument: the previous one is demoted to vedlegg, not deleted. Allowed
         //regardless of status, so the client does not have to wait for the upload to finish.
-        registrering.dokumenter.forEach { it.isHoveddokument = it.id == dokument.id }
+        //Exactly one hoveddokument: the previous one is demoted to vedlegg, not deleted. Allowed
+        //regardless of status, so the client does not have to wait for the upload to finish.
+        registrering.hoveddokumentId = dokument.id
         registrering.modified = LocalDateTime.now()
 
         return registrering.toDokumenterChangeRegistreringView()
@@ -1610,13 +1635,27 @@ class RegistreringService(
         return registrering.toDokumenterChangeRegistreringView()
     }
 
-    //Keeps at most one hoveddokument: if the removed document was hoveddokument, the oldest
-    //remaining document is promoted.
+    //Keeps a hoveddokument: if the removed document was hoveddokument, the oldest remaining
+    //document is promoted.
     private fun removeDokument(registrering: Registrering, dokument: RegistreringDokument) {
         registrering.dokumenter.remove(dokument)
-        if (dokument.isHoveddokument) {
-            registrering.dokumenter.minByOrNull { it.created }?.isHoveddokument = true
+        if (registrering.hoveddokumentId == dokument.id) {
+            registrering.hoveddokumentId = registrering.dokumenter.minByOrNull { it.created }?.id
         }
+    }
+
+    //Best effort
+    private fun deleteAllDokumenter(registrering: Registrering) {
+        registrering.dokumenter.forEach { dokument ->
+            try {
+                fileApiClient.deleteDocument(dokument.mellomlagerId)
+            } catch (e: Exception) {
+                logger.error("Failed to delete uploaded document ${dokument.id} from mellomlager", e)
+            }
+        }
+        registrering.dokumenter.clear()
+        registrering.hoveddokumentId = null
+        registrering.inngaaendeKanal = null
     }
 
     fun getMuligheter(registreringId: UUID): MuligheterView {

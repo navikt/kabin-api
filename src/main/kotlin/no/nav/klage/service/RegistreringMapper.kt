@@ -276,26 +276,34 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     willCreateNewJournalpost = willCreateNewJournalpost,
     muligheter = toMuligheterView(),
     additionalKabalMuligheter = getAdditionalKabalMuligheter(),
+    source = source,
+    uploadedDocuments = toUploadedDocumentsView(),
+)
+
+fun Registrering.toUploadedDocumentsView(): UploadedDocumentsView = UploadedDocumentsView(
     inngaaendeKanal = inngaaendeKanal?.name,
     dokumenter = toRegistreringDokumentViews(),
+    hoveddokumentId = hoveddokumentId,
 )
 
 fun Registrering.toRegistreringDokumentViews(): List<RegistreringDokumentView> = dokumenter.sortedWith(
-    compareByDescending<RegistreringDokument> { it.isHoveddokument }.thenBy { it.created }
+    compareByDescending<RegistreringDokument> { it.id == hoveddokumentId }.thenBy { it.created }
 ).map { it.toRegistreringDokumentView() }
 
 fun RegistreringDokument.toRegistreringDokumentView(): RegistreringDokumentView = RegistreringDokumentView(
     id = id,
     name = name,
     size = size,
-    isHoveddokument = isHoveddokument,
     status = status,
     created = created,
 )
 
 fun Registrering.toDokumenterChangeRegistreringView() = DokumenterChangeRegistreringView(
     id = id,
-    dokumenter = toRegistreringDokumentViews(),
+    uploadedDocuments = DokumenterChangeRegistreringView.DokumenterChangeUploadedDocumentsView(
+        dokumenter = toRegistreringDokumentViews(),
+        hoveddokumentId = hoveddokumentId,
+    ),
     modified = modified,
 )
 

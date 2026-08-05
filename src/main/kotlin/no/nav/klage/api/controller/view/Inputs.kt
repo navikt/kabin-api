@@ -2,6 +2,7 @@ package no.nav.klage.api.controller.view
 
 import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.InngaaendeKanal
+import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
 import java.util.*
@@ -48,6 +49,8 @@ data class SakenGjelderValueInput(val sakenGjelderValue: String?)
 data class JournalpostIdInput(val journalpostId: String)
 
 data class InngaaendeKanalInput(val inngaaendeKanal: InngaaendeKanal?)
+
+data class SourceInput(val source: RegistreringSource)
 
 data class DokumentUploadUrlInput(
     val contentType: String,

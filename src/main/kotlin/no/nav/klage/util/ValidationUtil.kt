@@ -7,6 +7,7 @@ import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
@@ -123,41 +124,22 @@ class ValidationUtil(
             )
         }
 
-        val hasJournalpost = registrering.journalpostId != null
-        //Any document row counts here, also the ones that never finished: they still mean the user
-        //went for opplasting rather than journalpost.
-        val hasUploadedDocument = registrering.dokumenter.isNotEmpty()
-
-        //Only documents that reached DONE can be journalført, and we do not silently drop the rest, so
-        //the user has to delete them before finishing.
-        if (registrering.hasUnfinishedDokumenter()) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::dokumenter.name,
-                reason = "Fjern dokumenter som ikke er ferdig opplastet."
-            )
-        }
-
-        if (hasJournalpost && hasUploadedDocument) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::journalpostId.name,
-                reason = "Kan ikke både velge journalpost og laste opp dokument."
-            )
-        } else if (!hasJournalpost && !hasUploadedDocument) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::journalpostId.name,
-                reason = "Velg en journalpost eller last opp et dokument."
-            )
-        } else if (hasUploadedDocument) {
-            when (registrering.getHoveddokumentCount()) {
-                1 -> {}
-                0 -> saksdataValidationErrors += InvalidProperty(
+        //The source decides what the behandling is based on. Documents that were uploaded before the
+        //user switched back to journalpost are simply deleted when the registrering is finished.
+        if (registrering.source == RegistreringSource.UPLOADED_DOCUMENTS) {
+            //Only documents that reached DONE can be journalført, and we do not silently drop the rest,
+            //so the user has to delete them manually before finishing.
+            if (registrering.hasUnfinishedDokumenter()) {
+                saksdataValidationErrors += InvalidProperty(
                     field = Registrering::dokumenter.name,
-                    reason = "Velg hvilket opplastet dokument som skal være hoveddokument."
+                    reason = "Fjern dokumenter som ikke er ferdig opplastet."
                 )
+            }
 
-                else -> saksdataValidationErrors += InvalidProperty(
+            if (!registrering.hasHoveddokument()) {
+                saksdataValidationErrors += InvalidProperty(
                     field = Registrering::dokumenter.name,
-                    reason = "Det kan bare være ett hoveddokument."
+                    reason = "Last opp minst ett dokument, og velg hvilket som skal være hoveddokument."
                 )
             }
             if (registrering.inngaaendeKanal == null) {
@@ -172,6 +154,11 @@ class ValidationUtil(
                     reason = "Velg avsender for det opplastede dokumentet."
                 )
             }
+        } else if (registrering.journalpostId == null) {
+            saksdataValidationErrors += InvalidProperty(
+                field = Registrering::journalpostId.name,
+                reason = "Velg en journalpost."
+            )
         }
 
         if (registrering.sendSvarbrev == true) {

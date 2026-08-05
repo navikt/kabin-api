@@ -15,8 +15,6 @@ class RegistreringDokument(
     var name: String,
     @Column(name = "size")
     var size: Long,
-    @Column(name = "is_hoveddokument")
-    var isHoveddokument: Boolean,
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     var status: DokumentStatus = DokumentStatus.UPLOADING,
@@ -40,7 +38,7 @@ class RegistreringDokument(
     }
 
     override fun toString(): String {
-        return "RegistreringDokument(id=$id, mellomlagerId='$mellomlagerId', name='$name', size=$size, isHoveddokument=$isHoveddokument, status=$status, created=$created)"
+        return "RegistreringDokument(id=$id, mellomlagerId='$mellomlagerId', name='$name', size=$size, status=$status, created=$created)"
     }
 
     companion object {
@@ -87,4 +85,9 @@ enum class DokumentStatus {
 enum class InngaaendeKanal {
     ALTINN_INNBOKS,
     E_POST,
+}
+
+enum class RegistreringSource {
+    JOURNALPOST,
+    UPLOADED_DOCUMENTS,
 }

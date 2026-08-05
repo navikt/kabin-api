@@ -125,22 +125,27 @@ class Registrering(
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "registrering_id", referencedColumnName = "id", nullable = false)
     val dokumenter: MutableSet<RegistreringDokument> = mutableSetOf(),
+    @Column(name = "hoveddokument_id")
+    var hoveddokumentId: UUID? = null,
     @Column(name = "inngaaende_kanal")
     @Enumerated(EnumType.STRING)
     var inngaaendeKanal: InngaaendeKanal? = null,
+    @Column(name = "source")
+    @Enumerated(EnumType.STRING)
+    var source: RegistreringSource = RegistreringSource.JOURNALPOST,
 ) {
 
-    fun getHoveddokument(): RegistreringDokument? = dokumenter.find { it.isDone && it.isHoveddokument }
+    fun getHoveddokument(): RegistreringDokument? = dokumenter.find { it.isDone && it.id == hoveddokumentId }
 
     fun getVedlegg(): List<RegistreringDokument> =
-        dokumenter.filter { it.isDone && !it.isHoveddokument }.sortedBy { it.created }
+        dokumenter.filter { it.isDone && it.id != hoveddokumentId }.sortedBy { it.created }
 
-    //Counts documents of any status, since hoveddokument can be chosen before the upload is finished.
-    fun getHoveddokumentCount(): Int = dokumenter.count { it.isHoveddokument }
+    //Hoveddokument can be chosen before the upload is finished, so any status counts here.
+    fun hasHoveddokument(): Boolean = dokumenter.any { it.id == hoveddokumentId }
 
     fun hasUnfinishedDokumenter(): Boolean = dokumenter.any { !it.isDone }
 
-    fun isBasedOnUploadedDocument(): Boolean = dokumenter.any { it.isDone }
+    fun isBasedOnUploadedDocument(): Boolean = source == RegistreringSource.UPLOADED_DOCUMENTS
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -156,7 +161,7 @@ class Registrering(
     }
 
     override fun toString(): String {
-        return "Registrering(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, journalpostDatoOpprettet=$journalpostDatoOpprettet, type=$type, mulighetId=$mulighetId, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, forrigeBehandlendeEnhetId=$forrigeBehandlendeEnhetId, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$gosysOppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost, muligheter=$muligheter, muligheterFetched=$muligheterFetched)"
+        return "Registrering(id=$id, source=$source, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, journalpostDatoOpprettet=$journalpostDatoOpprettet, type=$type, mulighetId=$mulighetId, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, forrigeBehandlendeEnhetId=$forrigeBehandlendeEnhetId, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$gosysOppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost, muligheter=$muligheter, muligheterFetched=$muligheterFetched)"
     }
 
     fun handleSvarbrevReceivers() {
