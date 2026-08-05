@@ -1594,7 +1594,7 @@ class RegistreringService(
         return registrering.toDokumenterChangeRegistreringView()
     }
 
-    fun setHoveddokument(registreringId: UUID, input: HoveddokumentInput): DokumenterChangeRegistreringView {
+    fun setHoveddokument(registreringId: UUID, input: HoveddokumentInput): HoveddokumentChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         val dokument = registrering.dokumenter.find { it.id == input.hoveddokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
@@ -1604,7 +1604,7 @@ class RegistreringService(
         registrering.hoveddokumentId = dokument.id
         registrering.modified = LocalDateTime.now()
 
-        return registrering.toDokumenterChangeRegistreringView()
+        return registrering.toHoveddokumentChangeRegistreringView()
     }
 
     fun getDokumentViewUrl(registreringId: UUID, dokumentId: UUID): String {

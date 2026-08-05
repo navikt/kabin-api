@@ -224,7 +224,7 @@ class RegistreringController(
     fun setHoveddokument(
         @PathVariable id: UUID,
         @RequestBody input: HoveddokumentInput,
-    ): DokumenterChangeRegistreringView {
+    ): HoveddokumentChangeRegistreringView {
         logMethodDetails(
             methodName = ::setHoveddokument.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),

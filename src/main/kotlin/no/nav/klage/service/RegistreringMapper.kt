@@ -307,6 +307,14 @@ fun Registrering.toDokumenterChangeRegistreringView() = DokumenterChangeRegistre
     modified = modified,
 )
 
+fun Registrering.toHoveddokumentChangeRegistreringView() = HoveddokumentChangeRegistreringView(
+    id = id,
+    uploadedDocuments = HoveddokumentChangeRegistreringView.HoveddokumentChangeUploadedDocumentsView(
+        hoveddokumentId = hoveddokumentId,
+    ),
+    modified = modified,
+)
+
 private fun getMuligheterSorted(muligheter: MutableList<Mulighet>): List<Mulighet> =
     muligheter.sortedByDescending { it.vedtakDate ?: it.created.toLocalDate() }
 

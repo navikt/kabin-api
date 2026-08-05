@@ -157,6 +157,16 @@ data class DokumenterChangeRegistreringView(
     )
 }
 
+data class HoveddokumentChangeRegistreringView(
+    val id: UUID,
+    val uploadedDocuments: HoveddokumentChangeUploadedDocumentsView,
+    val modified: LocalDateTime,
+) {
+    data class HoveddokumentChangeUploadedDocumentsView(
+        val hoveddokumentId: UUID?,
+    )
+}
+
 data class InngaaendeKanalChangeRegistreringView(
     val id: UUID,
     val uploadedDocuments: InngaaendeKanalChangeUploadedDocumentsView,
