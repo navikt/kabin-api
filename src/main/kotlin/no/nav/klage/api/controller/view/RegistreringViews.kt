@@ -140,6 +140,11 @@ data class DokumentUploadUrlView(
     )
 }
 
+data class DokumentUploadUrlsView(
+    val uploads: List<DokumentUploadUrlView>,
+    val hoveddokumentId: UUID,
+)
+
 data class UploadedDocumentsView(
     val inngaaendeKanal: String?,
     val dokumenter: List<RegistreringDokumentView>,

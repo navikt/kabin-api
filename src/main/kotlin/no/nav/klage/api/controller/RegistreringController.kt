@@ -140,7 +140,7 @@ class RegistreringController(
     fun createDokumentUploadUrl(
         @PathVariable id: UUID,
         @RequestBody input: List<DokumentUploadUrlInput>,
-    ): List<DokumentUploadUrlView> {
+    ): DokumentUploadUrlsView {
         logMethodDetails(
             methodName = ::createDokumentUploadUrl.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),

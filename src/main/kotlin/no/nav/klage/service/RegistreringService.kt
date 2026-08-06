@@ -1541,7 +1541,11 @@ class RegistreringService(
         )
     }
 
-    fun createDokumentUploadUrls(registreringId: UUID, input: List<DokumentUploadUrlInput>): List<DokumentUploadUrlView> {
+    fun createDokumentUploadUrls(registreringId: UUID, input: List<DokumentUploadUrlInput>): DokumentUploadUrlsView {
+        if (input.isEmpty()) {
+            throw IllegalInputException("Må sende med minst ett dokument.")
+        }
+
         val registrering = getRegistreringForUpdate(registreringId)
 
         //Names are validated before we ask for any policies, so a single invalid name doesn't leave
@@ -1553,7 +1557,6 @@ class RegistreringService(
         val uploadUrls = uploadPolicies.zip(validatedNames) { uploadPolicy, name ->
             //The document row is created up front so the client only ever deals with one id. It starts out
             //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
-            //Convenience: the first document becomes hoveddokument. The client can change it later.
             val dokument = RegistreringDokument(
                 mellomlagerId = uploadPolicy.id,
                 name = name,
@@ -1561,9 +1564,6 @@ class RegistreringService(
                 status = DokumentStatus.UPLOADING,
             )
             registrering.dokumenter.add(dokument)
-            if (registrering.hoveddokumentId == null) {
-                registrering.hoveddokumentId = dokument.id
-            }
 
             DokumentUploadUrlView(
                 upload = DokumentUploadUrlView.Upload(
@@ -1576,9 +1576,16 @@ class RegistreringService(
             )
         }
 
+        //Convenience: the first document becomes hoveddokument. The client can change it later.
+        val hoveddokumentId = registrering.hoveddokumentId ?: uploadUrls.first().dokument.id
+        registrering.hoveddokumentId = hoveddokumentId
+
         registrering.modified = LocalDateTime.now()
 
-        return uploadUrls
+        return DokumentUploadUrlsView(
+            uploads = uploadUrls,
+            hoveddokumentId = hoveddokumentId,
+        )
     }
 
     fun setDokumentName(

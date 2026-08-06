@@ -172,7 +172,7 @@ class Registrering(
             fullmektig?.value
         ).filterNotNull()
 
-        if (existingParts.size == 1 && existingReceivers.size == 0) {
+        if (existingParts.size == 1 && existingReceivers.isEmpty()) {
             svarbrevReceivers.add(
                 SvarbrevReceiver(
                     part = PartId(
