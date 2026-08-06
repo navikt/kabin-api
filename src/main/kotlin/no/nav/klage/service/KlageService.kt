@@ -29,13 +29,9 @@ class KlageService(
 
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
-        val journalpostId = if (registrering.isBasedOnUploadedDocument()) {
-            null
-        } else {
-            dokArkivService.handleJournalpost(
-                registrering = registrering,
-            )
-        }
+        val journalpostId = dokArkivService.handleJournalpost(
+            registrering = registrering,
+        )
 
         return if (registrering.mulighetIsBasedOnJournalpost) {
             val kabalResponse = CreatedBehandlingResponse(

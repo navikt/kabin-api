@@ -138,6 +138,8 @@ class RegistreringService(
                 reinitializeMuligheter()
 
                 journalpostId = null
+                journalpostDatoOpprettet = null
+                deleteAllDokumenter(registrering = this)
                 ytelse = null
                 forrigeBehandlendeEnhetId = null
                 type = null
@@ -167,6 +169,7 @@ class RegistreringService(
     fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): FullRegistreringView {
 
         val registrering = getRegistreringForUpdate(registreringId)
+        requireSource(registrering = registrering, expected = RegistreringSource.JOURNALPOST)
         registrering.additionalKabalMulighetId = null
         registrering.reinitializeAdditionalKabalMuligheter()
         registrering
@@ -341,7 +344,7 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
 
         if (registrering.mulighetIsBasedOnJournalpost) {
-            throw IllegalStateException("Mulighet kan ikke settes fordi alternativ for journalpost er valgt.")
+            throw IllegalInputException("Mulighet kan ikke settes fordi alternativ for journalpost er valgt.")
         }
 
         val newMulighet = registrering.muligheter.find { it.id == input.mulighetId } ?: throw MulighetNotFoundException(
@@ -406,11 +409,15 @@ class RegistreringService(
 
                 modified = LocalDateTime.now()
 
-                willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-                    journalpostId = this.journalpostId!!,
-                    fagsakId = newMulighet.fagsakId,
-                    fagsystemId = newMulighet.originalFagsystem.id,
-                )
+                willCreateNewJournalpost = if (isBasedOnUploadedDocument()) {
+                    false
+                } else {
+                    dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                        journalpostId = journalpostId!!,
+                        fagsakId = newMulighet.fagsakId,
+                        fagsystemId = newMulighet.originalFagsystem.id,
+                    )
+                }
 
                 //What about fullmektig?
             }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
@@ -425,7 +432,7 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
 
         if (!registrering.mulighetIsBasedOnJournalpost) {
-            throw IllegalStateException("Mulighet kan ikke settes basert på journalpost fordi det alternativet ikke er valgt.")
+            throw IllegalInputException("Mulighet kan ikke settes basert på journalpost fordi det alternativet ikke er valgt.")
         }
 
         if (registrering.mulighetId != null) {
@@ -439,7 +446,7 @@ class RegistreringService(
 
         if (registrering.type in listOf(Type.KLAGE, Type.ANKE)) {
             if (mulighet.originalFagsystem != Fagsystem.AO01) {
-                throw IllegalStateException("Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.")
+                throw IllegalInputException("Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.")
             }
         }
 
@@ -505,11 +512,15 @@ class RegistreringService(
 
             modified = LocalDateTime.now()
 
-            willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-                journalpostId = this.journalpostId!!,
-                fagsakId = mulighet.fagsakId,
-                fagsystemId = mulighet.originalFagsystem.id,
-            )
+            willCreateNewJournalpost = if (isBasedOnUploadedDocument()) {
+                false
+            } else {
+                dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                    journalpostId = journalpostId!!,
+                    fagsakId = mulighet.fagsakId,
+                    fagsystemId = mulighet.originalFagsystem.id,
+                )
+            }
         }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
@@ -521,7 +532,7 @@ class RegistreringService(
         val mulighetToBeSet = registrering.muligheter.find { it.id == input.mulighetId }
             ?: throw MulighetNotFoundException("Fant ikke mulighet med id ${input.mulighetId}")
         if (!mulighetToBeSet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
-            throw IllegalStateException("Dette feltet kan bare settes for anker basert på Infotrygd-saker.")
+            throw IllegalInputException("Dette feltet kan bare settes for anker basert på Infotrygd-saker.")
         }
 
         //TODO: Finn sideeffekter
@@ -881,15 +892,15 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 if (ytelse == null) {
-                    throw IllegalStateException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
+                    throw IllegalInputException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
                 }
 
                 if (type !in listOf(Type.KLAGE, Type.ANKE)) {
-                    throw IllegalStateException("Forrige behandlende enhet kan bare settes for klager og anker")
+                    throw IllegalInputException("Forrige behandlende enhet kan bare settes for klager og anker")
                 }
 
                 if (!mulighetIsBasedOnJournalpost) {
-                    throw IllegalStateException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
+                    throw IllegalInputException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
                 }
 
                 //Enhet.fromNavn() validates the input.
@@ -1516,6 +1527,7 @@ class RegistreringService(
         input: InngaaendeKanalInput
     ): InngaaendeKanalChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
+        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
         registrering.inngaaendeKanal = input.inngaaendeKanal
         registrering.modified = LocalDateTime.now()
         return InngaaendeKanalChangeRegistreringView(
@@ -1527,18 +1539,56 @@ class RegistreringService(
         )
     }
 
+    //Endpoints that establish source-specific state must not be used against the other source, or
+    //the registrering ends up in a contradictory state. Housekeeping of already uploaded documents
+    //(rename, view, delete) is deliberately left open, since those are kept when switching source.
+    private fun requireSource(registrering: Registrering, expected: RegistreringSource) {
+        if (registrering.source != expected) {
+            throw IllegalInputException(
+                when (expected) {
+                    RegistreringSource.JOURNALPOST -> "Journalpost kan ikke velges når registreringen er basert på opplastede dokumenter."
+                    RegistreringSource.UPLOADED_DOCUMENTS -> "Opplastede dokumenter kan ikke endres når registreringen er basert på journalpost."
+                }
+            )
+        }
+    }
+
     fun setSource(
         registreringId: UUID,
         input: SourceInput
-    ): SourceChangeRegistreringView {
+    ): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        registrering.source = input.source
+
+        if (registrering.source != input.source) {
+            registrering.apply {
+                source = input.source
+
+                //The received document changes when source changes, so empty the properties that
+                //were derived from it. Uploaded dokumenter are deliberately kept, so the user can
+                //switch back without having to upload everything again.
+                journalpostId = null
+                journalpostDatoOpprettet = null
+                avsender = null
+
+                handleReceiversWhenChangingPart(
+                    unchangedRegistrering = this,
+                    partIdInput = null,
+                    partISaken = PartISaken.FULLMEKTIG,
+                )
+                fullmektig = null
+                svarbrevFullmektigFritekst = null
+
+                mottattKlageinstans = null
+                mottattVedtaksinstans = null
+
+                willCreateNewJournalpost = false
+
+                handleSvarbrevReceivers()
+            }
+        }
+
         registrering.modified = LocalDateTime.now()
-        return SourceChangeRegistreringView(
-            id = registrering.id,
-            source = registrering.source,
-            modified = registrering.modified,
-        )
+        return registrering.toRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun createDokumentUploadUrls(registreringId: UUID, input: List<DokumentUploadUrlInput>): DokumentUploadUrlsView {
@@ -1547,6 +1597,7 @@ class RegistreringService(
         }
 
         val registrering = getRegistreringForUpdate(registreringId)
+        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
 
         //Names are validated before we ask for any policies, so a single invalid name doesn't leave
         //unused policies behind.
@@ -1607,6 +1658,7 @@ class RegistreringService(
 
     fun setHoveddokument(registreringId: UUID, input: HoveddokumentInput): HoveddokumentChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
+        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
         val dokument = registrering.dokumenter.find { it.id == input.hoveddokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 

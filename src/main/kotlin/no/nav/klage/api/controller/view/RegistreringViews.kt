@@ -182,12 +182,6 @@ data class InngaaendeKanalChangeRegistreringView(
     )
 }
 
-data class SourceChangeRegistreringView(
-    val id: UUID,
-    val source: RegistreringSource,
-    val modified: LocalDateTime,
-)
-
 data class BehandlingstidView(
     val unitTypeId: String,
     val units: Int,

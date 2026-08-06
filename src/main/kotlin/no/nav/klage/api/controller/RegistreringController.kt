@@ -282,7 +282,7 @@ class RegistreringController(
     fun updateSource(
         @PathVariable id: UUID,
         @RequestBody input: SourceInput
-    ): SourceChangeRegistreringView {
+    ): FullRegistreringView {
         logMethodDetails(
             methodName = ::updateSource.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),

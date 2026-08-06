@@ -436,7 +436,7 @@ class RegistreringServiceTest {
                     id,
                     ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "4200")
                 )
-            }.isInstanceOf(IllegalStateException::class.java)
+            }.isInstanceOf(IllegalInputException::class.java)
         }
 
         @Test
@@ -935,7 +935,7 @@ class RegistreringServiceTest {
         }
 
         @Test
-        fun `throws IllegalStateException when mulighet is not additional kabal anke based on infotrygd sak`() {
+        fun `throws IllegalInputException when mulighet is not additional kabal anke based on infotrygd sak`() {
             val id = UUID.randomUUID()
             val mulighetId = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
@@ -955,7 +955,7 @@ class RegistreringServiceTest {
                     registreringId = id,
                     input = MulighetInput(mulighetId = mulighetId),
                 )
-            }.isInstanceOf(IllegalStateException::class.java)
+            }.isInstanceOf(IllegalInputException::class.java)
         }
     }
 
