@@ -3,10 +3,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val tokenValidationVersion = "6.0.11"
 val logstashVersion = "9.0"
-val springDocVersion = "3.0.3"
+val springDocVersion = "3.1.0"
 val springMockkVersion = "5.0.1"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "3.3.10"
+val klageKodeverkVersion = "3.3.14"
 val testContainersVersion = "2.0.5"
 val otelVersion = "1.64.0"
 
