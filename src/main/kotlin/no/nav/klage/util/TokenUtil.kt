@@ -1,12 +1,18 @@
 package no.nav.klage.util
 
 import com.nimbusds.jwt.SignedJWT
+import com.nimbusds.oauth2.sdk.GrantType.CLIENT_CREDENTIALS
+import com.nimbusds.oauth2.sdk.GrantType.JWT_BEARER
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.StatusCode
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.util.TokenUtil.Companion.CACHE_HIT
+import no.nav.security.token.support.client.core.ClientProperties
+import no.nav.security.token.support.client.core.oauth2.ClientCredentialsGrantRequest
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
+import no.nav.security.token.support.client.core.oauth2.OnBehalfOfGrantRequest
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import org.springframework.stereotype.Service
@@ -32,9 +38,7 @@ class TokenUtil(
         private val CACHE_HIT = AttributeKey.booleanKey("token.cache_hit")
         private val LIFETIME_SECONDS = AttributeKey.longKey("token.lifetime_seconds")
         private val REMAINING_SECONDS = AttributeKey.longKey("token.remaining_seconds")
-
-        /** Slack to absorb clock skew between us and Azure AD when deciding cache hit vs. fresh token. */
-        private const val CACHE_HIT_SLACK_SECONDS = 5
+        private val ISSUED_SECONDS_AGO = AttributeKey.longKey("token.issued_seconds_ago")
     }
 
     private val tracer = GlobalOpenTelemetry.getTracer(INSTRUMENTATION_SCOPE)
@@ -53,6 +57,8 @@ class TokenUtil(
             .setAttribute(SCOPE, clientProperties.scope.joinToString(separator = " "))
             .startSpan()
 
+        cacheHit(clientProperties)?.let { span.setAttribute(CACHE_HIT, it) }
+
         return try {
             span.makeCurrent().use {
                 val accessToken = oAuth2AccessTokenService.getAccessToken(clientProperties).access_token!!
@@ -69,8 +75,27 @@ class TokenUtil(
     }
 
     /**
-     * Derives whether the token came from the local cache by comparing its remaining lifetime with its
-     * total lifetime. A freshly issued token has (almost) its full lifetime left, a cached one does not.
+     * Probes the token-support cache before the call, so we can tell a local cache hit from a real
+     * round trip to Azure AD. Note that this cannot be derived from the token itself: Azure AD hands
+     * back a token it minted earlier, so a freshly fetched token can still look "old".
+     * Purely diagnostic, so any failure is reported as unknown rather than propagated.
+     */
+    private fun cacheHit(clientProperties: ClientProperties): Boolean? =
+        runCatching {
+            when (clientProperties.grantType) {
+                JWT_BEARER -> oAuth2AccessTokenService.onBehalfOfGrantCache
+                    ?.getIfPresent(OnBehalfOfGrantRequest(clientProperties, getAccessTokenFrontendSent()))
+
+                CLIENT_CREDENTIALS -> oAuth2AccessTokenService.clientCredentialsGrantCache
+                    ?.getIfPresent(ClientCredentialsGrantRequest(clientProperties))
+
+                else -> return null
+            } != null
+        }.getOrNull()
+
+    /**
+     * Records how long ago the token was issued. Combined with [CACHE_HIT] this separates our own
+     * caching from Azure AD's: an old token on a cache miss means Azure served it from its side.
      * Purely diagnostic, so any failure to parse is ignored.
      */
     private fun addTokenAgeAttributes(span: Span, accessToken: String) {
@@ -78,13 +103,11 @@ class TokenUtil(
             val claims = SignedJWT.parse(accessToken).jwtClaimsSet
             val issuedAt = claims.issueTime?.toInstant() ?: return
             val expiresAt = claims.expirationTime?.toInstant() ?: return
+            val now = Instant.now()
 
-            val lifetimeSeconds = expiresAt.epochSecond - issuedAt.epochSecond
-            val remainingSeconds = expiresAt.epochSecond - Instant.now().epochSecond
-
-            span.setAttribute(LIFETIME_SECONDS, lifetimeSeconds)
-            span.setAttribute(REMAINING_SECONDS, remainingSeconds)
-            span.setAttribute(CACHE_HIT, remainingSeconds < lifetimeSeconds - CACHE_HIT_SLACK_SECONDS)
+            span.setAttribute(LIFETIME_SECONDS, expiresAt.epochSecond - issuedAt.epochSecond)
+            span.setAttribute(REMAINING_SECONDS, expiresAt.epochSecond - now.epochSecond)
+            span.setAttribute(ISSUED_SECONDS_AGO, now.epochSecond - issuedAt.epochSecond)
         }
     }
 
