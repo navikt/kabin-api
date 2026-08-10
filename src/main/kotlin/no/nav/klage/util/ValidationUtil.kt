@@ -127,6 +127,13 @@ class ValidationUtil(
         //The source decides what the behandling is based on. Documents that were uploaded before the
         //user switched back to journalpost are simply deleted when the registrering is finished.
         if (registrering.source == RegistreringSource.UPLOADED_DOCUMENTS) {
+            if (registrering.type == Type.KLAGE) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::type.name,
+                    reason = "Klage kan ikke registreres med opplastede dokumenter. Velg en journalpost."
+                )
+            }
+
             //Only documents that reached DONE can be journalført, and we do not silently drop the rest,
             //so the user has to delete them manually before finishing.
             if (registrering.hasUnfinishedDokumenter()) {

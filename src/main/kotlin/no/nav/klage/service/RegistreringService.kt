@@ -244,6 +244,12 @@ class RegistreringService(
     fun setTypeId(registreringId: UUID, input: TypeIdInput): TypeChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
+        if (input.typeId != null && Type.of(input.typeId) == Type.KLAGE &&
+            registrering.source == RegistreringSource.UPLOADED_DOCUMENTS
+        ) {
+            throw IllegalInputException("Klage kan ikke registreres med opplastede dokumenter.")
+        }
+
         if (registrering.mulighetIsBasedOnJournalpost && registrering.mulighetId != null) {
             registrering.muligheter.removeIf {
                 it.id == registrering.mulighetId
@@ -1558,6 +1564,10 @@ class RegistreringService(
         input: SourceInput
     ): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
+
+        if (input.source == RegistreringSource.UPLOADED_DOCUMENTS && registrering.type == Type.KLAGE) {
+            throw IllegalInputException("Klage kan ikke registreres med opplastede dokumenter.")
+        }
 
         if (registrering.source != input.source) {
             registrering.apply {
