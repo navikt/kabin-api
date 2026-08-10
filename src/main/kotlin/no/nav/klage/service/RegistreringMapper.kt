@@ -281,9 +281,19 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
 )
 
 fun Registrering.toUploadedDocumentsView(): UploadedDocumentsView = UploadedDocumentsView(
-    inngaaendeKanal = inngaaendeKanal!!.name,
+    inngaaendeKanal = inngaaendeKanal?.name,
     dokumenter = toRegistreringDokumentViews(),
     hoveddokumentId = hoveddokumentId,
+)
+
+fun Registrering.toReceiptUploadedDocumentsView(): ReceiptUploadedDocumentsView = ReceiptUploadedDocumentsView(
+    inngaaendeKanal = requireNotNull(inngaaendeKanal) {
+        "Registrering $id is based on uploaded documents, but inngaaendeKanal is not set."
+    }.name,
+    dokumenter = toRegistreringDokumentViews(),
+    hoveddokumentId = requireNotNull(hoveddokumentId) {
+        "Registrering $id is based on uploaded documents, but hoveddokumentId is not set."
+    },
 )
 
 fun Registrering.toRegistreringDokumentViews(): List<RegistreringDokumentView> = dokumenter.sortedWith(

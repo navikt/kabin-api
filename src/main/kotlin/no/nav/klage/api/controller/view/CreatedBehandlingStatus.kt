@@ -19,10 +19,16 @@ data class CreatedBehandlingStatusView(
     val fagsakId: String,
     val fagsystemId: String,
     val journalpost: DokumentReferanseForReceipt?,
-    val uploadedDocuments: UploadedDocumentsView?,
+    val uploadedDocuments: ReceiptUploadedDocumentsView?,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
     val svarbrev: Svarbrev?,
     val source: String,
+)
+
+data class ReceiptUploadedDocumentsView(
+    val inngaaendeKanal: String,
+    val dokumenter: List<RegistreringDokumentView>,
+    val hoveddokumentId: UUID,
 )
 
 data class Svarbrev(

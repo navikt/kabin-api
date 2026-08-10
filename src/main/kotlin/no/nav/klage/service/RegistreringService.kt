@@ -1759,7 +1759,7 @@ class RegistreringService(
             fagsystemId = status.fagsystemId,
             journalpost = status.journalpost?.toReceiptView(),
             uploadedDocuments = if (registrering.isBasedOnUploadedDocument()) {
-                registrering.toUploadedDocumentsView()
+                registrering.toReceiptUploadedDocumentsView()
             } else null,
             tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
             svarbrev = status.svarbrev?.toView(),
