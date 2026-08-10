@@ -1648,9 +1648,9 @@ class RegistreringService(
         val dokument = registrering.dokumenter.find { it.id == dokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-        //Renaming is allowed regardless of status, but the extension has to keep describing the file
-        //we actually have stored.
-        dokument.name = renameKeepingExtension(currentName = dokument.name, newName = input.name)
+        //Renaming is allowed regardless of status, and the client decides the whole name, including
+        //any extension.
+        dokument.name = validateDokumentName(input.name)
         registrering.modified = LocalDateTime.now()
 
         return registrering.toDokumenterChangeRegistreringView()
@@ -1679,12 +1679,13 @@ class RegistreringService(
             throw IllegalInputException("Dokumentet er ikke ferdig opplastet.")
         }
 
-        //Uploaded documents are always stored as PDF (images are converted at confirm time).
+        //Uploaded documents are always stored as PDF (images are converted at confirm time), so the
+        //stored name (which is whatever the user typed) gets a .pdf extension when it is served.
         return fileApiClient.getDocumentViewUrl(
             id = dokument.mellomlagerId,
             headers = mapOf(
                 "content-type" to MediaType.APPLICATION_PDF_VALUE,
-                "content-disposition" to "inline; filename=\"${dokument.name}\"",
+                "content-disposition" to "inline; filename=\"${withPdfExtension(name = dokument.name)}\"",
             ),
         )
     }
@@ -1736,13 +1737,9 @@ class RegistreringService(
         return registrering.getAdditionalKabalMuligheter()
     }
 
-    fun getMulighetFromBehandlingId(behandlingId: UUID): Mulighet {
-        val registrering = registreringRepository.findByBehandlingId(behandlingId)
-        return registrering.getCurrentMulighet()!!
-    }
-
     fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusView {
-        val mulighet = getMulighetFromBehandlingId(behandlingId)
+        val registrering = registreringRepository.findByBehandlingId(behandlingId)
+        val mulighet = registrering.getCurrentMulighet()!!
         val status = kabalApiService.getBehandlingStatus(behandlingId = behandlingId)
 
         return CreatedBehandlingStatusView(
@@ -1760,9 +1757,13 @@ class RegistreringService(
             varsletFristUnitTypeId = status.varsletFristUnitTypeId,
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
-            journalpost = status.journalpost.toReceiptView(),
+            journalpost = status.journalpost?.toReceiptView(),
+            uploadedDocuments = if (registrering.isBasedOnUploadedDocument()) {
+                registrering.toUploadedDocumentsView()
+            } else null,
             tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
             svarbrev = status.svarbrev?.toView(),
+            source = registrering.source.name,
         )
     }
 }

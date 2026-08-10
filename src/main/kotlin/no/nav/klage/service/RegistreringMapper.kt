@@ -281,7 +281,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
 )
 
 fun Registrering.toUploadedDocumentsView(): UploadedDocumentsView = UploadedDocumentsView(
-    inngaaendeKanal = inngaaendeKanal?.name,
+    inngaaendeKanal = inngaaendeKanal!!.name,
     dokumenter = toRegistreringDokumentViews(),
     hoveddokumentId = hoveddokumentId,
 )

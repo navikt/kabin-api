@@ -9,7 +9,6 @@ import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.service.DokumentConfirmService.Companion.FOLLOW_STALL_TIMEOUT_MILLIS
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
-import no.nav.klage.util.withExtension
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -332,11 +331,6 @@ class DokumentStateService(
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
-        //Anything that reaches DONE is stored as PDF: the scan rejects everything that is neither a
-        //PDF nor a convertible image. Setting the extension here (instead of only when we actually
-        //converted) also keeps a resumed conversion correct, since converting an already converted
-        //document is a no-op in kabal-file-api.
-        dokument.name = withExtension(name = dokument.name, extension = "pdf")
         dokument.size = size
         dokument.status = DokumentStatus.DONE
         registrering.modified = LocalDateTime.now()
