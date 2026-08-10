@@ -204,6 +204,8 @@ class RegistreringController(
             }
             logger.error("Failed while streaming status for document $dokumentId", e)
             sse.send(event = "error", data = e.message ?: "UNKNOWN_ERROR")
+        } finally {
+            sse.close()
         }
     }
 
