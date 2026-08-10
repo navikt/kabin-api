@@ -304,6 +304,7 @@ fun RegistreringDokument.toRegistreringDokumentView(): RegistreringDokumentView 
     id = id,
     name = name,
     size = size,
+    contentType = contentType,
     status = status,
     created = created,
 )

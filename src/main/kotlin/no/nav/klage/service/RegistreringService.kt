@@ -16,7 +16,6 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.*
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -1622,6 +1621,7 @@ class RegistreringService(
                 mellomlagerId = uploadPolicy.id,
                 name = name,
                 size = 0,
+                contentType = uploadPolicy.contentType,
                 status = DokumentStatus.UPLOADING,
             )
             registrering.dokumenter.add(dokument)
@@ -1689,12 +1689,13 @@ class RegistreringService(
             throw IllegalInputException("Dokumentet er ikke ferdig opplastet.")
         }
 
-        //Uploaded documents are always stored as PDF (images are converted at confirm time), so the
-        //stored name (which is whatever the user typed) gets a .pdf extension when it is served.
+        //Uploaded documents are always stored as PDF when they are done (images are converted at
+        //confirm time), so the stored name (which is whatever the user typed) gets a .pdf extension
+        //when it is served.
         return fileApiClient.getDocumentViewUrl(
             id = dokument.mellomlagerId,
             headers = mapOf(
-                "content-type" to MediaType.APPLICATION_PDF_VALUE,
+                "content-type" to dokument.contentType,
                 "content-disposition" to "inline; filename=\"${withPdfExtension(name = dokument.name)}\"",
             ),
         )

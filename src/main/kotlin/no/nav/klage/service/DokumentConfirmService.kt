@@ -9,6 +9,7 @@ import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.service.DokumentConfirmService.Companion.FOLLOW_STALL_TIMEOUT_MILLIS
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
@@ -63,10 +64,10 @@ class DokumentConfirmService(
      */
     fun confirmDokument(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
         val deadline = System.currentTimeMillis() + TOTAL_TIMEOUT_MILLIS
-        var lastEmitted: Pair<DokumentStatus, Long>? = null
+        var lastEmitted: EmitKey? = null
 
         val emitOnChange: (DokumentState) -> Unit = { state ->
-            val current = state.status to state.size
+            val current = state.emitKey()
             if (current != lastEmitted) {
                 emit(state)
                 lastEmitted = current
@@ -143,6 +144,7 @@ class DokumentConfirmService(
                 dokumentId = dokumentId,
                 status = DokumentStatus.UPLOADED,
                 size = metadata.size,
+                contentType = metadata.contentType,
             )
         }
 
@@ -183,6 +185,7 @@ class DokumentConfirmService(
                     dokumentId = dokumentId,
                     scannedGeneration = scanResult.generation,
                     size = scanResult.size,
+                    contentType = scanResult.contentType,
                 )
             } else {
                 val size = scanResult.size ?: 0L
@@ -194,6 +197,7 @@ class DokumentConfirmService(
                     registreringId = registreringId,
                     dokumentId = dokumentId,
                     size = size,
+                    contentType = scanResult.contentType ?: MediaType.APPLICATION_PDF_VALUE,
                 )
             }
             emit(state)
@@ -220,6 +224,7 @@ class DokumentConfirmService(
                 registreringId = registreringId,
                 dokumentId = dokumentId,
                 size = size,
+                contentType = convertResult.contentType ?: MediaType.APPLICATION_PDF_VALUE,
             )
             emit(state)
         }
@@ -247,7 +252,7 @@ class DokumentConfirmService(
      * should take over the work.
      */
     private fun followProgress(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit): Boolean {
-        var lastSeen: Pair<DokumentStatus, Long>? = null
+        var lastSeen: EmitKey? = null
         var lastChange = System.currentTimeMillis()
 
         while (System.currentTimeMillis() - lastChange < FOLLOW_STALL_TIMEOUT_MILLIS) {
@@ -257,9 +262,10 @@ class DokumentConfirmService(
             )
             val status = state.status
 
-            if ((status to state.size) != lastSeen) {
+            val current = state.emitKey()
+            if (current != lastSeen) {
                 emit(state)
-                lastSeen = status to state.size
+                lastSeen = current
                 lastChange = System.currentTimeMillis()
             }
 
@@ -277,9 +283,19 @@ class DokumentConfirmService(
 data class DokumentState(
     val status: DokumentStatus,
     val size: Long,
+    val contentType: String,
     val mellomlagerId: String,
     val scannedGeneration: Long?,
 )
+
+/** The part of [DokumentState] that is reported to the client, used to only emit actual changes. */
+private data class EmitKey(
+    val status: DokumentStatus,
+    val size: Long,
+    val contentType: String,
+)
+
+private fun DokumentState.emitKey() = EmitKey(status = status, size = size, contentType = contentType)
 
 /**
  * Reads and writes the state of a single [RegistreringDokument] in its own transaction, so that every
@@ -296,7 +312,13 @@ class DokumentStateService(
         getRegistrering(registreringId = registreringId, lock = false).findDokument(dokumentId).toState()
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun setStatus(registreringId: UUID, dokumentId: UUID, status: DokumentStatus, size: Long? = null): DokumentState {
+    fun setStatus(
+        registreringId: UUID,
+        dokumentId: UUID,
+        status: DokumentStatus,
+        size: Long? = null,
+        contentType: String? = null,
+    ): DokumentState {
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
@@ -304,13 +326,22 @@ class DokumentStateService(
         if (size != null) {
             dokument.size = size
         }
+        if (contentType != null) {
+            dokument.contentType = contentType
+        }
         registrering.modified = LocalDateTime.now()
 
         return dokument.toState()
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun setScanned(registreringId: UUID, dokumentId: UUID, scannedGeneration: Long, size: Long?): DokumentState {
+    fun setScanned(
+        registreringId: UUID,
+        dokumentId: UUID,
+        scannedGeneration: Long,
+        size: Long?,
+        contentType: String?,
+    ): DokumentState {
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
@@ -321,17 +352,22 @@ class DokumentStateService(
         if (size != null) {
             dokument.size = size
         }
+        //Likewise the content type before conversion, replaced with the PDF content type when done.
+        if (contentType != null) {
+            dokument.contentType = contentType
+        }
         registrering.modified = LocalDateTime.now()
 
         return dokument.toState()
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun setDone(registreringId: UUID, dokumentId: UUID, size: Long): DokumentState {
+    fun setDone(registreringId: UUID, dokumentId: UUID, size: Long, contentType: String): DokumentState {
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
         dokument.size = size
+        dokument.contentType = contentType
         dokument.status = DokumentStatus.DONE
         registrering.modified = LocalDateTime.now()
 
@@ -362,6 +398,7 @@ class DokumentStateService(
     private fun RegistreringDokument.toState() = DokumentState(
         status = status,
         size = size,
+        contentType = contentType,
         mellomlagerId = mellomlagerId,
         scannedGeneration = scannedGeneration,
     )

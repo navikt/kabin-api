@@ -152,12 +152,12 @@ class RegistreringController(
     /**
      * Server-sent events stream that reports the status of an uploaded document as it is verified,
      * virus scanned and (if needed) converted to PDF. The data of every `status` event is a JSON
-     * object with the current status and the size of the file as it is currently stored, so the
-     * client can update the UI after e.g. a conversion, e.g.
+     * object with the current status, the size of the file as it is currently stored and its content
+     * type, so the client can update the UI after e.g. a conversion, e.g.
      *
      * ```
      * event: status
-     * data: {"status":"VIRUS_SCANNING","size":123456}
+     * data: {"status":"VIRUS_SCANNING","size":123456,"contentType":"image/jpeg"}
      * ```
      *
      * The stream ends when the document reaches a terminal status (`DONE`, `VIRUS_FOUND` or
@@ -192,6 +192,7 @@ class RegistreringController(
                         DokumentStatusEventView(
                             status = state.status,
                             size = state.size,
+                            contentType = state.contentType,
                         )
                     ),
                 )

@@ -15,6 +15,8 @@ class RegistreringDokument(
     var name: String,
     @Column(name = "size")
     var size: Long,
+    @Column(name = "content_type")
+    var contentType: String,
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     var status: DokumentStatus = DokumentStatus.UPLOADING,
@@ -38,7 +40,7 @@ class RegistreringDokument(
     }
 
     override fun toString(): String {
-        return "RegistreringDokument(id=$id, mellomlagerId='$mellomlagerId', name='$name', size=$size, status=$status, created=$created)"
+        return "RegistreringDokument(id=$id, mellomlagerId='$mellomlagerId', name='$name', size=$size, contentType='$contentType', status=$status, created=$created)"
     }
 
     companion object {

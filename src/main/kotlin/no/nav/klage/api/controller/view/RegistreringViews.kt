@@ -119,6 +119,7 @@ data class RegistreringDokumentView(
     val id: UUID,
     val name: String,
     val size: Long,
+    val contentType: String,
     val status: DokumentStatus,
     val created: LocalDateTime,
 )
@@ -126,6 +127,7 @@ data class RegistreringDokumentView(
 data class DokumentStatusEventView(
     val status: DokumentStatus,
     val size: Long,
+    val contentType: String,
 )
 
 data class DokumentUploadUrlView(
