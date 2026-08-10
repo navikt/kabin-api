@@ -1,18 +1,12 @@
 package no.nav.klage.util
 
 import com.nimbusds.jwt.SignedJWT
-import com.nimbusds.oauth2.sdk.GrantType.CLIENT_CREDENTIALS
-import com.nimbusds.oauth2.sdk.GrantType.JWT_BEARER
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.StatusCode
 import no.nav.klage.config.SecurityConfiguration
-import no.nav.klage.util.TokenUtil.Companion.CACHE_HIT
-import no.nav.security.token.support.client.core.ClientProperties
-import no.nav.security.token.support.client.core.oauth2.ClientCredentialsGrantRequest
 import no.nav.security.token.support.client.core.oauth2.OAuth2AccessTokenService
-import no.nav.security.token.support.client.core.oauth2.OnBehalfOfGrantRequest
 import no.nav.security.token.support.client.spring.ClientConfigurationProperties
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import org.springframework.stereotype.Service
@@ -35,7 +29,6 @@ class TokenUtil(
         private val REGISTRATION = AttributeKey.stringKey("token.client.registration")
         private val GRANT_TYPE = AttributeKey.stringKey("token.grant_type")
         private val SCOPE = AttributeKey.stringKey("token.scope")
-        private val CACHE_HIT = AttributeKey.booleanKey("token.cache_hit")
         private val LIFETIME_SECONDS = AttributeKey.longKey("token.lifetime_seconds")
         private val REMAINING_SECONDS = AttributeKey.longKey("token.remaining_seconds")
         private val ISSUED_SECONDS_AGO = AttributeKey.longKey("token.issued_seconds_ago")
@@ -57,14 +50,10 @@ class TokenUtil(
             .setAttribute(SCOPE, clientProperties.scope.joinToString(separator = " "))
             .startSpan()
 
-        cacheHit(clientProperties)?.let { span.setAttribute(CACHE_HIT, it) }
-
         return try {
-            span.makeCurrent().use {
-                val accessToken = oAuth2AccessTokenService.getAccessToken(clientProperties).access_token!!
-                addTokenAgeAttributes(span, accessToken)
-                accessToken
-            }
+            val accessToken = oAuth2AccessTokenService.getAccessToken(clientProperties).access_token!!
+            addTokenAgeAttributes(span, accessToken)
+            accessToken
         } catch (e: Throwable) {
             span.setStatus(StatusCode.ERROR, e.message ?: e.javaClass.simpleName)
             span.recordException(e)
@@ -75,27 +64,7 @@ class TokenUtil(
     }
 
     /**
-     * Probes the token-support cache before the call, so we can tell a local cache hit from a real
-     * round trip to Azure AD. Note that this cannot be derived from the token itself: Azure AD hands
-     * back a token it minted earlier, so a freshly fetched token can still look "old".
-     * Purely diagnostic, so any failure is reported as unknown rather than propagated.
-     */
-    private fun cacheHit(clientProperties: ClientProperties): Boolean? =
-        runCatching {
-            when (clientProperties.grantType) {
-                JWT_BEARER -> oAuth2AccessTokenService.onBehalfOfGrantCache
-                    ?.getIfPresent(OnBehalfOfGrantRequest(clientProperties, getAccessTokenFrontendSent()))
-
-                CLIENT_CREDENTIALS -> oAuth2AccessTokenService.clientCredentialsGrantCache
-                    ?.getIfPresent(ClientCredentialsGrantRequest(clientProperties))
-
-                else -> return null
-            } != null
-        }.getOrNull()
-
-    /**
-     * Records how long ago the token was issued. Combined with [CACHE_HIT] this separates our own
-     * caching from Azure AD's: an old token on a cache miss means Azure served it from its side.
+     * Records how long ago the token was issued, and how much lifetime is left.
      * Purely diagnostic, so any failure to parse is ignored.
      */
     private fun addTokenAgeAttributes(span: Span, accessToken: String) {
