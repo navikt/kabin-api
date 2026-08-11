@@ -143,7 +143,7 @@ class Registrering(
     //Hoveddokument can be chosen before the upload is finished, so any status counts here.
     fun hasHoveddokument(): Boolean = dokumenter.any { it.id == hoveddokumentId }
 
-    fun hasUnfinishedDokumenter(): Boolean = dokumenter.any { !it.isDone }
+    fun hasUnfinishedDokumenter(): Boolean = dokumenter.any { !it.status.isTerminal() }
 
     fun hasUnsupportedTypeDokumenter(): Boolean = dokumenter.any { it.status == DokumentStatus.UNSUPPORTED_TYPE }
 
