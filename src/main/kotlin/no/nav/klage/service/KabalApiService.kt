@@ -246,7 +246,7 @@ class KabalApiService(
     }
 
     private fun RegistreringDokument.toMellomlagretDocumentInput() = MellomlagretDocumentInput(
-        mellomlagerId = mellomlagerId,
+        mellomlagerId = mellomlagerId!!,
         name = name,
         size = size,
     )

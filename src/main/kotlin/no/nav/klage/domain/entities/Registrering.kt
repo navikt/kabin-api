@@ -145,6 +145,8 @@ class Registrering(
 
     fun hasUnfinishedDokumenter(): Boolean = dokumenter.any { !it.isDone }
 
+    fun hasUnsupportedTypeDokumenter(): Boolean = dokumenter.any { it.status == DokumentStatus.UNSUPPORTED_TYPE }
+
     fun isBasedOnUploadedDocument(): Boolean = source == RegistreringSource.UPLOADED_DOCUMENTS
 
     override fun equals(other: Any?): Boolean {

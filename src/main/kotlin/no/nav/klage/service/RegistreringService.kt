@@ -43,6 +43,14 @@ class RegistreringService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+
+        //Must match ALLOWED_UPLOAD_CONTENT_TYPES in kabal-file-api.
+        private val ALLOWED_UPLOAD_CONTENT_TYPES = setOf(
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+        )
     }
 
     fun createRegistrering(input: SakenGjelderValueInput): FullRegistreringView {
@@ -1612,29 +1620,57 @@ class RegistreringService(
         //unused policies behind.
         val validatedNames = input.map { validateDokumentName(it.name) }
 
-        val uploadPolicies = fileApiClient.createUploadPolicies(contentTypes = input.map { it.contentType })
+        val supportedIndices = input.indices.filter { input[it].contentType in ALLOWED_UPLOAD_CONTENT_TYPES }
+        val supportedContentTypes = supportedIndices.map { input[it].contentType }
 
-        val uploadUrls = uploadPolicies.zip(validatedNames) { uploadPolicy, name ->
-            //The document row is created up front so the client only ever deals with one id. It starts out
-            //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
-            val dokument = RegistreringDokument(
-                mellomlagerId = uploadPolicy.id,
-                name = name,
-                size = 0,
-                contentType = uploadPolicy.contentType,
-                status = DokumentStatus.UPLOADING,
-            )
-            registrering.dokumenter.add(dokument)
+        val uploadPoliciesByIndex: MutableMap<Int, no.nav.klage.clients.fileapi.UploadPostPolicyResponse> = mutableMapOf()
+        if (supportedContentTypes.isNotEmpty()) {
+            val policies = fileApiClient.createUploadPolicies(contentTypes = supportedContentTypes)
+            supportedIndices.forEachIndexed { policyIndex, inputIndex ->
+                uploadPoliciesByIndex[inputIndex] = policies[policyIndex]
+            }
+        }
 
-            DokumentUploadUrlView(
-                upload = DokumentUploadUrlView.Upload(
-                    uploadUrl = uploadPolicy.url,
-                    fields = uploadPolicy.fields,
-                    contentType = uploadPolicy.contentType,
-                    maxSize = uploadPolicy.maxSize,
-                ),
-                dokument = dokument.toRegistreringDokumentView(),
-            )
+        val uploadUrls = input.indices.map { i ->
+            val name = validatedNames[i]
+            val policy = uploadPoliciesByIndex[i]
+
+            if (policy == null) {
+                //Unsupported type: persist the document so the client can see and delete it, but
+                //there is no upload URL and the document can never be confirmed.
+                val dokument = RegistreringDokument(
+                    mellomlagerId = null,
+                    name = name,
+                    size = 0,
+                    contentType = input[i].contentType,
+                    status = DokumentStatus.UNSUPPORTED_TYPE,
+                )
+                registrering.dokumenter.add(dokument)
+                DokumentUploadUrlView(
+                    upload = null,
+                    dokument = dokument.toRegistreringDokumentView(),
+                )
+            } else {
+                //The document row is created up front so the client only ever deals with one id. It starts out
+                //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
+                val dokument = RegistreringDokument(
+                    mellomlagerId = policy.id,
+                    name = name,
+                    size = 0,
+                    contentType = policy.contentType,
+                    status = DokumentStatus.UPLOADING,
+                )
+                registrering.dokumenter.add(dokument)
+                DokumentUploadUrlView(
+                    upload = DokumentUploadUrlView.Upload(
+                        uploadUrl = policy.url,
+                        fields = policy.fields,
+                        contentType = policy.contentType,
+                        maxSize = policy.maxSize,
+                    ),
+                    dokument = dokument.toRegistreringDokumentView(),
+                )
+            }
         }
 
         //Convenience: the first document becomes hoveddokument. The client can change it later.
@@ -1693,7 +1729,7 @@ class RegistreringService(
         //confirm time), so the stored name (which is whatever the user typed) gets a .pdf extension
         //when it is served.
         return fileApiClient.getDocumentViewUrl(
-            id = dokument.mellomlagerId,
+            id = dokument.mellomlagerId!!,
             headers = mapOf(
                 "content-type" to dokument.contentType,
                 "content-disposition" to "inline; filename=\"${withPdfExtension(name = dokument.name)}\"",
@@ -1706,7 +1742,8 @@ class RegistreringService(
         val dokument = registrering.dokumenter.find { it.id == dokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-        fileApiClient.deleteDocument(dokument.mellomlagerId)
+        //UNSUPPORTED_TYPE documents have no file in the store; skip the file API call.
+        dokument.mellomlagerId?.let { fileApiClient.deleteDocument(it) }
         removeDokument(registrering = registrering, dokument = dokument)
         registrering.modified = LocalDateTime.now()
 
@@ -1725,10 +1762,13 @@ class RegistreringService(
     //Best effort
     private fun deleteAllDokumenter(registrering: Registrering) {
         registrering.dokumenter.forEach { dokument ->
-            try {
-                fileApiClient.deleteDocument(dokument.mellomlagerId)
-            } catch (e: Exception) {
-                logger.error("Failed to delete uploaded document ${dokument.id} from mellomlager", e)
+            //UNSUPPORTED_TYPE documents have no file in the store; skip the file API call.
+            dokument.mellomlagerId?.let { mellomlagerId ->
+                try {
+                    fileApiClient.deleteDocument(mellomlagerId)
+                } catch (e: Exception) {
+                    logger.error("Failed to delete uploaded document ${dokument.id} from mellomlager", e)
+                }
             }
         }
         registrering.dokumenter.clear()

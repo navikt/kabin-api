@@ -10,7 +10,7 @@ class RegistreringDokument(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "mellomlager_id")
-    var mellomlagerId: String,
+    var mellomlagerId: String?,
     @Column(name = "name")
     var name: String,
     @Column(name = "size")
@@ -75,12 +75,15 @@ enum class DokumentStatus {
 
     /** Terminal failure: the uploaded file could not be turned into a PDF. */
     CONVERSION_FAILED,
+
+    /** Terminal failure: the requested content type is not supported for upload. */
+    UNSUPPORTED_TYPE,
     ;
 
     fun isTerminal(): Boolean = this in TERMINAL
 
     companion object {
-        private val TERMINAL = setOf(DONE, VIRUS_FOUND, CONVERSION_FAILED)
+        private val TERMINAL = setOf(DONE, VIRUS_FOUND, CONVERSION_FAILED, UNSUPPORTED_TYPE)
     }
 }
 

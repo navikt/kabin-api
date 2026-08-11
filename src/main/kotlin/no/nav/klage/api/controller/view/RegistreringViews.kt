@@ -131,7 +131,7 @@ data class DokumentStatusEventView(
 )
 
 data class DokumentUploadUrlView(
-    val upload: Upload,
+    val upload: Upload?,
     val dokument: RegistreringDokumentView,
 ) {
     data class Upload(

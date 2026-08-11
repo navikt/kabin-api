@@ -77,6 +77,10 @@ class DokumentConfirmService(
         while (System.currentTimeMillis() < deadline) {
             val state = dokumentStateService.getState(registreringId = registreringId, dokumentId = dokumentId)
 
+            if (state.status == DokumentStatus.UNSUPPORTED_TYPE) {
+                throw IllegalInputException("Dokumentet har en filtype som ikke støttes og kan ikke bekreftes.")
+            }
+
             if (state.status.isTerminal()) {
                 emitOnChange(state)
                 return
@@ -133,9 +137,12 @@ class DokumentConfirmService(
     private fun drive(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
         var state = dokumentStateService.getState(registreringId = registreringId, dokumentId = dokumentId)
 
+        val mellomlagerId = state.mellomlagerId
+            ?: error("drive() called for document $dokumentId without a mellomlagerId")
+
         //Nothing has been emitted yet, so a missing upload can still be reported as a normal error.
         if (state.status == DokumentStatus.UPLOADING) {
-            val metadata = fileApiClient.getDocumentMetadata(state.mellomlagerId)
+            val metadata = fileApiClient.getDocumentMetadata(mellomlagerId)
             if (!metadata.exists) {
                 throw IllegalInputException("Fant ikke opplastet dokument. Ble opplastingen fullført?")
             }
@@ -166,7 +173,7 @@ class DokumentConfirmService(
             emit(state)
 
             val scanResult = try {
-                fileApiClient.scanDocument(state.mellomlagerId)
+                fileApiClient.scanDocument(mellomlagerId)
             } catch (e: AttachmentCouldNotBeConvertedException) {
                 emit(fail(registreringId, dokumentId, DokumentStatus.CONVERSION_FAILED))
                 return
@@ -174,7 +181,7 @@ class DokumentConfirmService(
 
             if (scanResult.hasVirus) {
                 logger.warn("Virus found in uploaded document {}, deleting it.", dokumentId)
-                fileApiClient.deleteDocument(state.mellomlagerId)
+                fileApiClient.deleteDocument(mellomlagerId)
                 emit(fail(registreringId, dokumentId, DokumentStatus.VIRUS_FOUND))
                 return
             }
@@ -189,7 +196,7 @@ class DokumentConfirmService(
                 )
             } else {
                 val size = scanResult.size ?: 0L
-                if (isTooLarge(size = size, dokumentId = dokumentId, mellomlagerId = state.mellomlagerId)) {
+                if (isTooLarge(size = size, dokumentId = dokumentId, mellomlagerId = mellomlagerId)) {
                     emit(fail(registreringId, dokumentId, DokumentStatus.CONVERSION_FAILED))
                     return
                 }
@@ -206,7 +213,7 @@ class DokumentConfirmService(
         if (state.status == DokumentStatus.CONVERTING) {
             val convertResult = try {
                 fileApiClient.convertDocument(
-                    id = state.mellomlagerId,
+                    id = mellomlagerId,
                     scannedGeneration = state.scannedGeneration!!,
                 )
             } catch (e: AttachmentCouldNotBeConvertedException) {
@@ -215,7 +222,7 @@ class DokumentConfirmService(
             }
 
             val size = convertResult.size ?: 0L
-            if (isTooLarge(size = size, dokumentId = dokumentId, mellomlagerId = state.mellomlagerId)) {
+            if (isTooLarge(size = size, dokumentId = dokumentId, mellomlagerId = mellomlagerId)) {
                 emit(fail(registreringId, dokumentId, DokumentStatus.CONVERSION_FAILED))
                 return
             }
@@ -284,7 +291,7 @@ data class DokumentState(
     val status: DokumentStatus,
     val size: Long,
     val contentType: String,
-    val mellomlagerId: String,
+    val mellomlagerId: String?,
     val scannedGeneration: Long?,
 )
 

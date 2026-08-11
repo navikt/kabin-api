@@ -136,6 +136,13 @@ class ValidationUtil(
 
             //Only documents that reached DONE can be journalført, and we do not silently drop the rest,
             //so the user has to delete them manually before finishing.
+            if (registrering.hasUnsupportedTypeDokumenter()) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::dokumenter.name,
+                    reason = "Fjern dokumenter med filtype som ikke støttes."
+                )
+            }
+
             if (registrering.hasUnfinishedDokumenter()) {
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::dokumenter.name,
