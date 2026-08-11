@@ -1572,11 +1572,15 @@ class RegistreringService(
     ): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        if (input.source == RegistreringSource.UPLOADED_DOCUMENTS && registrering.type == Type.KLAGE) {
-            throw IllegalInputException("Klage kan ikke registreres med opplastede dokumenter.")
-        }
-
         if (registrering.source != input.source) {
+            if (registrering.mulighetIsBasedOnJournalpost && registrering.mulighetId != null) {
+                registrering.muligheter.removeIf { it.id == registrering.mulighetId }
+            }
+            registrering.mulighetId = null
+            registrering.additionalKabalMulighetId = null
+            registrering.reinitializeAdditionalKabalMuligheter()
+            registrering.type = null
+
             registrering.apply {
                 source = input.source
 
