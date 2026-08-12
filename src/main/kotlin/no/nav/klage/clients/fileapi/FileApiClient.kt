@@ -1,10 +1,12 @@
 package no.nav.klage.clients.fileapi
 
 import no.nav.klage.exceptions.AttachmentCouldNotBeConvertedException
+import no.nav.klage.exceptions.AttachmentCouldNotBeScannedException
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
+import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -19,6 +21,11 @@ class FileApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    @Retryable(
+        maxRetries = 3,
+        delay = 1000,
+        multiplier = 2.0,
+    )
     fun createUploadPolicies(contentTypes: List<String>): List<UploadPostPolicyResponse> {
         logger.debug("Requesting {} signed upload policies from kabal-file-api", contentTypes.size)
 
@@ -31,7 +38,7 @@ class FileApiClient(
             .bodyValue(UploadUrlsRequest(contentTypes = contentTypes))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).map { body ->
+                clientResponse.bodyToMono<String>().map { body ->
                     logger.error("Error requesting signed upload policies from kabal-file-api: $body")
                     RuntimeException("Error requesting signed upload policies from kabal-file-api")
                 }
@@ -40,6 +47,11 @@ class FileApiClient(
             .block() ?: throw RuntimeException("No response from kabal-file-api on upload policy request")
     }
 
+    @Retryable(
+        maxRetries = 3,
+        delay = 1000,
+        multiplier = 2.0,
+    )
     fun getDocumentMetadata(id: String): DocumentMetadataResponse {
         logger.debug("Fetching document metadata for id {} from kabal-file-api", id)
 
@@ -51,7 +63,7 @@ class FileApiClient(
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
             .onStatus(HttpStatusCode::isError) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).map { body ->
+                clientResponse.bodyToMono<String>().map { body ->
                     logger.error("Error fetching document metadata from kabal-file-api: $body")
                     RuntimeException("Error fetching document metadata from kabal-file-api")
                 }
@@ -60,6 +72,12 @@ class FileApiClient(
             .block() ?: throw RuntimeException("No response from kabal-file-api on metadata request")
     }
 
+    @Retryable(
+        excludes = [AttachmentCouldNotBeScannedException::class],
+        maxRetries = 3,
+        delay = 1000,
+        multiplier = 2.0,
+    )
     fun scanDocument(id: String): ScanResultResponse {
         logger.debug("Requesting virus scan for document with id {} from kabal-file-api", id)
 
@@ -71,13 +89,13 @@ class FileApiClient(
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
             .onStatus({ it.value() == 422 }) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).map { body ->
-                    logger.warn("kabal-file-api rejected the document as unconvertible: $body")
-                    AttachmentCouldNotBeConvertedException()
+                clientResponse.bodyToMono<String>().map { body ->
+                    logger.warn("kabal-file-api rejected the document as unscannable: $body")
+                    AttachmentCouldNotBeScannedException()
                 }
             }
             .onStatus(HttpStatusCode::isError) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).map { body ->
+                clientResponse.bodyToMono<String>().map { body ->
                     logger.error("Error scanning document in kabal-file-api: $body")
                     RuntimeException("Error scanning document in kabal-file-api")
                 }
@@ -86,6 +104,12 @@ class FileApiClient(
             .block() ?: throw RuntimeException("No response from kabal-file-api on scan request")
     }
 
+    @Retryable(
+        excludes = [AttachmentCouldNotBeConvertedException::class],
+        maxRetries = 3,
+        delay = 1000,
+        multiplier = 2.0,
+    )
     fun convertDocument(id: String, scannedGeneration: Long): ConvertResultResponse {
         logger.debug("Requesting conversion to PDF for document with id {} from kabal-file-api", id)
 
@@ -98,13 +122,13 @@ class FileApiClient(
             .bodyValue(ConvertRequest(scannedGeneration = scannedGeneration))
             .retrieve()
             .onStatus({ it.value() == 422 || it.value() == 409 }) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).map { body ->
+                clientResponse.bodyToMono<String>().map { body ->
                     logger.warn("kabal-file-api could not convert document to PDF: $body")
                     AttachmentCouldNotBeConvertedException()
                 }
             }
             .onStatus(HttpStatusCode::isError) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).map { body ->
+                clientResponse.bodyToMono<String>().map { body ->
                     logger.error("Error converting document in kabal-file-api: $body")
                     RuntimeException("Error converting document in kabal-file-api")
                 }
@@ -113,6 +137,11 @@ class FileApiClient(
             .block() ?: throw RuntimeException("No response from kabal-file-api on convert request")
     }
 
+    @Retryable(
+        maxRetries = 3,
+        delay = 1000,
+        multiplier = 2.0,
+    )
     fun getDocumentViewUrl(id: String, headers: Map<String, String>): String {
         logger.debug("Requesting view (signed GET) URL for document with id {} from kabal-file-api", id)
 
@@ -125,7 +154,7 @@ class FileApiClient(
             .bodyValue(SignedUrlRequest(headers = headers))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { clientResponse ->
-                clientResponse.bodyToMono(String::class.java).map { body ->
+                clientResponse.bodyToMono<String>().map { body ->
                     logger.error("Error requesting view URL from kabal-file-api: $body")
                     RuntimeException("Error requesting view URL from kabal-file-api")
                 }
@@ -134,6 +163,11 @@ class FileApiClient(
             .block() ?: throw RuntimeException("No response from kabal-file-api on view URL request")
     }
 
+    @Retryable(
+        maxRetries = 3,
+        delay = 1000,
+        multiplier = 2.0,
+    )
     fun deleteDocument(id: String) {
         logger.debug("Deleting document with id {} from kabal-file-api", id)
 
@@ -146,7 +180,7 @@ class FileApiClient(
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { clientResponse ->
-                    clientResponse.bodyToMono(String::class.java).map { body ->
+                    clientResponse.bodyToMono<String>().map { body ->
                         logger.error("Error deleting document from kabal-file-api: $body")
                         RuntimeException("Error deleting document from kabal-file-api")
                     }

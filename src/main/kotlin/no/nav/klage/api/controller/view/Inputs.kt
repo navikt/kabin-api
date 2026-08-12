@@ -143,3 +143,7 @@ data class AvsenderInput(
 data class KlagerInput(
     val klager: PartIdInput?,
 )
+
+data class ResetDokumentStatusInput(
+    val dokumentIds: List<UUID>,
+)

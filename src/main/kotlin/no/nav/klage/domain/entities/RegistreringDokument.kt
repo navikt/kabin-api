@@ -53,19 +53,31 @@ class RegistreringDokument(
 /**
  * Lifecycle of an uploaded document. Stored and exposed to clients as the enum name, both in JSON and
  * in the data of the `status` events in the confirm stream.
+ *
+ * The processing statuses come in pairs: a `X` status while a step is running, and an `X_DONE` status
+ * once it has finished. The `X_DONE` statuses are the points processing can be picked up from, both
+ * when a confirm request is resumed and when a failed document is reset, so that a step that has
+ * already succeeded is never redone.
  */
 enum class DokumentStatus {
     /** Initial status. The row exists, but the client has not (successfully) uploaded anything yet. */
     UPLOADING,
 
-    /** The upload has been verified to exist in the bucket. */
-    UPLOADED,
+    /** The upload has been verified to exist in the bucket. Nothing has been done with it yet. */
+    UPLOADING_DONE,
 
     /** The file is being scanned for viruses. */
     VIRUS_SCANNING,
 
+    /** The file has been scanned and is clean. [RegistreringDokument.scannedGeneration] holds the
+     * generation that was scanned, so a later conversion can verify it converts those exact bytes. */
+    VIRUS_SCANNING_DONE,
+
     /** The file is being converted to PDF. Only relevant for files that are not already PDF. */
     CONVERTING,
+
+    /** The file has been converted to PDF, and the size and content type of the PDF are recorded. */
+    CONVERTING_DONE,
 
     /** The file is scanned, converted if necessary, and ready for use. */
     DONE,
@@ -73,17 +85,41 @@ enum class DokumentStatus {
     /** Terminal failure: the uploaded file contained a virus and has been deleted from the bucket. */
     VIRUS_FOUND,
 
-    /** Terminal failure: the uploaded file could not be turned into a PDF. */
+    /** Terminal failure: the uploaded file could not be turned into a PDF, including when the
+     * conversion itself failed unexpectedly. Resettable, since the failure may be transient. */
     CONVERSION_FAILED,
+
+    /** Terminal failure: the virus scanning service failed unexpectedly. */
+    VIRUS_SCAN_FAILED,
 
     /** Terminal failure: the requested content type is not supported for upload. */
     UNSUPPORTED_TYPE,
+
+    /**
+     * Terminal failure: an unexpected error occurred during processing. No longer set; conversion
+     * failures are reported as [CONVERSION_FAILED] and scan failures as [VIRUS_SCAN_FAILED]. Kept
+     * because documents stored before that change can still have this status.
+     */
+    UNEXPECTED_ERROR,
     ;
 
     fun isTerminal(): Boolean = this in TERMINAL
 
+    /**
+     * Whether the reset-status endpoint may put this document back into processing, and the status
+     * it should be put back to. Only failures that can plausibly be transient are resettable; a virus
+     * and an unsupported file type stay failed no matter how many times they are tried.
+     */
+    fun resetStatus(): DokumentStatus? = RESET_MAP[this]
+
     companion object {
-        private val TERMINAL = setOf(DONE, VIRUS_FOUND, CONVERSION_FAILED, UNSUPPORTED_TYPE)
+        private val TERMINAL = setOf(DONE, VIRUS_FOUND, CONVERSION_FAILED, UNSUPPORTED_TYPE, VIRUS_SCAN_FAILED, UNEXPECTED_ERROR)
+
+        private val RESET_MAP = mapOf(
+            VIRUS_SCAN_FAILED to UPLOADING_DONE,
+            UNEXPECTED_ERROR to UPLOADING_DONE,
+            CONVERSION_FAILED to VIRUS_SCANNING_DONE,
+        )
     }
 }
 

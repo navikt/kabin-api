@@ -136,7 +136,7 @@ class RegistreringController(
         return registreringService.setJournalpostId(registreringId = id, input = input)
     }
 
-    @PostMapping("/{id}/uploaded-documents/dokumenter/upload-url")
+    @PostMapping("/{id}/uploaded-documents/dokumenter")
     fun createDokumentUploadUrl(
         @PathVariable id: UUID,
         @RequestBody input: List<DokumentUploadUrlInput>,
@@ -160,9 +160,11 @@ class RegistreringController(
      * data: {"status":"VIRUS_SCANNING","size":123456,"contentType":"image/jpeg"}
      * ```
      *
-     * The stream ends when the document reaches a terminal status (`DONE`, `VIRUS_FOUND` or
-     * `CONVERSION_FAILED`). It is idempotent and resumable: reconnecting sends the current status
-     * right away and then continues from there, without redoing work that is already done.
+     * The stream ends when the document reaches a terminal status: `DONE`, or one of the failures
+     * `VIRUS_FOUND`, `VIRUS_SCAN_FAILED`, `CONVERSION_FAILED` and `UNSUPPORTED_TYPE`. It is idempotent
+     * and resumable: reconnecting sends the current status right away and then continues from there,
+     * without redoing work that is already done. `VIRUS_SCAN_FAILED` and `CONVERSION_FAILED` may be
+     * transient, and can be put back into processing with the reset-status endpoint.
      *
      * Unexpected failures after the stream has started are reported as an `error` event, since the
      * HTTP status has already been sent by then.
@@ -268,7 +270,20 @@ class RegistreringController(
         return registreringService.deleteDokument(registreringId = id, dokumentId = dokumentId)
     }
 
-    @PutMapping("/{id}/uploaded-documents/dokumenter/inngaaende-kanal")
+    @PostMapping("/{id}/uploaded-documents/reset-status")
+    fun resetDokumentStatus(
+        @PathVariable id: UUID,
+        @RequestBody input: ResetDokumentStatusInput,
+    ): ResetDokumentStatusRegistreringView {
+        logMethodDetails(
+            methodName = ::resetDokumentStatus.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.resetDokumentStatus(registreringId = id, dokumentIds = input.dokumentIds)
+    }
+
+    @PutMapping("/{id}/uploaded-documents/inngaaende-kanal")
     fun updateInngaaendeKanal(
         @PathVariable id: UUID,
         @RequestBody input: InngaaendeKanalInput

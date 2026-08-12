@@ -164,6 +164,16 @@ data class DokumenterChangeRegistreringView(
     )
 }
 
+data class ResetDokumentStatusRegistreringView(
+    val id: UUID,
+    val uploadedDocuments: ResetDokumentStatusUploadedDocumentsView,
+    val modified: LocalDateTime,
+) {
+    data class ResetDokumentStatusUploadedDocumentsView(
+        val dokumenter: List<RegistreringDokumentView>,
+    )
+}
+
 data class HoveddokumentChangeRegistreringView(
     val id: UUID,
     val uploadedDocuments: HoveddokumentChangeUploadedDocumentsView,

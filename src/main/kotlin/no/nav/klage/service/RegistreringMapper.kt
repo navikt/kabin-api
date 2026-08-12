@@ -318,6 +318,14 @@ fun Registrering.toDokumenterChangeRegistreringView() = DokumenterChangeRegistre
     modified = modified,
 )
 
+fun Registrering.toResetDokumentStatusRegistreringView() = ResetDokumentStatusRegistreringView(
+    id = id,
+    uploadedDocuments = ResetDokumentStatusRegistreringView.ResetDokumentStatusUploadedDocumentsView(
+        dokumenter = toRegistreringDokumentViews(),
+    ),
+    modified = modified,
+)
+
 fun Registrering.toHoveddokumentChangeRegistreringView() = HoveddokumentChangeRegistreringView(
     id = id,
     uploadedDocuments = HoveddokumentChangeRegistreringView.HoveddokumentChangeUploadedDocumentsView(

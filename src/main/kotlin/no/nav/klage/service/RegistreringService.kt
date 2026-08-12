@@ -1754,7 +1754,30 @@ class RegistreringService(
         return registrering.toDokumenterChangeRegistreringView()
     }
 
-    //Keeps a hoveddokument: if the removed document was hoveddokument, the oldest remaining
+    /**
+     * Puts failed documents back into processing so the client can try again. Nothing is scanned or
+     * converted here; that happens when the client calls confirm.
+     */
+    fun resetDokumentStatus(registreringId: UUID, dokumentIds: List<UUID>): ResetDokumentStatusRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
+
+        dokumentIds.forEach { dokumentId ->
+            val dokument = registrering.dokumenter.find { it.id == dokumentId } ?: return@forEach
+            val resetTo = dokument.status.resetStatus() ?: return@forEach
+            dokument.status = resetTo
+            //A document going back to UPLOADING_DONE is scanned again from scratch, so the generation
+            //it was scanned as no longer means anything. A document going back to VIRUS_SCANNING_DONE
+            //keeps it, since that is the clean scan the conversion is allowed to build on.
+            if (resetTo == DokumentStatus.UPLOADING_DONE) {
+                dokument.scannedGeneration = null
+            }
+        }
+        registrering.modified = LocalDateTime.now()
+
+        return registrering.toResetDokumentStatusRegistreringView()
+    }
+
     //document is promoted.
     private fun removeDokument(registrering: Registrering, dokument: RegistreringDokument) {
         registrering.dokumenter.remove(dokument)
