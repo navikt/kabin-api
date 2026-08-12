@@ -60,8 +60,8 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
-    fun handleAttachmentCouldNotBeConvertedException(
-        ex: AttachmentCouldNotBeConvertedException,
+    fun handleAttachmentUnsupportedTypeException(
+        ex: AttachmentUnsupportedTypeException,
     ): ProblemDetail =
         create(HttpStatus.UNPROCESSABLE_CONTENT, ex)
 

@@ -1,7 +1,7 @@
 package no.nav.klage.clients.fileapi
 
-import no.nav.klage.exceptions.AttachmentCouldNotBeConvertedException
-import no.nav.klage.exceptions.AttachmentCouldNotBeScannedException
+import no.nav.klage.exceptions.AttachmentConversionFailedException
+import no.nav.klage.exceptions.AttachmentUnsupportedTypeException
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.http.HttpHeaders
@@ -73,7 +73,7 @@ class FileApiClient(
     }
 
     @Retryable(
-        excludes = [AttachmentCouldNotBeScannedException::class],
+        excludes = [AttachmentUnsupportedTypeException::class],
         maxRetries = 3,
         delay = 1000,
         multiplier = 2.0,
@@ -90,8 +90,8 @@ class FileApiClient(
             .retrieve()
             .onStatus({ it.value() == 422 }) { clientResponse ->
                 clientResponse.bodyToMono<String>().map { body ->
-                    logger.warn("kabal-file-api rejected the document as unscannable: $body")
-                    AttachmentCouldNotBeScannedException()
+                    logger.warn("kabal-file-api rejected the document as an unsupported file type: $body")
+                    AttachmentUnsupportedTypeException()
                 }
             }
             .onStatus(HttpStatusCode::isError) { clientResponse ->
@@ -105,7 +105,7 @@ class FileApiClient(
     }
 
     @Retryable(
-        excludes = [AttachmentCouldNotBeConvertedException::class],
+        excludes = [AttachmentUnsupportedTypeException::class, AttachmentConversionFailedException::class],
         maxRetries = 3,
         delay = 1000,
         multiplier = 2.0,
@@ -121,10 +121,25 @@ class FileApiClient(
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .bodyValue(ConvertRequest(scannedGeneration = scannedGeneration))
             .retrieve()
-            .onStatus({ it.value() == 422 || it.value() == 409 }) { clientResponse ->
+            .onStatus({ it.value() == 422 }) { clientResponse ->
                 clientResponse.bodyToMono<String>().map { body ->
-                    logger.warn("kabal-file-api could not convert document to PDF: $body")
-                    AttachmentCouldNotBeConvertedException()
+                    logger.warn("kabal-file-api could not convert document to PDF (unsupported type): $body")
+                    AttachmentUnsupportedTypeException()
+                }
+            }
+            //The object was replaced in the bucket after we scanned it, so the generation we asked to
+            //convert no longer exists. Not a problem with the file type: the document has to go
+            //through a fresh scan to get a new generation, which is what UNEXPECTED_ERROR resets to.
+            .onStatus({ it.value() == 409 }) { clientResponse ->
+                clientResponse.bodyToMono<String>().map { body ->
+                    logger.warn("Document was replaced after it was scanned, cannot convert it: $body")
+                    AttachmentConversionFailedException()
+                }
+            }
+            .onStatus({ it.value() == 500 }) { clientResponse ->
+                clientResponse.bodyToMono<String>().map { body ->
+                    logger.error("kabal-file-api reported an unexpected conversion failure: $body")
+                    AttachmentConversionFailedException()
                 }
             }
             .onStatus(HttpStatusCode::isError) { clientResponse ->

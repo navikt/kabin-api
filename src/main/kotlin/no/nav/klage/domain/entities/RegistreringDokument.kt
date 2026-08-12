@@ -96,14 +96,22 @@ enum class DokumentStatus {
     UNSUPPORTED_TYPE,
 
     /**
-     * Terminal failure: an unexpected error occurred during processing. No longer set; conversion
-     * failures are reported as [CONVERSION_FAILED] and scan failures as [VIRUS_SCAN_FAILED]. Kept
-     * because documents stored before that change can still have this status.
+     * Terminal failure: something went wrong that is not the fault of the file itself, such as
+     * kabal-file-api failing to convert a file whose type it does support, or the object being
+     * replaced in the bucket after it was scanned. Resettable to [UPLOADING_DONE], which re-runs the
+     * scan and therefore picks up a fresh generation to convert.
      */
     UNEXPECTED_ERROR,
     ;
 
     fun isTerminal(): Boolean = this in TERMINAL
+
+    /**
+     * Whether a step is currently being carried out on the document, meaning some request has
+     * committed this status and is now waiting for kabal-file-api. Used to let a second confirm
+     * request tag along instead of doing the same work over again.
+     */
+    fun isInProgress(): Boolean = this in IN_PROGRESS
 
     /**
      * Whether the reset-status endpoint may put this document back into processing, and the status
@@ -114,6 +122,8 @@ enum class DokumentStatus {
 
     companion object {
         private val TERMINAL = setOf(DONE, VIRUS_FOUND, CONVERSION_FAILED, UNSUPPORTED_TYPE, VIRUS_SCAN_FAILED, UNEXPECTED_ERROR)
+
+        private val IN_PROGRESS = setOf(VIRUS_SCANNING, CONVERTING)
 
         private val RESET_MAP = mapOf(
             VIRUS_SCAN_FAILED to UPLOADING_DONE,

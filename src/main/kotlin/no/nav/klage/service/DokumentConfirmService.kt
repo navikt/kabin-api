@@ -15,8 +15,6 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReentrantLock
 
 /**
  * Drives an uploaded document from [DokumentStatus.UPLOADING] to a terminal status, reporting every
@@ -30,6 +28,11 @@ import java.util.concurrent.locks.ReentrantLock
  * client that loses the connection (or a request that dies) can simply call confirm again and the
  * machine picks up from the last committed `X_DONE` status without redoing the steps before it.
  * Every individual step is safe to repeat.
+ *
+ * Concurrent confirm requests for the same document are coordinated through the persisted status
+ * alone, which works across pods: a request that finds the document in an in-progress status follows
+ * the request that is already doing that step instead of repeating it, and takes over if that
+ * request stops making progress.
  */
 @Service
 class DokumentConfirmService(
@@ -50,13 +53,6 @@ class DokumentConfirmService(
         //How long we follow another request without seeing any progress before taking over the work
         //ourselves. Covers the case where the request that was driving the document died.
         private const val FOLLOW_STALL_TIMEOUT_MILLIS = 60 * 1000L
-
-        //Total time a single confirm request is willing to spend before giving up.
-        private const val TOTAL_TIMEOUT_MILLIS = 10 * 60 * 1000L
-
-        //Only coordinates requests within one pod. Across pods the persisted status plus the fact
-        //that every step is repeatable is what keeps things correct.
-        private val locks = ConcurrentHashMap<UUID, ReentrantLock>()
     }
 
     /**
@@ -68,7 +64,6 @@ class DokumentConfirmService(
      * terminal statuses instead.
      */
     fun confirmDokument(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
-        val deadline = System.currentTimeMillis() + TOTAL_TIMEOUT_MILLIS
         var lastEmitted: EmitKey? = null
 
         val emitOnChange: (DokumentState) -> Unit = { state ->
@@ -79,64 +74,28 @@ class DokumentConfirmService(
             }
         }
 
-        while (System.currentTimeMillis() < deadline) {
-            val state = dokumentStateService.getState(registreringId = registreringId, dokumentId = dokumentId)
+        val state = dokumentStateService.getState(registreringId = registreringId, dokumentId = dokumentId)
 
-            if (state.status == DokumentStatus.UNSUPPORTED_TYPE) {
-                throw IllegalInputException("Dokumentet har en filtype som ikke støttes og kan ikke bekreftes.")
-            }
+        if (state.status == DokumentStatus.UNSUPPORTED_TYPE) {
+            throw IllegalInputException("Dokumentet har en filtype som ikke støttes og kan ikke bekreftes.")
+        }
 
-            if (state.status.isTerminal()) {
-                emitOnChange(state)
-                return
-            }
+        if (state.status.isTerminal()) {
+            emitOnChange(state)
+            return
+        }
 
-            val lock = acquireLock(dokumentId)
-
-            if (lock != null) {
-                try {
-                    drive(registreringId = registreringId, dokumentId = dokumentId, emit = emitOnChange)
-                    return
-                } finally {
-                    //Removed while still holding it, so a request that captured this lock cannot end
-                    //up driving the same document as a request that creates the replacement.
-                    locks.remove(dokumentId, lock)
-                    lock.unlock()
-                }
-            }
-
-            //Someone else is already driving this document forward. Tag along instead of doing the
-            //work twice, but take over if they stop making progress.
+        //Someone else is in the middle of a step. Tag along instead of doing the work twice, but fall
+        //through and take over if they stop making progress, which is what happens when the request
+        //that was driving the document died.
+        if (state.status.isInProgress()) {
             if (followProgress(registreringId = registreringId, dokumentId = dokumentId, emit = emitOnChange)) {
                 return
             }
-
             logger.warn("No progress on document {} while following, taking over.", dokumentId)
         }
 
-        logger.warn("Gave up confirming document {} after {} ms.", dokumentId, TOTAL_TIMEOUT_MILLIS)
-        throw IllegalInputException("Dokumentet ble ikke ferdig behandlet. Prøv igjen.")
-    }
-
-    /**
-     * Returns the lock if it was acquired, or null if another request in this pod holds it. Retries
-     * on the race where the lock we found in the map was removed just before we got it.
-     */
-    private fun acquireLock(dokumentId: UUID): ReentrantLock? {
-        while (true) {
-            val lock = locks.computeIfAbsent(dokumentId) { ReentrantLock() }
-
-            if (!lock.tryLock()) {
-                return null
-            }
-
-            if (locks[dokumentId] === lock) {
-                return lock
-            }
-
-            //The owner removed this lock from the map on its way out, so it no longer guards anything.
-            lock.unlock()
-        }
+        drive(registreringId = registreringId, dokumentId = dokumentId, emit = emitOnChange)
     }
 
     private fun drive(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
@@ -183,7 +142,7 @@ class DokumentConfirmService(
 
             val scanResult = try {
                 fileApiClient.scanDocument(mellomlagerId)
-            } catch (e: AttachmentCouldNotBeScannedException) {
+            } catch (e: AttachmentUnsupportedTypeException) {
                 emit(fail(registreringId, dokumentId, DokumentStatus.UNSUPPORTED_TYPE))
                 return
             } catch (e: Exception) {
@@ -240,12 +199,16 @@ class DokumentConfirmService(
                     id = mellomlagerId,
                     scannedGeneration = state.scannedGeneration!!,
                 )
-            } catch (e: AttachmentCouldNotBeConvertedException) {
-                emit(fail(registreringId, dokumentId, DokumentStatus.CONVERSION_FAILED))
+            } catch (e: AttachmentUnsupportedTypeException) {
+                emit(fail(registreringId, dokumentId, DokumentStatus.UNSUPPORTED_TYPE))
+                return
+            } catch (e: AttachmentConversionFailedException) {
+                logger.error("Unexpected conversion failure for document {}", dokumentId, e)
+                emit(fail(registreringId, dokumentId, DokumentStatus.UNEXPECTED_ERROR))
                 return
             } catch (e: Exception) {
                 logger.error("Unexpected error while converting document {}", dokumentId, e)
-                emit(fail(registreringId, dokumentId, DokumentStatus.CONVERSION_FAILED))
+                emit(fail(registreringId, dokumentId, DokumentStatus.UNEXPECTED_ERROR))
                 return
             }
 
