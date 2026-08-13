@@ -1,6 +1,7 @@
 package no.nav.klage.service
 
 import no.nav.klage.clients.fileapi.FileApiClient
+import no.nav.klage.config.FileApiClientConfiguration
 import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.RegistreringDokument
@@ -48,11 +49,34 @@ class DokumentConfirmService(
         //kabal-document. 512 MB.
         private const val MAX_SIZE = 536870912L
 
-        private const val FOLLOW_POLL_INTERVAL_MILLIS = 500L
+        /**
+         * How often a following request checks whether the request that is driving the document has
+         * made any progress.
+         *
+         * Each check loads the registrering and its documents in its own transaction, and following
+         * can now go on for [FOLLOW_STALL_TIMEOUT_MILLIS], so this is kept at a second rather than
+         * something snappier. Status changes are rare enough that relaying one up to a second late
+         * makes no practical difference to the client.
+         */
+        private const val FOLLOW_POLL_INTERVAL_MILLIS = 1000L
 
-        //How long we follow another request without seeing any progress before taking over the work
-        //ourselves. Covers the case where the request that was driving the document died.
-        private const val FOLLOW_STALL_TIMEOUT_MILLIS = 60 * 1000L
+        /**
+         * How long we follow another request without seeing any progress before taking over the work
+         * ourselves. Covers the case where the request that was driving the document died.
+         *
+         * A request that is driving is usually just waiting for kabal-file-api, and nothing changes
+         * while it does, so this has to outlast a single call there. At 60 seconds a perfectly healthy
+         * conversion of a large file looked like a request that had died, and following requests took
+         * over work that was still being done.
+         *
+         * A takeover that turns out to be premature is safe: once either request finishes the
+         * document, [DokumentStateService] refuses the other one's writes. It only costs a scan or a
+         * conversion that nobody needed, which is why this is not simply set to the worst case of
+         * every retry in [FileApiClient] timing out. That would be around 24 minutes, and a document
+         * whose driver really did die would be stuck for all of it.
+         */
+        private val FOLLOW_STALL_TIMEOUT_MILLIS =
+            FileApiClientConfiguration.RESPONSE_TIMEOUT.plusSeconds(30).toMillis()
     }
 
     /**
@@ -98,6 +122,16 @@ class DokumentConfirmService(
         drive(registreringId = registreringId, dokumentId = dokumentId, emit = emitOnChange)
     }
 
+    /**
+     * Carries out the steps the document still needs, one at a time, committing each result before
+     * starting the next.
+     *
+     * Every write can be refused by [DokumentStateService] if another request finished the document
+     * in the meantime. The state that comes back is then that request's result rather than the one we
+     * asked for, so each write is followed by a check that reports it and stops. The checks sit
+     * before the calls to kabal-file-api on purpose: carrying on would not only waste a scan or a
+     * conversion, it could delete the file belonging to the document the other request just finished.
+     */
     private fun drive(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
         var state = dokumentStateService.getState(registreringId = registreringId, dokumentId = dokumentId)
 
@@ -120,6 +154,10 @@ class DokumentConfirmService(
                 size = metadata.size,
                 contentType = metadata.contentType,
             )
+            if (state.status != DokumentStatus.UPLOADING_DONE) {
+                emit(state)
+                return
+            }
         }
 
         //Always let the client know where we are before doing any more work, so a resumed stream is
@@ -139,6 +177,12 @@ class DokumentConfirmService(
                 status = DokumentStatus.VIRUS_SCANNING,
             )
             emit(state)
+
+            //Another request finished the document first, so there is nothing left to scan. Bailing
+            //out here also keeps us from deleting a file that the finished document is using.
+            if (state.status != DokumentStatus.VIRUS_SCANNING) {
+                return
+            }
 
             val scanResult = try {
                 fileApiClient.scanDocument(mellomlagerId)
@@ -167,6 +211,10 @@ class DokumentConfirmService(
             )
             emit(state)
 
+            if (state.status != DokumentStatus.VIRUS_SCANNING_DONE) {
+                return
+            }
+
             //Already a PDF, so there is nothing to convert and the scanned file is the final one.
             if (!scanResult.requiresConversion) {
                 val size = scanResult.size ?: 0L
@@ -194,6 +242,12 @@ class DokumentConfirmService(
             )
             emit(state)
 
+            //As above: the document is already finished, so converting it again would only risk
+            //deleting the file it ended up with.
+            if (state.status != DokumentStatus.CONVERTING) {
+                return
+            }
+
             val convertResult = try {
                 fileApiClient.convertDocument(
                     id = mellomlagerId,
@@ -219,6 +273,10 @@ class DokumentConfirmService(
                 contentType = convertResult.contentType ?: MediaType.APPLICATION_PDF_VALUE,
             )
             emit(state)
+
+            if (state.status != DokumentStatus.CONVERTING_DONE) {
+                return
+            }
         }
 
         //The size limit is enforced on the converted file, since that is the one that is journalført.
@@ -308,6 +366,20 @@ private fun DokumentState.emitKey() = EmitKey(status = status, size = size, cont
 /**
  * Reads and writes the state of a single [RegistreringDokument] in its own transaction, so that every
  * status change is visible to other requests (and other pods) the moment it happens.
+ *
+ * A document that has reached a terminal status is never written again: two requests can end up
+ * driving the same document, and without this a slow one could overwrite the result of a fast one and
+ * move the document backwards out of its terminal status. Every write therefore checks the status it
+ * is about to replace and returns the current state untouched instead of overwriting a finished
+ * document, which makes the write a compare-and-set rather than a blind write.
+ *
+ * The check has to live here rather than in the caller: [getRegistrering] takes a pessimistic lock on
+ * the registrering row, and since these methods run in their own transaction, the status is read and
+ * written while that lock is held. Doing the same check in the caller would read in one transaction
+ * and write in another, and two requests could both pass it before either of them wrote.
+ *
+ * The reset endpoint deliberately moves a document backwards out of a terminal status, but it writes
+ * the entity directly rather than going through this service, so it is unaffected.
  */
 @Service
 class DokumentStateService(
@@ -329,6 +401,10 @@ class DokumentStateService(
     ): DokumentState {
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
+
+        if (dokument.isFinishedByAnotherRequest()) {
+            return dokument.toState()
+        }
 
         dokument.status = status
         if (size != null) {
@@ -353,6 +429,10 @@ class DokumentStateService(
     ): DokumentState {
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
+
+        if (dokument.isFinishedByAnotherRequest()) {
+            return dokument.toState()
+        }
 
         dokument.scannedGeneration = scannedGeneration
         dokument.status = DokumentStatus.VIRUS_SCANNING_DONE
@@ -385,6 +465,10 @@ class DokumentStateService(
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
+        if (dokument.isFinishedByAnotherRequest()) {
+            return dokument.toState()
+        }
+
         dokument.size = size
         dokument.contentType = contentType
         dokument.status = DokumentStatus.CONVERTING_DONE
@@ -398,6 +482,10 @@ class DokumentStateService(
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
+        if (dokument.isFinishedByAnotherRequest()) {
+            return dokument.toState()
+        }
+
         dokument.size = size
         dokument.contentType = contentType
         dokument.status = DokumentStatus.DONE
@@ -405,6 +493,12 @@ class DokumentStateService(
 
         return dokument.toState()
     }
+
+    /**
+     * Whether another request has already taken this document to a terminal status, meaning the write
+     * we are about to make is stale and the status already stored is the one that counts.
+     */
+    private fun RegistreringDokument.isFinishedByAnotherRequest(): Boolean = status.isTerminal()
 
     private fun getRegistrering(registreringId: UUID, lock: Boolean = true): Registrering {
         val registrering = if (lock) {
