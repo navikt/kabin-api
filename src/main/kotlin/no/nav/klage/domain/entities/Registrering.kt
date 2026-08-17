@@ -125,8 +125,6 @@ class Registrering(
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "registrering_id", referencedColumnName = "id", nullable = false)
     val dokumenter: MutableSet<RegistreringDokument> = mutableSetOf(),
-    @Column(name = "hoveddokument_id")
-    var hoveddokumentId: UUID? = null,
     @Column(name = "inngaaende_kanal")
     @Enumerated(EnumType.STRING)
     var inngaaendeKanal: InngaaendeKanal? = null,
@@ -135,13 +133,14 @@ class Registrering(
     var source: RegistreringSource = RegistreringSource.JOURNALPOST,
 ) {
 
-    fun getHoveddokument(): RegistreringDokument? = dokumenter.find { it.isDone && it.id == hoveddokumentId }
+    fun getSortedDokumenter(): List<RegistreringDokument> =
+        dokumenter.sortedBy { it.sortIndex }
 
-    fun getVedlegg(): List<RegistreringDokument> =
-        dokumenter.filter { it.isDone && it.id != hoveddokumentId }.sortedBy { it.created }
-
-    //Hoveddokument can be chosen before the upload is finished, so any status counts here.
-    fun hasHoveddokument(): Boolean = dokumenter.any { it.id == hoveddokumentId }
+    /**
+     * The documents that can actually be journalført, in order. The first one becomes the hoveddokument
+     * on the journalpost and the rest become vedlegg.
+     */
+    fun getSortedDoneDokumenter(): List<RegistreringDokument> = getSortedDokumenter().filter { it.isDone }
 
     fun hasUnfinishedDokumenter(): Boolean = dokumenter.any { !it.status.isTerminal() }
 

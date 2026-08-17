@@ -283,7 +283,6 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
 fun Registrering.toUploadedDocumentsView(): UploadedDocumentsView = UploadedDocumentsView(
     inngaaendeKanal = inngaaendeKanal?.name,
     dokumenter = toRegistreringDokumentViews(),
-    hoveddokumentId = hoveddokumentId,
 )
 
 fun Registrering.toReceiptUploadedDocumentsView(): ReceiptUploadedDocumentsView = ReceiptUploadedDocumentsView(
@@ -291,14 +290,10 @@ fun Registrering.toReceiptUploadedDocumentsView(): ReceiptUploadedDocumentsView 
         "Registrering $id is based on uploaded documents, but inngaaendeKanal is not set."
     }.name,
     dokumenter = toRegistreringDokumentViews(),
-    hoveddokumentId = requireNotNull(hoveddokumentId) {
-        "Registrering $id is based on uploaded documents, but hoveddokumentId is not set."
-    },
 )
 
-fun Registrering.toRegistreringDokumentViews(): List<RegistreringDokumentView> = dokumenter.sortedWith(
-    compareByDescending<RegistreringDokument> { it.id == hoveddokumentId }.thenBy { it.created }
-).map { it.toRegistreringDokumentView() }
+fun Registrering.toRegistreringDokumentViews(): List<RegistreringDokumentView> =
+    getSortedDokumenter().map { it.toRegistreringDokumentView() }
 
 fun RegistreringDokument.toRegistreringDokumentView(): RegistreringDokumentView = RegistreringDokumentView(
     id = id,
@@ -306,6 +301,7 @@ fun RegistreringDokument.toRegistreringDokumentView(): RegistreringDokumentView 
     size = size,
     contentType = contentType,
     status = status,
+    sortIndex = sortIndex,
     created = created,
 )
 
@@ -313,7 +309,6 @@ fun Registrering.toDokumenterChangeRegistreringView() = DokumenterChangeRegistre
     id = id,
     uploadedDocuments = DokumenterChangeRegistreringView.DokumenterChangeUploadedDocumentsView(
         dokumenter = toRegistreringDokumentViews(),
-        hoveddokumentId = hoveddokumentId,
     ),
     modified = modified,
 )
@@ -322,14 +317,6 @@ fun Registrering.toResetDokumentStatusRegistreringView() = ResetDokumentStatusRe
     id = id,
     uploadedDocuments = ResetDokumentStatusRegistreringView.ResetDokumentStatusUploadedDocumentsView(
         dokumenter = toRegistreringDokumentViews(),
-    ),
-    modified = modified,
-)
-
-fun Registrering.toHoveddokumentChangeRegistreringView() = HoveddokumentChangeRegistreringView(
-    id = id,
-    uploadedDocuments = HoveddokumentChangeRegistreringView.HoveddokumentChangeUploadedDocumentsView(
-        hoveddokumentId = hoveddokumentId,
     ),
     modified = modified,
 )

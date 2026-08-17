@@ -5,6 +5,7 @@ import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
 import no.nav.klage.clients.fileapi.FileApiClient
+import no.nav.klage.clients.fileapi.UploadPostPolicyResponse
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
@@ -1627,7 +1628,7 @@ class RegistreringService(
         val supportedIndices = input.indices.filter { input[it].contentType in ALLOWED_UPLOAD_CONTENT_TYPES }
         val supportedContentTypes = supportedIndices.map { input[it].contentType }
 
-        val uploadPoliciesByIndex: MutableMap<Int, no.nav.klage.clients.fileapi.UploadPostPolicyResponse> = mutableMapOf()
+        val uploadPoliciesByIndex: MutableMap<Int, UploadPostPolicyResponse> = mutableMapOf()
         if (supportedContentTypes.isNotEmpty()) {
             val policies = fileApiClient.createUploadPolicies(contentTypes = supportedContentTypes)
             supportedIndices.forEachIndexed { policyIndex, inputIndex ->
@@ -1635,7 +1636,11 @@ class RegistreringService(
             }
         }
 
-        val uploadUrls = input.indices.map { i ->
+        //New documents are appended a full gap after the last one, so there is room to move things in
+        //between them later without touching anything else.
+        var nextSortIndex = nextSortIndexFor(registrering)
+
+        val createdDokumenter = input.indices.map { i ->
             val name = validatedNames[i]
             val policy = uploadPoliciesByIndex[i]
 
@@ -1648,12 +1653,11 @@ class RegistreringService(
                     size = 0,
                     contentType = input[i].contentType,
                     status = DokumentStatus.UNSUPPORTED_TYPE,
+                    sortIndex = nextSortIndex,
                 )
                 registrering.dokumenter.add(dokument)
-                DokumentUploadUrlView(
-                    upload = null,
-                    dokument = dokument.toRegistreringDokumentView(),
-                )
+                nextSortIndex = sortIndexAfter(nextSortIndex)
+                dokument to null
             } else {
                 //The document row is created up front so the client only ever deals with one id. It starts out
                 //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
@@ -1663,29 +1667,94 @@ class RegistreringService(
                     size = 0,
                     contentType = policy.contentType,
                     status = DokumentStatus.UPLOADING,
+                    sortIndex = nextSortIndex,
                 )
                 registrering.dokumenter.add(dokument)
-                DokumentUploadUrlView(
-                    upload = DokumentUploadUrlView.Upload(
-                        uploadUrl = policy.url,
-                        fields = policy.fields,
-                        contentType = policy.contentType,
-                        maxSize = policy.maxSize,
-                    ),
-                    dokument = dokument.toRegistreringDokumentView(),
+                nextSortIndex = sortIndexAfter(nextSortIndex)
+                dokument to DokumentUploadUrlView.Upload(
+                    uploadUrl = policy.url,
+                    fields = policy.fields,
+                    contentType = policy.contentType,
+                    maxSize = policy.maxSize,
                 )
             }
         }
 
-        //Convenience: the first document becomes hoveddokument. The client can change it later.
-        val hoveddokumentId = registrering.hoveddokumentId ?: uploadUrls.first().dokument.id
-        registrering.hoveddokumentId = hoveddokumentId
-
         registrering.modified = LocalDateTime.now()
 
         return DokumentUploadUrlsView(
-            uploads = uploadUrls,
-            hoveddokumentId = hoveddokumentId,
+            uploads = createdDokumenter.map { (dokument, upload) ->
+                DokumentUploadUrlView(
+                    upload = upload,
+                    dokument = dokument.toRegistreringDokumentView(),
+                )
+            },
+        )
+    }
+
+    /**
+     * Where the next appended document goes: a full gap after the last one, or
+     * [RegistreringDokument.FIRST_SORT_INDEX] if there are no documents yet.
+     */
+    private fun nextSortIndexFor(registrering: Registrering): Double {
+        val last = registrering.dokumenter.maxOfOrNull { it.sortIndex }
+            ?: return RegistreringDokument.FIRST_SORT_INDEX
+        return sortIndexAfter(last)
+    }
+
+    /**
+     * A full gap after [last], or halfway between [last] and [RegistreringDokument.MAX_SORT_INDEX] if a
+     * full gap would go past the end. The documents then keep getting closer to the end without ever
+     * reaching it, which is plenty: it takes thousands of documents to get anywhere near it.
+     */
+    private fun sortIndexAfter(last: Double): Double {
+        val next = last + RegistreringDokument.SORT_INDEX_GAP
+        return if (next <= RegistreringDokument.MAX_SORT_INDEX) {
+            next
+        } else {
+            last + (RegistreringDokument.MAX_SORT_INDEX - last) / 2
+        }
+    }
+
+    /**
+     * Moves a document by giving it a new number, typically one between its new neighbours. Nothing else
+     * is touched, since the numbers are spread far apart. Moving a document ahead of all the others makes
+     * it the hoveddokument on the resulting journalpost. The response is deliberately minimal; the client
+     * already knows the resulting order.
+     */
+    fun setDokumentSortIndex(
+        registreringId: UUID,
+        dokumentId: UUID,
+        input: DokumentSortIndexInput
+    ): DokumentSortIndexChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
+        val dokument = registrering.dokumenter.find { it.id == dokumentId }
+            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+
+        val sortIndex = input.sortIndex
+        if (!sortIndex.isFinite() ||
+            sortIndex < RegistreringDokument.MIN_SORT_INDEX ||
+            sortIndex > RegistreringDokument.MAX_SORT_INDEX
+        ) {
+            throw IllegalInputException(
+                "Rekkefølgen må være et tall mellom ${RegistreringDokument.MIN_SORT_INDEX} og ${RegistreringDokument.MAX_SORT_INDEX}."
+            )
+        }
+
+        //Two documents with the same number would leave the order up to chance, and it also means the
+        //client has run out of room between two documents and has to ask for a different number.
+        if (registrering.dokumenter.any { it.id != dokument.id && it.sortIndex == sortIndex }) {
+            throw IllegalInputException("Et annet dokument har allerede rekkefølgen $sortIndex.")
+        }
+
+        dokument.sortIndex = sortIndex
+
+        registrering.modified = LocalDateTime.now()
+
+        return DokumentSortIndexChangeRegistreringView(
+            id = registrering.id,
+            modified = registrering.modified,
         )
     }
 
@@ -1704,20 +1773,6 @@ class RegistreringService(
         registrering.modified = LocalDateTime.now()
 
         return registrering.toDokumenterChangeRegistreringView()
-    }
-
-    fun setHoveddokument(registreringId: UUID, input: HoveddokumentInput): HoveddokumentChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
-        val dokument = registrering.dokumenter.find { it.id == input.hoveddokumentId }
-            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
-
-        //Exactly one hoveddokument: the previous one is demoted to vedlegg, not deleted. Allowed
-        //regardless of status, so the client does not have to wait for the upload to finish.
-        registrering.hoveddokumentId = dokument.id
-        registrering.modified = LocalDateTime.now()
-
-        return registrering.toHoveddokumentChangeRegistreringView()
     }
 
     fun getDokumentViewUrl(registreringId: UUID, dokumentId: UUID): String {
@@ -1778,12 +1833,11 @@ class RegistreringService(
         return registrering.toResetDokumentStatusRegistreringView()
     }
 
-    //document is promoted.
+    //Removing the first document promotes the next one to hoveddokument, since that is simply the
+    //document with the lowest number. The gap it leaves behind does not matter; only the relative order
+    //of the remaining documents is used.
     private fun removeDokument(registrering: Registrering, dokument: RegistreringDokument) {
         registrering.dokumenter.remove(dokument)
-        if (registrering.hoveddokumentId == dokument.id) {
-            registrering.hoveddokumentId = registrering.dokumenter.minByOrNull { it.created }?.id
-        }
     }
 
     //Best effort
@@ -1799,7 +1853,6 @@ class RegistreringService(
             }
         }
         registrering.dokumenter.clear()
-        registrering.hoveddokumentId = null
         registrering.inngaaendeKanal = null
     }
 

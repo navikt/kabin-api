@@ -15,6 +15,11 @@ data class MellomlagretDocumentInput(
     val mellomlagerId: String,
     val name: String,
     val size: Long,
+    /**
+     * Our own order of the documents, passed on as is. Only the relative order matters. Null for the
+     * hoveddokument, which is always first on the journalpost and is not numbered.
+     */
+    val sortIndex: Double?,
 )
 
 data class CreateBehandlingBasedOnKabalInput(

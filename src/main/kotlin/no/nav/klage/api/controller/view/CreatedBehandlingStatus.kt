@@ -28,7 +28,6 @@ data class CreatedBehandlingStatusView(
 data class ReceiptUploadedDocumentsView(
     val inngaaendeKanal: String,
     val dokumenter: List<RegistreringDokumentView>,
-    val hoveddokumentId: UUID,
 )
 
 data class Svarbrev(

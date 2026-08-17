@@ -121,6 +121,7 @@ data class RegistreringDokumentView(
     val size: Long,
     val contentType: String,
     val status: DokumentStatus,
+    val sortIndex: Double,
     val created: LocalDateTime,
 )
 
@@ -144,13 +145,11 @@ data class DokumentUploadUrlView(
 
 data class DokumentUploadUrlsView(
     val uploads: List<DokumentUploadUrlView>,
-    val hoveddokumentId: UUID,
 )
 
 data class UploadedDocumentsView(
     val inngaaendeKanal: String?,
     val dokumenter: List<RegistreringDokumentView>,
-    val hoveddokumentId: UUID?,
 )
 
 data class DokumenterChangeRegistreringView(
@@ -160,9 +159,13 @@ data class DokumenterChangeRegistreringView(
 ) {
     data class DokumenterChangeUploadedDocumentsView(
         val dokumenter: List<RegistreringDokumentView>,
-        val hoveddokumentId: UUID?,
     )
 }
+
+data class DokumentSortIndexChangeRegistreringView(
+    val id: UUID,
+    val modified: LocalDateTime,
+)
 
 data class ResetDokumentStatusRegistreringView(
     val id: UUID,
@@ -171,16 +174,6 @@ data class ResetDokumentStatusRegistreringView(
 ) {
     data class ResetDokumentStatusUploadedDocumentsView(
         val dokumenter: List<RegistreringDokumentView>,
-    )
-}
-
-data class HoveddokumentChangeRegistreringView(
-    val id: UUID,
-    val uploadedDocuments: HoveddokumentChangeUploadedDocumentsView,
-    val modified: LocalDateTime,
-) {
-    data class HoveddokumentChangeUploadedDocumentsView(
-        val hoveddokumentId: UUID?,
     )
 }
 

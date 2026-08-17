@@ -20,6 +20,14 @@ class RegistreringDokument(
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     var status: DokumentStatus = DokumentStatus.UPLOADING,
+    /**
+     * The numbers are deliberately spread out with [SORT_INDEX_GAP] between them, so that moving a
+     * document only changes the number of that one document: the client picks any number between the new
+     * neighbours, and nothing else has to be touched. Only the relative order matters, and the values
+     * themselves are never sent anywhere outside Kabin.
+     */
+    @Column(name = "sort_index")
+    var sortIndex: Double = FIRST_SORT_INDEX,
     @Column(name = "scanned_generation")
     var scannedGeneration: Long? = null,
     @Column(name = "created")
@@ -40,13 +48,29 @@ class RegistreringDokument(
     }
 
     override fun toString(): String {
-        return "RegistreringDokument(id=$id, mellomlagerId='$mellomlagerId', name='$name', size=$size, contentType='$contentType', status=$status, created=$created)"
+        return "RegistreringDokument(id=$id, mellomlagerId='$mellomlagerId', name='$name', size=$size, contentType='$contentType', status=$status, sortIndex=$sortIndex, created=$created)"
     }
 
     companion object {
         //Must match MAX_NAME_LENGTH in kabal-api, which is where the name ends up as a DokumentUnderArbeid.
         //TODO Dokumentløsninger has a TODO for fixing this. As of now it's actually 200 bytes that's the limit.
         const val MAX_NAME_LENGTH = 196
+
+        /** A fresh set of documents starts here, so there is as much room on either side as possible. */
+        const val FIRST_SORT_INDEX = 0.0
+
+        //The range is the safe integer range of a JavaScript number, since that is what the client works
+        //with. Numbers outside it cannot be represented exactly there, and would not survive a round trip.
+        const val MIN_SORT_INDEX = -9007199254740991.0
+        const val MAX_SORT_INDEX = 9007199254740991.0
+
+        /**
+         * The distance between two documents that are added one after the other. A tenth of a promille of
+         * the range leaves room for ~10000 appended documents before the numbers start closing in on
+         * [MAX_SORT_INDEX], and for a very large number of moves in between two documents before the gap
+         * runs out of precision.
+         */
+        const val SORT_INDEX_GAP = MAX_SORT_INDEX / 10000
     }
 }
 

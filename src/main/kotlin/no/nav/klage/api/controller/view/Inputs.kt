@@ -61,8 +61,8 @@ data class DokumentNameInput(
     val name: String,
 )
 
-data class HoveddokumentInput(
-    val hoveddokumentId: UUID,
+data class DokumentSortIndexInput(
+    val sortIndex: Double,
 )
 
 data class TypeIdInput(val typeId: String?)

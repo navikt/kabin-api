@@ -150,10 +150,10 @@ class ValidationUtil(
                 )
             }
 
-            if (!registrering.hasHoveddokument()) {
+            if (registrering.dokumenter.isEmpty()) {
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::dokumenter.name,
-                    reason = "Last opp minst ett dokument, og velg hvilket som skal være hoveddokument."
+                    reason = "Last opp minst ett dokument."
                 )
             }
             if (registrering.inngaaendeKanal == null) {

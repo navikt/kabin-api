@@ -225,17 +225,22 @@ class RegistreringController(
         return registreringService.setDokumentName(registreringId = id, dokumentId = dokumentId, input = input)
     }
 
-    @PutMapping("/{id}/uploaded-documents/hoveddokument-id")
-    fun setHoveddokument(
+    @PutMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/sort-index")
+    fun setDokumentSortIndex(
         @PathVariable id: UUID,
-        @RequestBody input: HoveddokumentInput,
-    ): HoveddokumentChangeRegistreringView {
+        @PathVariable dokumentId: UUID,
+        @RequestBody input: DokumentSortIndexInput,
+    ): DokumentSortIndexChangeRegistreringView {
         logMethodDetails(
-            methodName = ::setHoveddokument.name,
+            methodName = ::setDokumentSortIndex.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.setHoveddokument(registreringId = id, input = input)
+        return registreringService.setDokumentSortIndex(
+            registreringId = id,
+            dokumentId = dokumentId,
+            input = input,
+        )
     }
 
     @GetMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/view")

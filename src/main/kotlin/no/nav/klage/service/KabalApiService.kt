@@ -233,22 +233,28 @@ class KabalApiService(
 
     private fun Registrering.toUploadedDocumentInput(): UploadedDocumentInput? {
         if (!isBasedOnUploadedDocument()) return null
-        val hoveddokument = getHoveddokument()
-            ?: throw IllegalInputException("Ett av de opplastede dokumentene må være hoveddokument.")
+        //kabal-api still splits the documents into a hoveddokument and its vedlegg. Internally we only
+        //have one ordered list, where the first document is the hoveddokument.
+        val dokumenter = getSortedDoneDokumenter()
+        val hoveddokument = dokumenter.firstOrNull()
+            ?: throw IllegalInputException("Minst ett dokument må være lastet opp.")
         return UploadedDocumentInput(
             avsender = avsender.toOversendtPartId()
                 ?: throw IllegalInputException("Avsender må være satt når dokument lastes opp."),
             inngaaendeKanal = inngaaendeKanal
                 ?: throw IllegalInputException("Inngående kanal må være satt når dokument lastes opp."),
-            hoveddokument = hoveddokument.toMellomlagretDocumentInput(),
-            vedlegg = getVedlegg().map { it.toMellomlagretDocumentInput() },
+            hoveddokument = hoveddokument.toMellomlagretDocumentInput(sortIndex = null),
+            vedlegg = dokumenter.drop(1).map { vedlegg ->
+                vedlegg.toMellomlagretDocumentInput(sortIndex = vedlegg.sortIndex)
+            },
         )
     }
 
-    private fun RegistreringDokument.toMellomlagretDocumentInput() = MellomlagretDocumentInput(
+    private fun RegistreringDokument.toMellomlagretDocumentInput(sortIndex: Double?) = MellomlagretDocumentInput(
         mellomlagerId = mellomlagerId!!,
         name = name,
         size = size,
+        sortIndex = sortIndex,
     )
 
 }
