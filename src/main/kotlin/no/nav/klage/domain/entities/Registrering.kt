@@ -146,7 +146,7 @@ class Registrering(
 
     fun hasUnsupportedTypeDokumenter(): Boolean = dokumenter.any { it.status == DokumentStatus.UNSUPPORTED_TYPE }
 
-    fun isBasedOnUploadedDocument(): Boolean = source == RegistreringSource.UPLOADED_DOCUMENTS
+    fun isBasedOnUploadedDocument(): Boolean = source.isBasedOnUploadedDocuments
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

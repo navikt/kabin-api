@@ -30,7 +30,7 @@ data class CreateBehandlingBasedOnKabalInput(
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,
     val receivedDocumentJournalpostId: String?,
-    val uploadedDocument: UploadedDocumentInput? = null,
+    val uploadedDocument: UploadedDocumentInput?,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput,
     val hjemmelIdList: List<String>,

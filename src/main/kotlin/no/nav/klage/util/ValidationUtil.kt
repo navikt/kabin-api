@@ -4,10 +4,7 @@ import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.kabalapi.GosysOppgaveIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
-import no.nav.klage.domain.entities.HandlingEnum
-import no.nav.klage.domain.entities.Mulighet
-import no.nav.klage.domain.entities.Registrering
-import no.nav.klage.domain.entities.RegistreringSource
+import no.nav.klage.domain.entities.*
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
@@ -126,7 +123,7 @@ class ValidationUtil(
 
         //The source decides what the behandling is based on. Documents that were uploaded before the
         //user switched back to journalpost are simply deleted when the registrering is finished.
-        if (registrering.source == RegistreringSource.UPLOADED_DOCUMENTS) {
+        if (registrering.isBasedOnUploadedDocument()) {
             if (registrering.type == Type.KLAGE) {
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::type.name,
@@ -167,6 +164,31 @@ class ValidationUtil(
                     field = Registrering::avsender.name,
                     reason = "Velg avsender for det opplastede dokumentet."
                 )
+            }
+
+            //Type, avsender and inngående kanal are given by the source itself for an anke from
+            //Trygderetten.
+            if (registrering.source == RegistreringSource.ANKE) {
+                if (registrering.type != Type.ANKE) {
+                    saksdataValidationErrors += InvalidProperty(
+                        field = Registrering::type.name,
+                        reason = "En anke fra Trygderetten må ha type anke."
+                    )
+                }
+
+                if (registrering.avsender != RegistreringSource.TRYGDERETTEN_AVSENDER) {
+                    saksdataValidationErrors += InvalidProperty(
+                        field = Registrering::avsender.name,
+                        reason = "En anke fra Trygderetten må ha Trygderetten som avsender."
+                    )
+                }
+
+                if (registrering.inngaaendeKanal != InngaaendeKanal.ALTINN_INNBOKS) {
+                    saksdataValidationErrors += InvalidProperty(
+                        field = Registrering::inngaaendeKanal.name,
+                        reason = "En anke fra Trygderetten må ha ${InngaaendeKanal.ALTINN_INNBOKS.name} som inngående kanal."
+                    )
+                }
             }
         } else if (registrering.journalpostId == null) {
             saksdataValidationErrors += InvalidProperty(

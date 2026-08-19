@@ -278,6 +278,135 @@ class RegistreringServiceTest {
         }
     }
 
+    // ============ setSource ============
+
+    @Nested
+    inner class SetSourceTest {
+        @BeforeEach
+        fun stubPartSearch() {
+            every { kabalApiService.searchPart(any()) } answers {
+                val identifikator = firstArg<SearchPartInput>().identifikator
+                no.nav.klage.clients.kabalapi.SearchPartView(
+                    identifikator = identifikator,
+                    type = no.nav.klage.clients.kabalapi.PartType.ORGNR,
+                    name = "Trygderetten",
+                    available = true,
+                    statusList = emptyList(),
+                    address = null,
+                    language = null,
+                )
+            }
+        }
+
+        @Test
+        fun `sets type, avsender and inngaaendeKanal when source is ANKE`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            val view = registreringService.setSource(id, SourceInput(source = RegistreringSource.ANKE))
+
+            assertThat(registrering.source).isEqualTo(RegistreringSource.ANKE)
+            assertThat(registrering.type).isEqualTo(Type.ANKE)
+            assertThat(registrering.behandlingstidUnits).isEqualTo(0)
+            assertThat(registrering.avsender).isEqualTo(
+                PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR)
+            )
+            assertThat(registrering.inngaaendeKanal).isEqualTo(InngaaendeKanal.ALTINN_INNBOKS)
+
+            assertThat(view.source).isEqualTo(RegistreringSource.ANKE)
+            assertThat(view.typeId).isEqualTo(Type.ANKE.id)
+            assertThat(view.uploadedDocuments.inngaaendeKanal).isEqualTo(InngaaendeKanal.ALTINN_INNBOKS.name)
+            assertThat(view.overstyringer.avsender).isNotNull()
+        }
+
+        @Test
+        fun `clears ANKE side effects when switching to another source`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.type = Type.ANKE
+            registrering.avsender = PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR)
+            registrering.inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            registreringService.setSource(id, SourceInput(source = RegistreringSource.UPLOADED_DOCUMENTS))
+
+            assertThat(registrering.source).isEqualTo(RegistreringSource.UPLOADED_DOCUMENTS)
+            assertThat(registrering.type).isNull()
+            assertThat(registrering.avsender).isNull()
+            assertThat(registrering.inngaaendeKanal).isNull()
+        }
+
+        @Test
+        fun `keeps uploaded dokumenter when switching between uploaded document sources`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.UPLOADED_DOCUMENTS
+            registrering.dokumenter.add(
+                RegistreringDokument(
+                    name = "dokument.pdf",
+                    size = 1L,
+                    contentType = "application/pdf",
+                    status = DokumentStatus.DONE,
+                    sortIndex = 1.0,
+                    mellomlagerId = "mellomlagerId",
+                )
+            )
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            registreringService.setSource(id, SourceInput(source = RegistreringSource.ANKE))
+
+            assertThat(registrering.dokumenter).hasSize(1)
+        }
+
+        @Test
+        fun `does nothing when source is unchanged`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.type = Type.OMGJOERINGSKRAV
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            registreringService.setSource(id, SourceInput(source = RegistreringSource.ANKE))
+
+            assertThat(registrering.type).isEqualTo(Type.OMGJOERINGSKRAV)
+        }
+
+        @Test
+        fun `type cannot be changed when source is ANKE`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.type = Type.ANKE
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setTypeId(id, TypeIdInput(typeId = Type.OMGJOERINGSKRAV.id))
+            }.isInstanceOf(IllegalInputException::class.java)
+
+            assertThat(registrering.type).isEqualTo(Type.ANKE)
+        }
+
+        @Test
+        fun `avsender cannot be changed when source is ANKE`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setAvsender(
+                    id,
+                    AvsenderInput(avsender = PartIdInput(type = PartType.ORGNR, identifikator = "987654321"))
+                )
+            }.isInstanceOf(IllegalInputException::class.java)
+
+            assertThat(registrering.avsender).isEqualTo(RegistreringSource.TRYGDERETTEN_AVSENDER)
+        }
+    }
+
     // ============ setMottattVedtaksinstans ============
 
     @Nested

@@ -177,7 +177,7 @@ class RegistreringService(
     fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): FullRegistreringView {
 
         val registrering = getRegistreringForUpdate(registreringId)
-        requireSource(registrering = registrering, expected = RegistreringSource.JOURNALPOST)
+        requireJournalpostSource(registrering = registrering)
         registrering.additionalKabalMulighetId = null
         registrering.reinitializeAdditionalKabalMuligheter()
         registrering
@@ -252,8 +252,10 @@ class RegistreringService(
     fun setTypeId(registreringId: UUID, input: TypeIdInput): TypeChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
+        requireTypeAndAvsenderNotLocked(registrering = registrering)
+
         if (input.typeId != null && Type.of(input.typeId) == Type.KLAGE &&
-            registrering.source == RegistreringSource.UPLOADED_DOCUMENTS
+            registrering.isBasedOnUploadedDocument()
         ) {
             throw IllegalInputException("Klage kan ikke registreres med opplastede dokumenter.")
         }
@@ -1080,6 +1082,8 @@ class RegistreringService(
 
     fun setAvsender(registreringId: UUID, input: AvsenderInput): AvsenderChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
+        requireTypeAndAvsenderNotLocked(registrering = registrering)
+        registrering
             .apply {
                 //cases
                 //1. avsender is set to the same value as before
@@ -1524,7 +1528,7 @@ class RegistreringService(
         registrering.modified = now
 
         //The uploaded documents were not used, so there is no reason to keep them around.
-        if (registrering.source == RegistreringSource.JOURNALPOST) {
+        if (!registrering.isBasedOnUploadedDocument()) {
             deleteAllDokumenter(registrering = registrering)
         }
 
@@ -1541,7 +1545,7 @@ class RegistreringService(
         input: InngaaendeKanalInput
     ): InngaaendeKanalChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
+        requireUploadedDocumentsSource(registrering = registrering)
         registrering.inngaaendeKanal = input.inngaaendeKanal
         registrering.modified = LocalDateTime.now()
         return InngaaendeKanalChangeRegistreringView(
@@ -1556,14 +1560,21 @@ class RegistreringService(
     //Endpoints that establish source-specific state must not be used against the other source, or
     //the registrering ends up in a contradictory state. Housekeeping of already uploaded documents
     //(rename, view, delete) is deliberately left open, since those are kept when switching source.
-    private fun requireSource(registrering: Registrering, expected: RegistreringSource) {
-        if (registrering.source != expected) {
-            throw IllegalInputException(
-                when (expected) {
-                    RegistreringSource.JOURNALPOST -> "Journalpost kan ikke velges når registreringen er basert på opplastede dokumenter."
-                    RegistreringSource.UPLOADED_DOCUMENTS -> "Opplastede dokumenter kan ikke endres når registreringen er basert på journalpost."
-                }
-            )
+    private fun requireJournalpostSource(registrering: Registrering) {
+        if (registrering.isBasedOnUploadedDocument()) {
+            throw IllegalInputException("Journalpost kan ikke velges når registreringen er basert på opplastede dokumenter.")
+        }
+    }
+
+    private fun requireUploadedDocumentsSource(registrering: Registrering) {
+        if (!registrering.isBasedOnUploadedDocument()) {
+            throw IllegalInputException("Opplastede dokumenter kan ikke endres når registreringen er basert på journalpost.")
+        }
+    }
+
+    private fun requireTypeAndAvsenderNotLocked(registrering: Registrering) {
+        if (registrering.source == RegistreringSource.ANKE) {
+            throw IllegalInputException("Type og avsender er gitt av kilden og kan ikke endres for en anke fra Trygderetten.")
         }
     }
 
@@ -1591,6 +1602,15 @@ class RegistreringService(
                 journalpostId = null
                 journalpostDatoOpprettet = null
                 avsender = null
+                inngaaendeKanal = null
+
+                if (source == RegistreringSource.ANKE) {
+                    type = Type.ANKE
+                    behandlingstidUnits = getDefaultBehandlingstidUnits(type)
+                    behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
+                    avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
+                    inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
+                }
 
                 handleReceiversWhenChangingPart(
                     unchangedRegistrering = this,
@@ -1619,7 +1639,7 @@ class RegistreringService(
         }
 
         val registrering = getRegistreringForUpdate(registreringId)
-        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
+        requireUploadedDocumentsSource(registrering = registrering)
 
         //Names are validated before we ask for any policies, so a single invalid name doesn't leave
         //unused policies behind.
@@ -1728,7 +1748,7 @@ class RegistreringService(
         input: DokumentSortIndexInput
     ): DokumentSortIndexChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
+        requireUploadedDocumentsSource(registrering = registrering)
         val dokument = registrering.dokumenter.find { it.id == dokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
@@ -1815,7 +1835,7 @@ class RegistreringService(
      */
     fun resetDokumentStatus(registreringId: UUID, dokumentIds: List<UUID>): ResetDokumentStatusRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        requireSource(registrering = registrering, expected = RegistreringSource.UPLOADED_DOCUMENTS)
+        requireUploadedDocumentsSource(registrering = registrering)
 
         dokumentIds.forEach { dokumentId ->
             val dokument = registrering.dokumenter.find { it.id == dokumentId } ?: return@forEach

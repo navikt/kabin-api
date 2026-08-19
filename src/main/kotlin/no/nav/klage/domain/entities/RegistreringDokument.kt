@@ -1,6 +1,7 @@
 package no.nav.klage.domain.entities
 
 import jakarta.persistence.*
+import no.nav.klage.kodeverk.PartIdType
 import java.time.LocalDateTime
 import java.util.*
 
@@ -165,4 +166,23 @@ enum class InngaaendeKanal {
 enum class RegistreringSource {
     JOURNALPOST,
     UPLOADED_DOCUMENTS,
+    /**
+     * Anke received from Trygderetten. Behaves exactly like [UPLOADED_DOCUMENTS], but avsender,
+     * inngående kanal and type are given by the source itself and set automatically.
+     */
+    ANKE,
+    ;
+
+    /**
+     * Whether the behandling is based on documents uploaded in Kabin instead of an existing journalpost.
+     */
+    val isBasedOnUploadedDocuments: Boolean
+        get() = this != JOURNALPOST
+
+    companion object {
+        const val TRYGDERETTEN_ORGNR = "974761084"
+
+        /** Avsender is always Trygderetten when the source is [ANKE], and cannot be changed by the user. */
+        val TRYGDERETTEN_AVSENDER = PartId(type = PartIdType.VIRKSOMHET, value = TRYGDERETTEN_ORGNR)
+    }
 }
