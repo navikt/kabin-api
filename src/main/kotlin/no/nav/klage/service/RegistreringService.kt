@@ -277,7 +277,7 @@ class RegistreringService(
                 //TODO: Remove after FE adjusts in prod.
                 mulighetIsBasedOnJournalpost = false
                 modified = LocalDateTime.now()
-                behandlingstidUnits = getDefaultBehandlingstidUnits(type)
+                behandlingstidUnits = getDefaultBehandlingstidUnits(this)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
 
                 //empty the properties that no longer make sense if typeId changes.
@@ -348,8 +348,10 @@ class RegistreringService(
         return TimeUnitType.WEEKS
     }
 
-    private fun getDefaultBehandlingstidUnits(type: Type?): Int {
-        return if (type == Type.ANKE) {
+    private fun getDefaultBehandlingstidUnits(registrering: Registrering): Int {
+        return if (registrering.source == RegistreringSource.ANKE) {
+            4
+        } else if (registrering.type == Type.ANKE) {
             0
         } else {
             12
@@ -1618,7 +1620,7 @@ class RegistreringService(
                     inngaaendeKanal = null
                 }
 
-                behandlingstidUnits = getDefaultBehandlingstidUnits(type)
+                behandlingstidUnits = getDefaultBehandlingstidUnits(this)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
 
                 ytelse = null

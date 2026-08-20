@@ -308,7 +308,7 @@ class RegistreringServiceTest {
 
             assertThat(registrering.source).isEqualTo(RegistreringSource.ANKE)
             assertThat(registrering.type).isEqualTo(Type.ANKE)
-            assertThat(registrering.behandlingstidUnits).isEqualTo(0)
+            assertThat(registrering.behandlingstidUnits).isEqualTo(4)
             assertThat(registrering.avsender).isEqualTo(
                 PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR)
             )
