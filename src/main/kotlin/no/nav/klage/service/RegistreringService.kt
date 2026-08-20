@@ -1591,14 +1591,18 @@ class RegistreringService(
             registrering.mulighetId = null
             registrering.additionalKabalMulighetId = null
             registrering.reinitializeAdditionalKabalMuligheter()
-            registrering.type = null
 
             registrering.apply {
                 source = input.source
+                modified = LocalDateTime.now()
 
                 //The received document changes when source changes, so empty the properties that
                 //were derived from it. Uploaded dokumenter are deliberately kept, so the user can
                 //switch back without having to upload everything again.
+
+                //TODO: Remove after FE adjusts in prod. //Why?
+                mulighetIsBasedOnJournalpost = false
+
                 journalpostId = null
                 journalpostDatoOpprettet = null
                 avsender = null
@@ -1606,17 +1610,20 @@ class RegistreringService(
 
                 if (source == RegistreringSource.ANKE) {
                     type = Type.ANKE
-                    behandlingstidUnits = getDefaultBehandlingstidUnits(type)
-                    behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
                     avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
                     inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
+                } else {
+                    type = null
+                    avsender = null
+                    inngaaendeKanal = null
                 }
 
-                handleReceiversWhenChangingPart(
-                    unchangedRegistrering = this,
-                    partIdInput = null,
-                    partISaken = PartISaken.FULLMEKTIG,
-                )
+                behandlingstidUnits = getDefaultBehandlingstidUnits(type)
+                behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
+
+                ytelse = null
+                hjemmelIdList = listOf()
+
                 fullmektig = null
                 svarbrevFullmektigFritekst = null
 
@@ -1625,7 +1632,18 @@ class RegistreringService(
 
                 willCreateNewJournalpost = false
 
-                handleSvarbrevReceivers()
+                saksbehandlerIdent = null
+
+                sendSvarbrev = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                svarbrevCustomText = null
+
+                gosysOppgaveId = null
+
+                willCreateNewJournalpost = false
             }
         }
 
