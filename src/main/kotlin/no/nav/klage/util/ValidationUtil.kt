@@ -132,11 +132,11 @@ class ValidationUtil(
             }
 
             //Only documents that reached DONE can be journalført, and we do not silently drop the rest,
-            //so the user has to delete them manually before finishing.
-            if (registrering.hasUnsupportedTypeDokumenter()) {
+            //so the user has to delete them manually (or reset the resettable ones) before finishing.
+            registrering.getFailedDokumentStatuses().forEach { status ->
                 saksdataValidationErrors += InvalidProperty(
                     field = Registrering::dokumenter.name,
-                    reason = "Fjern dokumenter med filtype som ikke støttes."
+                    reason = failedDokumentReason(status)
                 )
             }
 
@@ -304,6 +304,20 @@ class ValidationUtil(
                 sections = sectionList
             )
         }
+    }
+
+    /**
+     * The message shown for a document that ended in a failure status. The resettable failures may be
+     * transient, so those also point to retrying, while a virus and an unsupported file type can only
+     * be removed.
+     */
+    private fun failedDokumentReason(status: DokumentStatus): String = when (status) {
+        DokumentStatus.VIRUS_FOUND -> "Fjern dokumenter der det ble funnet virus."
+        DokumentStatus.UNSUPPORTED_TYPE -> "Fjern dokumenter med filtype som ikke støttes."
+        DokumentStatus.VIRUS_SCAN_FAILED -> "Prøv virussjekken på nytt, eller fjern dokumentene der den feilet."
+        DokumentStatus.CONVERSION_FAILED -> "Prøv konvertering til PDF på nytt, eller fjern dokumentene som ikke kunne konverteres."
+        DokumentStatus.UNEXPECTED_ERROR -> "Prøv på nytt, eller fjern dokumentene som feilet."
+        else -> error("$status is not a failure status")
     }
 
     private fun documentWillGoToCentralPrint(

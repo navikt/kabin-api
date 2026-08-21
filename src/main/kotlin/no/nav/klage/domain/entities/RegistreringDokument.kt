@@ -132,6 +132,13 @@ enum class DokumentStatus {
     fun isTerminal(): Boolean = this in TERMINAL
 
     /**
+     * Whether the document ended in a terminal state that is not [DONE], meaning it can never be
+     * journalført. Such documents must be removed (or, when resettable, retried) before the
+     * registrering can be finished, so that nothing the user uploaded is silently dropped.
+     */
+    fun isFailed(): Boolean = isTerminal() && this != DONE
+
+    /**
      * Whether a step is currently being carried out on the document, meaning some request has
      * committed this status and is now waiting for kabal-file-api. Used to let a second confirm
      * request tag along instead of doing the same work over again.

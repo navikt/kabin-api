@@ -144,7 +144,13 @@ class Registrering(
 
     fun hasUnfinishedDokumenter(): Boolean = dokumenter.any { !it.status.isTerminal() }
 
-    fun hasUnsupportedTypeDokumenter(): Boolean = dokumenter.any { it.status == DokumentStatus.UNSUPPORTED_TYPE }
+    /**
+     * The distinct failure statuses among the documents, in enum order so the validation errors come
+     * out in a stable order. Every one of these needs its own message, since the user has to act on
+     * each failing document.
+     */
+    fun getFailedDokumentStatuses(): List<DokumentStatus> =
+        DokumentStatus.entries.filter { status -> status.isFailed() && dokumenter.any { it.status == status } }
 
     fun isBasedOnUploadedDocument(): Boolean = source.isBasedOnUploadedDocuments
 
