@@ -189,7 +189,7 @@ class KabalApiService(
         registrering: Registrering,
         frist: LocalDate,
         mulighet: Mulighet,
-        journalpostId: String?,
+        journalpostId: String,
     ): UUID {
         val svarbrevSettings = getSvarbrevSettings(
             ytelseId = registrering.ytelse!!.id,
@@ -209,7 +209,6 @@ class KabalApiService(
                 hjemmelIdList = registrering.hjemmelIdList,
                 forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
                 klageJournalpostId = journalpostId,
-                uploadedDocument = registrering.toUploadedDocumentInput(),
                 brukersHenvendelseMottattNav = registrering.mottattVedtaksinstans!!,
                 sakMottattKa = registrering.mottattKlageinstans!!,
                 frist = frist,
