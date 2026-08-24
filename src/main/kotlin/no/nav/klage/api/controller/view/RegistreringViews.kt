@@ -1,6 +1,8 @@
 package no.nav.klage.api.controller.view
 
+import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.HandlingEnum
+import no.nav.klage.domain.entities.RegistreringSource
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -32,7 +34,9 @@ data class FullRegistreringView(
     val behandlingId: UUID?,
     val willCreateNewJournalpost: Boolean,
     val muligheter: MuligheterView,
-    val additionalKabalMuligheter: List<KabalmulighetView>
+    val additionalKabalMuligheter: List<KabalmulighetView>,
+    val source: RegistreringSource,
+    val uploadedDocuments: UploadedDocumentsView,
 ) {
 
     data class FullRegistreringOverstyringerView(
@@ -110,6 +114,78 @@ data class TypeChangeRegistreringView(
 data class MulighetIdView(
     val id: String,
 )
+
+data class RegistreringDokumentView(
+    val id: UUID,
+    val name: String,
+    val size: Long,
+    val contentType: String,
+    val status: DokumentStatus,
+    val sortIndex: Double,
+    val created: LocalDateTime,
+)
+
+data class DokumentStatusEventView(
+    val status: DokumentStatus,
+    val size: Long,
+    val contentType: String,
+)
+
+data class DokumentUploadUrlView(
+    val upload: Upload?,
+    val dokument: RegistreringDokumentView,
+) {
+    data class Upload(
+        val uploadUrl: String,
+        val fields: Map<String, String>,
+        val contentType: String,
+        val maxSize: Long,
+    )
+}
+
+data class DokumentUploadUrlsView(
+    val uploads: List<DokumentUploadUrlView>,
+)
+
+data class UploadedDocumentsView(
+    val inngaaendeKanal: String?,
+    val dokumenter: List<RegistreringDokumentView>,
+)
+
+data class DokumenterChangeRegistreringView(
+    val id: UUID,
+    val uploadedDocuments: DokumenterChangeUploadedDocumentsView,
+    val modified: LocalDateTime,
+) {
+    data class DokumenterChangeUploadedDocumentsView(
+        val dokumenter: List<RegistreringDokumentView>,
+    )
+}
+
+data class DokumentSortIndexChangeRegistreringView(
+    val id: UUID,
+    val modified: LocalDateTime,
+)
+
+data class ResetDokumentStatusRegistreringView(
+    val id: UUID,
+    val uploadedDocuments: ResetDokumentStatusUploadedDocumentsView,
+    val modified: LocalDateTime,
+) {
+    data class ResetDokumentStatusUploadedDocumentsView(
+        val dokumenter: List<RegistreringDokumentView>,
+    )
+}
+
+data class InngaaendeKanalChangeRegistreringView(
+    val id: UUID,
+    val uploadedDocuments: InngaaendeKanalChangeUploadedDocumentsView,
+    val modified: LocalDateTime,
+) {
+    data class InngaaendeKanalChangeUploadedDocumentsView(
+        val inngaaendeKanal: String?,
+    )
+}
 
 data class BehandlingstidView(
     val unitTypeId: String,

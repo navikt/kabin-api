@@ -12,10 +12,7 @@ import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.domain.CreateBehandlingInput
 import no.nav.klage.domain.entities.Registrering
-import no.nav.klage.exceptions.InvalidProperty
-import no.nav.klage.exceptions.MulighetNotFoundException
-import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
-import no.nav.klage.exceptions.ValidationSection
+import no.nav.klage.exceptions.*
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
@@ -144,8 +141,13 @@ class DokArkivService(
 
     fun handleJournalpost(
         registrering: Registrering,
-    ): String {
-        val journalpostId = registrering.journalpostId!!
+    ): String? {
+        if (registrering.isBasedOnUploadedDocument()) {
+            return null
+        }
+
+        val journalpostId = registrering.journalpostId
+            ?: throw IllegalInputException("Registreringen har ingen journalpost.")
         val avsender = registrering.avsender.toPartIdInput()
 
         val mulighet = registrering.getCurrentMulighet() ?: throw MulighetNotFoundException("Muligheten som registreringen refererer til finnes ikke.")

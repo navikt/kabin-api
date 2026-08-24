@@ -1,11 +1,19 @@
 package no.nav.klage.api.controller
 
+import jakarta.servlet.http.HttpServletResponse
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.config.SecurityConfiguration
+import no.nav.klage.service.DokumentConfirmService
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
+import org.springframework.http.CacheControl
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import tools.jackson.module.kotlin.jacksonObjectMapper
+import java.net.URI
 import java.util.*
 
 @RestController
@@ -13,6 +21,7 @@ import java.util.*
 @RequestMapping("/registreringer")
 class RegistreringController(
     private val registreringService: RegistreringService,
+    private val dokumentConfirmService: DokumentConfirmService,
     private val tokenUtil: TokenUtil,
     private val auditLogger: AuditLogger,
 ) {
@@ -20,6 +29,7 @@ class RegistreringController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val objectMapper = jacksonObjectMapper()
     }
 
     @PostMapping
@@ -124,6 +134,184 @@ class RegistreringController(
             logger = logger,
         )
         return registreringService.setJournalpostId(registreringId = id, input = input)
+    }
+
+    @PostMapping("/{id}/uploaded-documents/dokumenter")
+    fun createDokumentUploadUrl(
+        @PathVariable id: UUID,
+        @RequestBody input: List<DokumentUploadUrlInput>,
+    ): DokumentUploadUrlsView {
+        logMethodDetails(
+            methodName = ::createDokumentUploadUrl.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.createDokumentUploadUrls(registreringId = id, input = input)
+    }
+
+    /**
+     * Server-sent events stream that reports the status of an uploaded document as it is verified,
+     * virus scanned and (if needed) converted to PDF. The data of every `status` event is a JSON
+     * object with the current status, the size of the file as it is currently stored and its content
+     * type, so the client can update the UI after e.g. a conversion, e.g.
+     *
+     * ```
+     * event: status
+     * data: {"status":"VIRUS_SCANNING","size":123456,"contentType":"image/jpeg"}
+     * ```
+     *
+     * The stream ends when the document reaches a terminal status: `DONE`, or one of the failures
+     * `VIRUS_FOUND`, `VIRUS_SCAN_FAILED`, `CONVERSION_FAILED` and `UNSUPPORTED_TYPE`. It is idempotent
+     * and resumable: reconnecting sends the current status right away and then continues from there,
+     * without redoing work that is already done. `VIRUS_SCAN_FAILED` and `CONVERSION_FAILED` may be
+     * transient, and can be put back into processing with the reset-status endpoint.
+     *
+     * Unexpected failures after the stream has started are reported as an `error` event, since the
+     * HTTP status has already been sent by then.
+     */
+    @GetMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/confirm", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    fun confirmDokument(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+        response: HttpServletResponse,
+    ) {
+        logMethodDetails(
+            methodName = ::confirmDokument.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+
+        val sse = SseWriter(response)
+
+        try {
+            dokumentConfirmService.confirmDokument(
+                registreringId = id,
+                dokumentId = dokumentId,
+            ) { state ->
+                sse.send(
+                    event = "status",
+                    data = objectMapper.writeValueAsString(
+                        DokumentStatusEventView(
+                            status = state.status,
+                            size = state.size,
+                            contentType = state.contentType,
+                        )
+                    ),
+                )
+            }
+        } catch (e: Exception) {
+            //Nothing has been sent yet, so let the normal error handling produce a proper response.
+            if (!sse.hasStarted) {
+                throw e
+            }
+            logger.error("Failed while streaming status for document $dokumentId", e)
+            sse.send(event = "error", data = e.message ?: "UNKNOWN_ERROR")
+        } finally {
+            sse.close()
+        }
+    }
+
+    @PutMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/name")
+    fun setDokumentName(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+        @RequestBody input: DokumentNameInput,
+    ): DokumenterChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::setDokumentName.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setDokumentName(registreringId = id, dokumentId = dokumentId, input = input)
+    }
+
+    @PutMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/sort-index")
+    fun setDokumentSortIndex(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+        @RequestBody input: DokumentSortIndexInput,
+    ): DokumentSortIndexChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::setDokumentSortIndex.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setDokumentSortIndex(
+            registreringId = id,
+            dokumentId = dokumentId,
+            input = input,
+        )
+    }
+
+    @GetMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}/view")
+    fun getDokumentViewUrl(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+    ): ResponseEntity<Unit> {
+        logMethodDetails(
+            methodName = ::getDokumentViewUrl.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        val viewUrl = registreringService.getDokumentViewUrl(registreringId = id, dokumentId = dokumentId)
+
+        return ResponseEntity
+            .status(HttpStatus.FOUND)
+            .location(URI.create(viewUrl))
+            .cacheControl(CacheControl.noStore())
+            .build()
+    }
+
+    @DeleteMapping("/{id}/uploaded-documents/dokumenter/{dokumentId}")
+    fun deleteDokument(
+        @PathVariable id: UUID,
+        @PathVariable dokumentId: UUID,
+    ): DokumenterChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::deleteDokument.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.deleteDokument(registreringId = id, dokumentId = dokumentId)
+    }
+
+    @PostMapping("/{id}/uploaded-documents/reset-status")
+    fun resetDokumentStatus(
+        @PathVariable id: UUID,
+        @RequestBody input: ResetDokumentStatusInput,
+    ): ResetDokumentStatusRegistreringView {
+        logMethodDetails(
+            methodName = ::resetDokumentStatus.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.resetDokumentStatus(registreringId = id, dokumentIds = input.dokumentIds)
+    }
+
+    @PutMapping("/{id}/uploaded-documents/inngaaende-kanal")
+    fun updateInngaaendeKanal(
+        @PathVariable id: UUID,
+        @RequestBody input: InngaaendeKanalInput
+    ): InngaaendeKanalChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateInngaaendeKanal.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setInngaaendeKanal(registreringId = id, input = input)
+    }
+
+    @PutMapping("/{id}/source")
+    fun updateSource(
+        @PathVariable id: UUID,
+        @RequestBody input: SourceInput
+    ): FullRegistreringView {
+        logMethodDetails(
+            methodName = ::updateSource.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setSource(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/type-id")

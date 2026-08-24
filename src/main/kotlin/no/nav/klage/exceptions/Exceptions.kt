@@ -32,3 +32,20 @@ class GosysOppgaveClientException : RuntimeException {
 }
 
 class UserNotFoundException(msg: String) : RuntimeException(msg)
+
+class AttachmentTooLargeException(override val message: String = "TOO_LARGE") : RuntimeException()
+
+class AttachmentHasVirusException(override val message: String = "VIRUS") : RuntimeException()
+
+/**
+ * kabal-file-api rejected the file as a type it cannot turn into a PDF. Reported by both the scan
+ * and the convert step, since the type is checked in both. Retrying is pointless.
+ */
+class AttachmentUnsupportedTypeException(override val message: String = "FILE_TYPE_NOT_SUPPORTED") : RuntimeException()
+
+/**
+ * kabal-file-api failed unexpectedly while converting a file whose type it does support. Distinct
+ * from [AttachmentUnsupportedTypeException]: nothing is wrong with the file type as such, so this is
+ * reported as an unexpected error rather than as an unsupported type.
+ */
+class AttachmentConversionFailedException(override val message: String = "FILE_CONVERSION_FAILED") : RuntimeException()

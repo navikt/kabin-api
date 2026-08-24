@@ -75,7 +75,7 @@ class AnkeService(
     }
 
     private fun createAnkeFromInfotrygdSak(
-        journalpostId: String,
+        journalpostId: String?,
         mulighet: Mulighet,
         registrering: Registrering,
         additionalKabalMulighet: Mulighet?,

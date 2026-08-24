@@ -1,6 +1,8 @@
 package no.nav.klage.api.controller.view
 
 import no.nav.klage.domain.entities.HandlingEnum
+import no.nav.klage.domain.entities.InngaaendeKanal
+import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
 import java.util.*
@@ -45,6 +47,23 @@ data class PartIdInput(
 data class SakenGjelderValueInput(val sakenGjelderValue: String?)
 
 data class JournalpostIdInput(val journalpostId: String)
+
+data class InngaaendeKanalInput(val inngaaendeKanal: InngaaendeKanal?)
+
+data class SourceInput(val source: RegistreringSource)
+
+data class DokumentUploadUrlInput(
+    val contentType: String,
+    val name: String,
+)
+
+data class DokumentNameInput(
+    val name: String,
+)
+
+data class DokumentSortIndexInput(
+    val sortIndex: Double,
+)
 
 data class TypeIdInput(val typeId: String?)
 
@@ -123,4 +142,8 @@ data class AvsenderInput(
 
 data class KlagerInput(
     val klager: PartIdInput?,
+)
+
+data class ResetDokumentStatusInput(
+    val dokumentIds: List<UUID>,
 )

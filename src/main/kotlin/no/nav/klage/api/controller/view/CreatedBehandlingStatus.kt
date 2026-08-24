@@ -18,9 +18,16 @@ data class CreatedBehandlingStatusView(
     val varsletFristUnitTypeId: String?,
     val fagsakId: String,
     val fagsystemId: String,
-    val journalpost: DokumentReferanseForReceipt,
+    val journalpost: DokumentReferanseForReceipt?,
+    val uploadedDocuments: ReceiptUploadedDocumentsView?,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
     val svarbrev: Svarbrev?,
+    val source: String,
+)
+
+data class ReceiptUploadedDocumentsView(
+    val inngaaendeKanal: String,
+    val dokumenter: List<RegistreringDokumentView>,
 )
 
 data class Svarbrev(

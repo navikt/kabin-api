@@ -276,6 +276,49 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) = FullRegi
     willCreateNewJournalpost = willCreateNewJournalpost,
     muligheter = toMuligheterView(),
     additionalKabalMuligheter = getAdditionalKabalMuligheter(),
+    source = source,
+    uploadedDocuments = toUploadedDocumentsView(),
+)
+
+fun Registrering.toUploadedDocumentsView(): UploadedDocumentsView = UploadedDocumentsView(
+    inngaaendeKanal = inngaaendeKanal?.name,
+    dokumenter = toRegistreringDokumentViews(),
+)
+
+fun Registrering.toReceiptUploadedDocumentsView(): ReceiptUploadedDocumentsView = ReceiptUploadedDocumentsView(
+    inngaaendeKanal = requireNotNull(inngaaendeKanal) {
+        "Registrering $id is based on uploaded documents, but inngaaendeKanal is not set."
+    }.name,
+    dokumenter = toRegistreringDokumentViews(),
+)
+
+fun Registrering.toRegistreringDokumentViews(): List<RegistreringDokumentView> =
+    getSortedDokumenter().map { it.toRegistreringDokumentView() }
+
+fun RegistreringDokument.toRegistreringDokumentView(): RegistreringDokumentView = RegistreringDokumentView(
+    id = id,
+    name = name,
+    size = size,
+    contentType = contentType,
+    status = status,
+    sortIndex = sortIndex,
+    created = created,
+)
+
+fun Registrering.toDokumenterChangeRegistreringView() = DokumenterChangeRegistreringView(
+    id = id,
+    uploadedDocuments = DokumenterChangeRegistreringView.DokumenterChangeUploadedDocumentsView(
+        dokumenter = toRegistreringDokumentViews(),
+    ),
+    modified = modified,
+)
+
+fun Registrering.toResetDokumentStatusRegistreringView() = ResetDokumentStatusRegistreringView(
+    id = id,
+    uploadedDocuments = ResetDokumentStatusRegistreringView.ResetDokumentStatusUploadedDocumentsView(
+        dokumenter = toRegistreringDokumentViews(),
+    ),
+    modified = modified,
 )
 
 private fun getMuligheterSorted(muligheter: MutableList<Mulighet>): List<Mulighet> =

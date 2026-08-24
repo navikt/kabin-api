@@ -100,6 +100,7 @@ class DokArkivServiceTest {
             saksbehandlerService = saksbehandlerService,
         )
 
+        every { registrering.isBasedOnUploadedDocument() } returns false
         every { registrering.getCurrentMulighet() } returns mulighet
         every { mulighet.tema } returns Tema.OMS
         every { mulighet.currentFagsystem } returns Fagsystem.KABAL

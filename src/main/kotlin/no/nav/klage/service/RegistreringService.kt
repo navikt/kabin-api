@@ -4,6 +4,8 @@ import no.nav.klage.api.controller.mapper.toReceiptView
 import no.nav.klage.api.controller.view.*
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
+import no.nav.klage.clients.fileapi.FileApiClient
+import no.nav.klage.clients.fileapi.UploadPostPolicyResponse
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
@@ -14,10 +16,7 @@ import no.nav.klage.exceptions.*
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
-import no.nav.klage.util.TokenUtil
-import no.nav.klage.util.calculateFrist
-import no.nav.klage.util.getLogger
-import no.nav.klage.util.getPartIdFromIdentifikator
+import no.nav.klage.util.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -39,11 +38,20 @@ class RegistreringService(
     private val dokArkivService: DokArkivService,
     private val klageFssProxyService: KlageFssProxyService,
     private val safService: SafService,
+    private val fileApiClient: FileApiClient,
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+
+        //Must match ALLOWED_UPLOAD_CONTENT_TYPES in kabal-file-api.
+        private val ALLOWED_UPLOAD_CONTENT_TYPES = setOf(
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/tiff",
+        )
     }
 
     fun createRegistrering(input: SakenGjelderValueInput): FullRegistreringView {
@@ -138,6 +146,8 @@ class RegistreringService(
                 reinitializeMuligheter()
 
                 journalpostId = null
+                journalpostDatoOpprettet = null
+                deleteAllDokumenter(registrering = this)
                 ytelse = null
                 forrigeBehandlendeEnhetId = null
                 type = null
@@ -167,6 +177,7 @@ class RegistreringService(
     fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): FullRegistreringView {
 
         val registrering = getRegistreringForUpdate(registreringId)
+        requireJournalpostSource(registrering = registrering)
         registrering.additionalKabalMulighetId = null
         registrering.reinitializeAdditionalKabalMuligheter()
         registrering
@@ -241,6 +252,14 @@ class RegistreringService(
     fun setTypeId(registreringId: UUID, input: TypeIdInput): TypeChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
+        requireTypeAndAvsenderNotLocked(registrering = registrering)
+
+        if (input.typeId != null && Type.of(input.typeId) == Type.KLAGE &&
+            registrering.isBasedOnUploadedDocument()
+        ) {
+            throw IllegalInputException("Klage kan ikke registreres med opplastede dokumenter.")
+        }
+
         if (registrering.mulighetIsBasedOnJournalpost && registrering.mulighetId != null) {
             registrering.muligheter.removeIf {
                 it.id == registrering.mulighetId
@@ -258,7 +277,7 @@ class RegistreringService(
                 //TODO: Remove after FE adjusts in prod.
                 mulighetIsBasedOnJournalpost = false
                 modified = LocalDateTime.now()
-                behandlingstidUnits = getDefaultBehandlingstidUnits(type)
+                behandlingstidUnits = getDefaultBehandlingstidUnits(this)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
 
                 //empty the properties that no longer make sense if typeId changes.
@@ -329,8 +348,10 @@ class RegistreringService(
         return TimeUnitType.WEEKS
     }
 
-    private fun getDefaultBehandlingstidUnits(type: Type?): Int {
-        return if (type == Type.ANKE) {
+    private fun getDefaultBehandlingstidUnits(registrering: Registrering): Int {
+        return if (registrering.source == RegistreringSource.ANKE) {
+            4
+        } else if (registrering.type == Type.ANKE) {
             0
         } else {
             12
@@ -341,7 +362,7 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
 
         if (registrering.mulighetIsBasedOnJournalpost) {
-            throw IllegalStateException("Mulighet kan ikke settes fordi alternativ for journalpost er valgt.")
+            throw IllegalInputException("Mulighet kan ikke settes fordi alternativ for journalpost er valgt.")
         }
 
         val newMulighet = registrering.muligheter.find { it.id == input.mulighetId } ?: throw MulighetNotFoundException(
@@ -406,11 +427,15 @@ class RegistreringService(
 
                 modified = LocalDateTime.now()
 
-                willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-                    journalpostId = this.journalpostId!!,
-                    fagsakId = newMulighet.fagsakId,
-                    fagsystemId = newMulighet.originalFagsystem.id,
-                )
+                willCreateNewJournalpost = if (isBasedOnUploadedDocument()) {
+                    false
+                } else {
+                    dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                        journalpostId = journalpostId!!,
+                        fagsakId = newMulighet.fagsakId,
+                        fagsystemId = newMulighet.originalFagsystem.id,
+                    )
+                }
 
                 //What about fullmektig?
             }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
@@ -425,7 +450,7 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
 
         if (!registrering.mulighetIsBasedOnJournalpost) {
-            throw IllegalStateException("Mulighet kan ikke settes basert på journalpost fordi det alternativet ikke er valgt.")
+            throw IllegalInputException("Mulighet kan ikke settes basert på journalpost fordi det alternativet ikke er valgt.")
         }
 
         if (registrering.mulighetId != null) {
@@ -439,7 +464,7 @@ class RegistreringService(
 
         if (registrering.type in listOf(Type.KLAGE, Type.ANKE)) {
             if (mulighet.originalFagsystem != Fagsystem.AO01) {
-                throw IllegalStateException("Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.")
+                throw IllegalInputException("Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.")
             }
         }
 
@@ -505,11 +530,15 @@ class RegistreringService(
 
             modified = LocalDateTime.now()
 
-            willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-                journalpostId = this.journalpostId!!,
-                fagsakId = mulighet.fagsakId,
-                fagsystemId = mulighet.originalFagsystem.id,
-            )
+            willCreateNewJournalpost = if (isBasedOnUploadedDocument()) {
+                false
+            } else {
+                dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                    journalpostId = journalpostId!!,
+                    fagsakId = mulighet.fagsakId,
+                    fagsystemId = mulighet.originalFagsystem.id,
+                )
+            }
         }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
@@ -521,7 +550,7 @@ class RegistreringService(
         val mulighetToBeSet = registrering.muligheter.find { it.id == input.mulighetId }
             ?: throw MulighetNotFoundException("Fant ikke mulighet med id ${input.mulighetId}")
         if (!mulighetToBeSet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
-            throw IllegalStateException("Dette feltet kan bare settes for anker basert på Infotrygd-saker.")
+            throw IllegalInputException("Dette feltet kan bare settes for anker basert på Infotrygd-saker.")
         }
 
         //TODO: Finn sideeffekter
@@ -881,15 +910,15 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
             .apply {
                 if (ytelse == null) {
-                    throw IllegalStateException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
+                    throw IllegalInputException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
                 }
 
                 if (type !in listOf(Type.KLAGE, Type.ANKE)) {
-                    throw IllegalStateException("Forrige behandlende enhet kan bare settes for klager og anker")
+                    throw IllegalInputException("Forrige behandlende enhet kan bare settes for klager og anker")
                 }
 
                 if (!mulighetIsBasedOnJournalpost) {
-                    throw IllegalStateException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
+                    throw IllegalInputException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
                 }
 
                 //Enhet.fromNavn() validates the input.
@@ -1055,6 +1084,8 @@ class RegistreringService(
 
     fun setAvsender(registreringId: UUID, input: AvsenderInput): AvsenderChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
+        requireTypeAndAvsenderNotLocked(registrering = registrering)
+        registrering
             .apply {
                 //cases
                 //1. avsender is set to the same value as before
@@ -1498,12 +1529,371 @@ class RegistreringService(
         registrering.finished = now
         registrering.modified = now
 
+        //The uploaded documents were not used, so there is no reason to keep them around.
+        if (!registrering.isBasedOnUploadedDocument()) {
+            deleteAllDokumenter(registrering = registrering)
+        }
+
         return FerdigstiltRegistreringView(
             id = registrering.id,
             modified = registrering.modified,
             finished = registrering.finished!!,
             behandlingId = registrering.behandlingId!!,
         )
+    }
+
+    fun setInngaaendeKanal(
+        registreringId: UUID,
+        input: InngaaendeKanalInput
+    ): InngaaendeKanalChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        requireUploadedDocumentsSource(registrering = registrering)
+        registrering.inngaaendeKanal = input.inngaaendeKanal
+        registrering.modified = LocalDateTime.now()
+        return InngaaendeKanalChangeRegistreringView(
+            id = registrering.id,
+            uploadedDocuments = InngaaendeKanalChangeRegistreringView.InngaaendeKanalChangeUploadedDocumentsView(
+                inngaaendeKanal = registrering.inngaaendeKanal?.name,
+            ),
+            modified = registrering.modified,
+        )
+    }
+
+    //Endpoints that establish source-specific state must not be used against the other source, or
+    //the registrering ends up in a contradictory state. Housekeeping of already uploaded documents
+    //(rename, view, delete) is deliberately left open, since those are kept when switching source.
+    private fun requireJournalpostSource(registrering: Registrering) {
+        if (registrering.isBasedOnUploadedDocument()) {
+            throw IllegalInputException("Journalpost kan ikke velges når registreringen er basert på opplastede dokumenter.")
+        }
+    }
+
+    private fun requireUploadedDocumentsSource(registrering: Registrering) {
+        if (!registrering.isBasedOnUploadedDocument()) {
+            throw IllegalInputException("Opplastede dokumenter kan ikke endres når registreringen er basert på journalpost.")
+        }
+    }
+
+    private fun requireTypeAndAvsenderNotLocked(registrering: Registrering) {
+        if (registrering.source == RegistreringSource.ANKE) {
+            throw IllegalInputException("Type og avsender er gitt av kilden og kan ikke endres for en anke fra Trygderetten.")
+        }
+    }
+
+    fun setSource(
+        registreringId: UUID,
+        input: SourceInput
+    ): FullRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (registrering.source != input.source) {
+            if (registrering.mulighetIsBasedOnJournalpost && registrering.mulighetId != null) {
+                registrering.muligheter.removeIf { it.id == registrering.mulighetId }
+            }
+            registrering.mulighetId = null
+            registrering.additionalKabalMulighetId = null
+            registrering.reinitializeAdditionalKabalMuligheter()
+
+            registrering.apply {
+                source = input.source
+                modified = LocalDateTime.now()
+
+                //The received document changes when source changes, so empty the properties that
+                //were derived from it. Uploaded dokumenter are deliberately kept, so the user can
+                //switch back without having to upload everything again.
+
+                //TODO: Remove after FE adjusts in prod. //Why?
+                mulighetIsBasedOnJournalpost = false
+
+                journalpostId = null
+                journalpostDatoOpprettet = null
+                avsender = null
+                inngaaendeKanal = null
+
+                if (source == RegistreringSource.ANKE) {
+                    type = Type.ANKE
+                    avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
+                    inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
+                } else {
+                    type = null
+                    avsender = null
+                    inngaaendeKanal = null
+                }
+
+                behandlingstidUnits = getDefaultBehandlingstidUnits(this)
+                behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
+
+                ytelse = null
+                hjemmelIdList = listOf()
+
+                fullmektig = null
+                svarbrevFullmektigFritekst = null
+
+                mottattKlageinstans = null
+                mottattVedtaksinstans = null
+
+                willCreateNewJournalpost = false
+
+                saksbehandlerIdent = null
+
+                sendSvarbrev = null
+                overrideSvarbrevBehandlingstid = false
+                overrideSvarbrevCustomText = false
+                svarbrevBehandlingstidUnits = null
+                svarbrevBehandlingstidUnitType = null
+                svarbrevCustomText = null
+
+                gosysOppgaveId = null
+
+                willCreateNewJournalpost = false
+            }
+        }
+
+        registrering.modified = LocalDateTime.now()
+        return registrering.toRegistreringView(kabalApiService = kabalApiService)
+    }
+
+    fun createDokumentUploadUrls(registreringId: UUID, input: List<DokumentUploadUrlInput>): DokumentUploadUrlsView {
+        if (input.isEmpty()) {
+            throw IllegalInputException("Må sende med minst ett dokument.")
+        }
+
+        val registrering = getRegistreringForUpdate(registreringId)
+        requireUploadedDocumentsSource(registrering = registrering)
+
+        //Names are validated before we ask for any policies, so a single invalid name doesn't leave
+        //unused policies behind.
+        val validatedNames = input.map { validateDokumentName(it.name) }
+
+        val supportedIndices = input.indices.filter { input[it].contentType in ALLOWED_UPLOAD_CONTENT_TYPES }
+        val supportedContentTypes = supportedIndices.map { input[it].contentType }
+
+        val uploadPoliciesByIndex: MutableMap<Int, UploadPostPolicyResponse> = mutableMapOf()
+        if (supportedContentTypes.isNotEmpty()) {
+            val policies = fileApiClient.createUploadPolicies(contentTypes = supportedContentTypes)
+            supportedIndices.forEachIndexed { policyIndex, inputIndex ->
+                uploadPoliciesByIndex[inputIndex] = policies[policyIndex]
+            }
+        }
+
+        //New documents are appended a full gap after the last one, so there is room to move things in
+        //between them later without touching anything else.
+        var nextSortIndex = nextSortIndexFor(registrering)
+
+        val createdDokumenter = input.indices.map { i ->
+            val name = validatedNames[i]
+            val policy = uploadPoliciesByIndex[i]
+
+            if (policy == null) {
+                //Unsupported type: persist the document so the client can see and delete it, but
+                //there is no upload URL and the document can never be confirmed.
+                val dokument = RegistreringDokument(
+                    mellomlagerId = null,
+                    name = name,
+                    size = 0,
+                    contentType = input[i].contentType,
+                    status = DokumentStatus.UNSUPPORTED_TYPE,
+                    sortIndex = nextSortIndex,
+                )
+                registrering.dokumenter.add(dokument)
+                nextSortIndex = sortIndexAfter(nextSortIndex)
+                dokument to null
+            } else {
+                //The document row is created up front so the client only ever deals with one id. It starts out
+                //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
+                val dokument = RegistreringDokument(
+                    mellomlagerId = policy.id,
+                    name = name,
+                    size = 0,
+                    contentType = policy.contentType,
+                    status = DokumentStatus.UPLOADING,
+                    sortIndex = nextSortIndex,
+                )
+                registrering.dokumenter.add(dokument)
+                nextSortIndex = sortIndexAfter(nextSortIndex)
+                dokument to DokumentUploadUrlView.Upload(
+                    uploadUrl = policy.url,
+                    fields = policy.fields,
+                    contentType = policy.contentType,
+                    maxSize = policy.maxSize,
+                )
+            }
+        }
+
+        registrering.modified = LocalDateTime.now()
+
+        return DokumentUploadUrlsView(
+            uploads = createdDokumenter.map { (dokument, upload) ->
+                DokumentUploadUrlView(
+                    upload = upload,
+                    dokument = dokument.toRegistreringDokumentView(),
+                )
+            },
+        )
+    }
+
+    /**
+     * Where the next appended document goes: a full gap after the last one, or
+     * [RegistreringDokument.FIRST_SORT_INDEX] if there are no documents yet.
+     */
+    private fun nextSortIndexFor(registrering: Registrering): Double {
+        val last = registrering.dokumenter.maxOfOrNull { it.sortIndex }
+            ?: return RegistreringDokument.FIRST_SORT_INDEX
+        return sortIndexAfter(last)
+    }
+
+    /**
+     * A full gap after [last], or halfway between [last] and [RegistreringDokument.MAX_SORT_INDEX] if a
+     * full gap would go past the end. The documents then keep getting closer to the end without ever
+     * reaching it, which is plenty: it takes thousands of documents to get anywhere near it.
+     */
+    private fun sortIndexAfter(last: Double): Double {
+        val next = last + RegistreringDokument.SORT_INDEX_GAP
+        return if (next <= RegistreringDokument.MAX_SORT_INDEX) {
+            next
+        } else {
+            last + (RegistreringDokument.MAX_SORT_INDEX - last) / 2
+        }
+    }
+
+    /**
+     * Moves a document by giving it a new number, typically one between its new neighbours. Nothing else
+     * is touched, since the numbers are spread far apart. Moving a document ahead of all the others makes
+     * it the hoveddokument on the resulting journalpost. The response is deliberately minimal; the client
+     * already knows the resulting order.
+     */
+    fun setDokumentSortIndex(
+        registreringId: UUID,
+        dokumentId: UUID,
+        input: DokumentSortIndexInput
+    ): DokumentSortIndexChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        requireUploadedDocumentsSource(registrering = registrering)
+        val dokument = registrering.dokumenter.find { it.id == dokumentId }
+            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+
+        val sortIndex = input.sortIndex
+        if (!sortIndex.isFinite() ||
+            sortIndex < RegistreringDokument.MIN_SORT_INDEX ||
+            sortIndex > RegistreringDokument.MAX_SORT_INDEX
+        ) {
+            throw IllegalInputException(
+                "Rekkefølgen må være et tall mellom ${RegistreringDokument.MIN_SORT_INDEX} og ${RegistreringDokument.MAX_SORT_INDEX}."
+            )
+        }
+
+        //Two documents with the same number would leave the order up to chance, and it also means the
+        //client has run out of room between two documents and has to ask for a different number.
+        if (registrering.dokumenter.any { it.id != dokument.id && it.sortIndex == sortIndex }) {
+            throw IllegalInputException("Et annet dokument har allerede rekkefølgen $sortIndex.")
+        }
+
+        dokument.sortIndex = sortIndex
+
+        registrering.modified = LocalDateTime.now()
+
+        return DokumentSortIndexChangeRegistreringView(
+            id = registrering.id,
+            modified = registrering.modified,
+        )
+    }
+
+    fun setDokumentName(
+        registreringId: UUID,
+        dokumentId: UUID,
+        input: DokumentNameInput
+    ): DokumenterChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        val dokument = registrering.dokumenter.find { it.id == dokumentId }
+            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+
+        //Renaming is allowed regardless of status, and the client decides the whole name, including
+        //any extension.
+        dokument.name = validateDokumentName(input.name)
+        registrering.modified = LocalDateTime.now()
+
+        return registrering.toDokumenterChangeRegistreringView()
+    }
+
+    fun getDokumentViewUrl(registreringId: UUID, dokumentId: UUID): String {
+        val registrering = getRegistreringForUpdate(registreringId)
+        val dokument = registrering.dokumenter.find { it.id == dokumentId }
+            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+
+        if (!dokument.isDone) {
+            throw IllegalInputException("Dokumentet er ikke ferdig opplastet.")
+        }
+
+        //Uploaded documents are always stored as PDF when they are done (images are converted at
+        //confirm time), so the stored name (which is whatever the user typed) gets a .pdf extension
+        //when it is served.
+        return fileApiClient.getDocumentViewUrl(
+            id = dokument.mellomlagerId!!,
+            headers = mapOf(
+                "content-type" to dokument.contentType,
+                "content-disposition" to "inline; filename=\"${withPdfExtension(name = dokument.name)}\"",
+            ),
+        )
+    }
+
+    fun deleteDokument(registreringId: UUID, dokumentId: UUID): DokumenterChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        val dokument = registrering.dokumenter.find { it.id == dokumentId }
+            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+
+        //UNSUPPORTED_TYPE documents have no file in the store; skip the file API call.
+        dokument.mellomlagerId?.let { fileApiClient.deleteDocument(it) }
+        removeDokument(registrering = registrering, dokument = dokument)
+        registrering.modified = LocalDateTime.now()
+
+        return registrering.toDokumenterChangeRegistreringView()
+    }
+
+    /**
+     * Puts failed documents back into processing so the client can try again. Nothing is scanned or
+     * converted here; that happens when the client calls confirm.
+     */
+    fun resetDokumentStatus(registreringId: UUID, dokumentIds: List<UUID>): ResetDokumentStatusRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+        requireUploadedDocumentsSource(registrering = registrering)
+
+        dokumentIds.forEach { dokumentId ->
+            val dokument = registrering.dokumenter.find { it.id == dokumentId } ?: return@forEach
+            val resetTo = dokument.status.resetStatus() ?: return@forEach
+            dokument.status = resetTo
+            //A document going back to UPLOADING_DONE is scanned again from scratch, so the generation
+            //it was scanned as no longer means anything. A document going back to VIRUS_SCANNING_DONE
+            //keeps it, since that is the clean scan the conversion is allowed to build on.
+            if (resetTo == DokumentStatus.UPLOADING_DONE) {
+                dokument.scannedGeneration = null
+            }
+        }
+        registrering.modified = LocalDateTime.now()
+
+        return registrering.toResetDokumentStatusRegistreringView()
+    }
+
+    //Removing the first document promotes the next one to hoveddokument, since that is simply the
+    //document with the lowest number. The gap it leaves behind does not matter; only the relative order
+    //of the remaining documents is used.
+    private fun removeDokument(registrering: Registrering, dokument: RegistreringDokument) {
+        registrering.dokumenter.remove(dokument)
+    }
+
+    //Best effort
+    private fun deleteAllDokumenter(registrering: Registrering) {
+        registrering.dokumenter.forEach { dokument ->
+            //UNSUPPORTED_TYPE documents have no file in the store; skip the file API call.
+            dokument.mellomlagerId?.let { mellomlagerId ->
+                try {
+                    fileApiClient.deleteDocument(mellomlagerId)
+                } catch (e: Exception) {
+                    logger.error("Failed to delete uploaded document ${dokument.id} from mellomlager", e)
+                }
+            }
+        }
+        registrering.dokumenter.clear()
+        registrering.inngaaendeKanal = null
     }
 
     fun getMuligheter(registreringId: UUID): MuligheterView {
@@ -1518,13 +1908,9 @@ class RegistreringService(
         return registrering.getAdditionalKabalMuligheter()
     }
 
-    fun getMulighetFromBehandlingId(behandlingId: UUID): Mulighet {
-        val registrering = registreringRepository.findByBehandlingId(behandlingId)
-        return registrering.getCurrentMulighet()!!
-    }
-
     fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusView {
-        val mulighet = getMulighetFromBehandlingId(behandlingId)
+        val registrering = registreringRepository.findByBehandlingId(behandlingId)
+        val mulighet = registrering.getCurrentMulighet()!!
         val status = kabalApiService.getBehandlingStatus(behandlingId = behandlingId)
 
         return CreatedBehandlingStatusView(
@@ -1542,9 +1928,13 @@ class RegistreringService(
             varsletFristUnitTypeId = status.varsletFristUnitTypeId,
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
-            journalpost = status.journalpost.toReceiptView(),
+            journalpost = status.journalpost?.toReceiptView(),
+            uploadedDocuments = if (registrering.isBasedOnUploadedDocument()) {
+                registrering.toReceiptUploadedDocumentsView()
+            } else null,
             tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
             svarbrev = status.svarbrev?.toView(),
+            source = registrering.source.name,
         )
     }
 }

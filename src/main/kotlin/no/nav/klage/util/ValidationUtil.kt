@@ -4,9 +4,7 @@ import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.kabalapi.GosysOppgaveIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
-import no.nav.klage.domain.entities.HandlingEnum
-import no.nav.klage.domain.entities.Mulighet
-import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.*
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
@@ -123,7 +121,76 @@ class ValidationUtil(
             )
         }
 
-        if (registrering.journalpostId == null) {
+        //The source decides what the behandling is based on. Documents that were uploaded before the
+        //user switched back to journalpost are simply deleted when the registrering is finished.
+        if (registrering.isBasedOnUploadedDocument()) {
+            if (registrering.type == Type.KLAGE) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::type.name,
+                    reason = "Klage kan ikke registreres med opplastede dokumenter. Velg en journalpost."
+                )
+            }
+
+            //Only documents that reached DONE can be journalført, and we do not silently drop the rest,
+            //so the user has to delete them manually (or reset the resettable ones) before finishing.
+            registrering.getFailedDokumentStatuses().forEach { status ->
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::dokumenter.name,
+                    reason = failedDokumentReason(status)
+                )
+            }
+
+            if (registrering.hasUnfinishedDokumenter()) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::dokumenter.name,
+                    reason = "Fjern dokumenter som ikke er ferdig opplastet."
+                )
+            }
+
+            if (registrering.dokumenter.isEmpty()) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::dokumenter.name,
+                    reason = "Last opp minst ett dokument."
+                )
+            }
+            if (registrering.inngaaendeKanal == null) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::inngaaendeKanal.name,
+                    reason = "Velg inngående kanal for det opplastede dokumentet."
+                )
+            }
+            if (registrering.avsender == null) {
+                saksdataValidationErrors += InvalidProperty(
+                    field = Registrering::avsender.name,
+                    reason = "Velg avsender for det opplastede dokumentet."
+                )
+            }
+
+            //Type, avsender and inngående kanal are given by the source itself for an anke from
+            //Trygderetten.
+            if (registrering.source == RegistreringSource.ANKE) {
+                if (registrering.type != Type.ANKE) {
+                    saksdataValidationErrors += InvalidProperty(
+                        field = Registrering::type.name,
+                        reason = "En anke fra Trygderetten må ha type anke."
+                    )
+                }
+
+                if (registrering.avsender != RegistreringSource.TRYGDERETTEN_AVSENDER) {
+                    saksdataValidationErrors += InvalidProperty(
+                        field = Registrering::avsender.name,
+                        reason = "En anke fra Trygderetten må ha Trygderetten som avsender."
+                    )
+                }
+
+                if (registrering.inngaaendeKanal != InngaaendeKanal.ALTINN_INNBOKS) {
+                    saksdataValidationErrors += InvalidProperty(
+                        field = Registrering::inngaaendeKanal.name,
+                        reason = "En anke fra Trygderetten må ha ${InngaaendeKanal.ALTINN_INNBOKS.name} som inngående kanal."
+                    )
+                }
+            }
+        } else if (registrering.journalpostId == null) {
             saksdataValidationErrors += InvalidProperty(
                 field = Registrering::journalpostId.name,
                 reason = "Velg en journalpost."
@@ -237,6 +304,20 @@ class ValidationUtil(
                 sections = sectionList
             )
         }
+    }
+
+    /**
+     * The message shown for a document that ended in a failure status. The resettable failures may be
+     * transient, so those also point to retrying, while a virus and an unsupported file type can only
+     * be removed.
+     */
+    private fun failedDokumentReason(status: DokumentStatus): String = when (status) {
+        DokumentStatus.VIRUS_FOUND -> "Fjern dokumenter der det ble funnet virus."
+        DokumentStatus.UNSUPPORTED_TYPE -> "Fjern dokumenter med filtype som ikke støttes."
+        DokumentStatus.VIRUS_SCAN_FAILED -> "Prøv virussjekken på nytt, eller fjern dokumentene der den feilet."
+        DokumentStatus.CONVERSION_FAILED -> "Prøv konvertering til PDF på nytt, eller fjern dokumentene som ikke kunne konverteres."
+        DokumentStatus.UNEXPECTED_ERROR -> "Prøv på nytt, eller fjern dokumentene som feilet."
+        else -> error("$status is not a failure status")
     }
 
     private fun documentWillGoToCentralPrint(

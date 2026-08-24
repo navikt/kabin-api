@@ -27,11 +27,17 @@ class KlageService(
     fun createKlage(registrering: Registrering): CreatedBehandlingResponse {
         val mulighet = registrering.getCurrentMulighet() ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
 
+        //A klage must always be based on an existing journalpost. Documents uploaded in Kabin are not
+        //supported for klage, and kabal-api rejects it as well.
+        if (registrering.isBasedOnUploadedDocument()) {
+            throw IllegalInputException("Klage kan ikke registreres med opplastede dokumenter. Velg en journalpost.")
+        }
+
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
         val journalpostId = dokArkivService.handleJournalpost(
             registrering = registrering,
-        )
+        ) ?: throw IllegalInputException("Registreringen har ingen journalpost.")
 
         return if (registrering.mulighetIsBasedOnJournalpost) {
             val kabalResponse = CreatedBehandlingResponse(

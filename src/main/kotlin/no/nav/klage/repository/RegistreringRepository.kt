@@ -38,4 +38,17 @@ interface RegistreringRepository : JpaRepository<Registrering, UUID> {
         QueryHint(name = "jakarta.persistence.lock.timeout", value = "20000"),
     )
     override fun findById(id: UUID): Optional<Registrering>
+
+    /**
+     * Plain read without the pessimistic lock that [findById] takes. Needed for read-only
+     * transactions, where Postgres rejects `SELECT ... FOR NO KEY UPDATE`.
+     */
+    @Lock(LockModeType.NONE)
+    @Query(
+        """
+            SELECT r FROM Registrering r 
+            WHERE r.id = :id
+        """
+    )
+    fun findByIdWithoutLock(id: UUID): Registrering?
 }
