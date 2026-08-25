@@ -20,6 +20,7 @@ data class KabalmulighetView(
     val klager: PartViewWithUtsendingskanal?,
     val fullmektig: PartViewWithUtsendingskanal?,
     val previousSaksbehandler: PreviousSaksbehandler?,
+    val kjennelseMottatt: LocalDate?,
 ): MulighetView
 
 data class ExistingBehandlingView(

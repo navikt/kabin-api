@@ -42,6 +42,7 @@ data class MulighetFromKabal(
     val tildeltSaksbehandlerIdent: String?,
     val tildeltSaksbehandlerNavn: String?,
     val gosysOppgaveRequired: Boolean,
+    val kjennelseMottatt: LocalDateTime?,
 )
 
 data class ExistingBehandling(
