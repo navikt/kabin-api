@@ -576,6 +576,7 @@ fun MulighetFromKabal.toMulighet(): Mulighet {
         klageBehandlendeEnhet = klageBehandlendeEnhet,
         currentFagystemTechnicalId = behandlingId.toString(),
         requiresGosysOppgave = gosysOppgaveRequired,
+        kjennelseMottatt = kjennelseMottatt?.toLocalDate(),
     )
 }
 
@@ -714,4 +715,5 @@ fun Mulighet.toKabalmulighetView(): KabalmulighetView =
             )
         },
         requiresGosysOppgave = requiresGosysOppgave,
+        kjennelseMottatt = kjennelseMottatt,
     )
