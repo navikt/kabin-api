@@ -14,6 +14,7 @@ data class KabalmulighetView(
     override var originalFagsystemId: String,
     override val typeId: String,
     override val requiresGosysOppgave: Boolean,
+    override val mulighetTypeId: String,
     val sourceOfExistingBehandlinger: List<ExistingBehandlingView>,
     val ytelseId: String?,
     val hjemmelIdList: List<String>?,
@@ -45,6 +46,7 @@ data class KlagemulighetView(
     override val currentFagsystemId: String,
     override val typeId: String,
     override val requiresGosysOppgave: Boolean,
+    override val mulighetTypeId: String,
     val klageBehandlendeEnhet: String,
 ): MulighetView
 
@@ -58,6 +60,7 @@ interface MulighetView {
     val currentFagsystemId: String
     val typeId: String
     val requiresGosysOppgave: Boolean
+    val mulighetTypeId: String
 }
 
 data class MuligheterView(

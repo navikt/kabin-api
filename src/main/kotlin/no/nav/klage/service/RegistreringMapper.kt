@@ -329,7 +329,7 @@ fun Registrering.getAdditionalKabalMuligheter(): List<KabalmulighetView> {
     val additionalKabalMuligheter =
         muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toMutableList()
     return getMuligheterSorted(additionalKabalMuligheter)
-        .map { it.toKabalmulighetView() }
+        .map { it.toKabalmulighetView(mulighetType = Type.ANKE) }
 }
 
 fun Registrering.toMuligheterView(): MuligheterView {
@@ -374,22 +374,22 @@ fun Registrering.toMuligheterView(): MuligheterView {
 
     val klagemuligheterView = getMuligheterSorted(klagemuligheter)
         .map { klagemulighet ->
-            klagemulighet.toKlagemulighetView()
+            klagemulighet.toKlagemulighetView(mulighetType = Type.KLAGE)
         }
 
     val ankemuligheterView = getMuligheterSorted(ankemuligheter)
         .map { ankemulighet ->
-            ankemulighet.toKabalmulighetView()
+            ankemulighet.toKabalmulighetView(mulighetType = Type.ANKE)
         }
 
     val omgjoeringskravmuligheterView = getMuligheterSorted(omgjoeringskravmuligheter)
         .map { omgjoeringskravmulighet ->
-            omgjoeringskravmulighet.toKabalmulighetView()
+            omgjoeringskravmulighet.toKabalmulighetView(mulighetType = Type.OMGJOERINGSKRAV)
         }
 
     val gjenopptaksmuligheterView = getMuligheterSorted(gjenopptaksmuligheter)
         .map { gjenopptaksmulighet ->
-            gjenopptaksmulighet.toKabalmulighetView()
+            gjenopptaksmulighet.toKabalmulighetView(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK)
         }
 
     return MuligheterView(
@@ -672,7 +672,7 @@ fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal?.toPartWithUtsendi
     }
 }
 
-fun Mulighet.toKlagemulighetView() =
+fun Mulighet.toKlagemulighetView(mulighetType: Type) =
     KlagemulighetView(
         id = id,
         temaId = tema.id,
@@ -684,9 +684,10 @@ fun Mulighet.toKlagemulighetView() =
         typeId = originalType!!.id,
         klageBehandlendeEnhet = klageBehandlendeEnhet,
         requiresGosysOppgave = requiresGosysOppgave,
+        mulighetTypeId = mulighetType.id,
     )
 
-fun Mulighet.toKabalmulighetView(): KabalmulighetView =
+fun Mulighet.toKabalmulighetView(mulighetType: Type): KabalmulighetView =
     KabalmulighetView(
         id = id,
         temaId = tema.id,
@@ -716,4 +717,5 @@ fun Mulighet.toKabalmulighetView(): KabalmulighetView =
         },
         requiresGosysOppgave = requiresGosysOppgave,
         kjennelseMottatt = kjennelseMottatt,
+        mulighetTypeId = mulighetType.id,
     )
