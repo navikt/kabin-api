@@ -1917,6 +1917,7 @@ class RegistreringService(
             typeId = status.typeId,
             ytelseId = status.ytelseId,
             vedtakDate = mulighet.vedtakDate,
+            kjennelseMottatt = mulighet.kjennelseMottatt,
             sakenGjelder = status.sakenGjelder.partViewWithUtsendingskanal(),
             klager = status.klager.partViewWithUtsendingskanal(),
             fullmektig = status.fullmektig?.partViewWithUtsendingskanal(),

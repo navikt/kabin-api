@@ -7,6 +7,7 @@ data class CreatedBehandlingStatusView(
     val typeId: String,
     val ytelseId: String,
     val vedtakDate: LocalDate?,
+    val kjennelseMottatt: LocalDate?,
     val sakenGjelder: PartViewWithUtsendingskanal,
     val klager: PartViewWithUtsendingskanal,
     val fullmektig: PartViewWithUtsendingskanal?,
