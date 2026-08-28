@@ -8,7 +8,7 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class KlageService(
@@ -18,37 +18,40 @@ class KlageService(
     private val kabalApiService: KabalApiService,
     private val gosysOppgaveService: GosysOppgaveService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
     fun createKlage(registrering: Registrering): CreatedBehandlingResponse {
-        val mulighet = registrering.getCurrentMulighet() ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+        val mulighet =
+            registrering.getCurrentMulighet() ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
 
-        //A klage must always be based on an existing journalpost. Documents uploaded in Kabin are not
-        //supported for klage, and kabal-api rejects it as well.
+        // A klage must always be based on an existing journalpost. Documents uploaded in Kabin are not
+        // supported for klage, and kabal-api rejects it as well.
         if (registrering.isBasedOnUploadedDocument()) {
             throw IllegalInputException("Klage kan ikke registreres med opplastede dokumenter. Velg en journalpost.")
         }
 
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
-        val journalpostId = dokArkivService.handleJournalpost(
-            registrering = registrering,
-        ) ?: throw IllegalInputException("Registreringen har ingen journalpost.")
+        val journalpostId =
+            dokArkivService.handleJournalpost(
+                registrering = registrering,
+            ) ?: throw IllegalInputException("Registreringen har ingen journalpost.")
 
         return if (registrering.mulighetIsBasedOnJournalpost) {
-            val kabalResponse = CreatedBehandlingResponse(
-                behandlingId = kabalApiService.createBehandlingBasedOnJournalpost(
-                    journalpostId = journalpostId,
-                    mulighet = mulighet,
-                    registrering = registrering
+            val kabalResponse =
+                CreatedBehandlingResponse(
+                    behandlingId =
+                        kabalApiService.createBehandlingBasedOnJournalpost(
+                            journalpostId = journalpostId,
+                            mulighet = mulighet,
+                            registrering = registrering,
+                        ),
                 )
-            )
             try {
-                //Gosys-oppgave is ensured in validation step.
+                // Gosys-oppgave is ensured in validation step.
                 logger.debug("Attempting Gosys-oppgave update")
                 gosysOppgaveService.updateGosysOppgave(
                     gosysOppgaveId = registrering.gosysOppgaveId!!,
@@ -60,11 +63,12 @@ class KlageService(
             kabalResponse
         } else {
             CreatedBehandlingResponse(
-                behandlingId = createKlageFromInfotrygdSak(
-                    journalpostId = journalpostId,
-                    mulighet = mulighet,
-                    registrering = registrering
-                ),
+                behandlingId =
+                    createKlageFromInfotrygdSak(
+                        journalpostId = journalpostId,
+                        mulighet = mulighet,
+                        registrering = registrering,
+                    ),
             )
         }
     }
@@ -72,18 +76,20 @@ class KlageService(
     private fun createKlageFromInfotrygdSak(
         journalpostId: String,
         mulighet: Mulighet,
-        registrering: Registrering
+        registrering: Registrering,
     ): UUID {
-        val frist = when (registrering.behandlingstidUnitType) {
-            TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
-            TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
-        }
-        val behandlingId = kabalApiService.createKlageFromInfotrygdInput(
-            registrering = registrering,
-            mulighet = mulighet,
-            frist = frist,
-            journalpostId = journalpostId,
-        )
+        val frist =
+            when (registrering.behandlingstidUnitType) {
+                TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
+                TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
+            }
+        val behandlingId =
+            kabalApiService.createKlageFromInfotrygdInput(
+                registrering = registrering,
+                mulighet = mulighet,
+                frist = frist,
+                journalpostId = journalpostId,
+            )
 
         try {
             klageFssProxyService.setToHandledInKabal(
@@ -95,7 +101,7 @@ class KlageService(
         }
 
         try {
-            //Gosys-oppgave is ensured in validation step.
+            // Gosys-oppgave is ensured in validation step.
             logger.debug("Attempting Gosys-oppgave update")
             gosysOppgaveService.updateGosysOppgave(
                 gosysOppgaveId = registrering.gosysOppgaveId!!,

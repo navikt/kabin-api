@@ -11,14 +11,13 @@ import reactor.netty.http.client.HttpClient
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
-
 @Configuration
 class WebClientConfig {
-
     @Bean
     fun reactorNettyHttpClient(): HttpClient {
         val timeoutInSeconds = 100L
-        return HttpClient.create()
+        return HttpClient
+            .create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
             .responseTimeout(Duration.ofSeconds(timeoutInSeconds))
             .doOnConnected { conn ->
@@ -30,13 +29,12 @@ class WebClientConfig {
     @Bean
     fun webClientBuilder(httpClient: HttpClient): WebClient.Builder {
         val connector = ReactorClientHttpConnector(httpClient)
-        return WebClient.builder()
+        return WebClient
+            .builder()
             .codecs { configurer ->
                 configurer
                     .defaultCodecs()
                     .maxInMemorySize(256 * 1024 * 1024)
-            }
-            .clientConnector(connector)
+            }.clientConnector(connector)
     }
-
 }

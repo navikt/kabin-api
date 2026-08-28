@@ -2,7 +2,11 @@ package no.nav.klage.service
 
 import no.nav.klage.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.clients.klageunleashproxy.KlageUnleashProxyClient
-import no.nav.klage.clients.klanke.*
+import no.nav.klage.clients.klanke.Access
+import no.nav.klage.clients.klanke.HandledInKabalInput
+import no.nav.klage.clients.klanke.KlankeClient
+import no.nav.klage.clients.klanke.KlankeSearchInput
+import no.nav.klage.clients.klanke.SakFromKlanke
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
@@ -15,7 +19,6 @@ class KlankeService(
     private val klageUnleashProxyClient: KlageUnleashProxyClient,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -31,31 +34,37 @@ class KlankeService(
         return enabled
     }
 
-    fun searchKlanke(input: KlankeSearchInput, token: String): Mono<List<SakFromKlanke>> {
-        return if (useNewKlanke(navIdent = tokenUtil.getCurrentIdent())) {
+    fun searchKlanke(
+        input: KlankeSearchInput,
+        token: String,
+    ): Mono<List<SakFromKlanke>> =
+        if (useNewKlanke(navIdent = tokenUtil.getCurrentIdent())) {
             klankeClient.searchKlanke(input = input)
         } else {
             klageFssProxyClient.searchKlanke(input = input, token = token)
         }
-    }
 
-    fun getSakAppAccess(sakId: String, saksbehandlerIdent: String): SakFromKlanke {
-        return if (useNewKlanke(navIdent = saksbehandlerIdent)) {
+    fun getSakAppAccess(
+        sakId: String,
+        saksbehandlerIdent: String,
+    ): SakFromKlanke =
+        if (useNewKlanke(navIdent = saksbehandlerIdent)) {
             klankeClient.getSakAppAccess(sakId = sakId, saksbehandlerIdent = saksbehandlerIdent)
         } else {
             klageFssProxyClient.getSakAppAccess(sakId = sakId, saksbehandlerIdent = saksbehandlerIdent)
         }
-    }
 
-    fun checkAccess(): Access {
-        return if (useNewKlanke(navIdent = tokenUtil.getCurrentIdent())) {
+    fun checkAccess(): Access =
+        if (useNewKlanke(navIdent = tokenUtil.getCurrentIdent())) {
             klankeClient.checkAccess()
         } else {
             klageFssProxyClient.checkAccess()
         }
-    }
 
-    fun setToHandledInKabal(sakId: String, input: HandledInKabalInput) {
+    fun setToHandledInKabal(
+        sakId: String,
+        input: HandledInKabalInput,
+    ) {
         if (useNewKlanke(navIdent = tokenUtil.getCurrentIdent())) {
             klankeClient.setToHandledInKabal(sakId = sakId, input = input)
         } else {

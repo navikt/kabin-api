@@ -11,18 +11,16 @@ class KabalInnstillingerClient(
     private val kabalInnstillingerWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
-
-    fun getBrukerdata(): SaksbehandlerView {
-        return kabalInnstillingerWebClient.get()
+    fun getBrukerdata(): SaksbehandlerView =
+        kabalInnstillingerWebClient
+            .get()
             .uri("/me/brukerdata")
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalInnstillingerScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalInnstillingerScope()}",
+            ).retrieve()
             .bodyToMono<SaksbehandlerView>()
             .block() ?: throw RuntimeException("Couldn`t get brukerdata")
-    }
 
     data class SaksbehandlerView(
         val navIdent: String,
@@ -35,6 +33,6 @@ class KabalInnstillingerClient(
     data class EnhetView(
         val id: String,
         val navn: String,
-        val lovligeYtelser: List<String>
+        val lovligeYtelser: List<String>,
     )
 }

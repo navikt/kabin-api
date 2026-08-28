@@ -7,13 +7,11 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 
-
 @Component
 class SafRestClient(
     private val safWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -23,45 +21,50 @@ class SafRestClient(
         dokumentInfoId: String,
         journalpostId: String,
         variantFormat: String,
-    ): ArkivertDokument {
-        return try {
+    ): ArkivertDokument =
+        try {
             runWithTimingAndLogging {
-                safWebClient.get()
+                safWebClient
+                    .get()
                     .uri(
                         "/rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}",
                         journalpostId,
                         dokumentInfoId,
-                        variantFormat
-                    )
-                    .header(
+                        variantFormat,
+                    ).header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithSafScope()}"
-                    )
-                    .retrieve()
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithSafScope()}",
+                    ).retrieve()
                     .toEntity(ByteArray::class.java)
                     .map {
                         val type = it.headers.contentType
                         ArkivertDokument(
                             bytes = it.body ?: throw RuntimeException("no document data"),
-                            contentType = type ?: throw RuntimeException("no content type")
+                            contentType = type ?: throw RuntimeException("no content type"),
                         )
-                    }
-                    .block() ?: throw RuntimeException("no document data returned")
+                    }.block() ?: throw RuntimeException("no document data returned")
             }
         } catch (badRequest: WebClientResponseException.BadRequest) {
-            logger.warn("Got a 400 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
+            logger.warn(
+                "Got a 400 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat",
+            )
             throw badRequest
         } catch (unautorized: WebClientResponseException.Unauthorized) {
-            logger.warn("Got a 401 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
+            logger.warn(
+                "Got a 401 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat",
+            )
             throw unautorized
         } catch (forbidden: WebClientResponseException.Forbidden) {
-            logger.warn("Got a 403 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
+            logger.warn(
+                "Got a 403 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat",
+            )
             throw forbidden
         } catch (notFound: WebClientResponseException.NotFound) {
-            logger.warn("Got a 404 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
+            logger.warn(
+                "Got a 404 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat",
+            )
             throw notFound
         }
-    }
 
     fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
@@ -73,5 +76,3 @@ class SafRestClient(
         }
     }
 }
-
-

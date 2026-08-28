@@ -10,18 +10,18 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient
 
 @Configuration
-class SafClientConfiguration(private val webClientBuilder: WebClient.Builder) {
-
-    @Value("\${SAF_BASE_URL}")
+class SafClientConfiguration(
+    private val webClientBuilder: WebClient.Builder,
+) {
+    @Value($$"${SAF_BASE_URL}")
     private lateinit var safUrl: String
 
     @Bean
-    fun safWebClient(): WebClient {
-        return webClientBuilder
+    fun safWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(safUrl)
             .clientConnector(ReactorClientHttpConnector(HttpClient.newConnection()))
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .build()
-    }
 }

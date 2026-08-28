@@ -1,9 +1,14 @@
 package no.nav.klage.domain.entities
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import no.nav.klage.kodeverk.PartIdType
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "registrering_dokument", schema = "klage")
@@ -44,24 +49,21 @@ class RegistreringDokument(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "RegistreringDokument(id=$id, mellomlagerId='$mellomlagerId', name='$name', size=$size, contentType='$contentType', status=$status, sortIndex=$sortIndex, created=$created)"
-    }
+    override fun toString(): String =
+        "RegistreringDokument(id=$id, mellomlagerId='$mellomlagerId', name='$name', size=$size, contentType='$contentType', status=$status, sortIndex=$sortIndex, created=$created)"
 
     companion object {
-        //Must match MAX_NAME_LENGTH in kabal-api, which is where the name ends up as a DokumentUnderArbeid.
-        //TODO Dokumentløsninger has a TODO for fixing this. As of now it's actually 200 bytes that's the limit.
+        // Must match MAX_NAME_LENGTH in kabal-api, which is where the name ends up as a DokumentUnderArbeid.
+        // TODO Dokumentløsninger has a TODO for fixing this. As of now it's actually 200 bytes that's the limit.
         const val MAX_NAME_LENGTH = 196
 
         /** A fresh set of documents starts here, so there is as much room on either side as possible. */
         const val FIRST_SORT_INDEX = 0.0
 
-        //The range is the safe integer range of a JavaScript number, since that is what the client works
-        //with. Numbers outside it cannot be represented exactly there, and would not survive a round trip.
+        // The range is the safe integer range of a JavaScript number, since that is what the client works
+        // with. Numbers outside it cannot be represented exactly there, and would not survive a round trip.
         const val MIN_SORT_INDEX = -9007199254740991.0
         const val MAX_SORT_INDEX = 9007199254740991.0
 
@@ -157,11 +159,12 @@ enum class DokumentStatus {
 
         private val IN_PROGRESS = setOf(VIRUS_SCANNING, CONVERTING)
 
-        private val RESET_MAP = mapOf(
-            VIRUS_SCAN_FAILED to UPLOADING_DONE,
-            UNEXPECTED_ERROR to UPLOADING_DONE,
-            CONVERSION_FAILED to VIRUS_SCANNING_DONE,
-        )
+        private val RESET_MAP =
+            mapOf(
+                VIRUS_SCAN_FAILED to UPLOADING_DONE,
+                UNEXPECTED_ERROR to UPLOADING_DONE,
+                CONVERSION_FAILED to VIRUS_SCANNING_DONE,
+            )
     }
 }
 
@@ -173,6 +176,7 @@ enum class InngaaendeKanal {
 enum class RegistreringSource {
     JOURNALPOST,
     UPLOADED_DOCUMENTS,
+
     /**
      * Anke received from Trygderetten. Behaves exactly like [UPLOADED_DOCUMENTS], but avsender,
      * inngående kanal and type are given by the source itself and set automatically.

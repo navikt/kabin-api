@@ -10,25 +10,25 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient
 
 @Configuration
-class PdlClientConfiguration(private val webClientBuilder: WebClient.Builder) {
-
-    @Value("\${PDL_BASE_URL}")
+class PdlClientConfiguration(
+    private val webClientBuilder: WebClient.Builder,
+) {
+    @Value($$"${PDL_BASE_URL}")
     private lateinit var pdlUrl: String
 
-    @Value("\${SERVICE_USER_USERNAME}")
+    @Value($$"${SERVICE_USER_USERNAME}")
     private lateinit var username: String
 
     @Bean
-    fun pdlWebClient(): WebClient {
-        return webClientBuilder
+    fun pdlWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(pdlUrl)
             .clientConnector(ReactorClientHttpConnector(HttpClient.newConnection()))
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader("Nav-Consumer-Id", username)
             .defaultHeader("TEMA", "KLA")
-            //Fra behandlingskatalogen
+            // Fra behandlingskatalogen
             .defaultHeader("behandlingsnummer", "B392")
             .build()
-    }
 }

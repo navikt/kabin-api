@@ -4,7 +4,24 @@ import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.api.controller.view.InfotrygdSakIdInput
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
-import no.nav.klage.clients.kabalapi.*
+import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
+import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateResponse
+import no.nav.klage.clients.kabalapi.CreateAnkeBasedOnKabinInput
+import no.nav.klage.clients.kabalapi.CreateBehandlingBasedOnJournalpostInput
+import no.nav.klage.clients.kabalapi.CreateBehandlingBasedOnKabalInput
+import no.nav.klage.clients.kabalapi.CreateKlageBasedOnKabinInput
+import no.nav.klage.clients.kabalapi.CreatedBehandlingStatus
+import no.nav.klage.clients.kabalapi.GosysOppgaveIsDuplicateInput
+import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.clients.kabalapi.MellomlagretDocumentInput
+import no.nav.klage.clients.kabalapi.MulighetFromKabal
+import no.nav.klage.clients.kabalapi.OversendtPartId
+import no.nav.klage.clients.kabalapi.OversendtPartIdType
+import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
+import no.nav.klage.clients.kabalapi.SearchPartView
+import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
+import no.nav.klage.clients.kabalapi.UploadedDocumentInput
+import no.nav.klage.clients.kabalapi.toOversendtPartId
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.RegistreringDokument
@@ -14,7 +31,7 @@ import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 @Service
 class KabalApiService(
@@ -25,58 +42,58 @@ class KabalApiService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun searchPartWithUtsendingskanal(searchPartInput: SearchPartWithUtsendingskanalInput): PartViewWithUtsendingskanal {
-        return kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
-    }
+    fun searchPartWithUtsendingskanal(searchPartInput: SearchPartWithUtsendingskanalInput): PartViewWithUtsendingskanal =
+        kabalApiClient.searchPartWithUtsendingskanal(searchPartInput = searchPartInput)
 
     fun checkBehandlingDuplicate(
         input: BehandlingIsDuplicateInput,
-        token: String
-    ): Mono<BehandlingIsDuplicateResponse> {
-        return kabalApiClient.checkBehandlingDuplicate(input = input, token = token)
-    }
+        token: String,
+    ): Mono<BehandlingIsDuplicateResponse> = kabalApiClient.checkBehandlingDuplicate(input = input, token = token)
 
-    fun getBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatus {
-        return kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
-    }
+    fun getBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatus = kabalApiClient.getBehandlingStatus(behandlingId = behandlingId)
 
-    fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean {
-        return kabalApiClient.checkGosysOppgaveDuplicate(
-            input = GosysOppgaveIsDuplicateInput(gosysOppgaveId = gosysOppgaveId)
+    fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean =
+        kabalApiClient.checkGosysOppgaveDuplicate(
+            input = GosysOppgaveIsDuplicateInput(gosysOppgaveId = gosysOppgaveId),
         )
-    }
 
-    fun searchPart(searchPartInput: SearchPartInput): SearchPartView {
-        return kabalApiClient.searchPart(searchPartInput = searchPartInput)
-    }
+    fun searchPart(searchPartInput: SearchPartInput): SearchPartView = kabalApiClient.searchPart(searchPartInput = searchPartInput)
 
-    fun getAnkemuligheterAsMono(input: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
-        return kabalApiClient.getAnkemuligheterByIdnummer(
+    fun getAnkemuligheterAsMono(
+        input: IdnummerInput,
+        token: String,
+    ): Mono<List<MulighetFromKabal>> =
+        kabalApiClient.getAnkemuligheterByIdnummer(
             idnummerInput = input,
             token = token,
         )
-    }
 
-    fun getOmgjoeringskravmuligheterAsMono(input: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
-        return kabalApiClient.getOmgjoeringskravmuligheterByIdnummer(
+    fun getOmgjoeringskravmuligheterAsMono(
+        input: IdnummerInput,
+        token: String,
+    ): Mono<List<MulighetFromKabal>> =
+        kabalApiClient.getOmgjoeringskravmuligheterByIdnummer(
             idnummerInput = input,
             token = token,
         )
-    }
 
-    fun getGjenopptaksmuligheterAsMono(input: IdnummerInput, token: String): Mono<List<MulighetFromKabal>> {
-        return kabalApiClient.getGjenopptaksmuligheterByIdnummer(
+    fun getGjenopptaksmuligheterAsMono(
+        input: IdnummerInput,
+        token: String,
+    ): Mono<List<MulighetFromKabal>> =
+        kabalApiClient.getGjenopptaksmuligheterByIdnummer(
             idnummerInput = input,
             token = token,
         )
-    }
 
-    fun getKabalMuligheterFromInfotrygdSak(input: InfotrygdSakIdInput, token: String): List<MulighetFromKabal> {
-        return kabalApiClient.getKabalMuligheterFromInfotrygdSak(
+    fun getKabalMuligheterFromInfotrygdSak(
+        input: InfotrygdSakIdInput,
+        token: String,
+    ): List<MulighetFromKabal> =
+        kabalApiClient.getKabalMuligheterFromInfotrygdSak(
             infotrygdSakIdInput = input,
             token = token,
         )
-    }
 
     fun createAnkeFromInfotrygdInput(
         registrering: Registrering,
@@ -85,34 +102,37 @@ class KabalApiService(
         journalpostId: String?,
         additionalKabalMulighet: Mulighet?,
     ): UUID {
-        val svarbrevSettings = getSvarbrevSettings(
-            ytelseId = registrering.ytelse!!.id,
-            typeId = registrering.type!!.id,
-        )
-        return kabalApiClient.createAnkeFromInfotrygdInput(
-            CreateAnkeBasedOnKabinInput(
-                sakenGjelder = OversendtPartId(
-                    type = OversendtPartIdType.PERSON,
-                    value = mulighet.sakenGjelder.part.value
-                ),
-                klager = registrering.klager.toOversendtPartId(),
-                fullmektig = registrering.fullmektig.toOversendtPartId(),
-                fagsakId = mulighet.fagsakId,
-                fagsystemId = mulighet.originalFagsystem.id,
-                hjemmelIdList = registrering.hjemmelIdList,
-                forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
-                ankeJournalpostId = journalpostId,
-                uploadedDocument = registrering.toUploadedDocumentInput(),
-                mottattNav = registrering.mottattKlageinstans!!,
-                frist = frist,
+        val svarbrevSettings =
+            getSvarbrevSettings(
                 ytelseId = registrering.ytelse!!.id,
-                kildereferanse = mulighet.currentFagystemTechnicalId,
-                saksbehandlerIdent = registrering.saksbehandlerIdent,
-                svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
-                gosysOppgaveId = registrering.gosysOppgaveId!!,
-                previousKabalBehandlingId = additionalKabalMulighet?.let { UUID.fromString(it.currentFagystemTechnicalId) },
+                typeId = registrering.type!!.id,
             )
-        ).behandlingId
+        return kabalApiClient
+            .createAnkeFromInfotrygdInput(
+                CreateAnkeBasedOnKabinInput(
+                    sakenGjelder =
+                        OversendtPartId(
+                            type = OversendtPartIdType.PERSON,
+                            value = mulighet.sakenGjelder.part.value,
+                        ),
+                    klager = registrering.klager.toOversendtPartId(),
+                    fullmektig = registrering.fullmektig.toOversendtPartId(),
+                    fagsakId = mulighet.fagsakId,
+                    fagsystemId = mulighet.originalFagsystem.id,
+                    hjemmelIdList = registrering.hjemmelIdList,
+                    forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
+                    ankeJournalpostId = journalpostId,
+                    uploadedDocument = registrering.toUploadedDocumentInput(),
+                    mottattNav = registrering.mottattKlageinstans!!,
+                    frist = frist,
+                    ytelseId = registrering.ytelse!!.id,
+                    kildereferanse = mulighet.currentFagystemTechnicalId,
+                    saksbehandlerIdent = registrering.saksbehandlerIdent,
+                    svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
+                    gosysOppgaveId = registrering.gosysOppgaveId!!,
+                    previousKabalBehandlingId = additionalKabalMulighet?.let { UUID.fromString(it.currentFagystemTechnicalId) },
+                ),
+            ).behandlingId
     }
 
     fun createBehandlingBasedOnJournalpost(
@@ -120,69 +140,76 @@ class KabalApiService(
         mulighet: Mulighet,
         journalpostId: String?,
     ): UUID {
-        val svarbrevSettings = getSvarbrevSettings(
-            ytelseId = registrering.ytelse!!.id,
-            typeId = registrering.type!!.id,
-        )
-        return kabalApiClient.createBehandlingBasedOnJournalpost(
-            CreateBehandlingBasedOnJournalpostInput(
-                typeId = registrering.type!!.id,
-                sakenGjelder = OversendtPartId(
-                    type = OversendtPartIdType.PERSON,
-                    value = mulighet.sakenGjelder.part.value
-                ),
-                klager = registrering.klager.toOversendtPartId(),
-                fullmektig = registrering.fullmektig.toOversendtPartId(),
-                fagsakId = mulighet.fagsakId,
-                fagsystemId = mulighet.originalFagsystem.id,
-                hjemmelIdList = registrering.hjemmelIdList,
-                forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
-                receivedDocumentJournalpostId = journalpostId,
-                uploadedDocument = registrering.toUploadedDocumentInput(),
-                mottattNav = registrering.mottattKlageinstans!!,
-                frist = when (registrering.behandlingstidUnitType) {
-                    TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
-                    TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
-                },
+        val svarbrevSettings =
+            getSvarbrevSettings(
                 ytelseId = registrering.ytelse!!.id,
-                kildereferanse = mulighet.currentFagystemTechnicalId,
-                saksbehandlerIdent = registrering.saksbehandlerIdent,
-                svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
-                //Gosys-oppgave is ensured in validation step.
-                gosysOppgaveId = registrering.gosysOppgaveId!!,
+                typeId = registrering.type!!.id,
             )
-        ).behandlingId
+        return kabalApiClient
+            .createBehandlingBasedOnJournalpost(
+                CreateBehandlingBasedOnJournalpostInput(
+                    typeId = registrering.type!!.id,
+                    sakenGjelder =
+                        OversendtPartId(
+                            type = OversendtPartIdType.PERSON,
+                            value = mulighet.sakenGjelder.part.value,
+                        ),
+                    klager = registrering.klager.toOversendtPartId(),
+                    fullmektig = registrering.fullmektig.toOversendtPartId(),
+                    fagsakId = mulighet.fagsakId,
+                    fagsystemId = mulighet.originalFagsystem.id,
+                    hjemmelIdList = registrering.hjemmelIdList,
+                    forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
+                    receivedDocumentJournalpostId = journalpostId,
+                    uploadedDocument = registrering.toUploadedDocumentInput(),
+                    mottattNav = registrering.mottattKlageinstans!!,
+                    frist =
+                        when (registrering.behandlingstidUnitType) {
+                            TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
+                            TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
+                        },
+                    ytelseId = registrering.ytelse!!.id,
+                    kildereferanse = mulighet.currentFagystemTechnicalId,
+                    saksbehandlerIdent = registrering.saksbehandlerIdent,
+                    svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
+                    // Gosys-oppgave is ensured in validation step.
+                    gosysOppgaveId = registrering.gosysOppgaveId!!,
+                ),
+            ).behandlingId
     }
 
     fun createBehandlingFromKabalInput(
         journalpostId: String?,
         mulighet: Mulighet,
-        registrering: Registrering
+        registrering: Registrering,
     ): UUID {
-        val svarbrevSettings = getSvarbrevSettings(
-            ytelseId = registrering.ytelse!!.id,
-            typeId = registrering.type!!.id,
-        )
-
-        return kabalApiClient.createBehandlingBasedOnKabal(
-            CreateBehandlingBasedOnKabalInput(
-                typeId = mulighet.type.id,
-                sourceBehandlingId = UUID.fromString(mulighet.currentFagystemTechnicalId),
-                mottattNav = registrering.mottattKlageinstans!!,
-                frist = when (registrering.behandlingstidUnitType) {
-                    TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
-                    TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
-                },
-                klager = registrering.klager.toOversendtPartId(),
-                fullmektig = registrering.fullmektig.toOversendtPartId(),
-                receivedDocumentJournalpostId = journalpostId,
-                uploadedDocument = registrering.toUploadedDocumentInput(),
-                saksbehandlerIdent = registrering.saksbehandlerIdent,
-                svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
-                hjemmelIdList = registrering.hjemmelIdList,
-                gosysOppgaveId = registrering.gosysOppgaveId,
+        val svarbrevSettings =
+            getSvarbrevSettings(
+                ytelseId = registrering.ytelse!!.id,
+                typeId = registrering.type!!.id,
             )
-        ).behandlingId
+
+        return kabalApiClient
+            .createBehandlingBasedOnKabal(
+                CreateBehandlingBasedOnKabalInput(
+                    typeId = mulighet.type.id,
+                    sourceBehandlingId = UUID.fromString(mulighet.currentFagystemTechnicalId),
+                    mottattNav = registrering.mottattKlageinstans!!,
+                    frist =
+                        when (registrering.behandlingstidUnitType) {
+                            TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
+                            TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
+                        },
+                    klager = registrering.klager.toOversendtPartId(),
+                    fullmektig = registrering.fullmektig.toOversendtPartId(),
+                    receivedDocumentJournalpostId = journalpostId,
+                    uploadedDocument = registrering.toUploadedDocumentInput(),
+                    saksbehandlerIdent = registrering.saksbehandlerIdent,
+                    svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
+                    hjemmelIdList = registrering.hjemmelIdList,
+                    gosysOppgaveId = registrering.gosysOppgaveId,
+                ),
+            ).behandlingId
     }
 
     fun createKlageFromInfotrygdInput(
@@ -191,69 +218,76 @@ class KabalApiService(
         mulighet: Mulighet,
         journalpostId: String,
     ): UUID {
-        val svarbrevSettings = getSvarbrevSettings(
-            ytelseId = registrering.ytelse!!.id,
-            typeId = registrering.type!!.id,
-        )
-
-        return kabalApiClient.createKlage(
-            input = CreateKlageBasedOnKabinInput(
-                sakenGjelder = OversendtPartId(
-                    type = OversendtPartIdType.PERSON,
-                    value = mulighet.sakenGjelder.part.value,
-                ),
-                klager = registrering.klager.toOversendtPartId(),
-                fullmektig = registrering.fullmektig.toOversendtPartId(),
-                fagsakId = mulighet.fagsakId,
-                fagsystemId = mulighet.originalFagsystem.id,
-                hjemmelIdList = registrering.hjemmelIdList,
-                forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
-                klageJournalpostId = journalpostId,
-                brukersHenvendelseMottattNav = registrering.mottattVedtaksinstans!!,
-                sakMottattKa = registrering.mottattKlageinstans!!,
-                frist = frist,
+        val svarbrevSettings =
+            getSvarbrevSettings(
                 ytelseId = registrering.ytelse!!.id,
-                kildereferanse = mulighet.currentFagystemTechnicalId,
-                saksbehandlerIdent = registrering.saksbehandlerIdent,
-                //Gosys-oppgave is ensured in validation step.
-                gosysOppgaveId = registrering.gosysOppgaveId!!,
-                svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
+                typeId = registrering.type!!.id,
             )
-        ).behandlingId
+
+        return kabalApiClient
+            .createKlage(
+                input =
+                    CreateKlageBasedOnKabinInput(
+                        sakenGjelder =
+                            OversendtPartId(
+                                type = OversendtPartIdType.PERSON,
+                                value = mulighet.sakenGjelder.part.value,
+                            ),
+                        klager = registrering.klager.toOversendtPartId(),
+                        fullmektig = registrering.fullmektig.toOversendtPartId(),
+                        fagsakId = mulighet.fagsakId,
+                        fagsystemId = mulighet.originalFagsystem.id,
+                        hjemmelIdList = registrering.hjemmelIdList,
+                        forrigeBehandlendeEnhet = registrering.forrigeBehandlendeEnhetId!!,
+                        klageJournalpostId = journalpostId,
+                        brukersHenvendelseMottattNav = registrering.mottattVedtaksinstans!!,
+                        sakMottattKa = registrering.mottattKlageinstans!!,
+                        frist = frist,
+                        ytelseId = registrering.ytelse!!.id,
+                        kildereferanse = mulighet.currentFagystemTechnicalId,
+                        saksbehandlerIdent = registrering.saksbehandlerIdent,
+                        // Gosys-oppgave is ensured in validation step.
+                        gosysOppgaveId = registrering.gosysOppgaveId!!,
+                        svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
+                    ),
+            ).behandlingId
     }
 
-    fun getUsedJournalpostIdListForPerson(fnr: String): List<String> {
-        return kabalApiClient.getUsedJournalpostIdListForPerson(fnr = fnr)
-    }
+    fun getUsedJournalpostIdListForPerson(fnr: String): List<String> = kabalApiClient.getUsedJournalpostIdListForPerson(fnr = fnr)
 
-    fun getSvarbrevSettings(ytelseId: String, typeId: String): SvarbrevSettingsView {
-        return kabalApiClient.getSvarbrevSettings(ytelseId = ytelseId, typeId = typeId)
-    }
+    fun getSvarbrevSettings(
+        ytelseId: String,
+        typeId: String,
+    ): SvarbrevSettingsView = kabalApiClient.getSvarbrevSettings(ytelseId = ytelseId, typeId = typeId)
 
     private fun Registrering.toUploadedDocumentInput(): UploadedDocumentInput? {
         if (!isBasedOnUploadedDocument()) return null
-        //kabal-api still splits the documents into a hoveddokument and its vedlegg. Internally we only
-        //have one ordered list, where the first document is the hoveddokument.
+        // kabal-api still splits the documents into a hoveddokument and its vedlegg. Internally we only
+        // have one ordered list, where the first document is the hoveddokument.
         val dokumenter = getSortedDoneDokumenter()
-        val hoveddokument = dokumenter.firstOrNull()
-            ?: throw IllegalInputException("Minst ett dokument må være lastet opp.")
+        val hoveddokument =
+            dokumenter.firstOrNull()
+                ?: throw IllegalInputException("Minst ett dokument må være lastet opp.")
         return UploadedDocumentInput(
-            avsender = avsender.toOversendtPartId()
-                ?: throw IllegalInputException("Avsender må være satt når dokument lastes opp."),
-            inngaaendeKanal = inngaaendeKanal
-                ?: throw IllegalInputException("Inngående kanal må være satt når dokument lastes opp."),
+            avsender =
+                avsender.toOversendtPartId()
+                    ?: throw IllegalInputException("Avsender må være satt når dokument lastes opp."),
+            inngaaendeKanal =
+                inngaaendeKanal
+                    ?: throw IllegalInputException("Inngående kanal må være satt når dokument lastes opp."),
             hoveddokument = hoveddokument.toMellomlagretDocumentInput(sortIndex = null),
-            vedlegg = dokumenter.drop(1).map { vedlegg ->
-                vedlegg.toMellomlagretDocumentInput(sortIndex = vedlegg.sortIndex)
-            },
+            vedlegg =
+                dokumenter.drop(1).map { vedlegg ->
+                    vedlegg.toMellomlagretDocumentInput(sortIndex = vedlegg.sortIndex)
+                },
         )
     }
 
-    private fun RegistreringDokument.toMellomlagretDocumentInput(sortIndex: Double?) = MellomlagretDocumentInput(
-        mellomlagerId = mellomlagerId!!,
-        name = name,
-        size = size,
-        sortIndex = sortIndex,
-    )
-
+    private fun RegistreringDokument.toMellomlagretDocumentInput(sortIndex: Double?) =
+        MellomlagretDocumentInput(
+            mellomlagerId = mellomlagerId!!,
+            name = name,
+            size = size,
+            sortIndex = sortIndex,
+        )
 }

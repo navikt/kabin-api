@@ -39,35 +39,35 @@ data class GosysOppgaveRecord(
     val orgnr: String?,
 )
 
-enum class Status(val statusId: Long) {
-
+enum class Status(
+    val statusId: Long,
+) {
     OPPRETTET(1),
     AAPNET(2),
     UNDER_BEHANDLING(3),
     FERDIGSTILT(4),
-    FEILREGISTRERT(5);
+    FEILREGISTRERT(5),
+    ;
 
     companion object {
-
-        fun of(statusId: Long): Status {
-            return entries.firstOrNull { it.statusId == statusId }
+        fun of(statusId: Long): Status =
+            entries.firstOrNull { it.statusId == statusId }
                 ?: throw IllegalArgumentException("No status with $statusId exists")
-        }
     }
 }
 
 enum class Prioritet {
     HOY,
     NORM,
-    LAV
+    LAV,
 }
 
 enum class Statuskategori {
     AAPEN,
-    AVSLUTTET;
+    AVSLUTTET,
 }
 
 data class GosysOppgaveResponse(
     val antallTreffTotalt: Int,
-    val oppgaver: List<GosysOppgaveRecord>
+    val oppgaver: List<GosysOppgaveRecord>,
 )

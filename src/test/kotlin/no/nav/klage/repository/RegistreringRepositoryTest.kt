@@ -1,8 +1,20 @@
 package no.nav.klage.repository
 
 import no.nav.klage.db.PostgresIntegrationTestBase
-import no.nav.klage.domain.entities.*
-import no.nav.klage.kodeverk.*
+import no.nav.klage.domain.entities.Address
+import no.nav.klage.domain.entities.ExistingBehandling
+import no.nav.klage.domain.entities.HandlingEnum
+import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.domain.entities.PartId
+import no.nav.klage.domain.entities.PartStatus
+import no.nav.klage.domain.entities.PartWithUtsendingskanal
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.SvarbrevReceiver
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -13,11 +25,11 @@ import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
-class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
+class RegistreringRepositoryTest : PostgresIntegrationTestBase() {
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
@@ -26,174 +38,194 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
 
     @Test
     fun `store all values in registrering works`() {
-        val klagemulighet = Mulighet(
-            sakenGjelder = PartWithUtsendingskanal(
-                part = PartId(
-                    type = PartIdType.PERSON,
-                    value = "12345678910"
-                ),
-                address = Address(
-                    adresselinje1 = "addressLine1",
-                    adresselinje2 = "addressLine2",
-                    adresselinje3 = "addressLine3",
-                    postnummer = "1234",
-                    poststed = "Oslo",
-                    landkode = "NO",
-                ),
-                name = "Ollie Walters",
-                available = true,
-                language = "NO",
-                utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO
-            ),
-            klager = PartWithUtsendingskanal(
-                part = PartId(
-                    type = PartIdType.PERSON,
-                    value = "22345678911"
-                ),
-                address = Address(
-                    adresselinje1 = "addressLine1",
-                    adresselinje2 = "addressLine2",
-                    adresselinje3 = "addressLine3",
-                    postnummer = "1234",
-                    poststed = "Oslo",
-                    landkode = "NO",
-                ),
-                name = "Ollie Walters Klager",
-                available = true,
-                language = "NO",
-                utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO
-            ),
-            fullmektig = PartWithUtsendingskanal(
-                part = PartId(
-                    type = PartIdType.PERSON,
-                    value = "32345678912"
-                ),
-                address = Address(
-                    adresselinje1 = "addressLine1",
-                    adresselinje2 = "addressLine2",
-                    adresselinje3 = "addressLine3",
-                    postnummer = "1234",
-                    poststed = "Oslo",
-                    landkode = "NO",
-                ),
-                name = "Ollie Walters Fullmektig",
-                available = true,
-                language = "NO",
-                utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO
-            ),
-            currentFagsystem = Fagsystem.KABAL,
-            originalFagsystem = Fagsystem.FS36,
-            fagsakId = "ceteros",
-            tema = Tema.FOR,
-            vedtakDate = null,
-            ytelse = Ytelse.FOR_FOR,
-            hjemmelIdList = listOf("123", "456"),
-            previousSaksbehandlerIdent = "S123456",
-            previousSaksbehandlerName = "Sakbehandler Navn",
-            type = Type.ANKE,
-            originalType = Type.ANKE,
-            klageBehandlendeEnhet = "4200",
-            currentFagystemTechnicalId = UUID.randomUUID().toString(),
-            existingBehandlingList = mutableSetOf(
-                ExistingBehandling(
-                    typeId = Type.ANKE.id,
-                    behandlingId = UUID.randomUUID(),
-                    created = LocalDateTime.now(),
-                    completed = LocalDateTime.now().plusDays(1)
-                )
-            ),
-            sakenGjelderStatusList = mutableSetOf(
-                PartStatus(
-                    status = PartStatus.Status.FORTROLIG,
-                    date = LocalDate.now()
-                )
-            ),
-            klagerStatusList = mutableSetOf(
-                PartStatus(
-                    status = PartStatus.Status.DELETED,
-                    date = LocalDate.now()
-                )
-            ),
-            fullmektigStatusList = mutableSetOf(
-                PartStatus(
-                    status = PartStatus.Status.DEAD,
-                    date = LocalDate.now()
-                )
-            ),
-            requiresGosysOppgave = false,
-        )
-
-        val registrering = testEntityManager.persistAndFlush(
-            Registrering(
-                sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678910"),
-                klager = PartId(type = PartIdType.PERSON, value = "22345678910"),
-                fullmektig = PartId(type = PartIdType.PERSON, value = "32345678910"),
-                avsender = PartId(type = PartIdType.PERSON, value = "42345678910"),
-                journalpostId = "123456789",
-                journalpostDatoOpprettet = LocalDate.now(),
-                type = Type.KLAGE,
-                mulighetIsBasedOnJournalpost = false,
-                mulighetId = klagemulighet.id,
-                additionalKabalMulighetId = null,
-                mottattVedtaksinstans = LocalDate.now(),
-                mottattKlageinstans = LocalDate.now(),
-                behandlingstidUnits = 12,
-                behandlingstidUnitType = TimeUnitType.WEEKS,
-                hjemmelIdList = listOf("123", "456"),
-                ytelse = Ytelse.OMS_PSB,
-                forrigeBehandlendeEnhetId = "4200",
-                saksbehandlerIdent = "S223456",
-                gosysOppgaveId = 923456789,
-                sendSvarbrev = true,
-                overrideSvarbrevBehandlingstid = true,
-                overrideSvarbrevCustomText = true,
-                svarbrevTitle = "a title",
-                svarbrevCustomText = "custom text",
-                svarbrevInitialCustomText = "initial custom text",
-                svarbrevBehandlingstidUnits = 5,
-                svarbrevBehandlingstidUnitType = TimeUnitType.MONTHS,
-                svarbrevFullmektigFritekst = "fullmektig fritekst",
-                svarbrevReceivers = mutableSetOf(
-                    SvarbrevReceiver(
-                        part = PartId(
-                            type = PartIdType.PERSON,
-                            value = "52345678910"
-                        ),
-                        handling = HandlingEnum.AUTO,
-                        overriddenAddress = Address(
-                            adresselinje1 = "addressLine1",
-                            adresselinje2 = "addressLine2",
-                            adresselinje3 = "addressLine3",
-                            postnummer = "1234",
-                            poststed = "Oslo",
-                            landkode = "NO"
-                        )
+        val klagemulighet =
+            Mulighet(
+                sakenGjelder =
+                    PartWithUtsendingskanal(
+                        part =
+                            PartId(
+                                type = PartIdType.PERSON,
+                                value = "12345678910",
+                            ),
+                        address =
+                            Address(
+                                adresselinje1 = "addressLine1",
+                                adresselinje2 = "addressLine2",
+                                adresselinje3 = "addressLine3",
+                                postnummer = "1234",
+                                poststed = "Oslo",
+                                landkode = "NO",
+                            ),
+                        name = "Ollie Walters",
+                        available = true,
+                        language = "NO",
+                        utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO,
                     ),
-                    SvarbrevReceiver(
-                        part = PartId(
-                            type = PartIdType.VIRKSOMHET,
-                            value = "123456789"
+                klager =
+                    PartWithUtsendingskanal(
+                        part =
+                            PartId(
+                                type = PartIdType.PERSON,
+                                value = "22345678911",
+                            ),
+                        address =
+                            Address(
+                                adresselinje1 = "addressLine1",
+                                adresselinje2 = "addressLine2",
+                                adresselinje3 = "addressLine3",
+                                postnummer = "1234",
+                                poststed = "Oslo",
+                                landkode = "NO",
+                            ),
+                        name = "Ollie Walters Klager",
+                        available = true,
+                        language = "NO",
+                        utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO,
+                    ),
+                fullmektig =
+                    PartWithUtsendingskanal(
+                        part =
+                            PartId(
+                                type = PartIdType.PERSON,
+                                value = "32345678912",
+                            ),
+                        address =
+                            Address(
+                                adresselinje1 = "addressLine1",
+                                adresselinje2 = "addressLine2",
+                                adresselinje3 = "addressLine3",
+                                postnummer = "1234",
+                                poststed = "Oslo",
+                                landkode = "NO",
+                            ),
+                        name = "Ollie Walters Fullmektig",
+                        available = true,
+                        language = "NO",
+                        utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO,
+                    ),
+                currentFagsystem = Fagsystem.KABAL,
+                originalFagsystem = Fagsystem.FS36,
+                fagsakId = "ceteros",
+                tema = Tema.FOR,
+                vedtakDate = null,
+                ytelse = Ytelse.FOR_FOR,
+                hjemmelIdList = listOf("123", "456"),
+                previousSaksbehandlerIdent = "S123456",
+                previousSaksbehandlerName = "Sakbehandler Navn",
+                type = Type.ANKE,
+                originalType = Type.ANKE,
+                klageBehandlendeEnhet = "4200",
+                currentFagystemTechnicalId = UUID.randomUUID().toString(),
+                existingBehandlingList =
+                    mutableSetOf(
+                        ExistingBehandling(
+                            typeId = Type.ANKE.id,
+                            behandlingId = UUID.randomUUID(),
+                            created = LocalDateTime.now(),
+                            completed = LocalDateTime.now().plusDays(1),
                         ),
-                        handling = HandlingEnum.AUTO,
-                        overriddenAddress = Address(
-                            adresselinje1 = "addr",
-                            adresselinje2 = "rsdtdstst",
-                            adresselinje3 = "addressdthdthdthsLine3",
-                            postnummer = "0123",
-                            poststed = "Oslo",
-                            landkode = "NO"
-                        )
-                    )
-                ),
-                createdBy = "S123456",
-                finished = LocalDateTime.now(),
-                behandlingId = UUID.randomUUID(),
-                willCreateNewJournalpost = false,
-                muligheterFetched = LocalDateTime.now(),
-                muligheter = mutableSetOf(klagemulighet),
-                reasonNoLetter = null,
+                    ),
+                sakenGjelderStatusList =
+                    mutableSetOf(
+                        PartStatus(
+                            status = PartStatus.Status.FORTROLIG,
+                            date = LocalDate.now(),
+                        ),
+                    ),
+                klagerStatusList =
+                    mutableSetOf(
+                        PartStatus(
+                            status = PartStatus.Status.DELETED,
+                            date = LocalDate.now(),
+                        ),
+                    ),
+                fullmektigStatusList =
+                    mutableSetOf(
+                        PartStatus(
+                            status = PartStatus.Status.DEAD,
+                            date = LocalDate.now(),
+                        ),
+                    ),
+                requiresGosysOppgave = false,
             )
-        )
+
+        val registrering =
+            testEntityManager.persistAndFlush(
+                Registrering(
+                    sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678910"),
+                    klager = PartId(type = PartIdType.PERSON, value = "22345678910"),
+                    fullmektig = PartId(type = PartIdType.PERSON, value = "32345678910"),
+                    avsender = PartId(type = PartIdType.PERSON, value = "42345678910"),
+                    journalpostId = "123456789",
+                    journalpostDatoOpprettet = LocalDate.now(),
+                    type = Type.KLAGE,
+                    mulighetIsBasedOnJournalpost = false,
+                    mulighetId = klagemulighet.id,
+                    additionalKabalMulighetId = null,
+                    mottattVedtaksinstans = LocalDate.now(),
+                    mottattKlageinstans = LocalDate.now(),
+                    behandlingstidUnits = 12,
+                    behandlingstidUnitType = TimeUnitType.WEEKS,
+                    hjemmelIdList = listOf("123", "456"),
+                    ytelse = Ytelse.OMS_PSB,
+                    forrigeBehandlendeEnhetId = "4200",
+                    saksbehandlerIdent = "S223456",
+                    gosysOppgaveId = 923456789,
+                    sendSvarbrev = true,
+                    overrideSvarbrevBehandlingstid = true,
+                    overrideSvarbrevCustomText = true,
+                    svarbrevTitle = "a title",
+                    svarbrevCustomText = "custom text",
+                    svarbrevInitialCustomText = "initial custom text",
+                    svarbrevBehandlingstidUnits = 5,
+                    svarbrevBehandlingstidUnitType = TimeUnitType.MONTHS,
+                    svarbrevFullmektigFritekst = "fullmektig fritekst",
+                    svarbrevReceivers =
+                        mutableSetOf(
+                            SvarbrevReceiver(
+                                part =
+                                    PartId(
+                                        type = PartIdType.PERSON,
+                                        value = "52345678910",
+                                    ),
+                                handling = HandlingEnum.AUTO,
+                                overriddenAddress =
+                                    Address(
+                                        adresselinje1 = "addressLine1",
+                                        adresselinje2 = "addressLine2",
+                                        adresselinje3 = "addressLine3",
+                                        postnummer = "1234",
+                                        poststed = "Oslo",
+                                        landkode = "NO",
+                                    ),
+                            ),
+                            SvarbrevReceiver(
+                                part =
+                                    PartId(
+                                        type = PartIdType.VIRKSOMHET,
+                                        value = "123456789",
+                                    ),
+                                handling = HandlingEnum.AUTO,
+                                overriddenAddress =
+                                    Address(
+                                        adresselinje1 = "addr",
+                                        adresselinje2 = "rsdtdstst",
+                                        adresselinje3 = "addressdthdthdthsLine3",
+                                        postnummer = "0123",
+                                        poststed = "Oslo",
+                                        landkode = "NO",
+                                    ),
+                            ),
+                        ),
+                    createdBy = "S123456",
+                    finished = LocalDateTime.now(),
+                    behandlingId = UUID.randomUUID(),
+                    willCreateNewJournalpost = false,
+                    muligheterFetched = LocalDateTime.now(),
+                    muligheter = mutableSetOf(klagemulighet),
+                    reasonNoLetter = null,
+                ),
+            )
 
         testEntityManager.clear()
 
@@ -226,13 +258,13 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
         assertThat(registreringFromDb.svarbrevFullmektigFritekst).isEqualTo(registrering.svarbrevFullmektigFritekst)
         assertThat(registreringFromDb.created.truncatedTo(ChronoUnit.MILLIS)).isEqualTo(
             registrering.created.truncatedTo(
-                ChronoUnit.MILLIS
-            )
+                ChronoUnit.MILLIS,
+            ),
         )
         assertThat(registreringFromDb.modified.truncatedTo(ChronoUnit.MILLIS)).isEqualTo(
             registrering.modified.truncatedTo(
-                ChronoUnit.MILLIS
-            )
+                ChronoUnit.MILLIS,
+            ),
         )
         assertThat(registreringFromDb.createdBy).isEqualTo(registrering.createdBy)
 
@@ -244,22 +276,64 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
         assertThat(firstSvarbrevReceiver.id).isEqualTo(registrering.svarbrevReceivers.first().id)
         assertThat(firstSvarbrevReceiver.part).isEqualTo(registrering.svarbrevReceivers.first().part)
         assertThat(firstSvarbrevReceiver.handling).isEqualTo(registrering.svarbrevReceivers.first().handling)
-        assertThat(firstSvarbrevReceiver.overriddenAddress!!.adresselinje1).isEqualTo(registrering.svarbrevReceivers.first().overriddenAddress!!.adresselinje1)
-        assertThat(firstSvarbrevReceiver.overriddenAddress!!.postnummer).isEqualTo(registrering.svarbrevReceivers.first().overriddenAddress!!.postnummer)
-        assertThat(firstSvarbrevReceiver.overriddenAddress!!.landkode).isEqualTo(registrering.svarbrevReceivers.first().overriddenAddress!!.landkode)
+        assertThat(
+            firstSvarbrevReceiver.overriddenAddress!!.adresselinje1,
+        ).isEqualTo(
+            registrering.svarbrevReceivers
+                .first()
+                .overriddenAddress!!
+                .adresselinje1,
+        )
+        assertThat(
+            firstSvarbrevReceiver.overriddenAddress!!.postnummer,
+        ).isEqualTo(
+            registrering.svarbrevReceivers
+                .first()
+                .overriddenAddress!!
+                .postnummer,
+        )
+        assertThat(
+            firstSvarbrevReceiver.overriddenAddress!!.landkode,
+        ).isEqualTo(
+            registrering.svarbrevReceivers
+                .first()
+                .overriddenAddress!!
+                .landkode,
+        )
 
         assertThat(secondSvarbrevReceiver.id).isEqualTo(registrering.svarbrevReceivers.last().id)
         assertThat(secondSvarbrevReceiver.part).isEqualTo(registrering.svarbrevReceivers.last().part)
         assertThat(secondSvarbrevReceiver.handling).isEqualTo(registrering.svarbrevReceivers.last().handling)
-        assertThat(secondSvarbrevReceiver.overriddenAddress!!.adresselinje1).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.adresselinje1)
-        assertThat(secondSvarbrevReceiver.overriddenAddress!!.postnummer).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.postnummer)
-        assertThat(secondSvarbrevReceiver.overriddenAddress!!.landkode).isEqualTo(registrering.svarbrevReceivers.last().overriddenAddress!!.landkode)
+        assertThat(
+            secondSvarbrevReceiver.overriddenAddress!!.adresselinje1,
+        ).isEqualTo(
+            registrering.svarbrevReceivers
+                .last()
+                .overriddenAddress!!
+                .adresselinje1,
+        )
+        assertThat(
+            secondSvarbrevReceiver.overriddenAddress!!.postnummer,
+        ).isEqualTo(
+            registrering.svarbrevReceivers
+                .last()
+                .overriddenAddress!!
+                .postnummer,
+        )
+        assertThat(
+            secondSvarbrevReceiver.overriddenAddress!!.landkode,
+        ).isEqualTo(
+            registrering.svarbrevReceivers
+                .last()
+                .overriddenAddress!!
+                .landkode,
+        )
 
-        //assert muligheter
+        // assert muligheter
         assertThat(registreringFromDb.muligheterFetched?.truncatedTo(ChronoUnit.MILLIS)!!).isEqualTo(
             registrering.muligheterFetched?.truncatedTo(
-                ChronoUnit.MILLIS
-            )
+                ChronoUnit.MILLIS,
+            ),
         )
         assertThat(registreringFromDb.muligheter).hasSize(1)
         assertThat(registreringFromDb.muligheter.first().id).isEqualTo(klagemulighet.id)
@@ -297,53 +371,59 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
                 svarbrevBehandlingstidUnits = 5,
                 svarbrevBehandlingstidUnitType = TimeUnitType.MONTHS,
                 svarbrevFullmektigFritekst = "fullmektig fritekst",
-                svarbrevReceivers = mutableSetOf(
-                    SvarbrevReceiver(
-                        part = PartId(
-                            type = PartIdType.PERSON,
-                            value = "52345678910"
+                svarbrevReceivers =
+                    mutableSetOf(
+                        SvarbrevReceiver(
+                            part =
+                                PartId(
+                                    type = PartIdType.PERSON,
+                                    value = "52345678910",
+                                ),
+                            handling = HandlingEnum.AUTO,
+                            overriddenAddress =
+                                Address(
+                                    adresselinje1 = "addressLine1",
+                                    adresselinje2 = "addressLine2",
+                                    adresselinje3 = "addressLine3",
+                                    postnummer = "1234",
+                                    poststed = "Oslo",
+                                    landkode = "NO",
+                                ),
                         ),
-                        handling = HandlingEnum.AUTO,
-                        overriddenAddress = Address(
-                            adresselinje1 = "addressLine1",
-                            adresselinje2 = "addressLine2",
-                            adresselinje3 = "addressLine3",
-                            postnummer = "1234",
-                            poststed = "Oslo",
-                            landkode = "NO"
-                        )
+                        SvarbrevReceiver(
+                            part =
+                                PartId(
+                                    type = PartIdType.VIRKSOMHET,
+                                    value = "123456789",
+                                ),
+                            handling = HandlingEnum.AUTO,
+                            overriddenAddress =
+                                Address(
+                                    adresselinje1 = "addr",
+                                    adresselinje2 = "rsdtdstst",
+                                    adresselinje3 = "addressdthdthdthsLine3",
+                                    postnummer = "0123",
+                                    poststed = "Oslo",
+                                    landkode = "NO",
+                                ),
+                        ),
                     ),
-                    SvarbrevReceiver(
-                        part = PartId(
-                            type = PartIdType.VIRKSOMHET,
-                            value = "123456789"
-                        ),
-                        handling = HandlingEnum.AUTO,
-                        overriddenAddress = Address(
-                            adresselinje1 = "addr",
-                            adresselinje2 = "rsdtdstst",
-                            adresselinje3 = "addressdthdthdthsLine3",
-                            postnummer = "0123",
-                            poststed = "Oslo",
-                            landkode = "NO"
-                        )
-                    )
-                ),
                 createdBy = "S223456",
                 finished = LocalDateTime.now(),
                 behandlingId = UUID.randomUUID(),
                 willCreateNewJournalpost = false,
                 muligheterFetched = LocalDateTime.now(),
                 reasonNoLetter = null,
-            )
+            ),
         )
 
         testEntityManager.clear()
 
-        val registreringerFromDb = registreringRepository.findFerdigeRegistreringer(
-            navIdent = "S223456",
-            finishedFrom = LocalDateTime.now().minusDays(1)
-        )
+        val registreringerFromDb =
+            registreringRepository.findFerdigeRegistreringer(
+                navIdent = "S223456",
+                finishedFrom = LocalDateTime.now().minusDays(1),
+            )
 
         assertThat(registreringerFromDb).hasSize(1)
     }
@@ -380,45 +460,50 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
                 svarbrevBehandlingstidUnits = 5,
                 svarbrevBehandlingstidUnitType = TimeUnitType.MONTHS,
                 svarbrevFullmektigFritekst = "fullmektig fritekst",
-                svarbrevReceivers = mutableSetOf(
-                    SvarbrevReceiver(
-                        part = PartId(
-                            type = PartIdType.PERSON,
-                            value = "52345678910"
+                svarbrevReceivers =
+                    mutableSetOf(
+                        SvarbrevReceiver(
+                            part =
+                                PartId(
+                                    type = PartIdType.PERSON,
+                                    value = "52345678910",
+                                ),
+                            handling = HandlingEnum.AUTO,
+                            overriddenAddress =
+                                Address(
+                                    adresselinje1 = "addressLine1",
+                                    adresselinje2 = "addressLine2",
+                                    adresselinje3 = "addressLine3",
+                                    postnummer = "1234",
+                                    poststed = "Oslo",
+                                    landkode = "NO",
+                                ),
                         ),
-                        handling = HandlingEnum.AUTO,
-                        overriddenAddress = Address(
-                            adresselinje1 = "addressLine1",
-                            adresselinje2 = "addressLine2",
-                            adresselinje3 = "addressLine3",
-                            postnummer = "1234",
-                            poststed = "Oslo",
-                            landkode = "NO"
-                        )
+                        SvarbrevReceiver(
+                            part =
+                                PartId(
+                                    type = PartIdType.VIRKSOMHET,
+                                    value = "123456789",
+                                ),
+                            handling = HandlingEnum.AUTO,
+                            overriddenAddress =
+                                Address(
+                                    adresselinje1 = "addr",
+                                    adresselinje2 = "rsdtdstst",
+                                    adresselinje3 = "addressdthdthdthsLine3",
+                                    postnummer = "0123",
+                                    poststed = "Oslo",
+                                    landkode = "NO",
+                                ),
+                        ),
                     ),
-                    SvarbrevReceiver(
-                        part = PartId(
-                            type = PartIdType.VIRKSOMHET,
-                            value = "123456789"
-                        ),
-                        handling = HandlingEnum.AUTO,
-                        overriddenAddress = Address(
-                            adresselinje1 = "addr",
-                            adresselinje2 = "rsdtdstst",
-                            adresselinje3 = "addressdthdthdthsLine3",
-                            postnummer = "0123",
-                            poststed = "Oslo",
-                            landkode = "NO"
-                        )
-                    )
-                ),
                 createdBy = "S223456",
                 finished = null,
                 behandlingId = null,
                 willCreateNewJournalpost = false,
                 muligheterFetched = LocalDateTime.now(),
                 reasonNoLetter = null,
-            )
+            ),
         )
 
         testEntityManager.clear()
@@ -427,6 +512,4 @@ class RegistreringRepositoryTest: PostgresIntegrationTestBase() {
 
         assertThat(registreringerFromDb).hasSize(1)
     }
-
-
 }

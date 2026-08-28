@@ -2,7 +2,7 @@ package no.nav.klage.clients.kabalapi
 
 import no.nav.klage.domain.entities.InngaaendeKanal
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 data class UploadedDocumentInput(
     val avsender: OversendtPartId,
@@ -40,7 +40,7 @@ data class CreateBehandlingBasedOnKabalInput(
 data class BehandlingIsDuplicateInput(
     val fagsystemId: String,
     val kildereferanse: String,
-    val typeId: String
+    val typeId: String,
 )
 
 data class GosysOppgaveIsDuplicateInput(
@@ -116,8 +116,7 @@ data class SvarbrevInput(
     val varsletBehandlingstidUnitTypeId: String,
     val doNotSendLetter: Boolean,
     val reasonNoLetter: String?,
-
-    ) {
+) {
     data class Receiver(
         val identifikator: String,
         val handling: HandlingEnum,
@@ -134,7 +133,7 @@ data class SvarbrevInput(
         enum class HandlingEnum {
             AUTO,
             LOCAL_PRINT,
-            CENTRAL_PRINT
+            CENTRAL_PRINT,
         }
     }
 }

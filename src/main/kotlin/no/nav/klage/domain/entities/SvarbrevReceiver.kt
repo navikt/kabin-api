@@ -1,7 +1,15 @@
 package no.nav.klage.domain.entities
 
-import jakarta.persistence.*
-import java.util.*
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.AttributeOverrides
+import jakarta.persistence.Column
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import java.util.UUID
 
 @Entity
 @Table(name = "svarbrev_receiver", schema = "klage")
@@ -12,24 +20,22 @@ class SvarbrevReceiver(
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "type", column = Column(name = "part_type")),
-            AttributeOverride(name = "value", column = Column(name = "part_value"))
-        ]
+            AttributeOverride(name = "value", column = Column(name = "part_value")),
+        ],
     )
     val part: PartId,
-    //TODO: should be kodeverk?
+    // TODO: should be kodeverk?
     @Column(name = "handling")
     @Enumerated(EnumType.STRING)
     var handling: HandlingEnum,
     @Embedded
-    var overriddenAddress: Address?
+    var overriddenAddress: Address?,
 ) {
-    override fun toString(): String {
-        return "SvarbrevReceiver(id=$id, part=$part, handling=$handling, overriddenAddress=$overriddenAddress)"
-    }
+    override fun toString(): String = "SvarbrevReceiver(id=$id, part=$part, handling=$handling, overriddenAddress=$overriddenAddress)"
 }
 
 enum class HandlingEnum {
     AUTO,
     LOCAL_PRINT,
-    CENTRAL_PRINT
+    CENTRAL_PRINT,
 }

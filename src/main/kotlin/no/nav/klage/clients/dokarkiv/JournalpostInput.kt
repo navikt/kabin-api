@@ -5,21 +5,21 @@ import no.nav.klage.kodeverk.Tema
 enum class JournalpostType {
     INNGAAENDE,
     UTGAAENDE,
-    NOTAT
+    NOTAT,
 }
 
 data class AvsenderMottaker(
     val id: String,
     val idType: AvsenderMottakerIdType,
     val navn: String? = null,
-    val land: String? = null
+    val land: String? = null,
 )
 
 enum class AvsenderMottakerIdType {
     FNR,
     ORGNR,
     HPRNR,
-    UTL_ORG
+    UTL_ORG,
 }
 
 data class UpdateDocumentTitleJournalpostInput(
@@ -37,7 +37,7 @@ data class CreateNewJournalpostBasedOnExistingJournalpostRequest(
     val fagsaksystem: FagsaksSystem,
     val tema: Tema,
     val bruker: Bruker,
-    val journalfoerendeEnhet: String
+    val journalfoerendeEnhet: String,
 )
 
 data class UpdateAvsenderMottakerInJournalpostRequest(
@@ -53,13 +53,13 @@ data class UpdateSakInJournalpostRequest(
 
 data class Bruker(
     val id: String,
-    val idType: BrukerIdType
+    val idType: BrukerIdType,
 )
 
 enum class BrukerIdType {
     FNR,
     ORGNR,
-    AKTOERID
+    AKTOERID,
 }
 
 data class Sak(
@@ -71,7 +71,7 @@ data class Sak(
 enum class Sakstype {
     FAGSAK,
     GENERELL_SAK,
-    ARKIVSAK
+    ARKIVSAK,
 }
 
 enum class FagsaksSystem {

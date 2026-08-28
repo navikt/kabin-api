@@ -10,22 +10,20 @@ import reactor.netty.http.client.HttpClient
 
 @Configuration
 class MicrosoftGraphClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Value("\${MICROSOFT_GRAPH_URL}")
+    @Value($$"${MICROSOFT_GRAPH_URL}")
     private lateinit var microsoftGraphServiceURL: String
 
     @Bean
-    fun microsoftGraphWebClient(): WebClient {
-        return webClientBuilder
+    fun microsoftGraphWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(microsoftGraphServiceURL)
             .clientConnector(ReactorClientHttpConnector(HttpClient.newConnection()))
             .build()
-    }
 }

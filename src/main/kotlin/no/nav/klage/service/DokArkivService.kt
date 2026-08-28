@@ -3,7 +3,19 @@ package no.nav.klage.service
 import no.nav.klage.api.controller.view.PartIdInput
 import no.nav.klage.api.controller.view.PartType
 import no.nav.klage.api.controller.view.SearchPartInput
-import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.clients.dokarkiv.AvsenderMottaker
+import no.nav.klage.clients.dokarkiv.AvsenderMottakerIdType
+import no.nav.klage.clients.dokarkiv.Bruker
+import no.nav.klage.clients.dokarkiv.BrukerIdType
+import no.nav.klage.clients.dokarkiv.CreateNewJournalpostBasedOnExistingJournalpostRequest
+import no.nav.klage.clients.dokarkiv.DokArkivClient
+import no.nav.klage.clients.dokarkiv.FagsaksSystem
+import no.nav.klage.clients.dokarkiv.Sak
+import no.nav.klage.clients.dokarkiv.Sakstype
+import no.nav.klage.clients.dokarkiv.UpdateAvsenderMottakerInJournalpostRequest
+import no.nav.klage.clients.dokarkiv.UpdateDocumentTitleDokumentInput
+import no.nav.klage.clients.dokarkiv.UpdateDocumentTitleJournalpostInput
+import no.nav.klage.clients.dokarkiv.UpdateSakInJournalpostRequest
 import no.nav.klage.clients.gosysoppgave.FerdigstillGosysOppgaveRequest
 import no.nav.klage.clients.gosysoppgave.GosysOppgaveClient
 import no.nav.klage.clients.kabalinnstillinger.KabalInnstillingerClient
@@ -12,7 +24,11 @@ import no.nav.klage.clients.saf.graphql.Journalposttype
 import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.domain.CreateBehandlingInput
 import no.nav.klage.domain.entities.Registrering
-import no.nav.klage.exceptions.*
+import no.nav.klage.exceptions.IllegalInputException
+import no.nav.klage.exceptions.InvalidProperty
+import no.nav.klage.exceptions.MulighetNotFoundException
+import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.exceptions.ValidationSection
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
@@ -32,38 +48,41 @@ class DokArkivService(
     private val saksbehandlerService: SaksbehandlerService,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
     }
 
-    private fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
-        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
-            ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
+    private fun finalizeJournalpost(
+        journalpostId: String,
+        journalfoerendeEnhet: String,
+    ) {
+        val journalpostInSaf =
+            safService.getJournalpostAsSaksbehandler(journalpostId)
+                ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
 
         if (journalpostCanBeFinalized(journalpostInSaf)) {
             logger.debug("Finalizing journalpost $journalpostId in Dokarkiv")
             dokArkivClient.finalizeJournalpost(journalpostId, journalfoerendeEnhet)
         } else {
-            //TODO: Sjekk hvor vanlig dette er, og om det heller bør være en warning.
+            // TODO: Sjekk hvor vanlig dette er, og om det heller bør være en warning.
             logger.debug("Journalpost $journalpostId already finalized. Returning.")
         }
     }
 
-    private fun journalpostCanBeFinalized(journalpostInSaf: Journalpost): Boolean {
-        return when (journalpostInSaf.journalstatus) {
+    private fun journalpostCanBeFinalized(journalpostInSaf: Journalpost): Boolean =
+        when (journalpostInSaf.journalstatus) {
             Journalstatus.MOTTATT,
             Journalstatus.UNDER_ARBEID,
             Journalstatus.RESERVERT,
             Journalstatus.OPPLASTING_DOKUMENT,
             Journalstatus.UKJENT_BRUKER,
-            Journalstatus.FERDIGSTILT -> true
+            Journalstatus.FERDIGSTILT,
+            -> true
 
             else -> false
         }
-    }
 
     private fun updateAvsenderInJournalpost(
         journalpostId: String,
@@ -78,15 +97,17 @@ class DokArkivService(
     }
 
     private fun getUpdateAvsenderMottakerInJournalpostRequest(avsender: PartIdInput): UpdateAvsenderMottakerInJournalpostRequest {
-        val avsenderPart = kabalApiService.searchPart(
-            searchPartInput = SearchPartInput(identifikator = avsender.identifikator)
-        )
+        val avsenderPart =
+            kabalApiService.searchPart(
+                searchPartInput = SearchPartInput(identifikator = avsender.identifikator),
+            )
         return UpdateAvsenderMottakerInJournalpostRequest(
-            avsenderMottaker = AvsenderMottaker(
-                id = avsender.identifikator,
-                idType = avsender.type.toAvsenderMottakerIdType(),
-                navn = avsenderPart.name
-            ),
+            avsenderMottaker =
+                AvsenderMottaker(
+                    id = avsender.identifikator,
+                    idType = avsender.type.toAvsenderMottakerIdType(),
+                    navn = avsenderPart.name,
+                ),
         )
     }
 
@@ -95,14 +116,15 @@ class DokArkivService(
         tema: Tema,
         bruker: Bruker,
         sak: Sak,
-        journalfoerendeEnhet: String
+        journalfoerendeEnhet: String,
     ) {
-        val requestInput = UpdateSakInJournalpostRequest(
-            tema = tema,
-            bruker = bruker,
-            sak = sak,
-            journalfoerendeEnhet = journalfoerendeEnhet,
-        )
+        val requestInput =
+            UpdateSakInJournalpostRequest(
+                tema = tema,
+                bruker = bruker,
+                sak = sak,
+                journalfoerendeEnhet = journalfoerendeEnhet,
+            )
 
         dokArkivClient.updateSakInJournalpost(
             journalpostId = journalpostId,
@@ -110,8 +132,8 @@ class DokArkivService(
         )
     }
 
-    private fun Journalpost.isFinalized(): Boolean {
-        return when (journalposttype) {
+    private fun Journalpost.isFinalized(): Boolean =
+        when (journalposttype) {
             Journalposttype.I -> {
                 when (journalstatus) {
                     Journalstatus.JOURNALFOERT -> true
@@ -122,7 +144,8 @@ class DokArkivService(
             Journalposttype.U -> {
                 when (journalstatus) {
                     Journalstatus.FERDIGSTILT,
-                    Journalstatus.EKSPEDERT -> true
+                    Journalstatus.EKSPEDERT,
+                    -> true
 
                     else -> false
                 }
@@ -131,55 +154,60 @@ class DokArkivService(
             Journalposttype.N -> {
                 when (journalstatus) {
                     Journalstatus.FERDIGSTILT,
-                    Journalstatus.EKSPEDERT -> true
+                    Journalstatus.EKSPEDERT,
+                    -> true
 
                     else -> false
                 }
             }
         }
-    }
 
-    fun handleJournalpost(
-        registrering: Registrering,
-    ): String? {
+    fun handleJournalpost(registrering: Registrering): String? {
         if (registrering.isBasedOnUploadedDocument()) {
             return null
         }
 
-        val journalpostId = registrering.journalpostId
-            ?: throw IllegalInputException("Registreringen har ingen journalpost.")
+        val journalpostId =
+            registrering.journalpostId
+                ?: throw IllegalInputException("Registreringen har ingen journalpost.")
         val avsender = registrering.avsender.toPartIdInput()
 
-        val mulighet = registrering.getCurrentMulighet() ?: throw MulighetNotFoundException("Muligheten som registreringen refererer til finnes ikke.")
+        val mulighet =
+            registrering.getCurrentMulighet() ?: throw MulighetNotFoundException("Muligheten som registreringen refererer til finnes ikke.")
 
         val fagsaksystem = FagsaksSystem.valueOf(mulighet.originalFagsystem.navn)
-        val journalfoerendeEnhet = if (mulighet.currentFagsystem == Fagsystem.KABAL) {
-            mulighet.klageBehandlendeEnhet
-        } else {
-            kabalInnstillingerClient.getBrukerdata().ansattEnhet.id
-        }
+        val journalfoerendeEnhet =
+            if (mulighet.currentFagsystem == Fagsystem.KABAL) {
+                mulighet.klageBehandlendeEnhet
+            } else {
+                kabalInnstillingerClient.getBrukerdata().ansattEnhet.id
+            }
 
         return handleJournalpost(
             journalpostId = journalpostId,
             avsender = avsender,
             tema = mulighet.tema,
-            bruker = Bruker(
-                id = mulighet.sakenGjelder.part.value, idType = when (mulighet.sakenGjelder.part.type) {
-                    PartIdType.PERSON -> {
-                        BrukerIdType.FNR
-                    }
+            bruker =
+                Bruker(
+                    id = mulighet.sakenGjelder.part.value,
+                    idType =
+                        when (mulighet.sakenGjelder.part.type) {
+                            PartIdType.PERSON -> {
+                                BrukerIdType.FNR
+                            }
 
-                    else -> {
-                        BrukerIdType.ORGNR
-                    }
-                }
-            ),
-            sakInFagsystem = Sak(
-                sakstype = Sakstype.FAGSAK,
-                fagsaksystem = fagsaksystem,
-                fagsakid = mulighet.fagsakId
-            ),
-            journalfoerendeEnhet = journalfoerendeEnhet
+                            else -> {
+                                BrukerIdType.ORGNR
+                            }
+                        },
+                ),
+            sakInFagsystem =
+                Sak(
+                    sakstype = Sakstype.FAGSAK,
+                    fagsaksystem = fagsaksystem,
+                    fagsakid = mulighet.fagsakId,
+                ),
+            journalfoerendeEnhet = journalfoerendeEnhet,
         )
     }
 
@@ -192,36 +220,39 @@ class DokArkivService(
         journalfoerendeEnhet: String,
     ): String {
         logger.debug("handleJournalpost with id $journalpostId called. See details about journalpost in team-logs.")
-        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
-            ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
+        val journalpostInSaf =
+            safService.getJournalpostAsSaksbehandler(journalpostId)
+                ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
 
         teamLogger.debug(
             "handleJournalpost called. Fetched journalpostInSaf: {}, sak: {}, tema: {}",
             journalpostInSaf,
             sakInFagsystem,
-            tema
+            tema,
         )
 
         val journalpostType = journalpostInSaf.journalposttype
 
-        if (journalpostType == Journalposttype.I
-            && avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker)
-            && !journalpostInSaf.isFinalized()
-            && avsender == null
+        if (journalpostType == Journalposttype.I &&
+            avsenderMottakerIsMissing(journalpostInSaf.avsenderMottaker) &&
+            !journalpostInSaf.isFinalized() &&
+            avsender == null
         ) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = listOf(
-                    ValidationSection(
-                        section = "saksdata",
-                        properties = listOf(
-                            InvalidProperty(
-                                field = CreateBehandlingInput::avsender.name,
-                                reason = "Velg en avsender."
-                            )
-                        )
-                    )
-                )
+                sections =
+                    listOf(
+                        ValidationSection(
+                            section = "saksdata",
+                            properties =
+                                listOf(
+                                    InvalidProperty(
+                                        field = CreateBehandlingInput::avsender.name,
+                                        reason = "Velg en avsender.",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
         }
 
@@ -248,15 +279,16 @@ class DokArkivService(
             } else {
                 logger.debug(
                     "createNewJournalpostBasedOnExistingJournalpost. Old journalpost id: {}",
-                    journalpostInSaf.journalpostId
+                    journalpostInSaf.journalpostId,
                 )
-                val newJournalpostId = createNewJournalpostBasedOnExistingJournalpost(
-                    oldJournalpost = journalpostInSaf,
-                    sak = sakInFagsystem,
-                    tema = tema,
-                    bruker = bruker,
-                    journalfoerendeEnhet = journalfoerendeEnhet,
-                )
+                val newJournalpostId =
+                    createNewJournalpostBasedOnExistingJournalpost(
+                        oldJournalpost = journalpostInSaf,
+                        sak = sakInFagsystem,
+                        tema = tema,
+                        bruker = bruker,
+                        journalfoerendeEnhet = journalfoerendeEnhet,
+                    )
                 newJournalpostId
             }
         } else {
@@ -282,9 +314,10 @@ class DokArkivService(
             )
 
             logger.debug("About to fetch journalfoeringsoppgave")
-            val gosysOppgave = gosysOppgaveClient.fetchJournalfoeringsoppgave(
-                journalpostId = journalpostId,
-            )
+            val gosysOppgave =
+                gosysOppgaveClient.fetchJournalfoeringsoppgave(
+                    journalpostId = journalpostId,
+                )
 
             if (gosysOppgave == null) {
                 logger.warn("No journalfoeringsoppgave found")
@@ -299,7 +332,7 @@ class DokArkivService(
                     oppgaveId = gosysOppgave.id,
                     versjon = gosysOppgave.versjon,
                     endretAvEnhetsnr = currentUserInfo.enhet.enhetId,
-                )
+                ),
             )
             logger.debug("Ferdigstilt journalfoeringsoppgave")
 
@@ -310,10 +343,11 @@ class DokArkivService(
     fun journalpostIsFinalizedAndConnectedToFagsak(
         journalpostId: String,
         fagsakId: String,
-        fagsystemId: String
+        fagsystemId: String,
     ): Boolean {
-        val journalpostInSaf = safService.getJournalpostAsSaksbehandler(journalpostId)
-            ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
+        val journalpostInSaf =
+            safService.getJournalpostAsSaksbehandler(journalpostId)
+                ?: throw RuntimeException("Journalpost with id $journalpostId not found in SAF")
 
         if (!journalpostInSaf.isFinalized()) {
             return false
@@ -323,21 +357,23 @@ class DokArkivService(
 
         return !journalpostIsConnectedToSakInFagsystem(
             journalpostInSaf = journalpostInSaf,
-            sakInFagsystem = Sak(
-                sakstype = Sakstype.FAGSAK,
-                fagsaksystem = FagsaksSystem.valueOf(fagsystem.name),
-                fagsakid = fagsakId,
-            )
+            sakInFagsystem =
+                Sak(
+                    sakstype = Sakstype.FAGSAK,
+                    fagsaksystem = FagsaksSystem.valueOf(fagsystem.name),
+                    fagsakid = fagsakId,
+                ),
         )
     }
 
-    private fun avsenderMottakerIsMissing(avsenderMottaker: no.nav.klage.clients.saf.graphql.AvsenderMottaker?): Boolean {
-        return if (avsenderMottaker == null) {
+    private fun avsenderMottakerIsMissing(avsenderMottaker: no.nav.klage.clients.saf.graphql.AvsenderMottaker?): Boolean =
+        if (avsenderMottaker == null) {
             true
         } else if (avsenderMottaker.type == no.nav.klage.clients.saf.graphql.AvsenderMottaker.AvsenderMottakerIdType.FNR) {
             avsenderMottaker.id == null
-        } else avsenderMottaker.navn == null
-    }
+        } else {
+            avsenderMottaker.navn == null
+        }
 
     private fun createNewJournalpostBasedOnExistingJournalpost(
         oldJournalpost: Journalpost,
@@ -346,70 +382,73 @@ class DokArkivService(
         bruker: Bruker,
         journalfoerendeEnhet: String,
     ): String {
-        val requestPayload = CreateNewJournalpostBasedOnExistingJournalpostRequest(
-            sakstype = Sakstype.FAGSAK,
-            fagsakId = sak.fagsakid,
-            fagsaksystem = sak.fagsaksystem,
-            tema = tema,
-            bruker = bruker,
-            journalfoerendeEnhet = journalfoerendeEnhet,
-        )
+        val requestPayload =
+            CreateNewJournalpostBasedOnExistingJournalpostRequest(
+                sakstype = Sakstype.FAGSAK,
+                fagsakId = sak.fagsakid,
+                fagsaksystem = sak.fagsaksystem,
+                tema = tema,
+                bruker = bruker,
+                journalfoerendeEnhet = journalfoerendeEnhet,
+            )
 
-        return dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
-            payload = requestPayload,
-            oldJournalpostId = oldJournalpost.journalpostId,
-        ).nyJournalpostId
+        return dokArkivClient
+            .createNewJournalpostBasedOnExistingJournalpost(
+                payload = requestPayload,
+                oldJournalpostId = oldJournalpost.journalpostId,
+            ).nyJournalpostId
     }
 
     private fun journalpostIsConnectedToSakInFagsystem(
         journalpostInSaf: Journalpost,
         sakInFagsystem: Sak,
-    ): Boolean {
-        return if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
+    ): Boolean =
+        if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
             false
         } else {
             logger.debug(
                 "journalpostInSaf.sak.fagsaksystem: {}, sak.fagsaksystem: {}",
                 FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem),
-                sakInFagsystem.fagsaksystem
+                sakInFagsystem.fagsaksystem,
             )
-            (journalpostInSaf.sak.fagsakId == sakInFagsystem.fagsakid
-                    && FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == sakInFagsystem.fagsaksystem)
+            (
+                journalpostInSaf.sak.fagsakId == sakInFagsystem.fagsakid &&
+                    FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == sakInFagsystem.fagsaksystem
+            )
         }
-    }
 
     fun updateDocumentTitle(
         journalpostId: String,
         dokumentInfoId: String,
-        title: String
+        title: String,
     ) {
         dokArkivClient.updateDocumentTitle(
             journalpostId = journalpostId,
-            input = createUpdateDocumentTitleJournalpostInput(
-                dokumentInfoId = dokumentInfoId,
-                title = title
-            )
+            input =
+                createUpdateDocumentTitleJournalpostInput(
+                    dokumentInfoId = dokumentInfoId,
+                    title = title,
+                ),
         )
     }
 
     private fun createUpdateDocumentTitleJournalpostInput(
         dokumentInfoId: String,
-        title: String
-    ): UpdateDocumentTitleJournalpostInput {
-        return UpdateDocumentTitleJournalpostInput(
-            dokumenter = listOf(
-                UpdateDocumentTitleDokumentInput(
-                    dokumentInfoId = dokumentInfoId,
-                    tittel = title
-                )
-            )
+        title: String,
+    ): UpdateDocumentTitleJournalpostInput =
+        UpdateDocumentTitleJournalpostInput(
+            dokumenter =
+                listOf(
+                    UpdateDocumentTitleDokumentInput(
+                        dokumentInfoId = dokumentInfoId,
+                        tittel = title,
+                    ),
+                ),
         )
-    }
 
-    private fun PartType.toAvsenderMottakerIdType(): AvsenderMottakerIdType {
-        return when (this) {
+    private fun PartType.toAvsenderMottakerIdType(): AvsenderMottakerIdType =
+        when (this) {
             PartType.FNR -> AvsenderMottakerIdType.FNR
             PartType.ORGNR -> AvsenderMottakerIdType.ORGNR
         }
-    }
 }

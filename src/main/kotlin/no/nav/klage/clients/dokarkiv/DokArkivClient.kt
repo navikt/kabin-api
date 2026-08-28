@@ -12,15 +12,14 @@ import org.springframework.web.reactive.function.client.bodyToMono
 @Component
 class DokArkivClient(
     private val dokArkivWebClient: WebClient,
-    private val tokenUtil: TokenUtil
+    private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Value("\${spring.application.name}")
+    @Value($$"${spring.application.name}")
     lateinit var applicationName: String
 
     fun createNewJournalpostBasedOnExistingJournalpost(
@@ -28,19 +27,23 @@ class DokArkivClient(
         oldJournalpostId: String,
     ): CreateNewJournalpostBasedOnExistingJournalpostResponse {
         try {
-            val journalpostResponse = dokArkivWebClient.put()
-                .uri("/journalpost/${oldJournalpostId}/knyttTilAnnenSak")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}")
-                .header("Nav-Consumer-Id", applicationName)
-                .header("Nav-User-Id", tokenUtil.getCurrentIdent())
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
-                .retrieve()
-                .bodyToMono(CreateNewJournalpostBasedOnExistingJournalpostResponse::class.java)
-                .block()
-                ?: throw RuntimeException("Journalpost could not be created.")
+            val journalpostResponse =
+                dokArkivWebClient
+                    .put()
+                    .uri("/journalpost/$oldJournalpostId/knyttTilAnnenSak")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}")
+                    .header("Nav-Consumer-Id", applicationName)
+                    .header("Nav-User-Id", tokenUtil.getCurrentIdent())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(payload)
+                    .retrieve()
+                    .bodyToMono(CreateNewJournalpostBasedOnExistingJournalpostResponse::class.java)
+                    .block()
+                    ?: throw RuntimeException("Journalpost could not be created.")
 
-            logger.debug("Journalpost successfully created in dokarkiv based on saksid ${payload.fagsakId}, resulting in id ${journalpostResponse.nyJournalpostId}.")
+            logger.debug(
+                "Journalpost successfully created in dokarkiv based on saksid ${payload.fagsakId}, resulting in id ${journalpostResponse.nyJournalpostId}.",
+            )
 
             return journalpostResponse
         } catch (e: Exception) {
@@ -49,20 +52,24 @@ class DokArkivClient(
         }
     }
 
-    fun updateSakInJournalpost(journalpostId: String, input: UpdateSakInJournalpostRequest) {
+    fun updateSakInJournalpost(
+        journalpostId: String,
+        input: UpdateSakInJournalpostRequest,
+    ) {
         try {
-            val output = dokArkivWebClient.put()
-                .uri("/journalpost/${journalpostId}")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(input)
-                .retrieve()
-                .bodyToMono(JournalpostResponse::class.java)
-                .block()
-                ?: throw RuntimeException("Journalpost fagsakid could not be updated.")
+            val output =
+                dokArkivWebClient
+                    .put()
+                    .uri("/journalpost/$journalpostId")
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}",
+                    ).contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(input)
+                    .retrieve()
+                    .bodyToMono(JournalpostResponse::class.java)
+                    .block()
+                    ?: throw RuntimeException("Journalpost fagsakid could not be updated.")
             logger.debug("Svar fra dokarkiv: {}", output)
         } catch (e: Exception) {
             logger.error("Error updating journalpost $journalpostId fagsakid:", e)
@@ -72,20 +79,24 @@ class DokArkivClient(
         logger.debug("Document from journalpost $journalpostId updated with saksId ${input.sak.fagsakid}.")
     }
 
-    fun updateAvsenderMottakerInJournalpost(journalpostId: String, input: UpdateAvsenderMottakerInJournalpostRequest) {
+    fun updateAvsenderMottakerInJournalpost(
+        journalpostId: String,
+        input: UpdateAvsenderMottakerInJournalpostRequest,
+    ) {
         try {
-            val output = dokArkivWebClient.put()
-                .uri("/journalpost/${journalpostId}")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(input)
-                .retrieve()
-                .bodyToMono(JournalpostResponse::class.java)
-                .block()
-                ?: throw RuntimeException("Journalpost AvsenderMottaker could not be updated.")
+            val output =
+                dokArkivWebClient
+                    .put()
+                    .uri("/journalpost/$journalpostId")
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}",
+                    ).contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(input)
+                    .retrieve()
+                    .bodyToMono(JournalpostResponse::class.java)
+                    .block()
+                    ?: throw RuntimeException("Journalpost AvsenderMottaker could not be updated.")
             logger.debug("Svar fra dokarkiv: {}", output)
         } catch (e: Exception) {
             logger.error("Error updating journalpost $journalpostId AvsenderMottaker:", e)
@@ -95,16 +106,16 @@ class DokArkivClient(
 
     fun updateDocumentTitle(
         journalpostId: String,
-        input: UpdateDocumentTitleJournalpostInput
+        input: UpdateDocumentTitleJournalpostInput,
     ) {
         try {
-            dokArkivWebClient.put()
-                .uri("/journalpost/${journalpostId}")
+            dokArkivWebClient
+                .put()
+                .uri("/journalpost/$journalpostId")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}",
+                ).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(input)
                 .retrieve()
                 .bodyToMono(JournalpostResponse::class.java)
@@ -114,7 +125,9 @@ class DokArkivClient(
             logger.error("Error updating journalpost $journalpostId document title:", e)
         }
 
-        logger.debug("Document from journalpost $journalpostId with dokumentInfoId id ${input.dokumenter.first().dokumentInfoId} was successfully updated.")
+        logger.debug(
+            "Document from journalpost $journalpostId with dokumentInfoId id ${input.dokumenter.first().dokumentInfoId} was successfully updated.",
+        )
     }
 
     fun addLogiskVedlegg(
@@ -122,22 +135,22 @@ class DokArkivClient(
         title: String,
     ): AddLogiskVedleggResponse {
         try {
-            val response = dokArkivWebClient.post()
-                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(
-                    LogiskVedleggPayload(
-                        tittel = title
-                    )
-                )
-                .retrieve()
-                .bodyToMono(AddLogiskVedleggResponse::class.java)
-                .block()
-                ?: throw RuntimeException("Could not add logisk vedlegg to documentInfoId $dokumentInfoId.")
+            val response =
+                dokArkivWebClient
+                    .post()
+                    .uri("/dokumentInfo/$dokumentInfoId/logiskVedlegg")
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}",
+                    ).contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(
+                        LogiskVedleggPayload(
+                            tittel = title,
+                        ),
+                    ).retrieve()
+                    .bodyToMono(AddLogiskVedleggResponse::class.java)
+                    .block()
+                    ?: throw RuntimeException("Could not add logisk vedlegg to documentInfoId $dokumentInfoId.")
             logger.debug("Added logisk vedlegg to document $dokumentInfoId successfully.")
             return response
         } catch (e: Exception) {
@@ -152,19 +165,18 @@ class DokArkivClient(
         title: String,
     ) {
         try {
-            dokArkivWebClient.post()
-                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+            dokArkivWebClient
+                .post()
+                .uri("/dokumentInfo/$dokumentInfoId/logiskVedlegg/$logiskVedleggId")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}",
+                ).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(
                     LogiskVedleggPayload(
                         tittel = title,
-                    )
-                )
-                .retrieve()
+                    ),
+                ).retrieve()
                 .bodyToMono<Void>()
                 .block()
                 ?: throw RuntimeException("Could not update logisk vedlegg $logiskVedleggId for documentInfoId $dokumentInfoId.")
@@ -176,16 +188,16 @@ class DokArkivClient(
 
     fun deleteLogiskVedlegg(
         dokumentInfoId: String,
-        logiskVedleggId: String
+        logiskVedleggId: String,
     ) {
         try {
-            dokArkivWebClient.delete()
-                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+            dokArkivWebClient
+                .delete()
+                .uri("/dokumentInfo/$dokumentInfoId/logiskVedlegg/$logiskVedleggId")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
-                )
-                .retrieve()
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}",
+                ).retrieve()
                 .bodyToMono<Void>()
                 .block()
                 ?: throw RuntimeException("Could not delete logisk vedlegg $logiskVedleggId for documentInfoId $dokumentInfoId.")
@@ -195,20 +207,24 @@ class DokArkivClient(
         }
     }
 
-    fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String) {
+    fun finalizeJournalpost(
+        journalpostId: String,
+        journalfoerendeEnhet: String,
+    ) {
         try {
-            val output = dokArkivWebClient.patch()
-                .uri("/journalpost/${journalpostId}/ferdigstill")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(FerdigstillJournalpostPayload(journalfoerendeEnhet))
-                .retrieve()
-                .bodyToMono<String>()
-                .block()
-                ?: throw RuntimeException("Journalpost could not be finalized")
+            val output =
+                dokArkivWebClient
+                    .patch()
+                    .uri("/journalpost/$journalpostId/ferdigstill")
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokArkivScope()}",
+                    ).contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(FerdigstillJournalpostPayload(journalfoerendeEnhet))
+                    .retrieve()
+                    .bodyToMono<String>()
+                    .block()
+                    ?: throw RuntimeException("Journalpost could not be finalized")
 
             logger.debug("Finalized journalpost, response from dokarkiv: $output")
         } catch (e: Exception) {
@@ -220,7 +236,7 @@ class DokArkivClient(
     }
 
     data class FerdigstillJournalpostPayload(
-        val journalfoerendeEnhet: String
+        val journalfoerendeEnhet: String,
     )
 
     data class LogiskVedleggPayload(
@@ -228,7 +244,6 @@ class DokArkivClient(
     )
 
     data class AddLogiskVedleggResponse(
-        val logiskVedleggId: String
+        val logiskVedleggId: String,
     )
-
 }

@@ -24,14 +24,16 @@ fun isValidFnrOrDnr(fnr: String): Boolean {
     if (k1 == 11) k1 = 0
     if (k2 == 11) k2 = 0
 
-    return k1 < 10 && k2 < 10 && k1 < 10 && k2 < 10 && k1 == fnr.substring(9, 10).toInt() && k2 == fnr.substring(10, 11)
-        .toInt()
+    return k1 < 10 && k2 < 10 && k1 < 10 && k2 < 10 && k1 == fnr.substring(9, 10).toInt() && k2 ==
+        fnr
+            .substring(10, 11)
+            .toInt()
 }
 
 private val ORGNR_VEKTER = intArrayOf(3, 2, 7, 6, 5, 4, 3, 2)
 
-fun isValidOrgnr(orgnr: String): Boolean {
-    return if (orgnr.isEmpty()) {
+fun isValidOrgnr(orgnr: String): Boolean =
+    if (orgnr.isEmpty()) {
         false
     } else {
         var sum = 0
@@ -43,20 +45,24 @@ fun isValidOrgnr(orgnr: String): Boolean {
         val kontrollSiffer = if (rest == 0) 0 else 11 - rest
         kontrollSiffer == orgnr.substring(8, 9).toInt()
     }
-}
 
-fun getPartIdFromIdentifikator(identifikator: String, throwErrorIfInvalid: Boolean): PartId? =
+fun getPartIdFromIdentifikator(
+    identifikator: String,
+    throwErrorIfInvalid: Boolean,
+): PartId? =
     when (identifikator.length) {
         11 -> {
             if (isValidFnrOrDnr(identifikator)) {
                 PartId(
                     type = PartIdType.PERSON,
-                    value = identifikator
+                    value = identifikator,
                 )
             } else {
                 if (throwErrorIfInvalid) {
                     throw IllegalInputException("identifier is not a valid fødselsnummer")
-                } else null
+                } else {
+                    null
+                }
             }
         }
 
@@ -64,18 +70,22 @@ fun getPartIdFromIdentifikator(identifikator: String, throwErrorIfInvalid: Boole
             if (isValidOrgnr(identifikator)) {
                 PartId(
                     type = PartIdType.VIRKSOMHET,
-                    value = identifikator
+                    value = identifikator,
                 )
             } else {
                 if (throwErrorIfInvalid) {
                     throw IllegalInputException("identifier is not a valid organisasjonsnummer")
-                } else null
+                } else {
+                    null
+                }
             }
         }
 
         else -> {
             if (throwErrorIfInvalid) {
                 throw IllegalInputException("identifier is not valid. Unknown type.")
-            } else null
+            } else {
+                null
+            }
         }
     }

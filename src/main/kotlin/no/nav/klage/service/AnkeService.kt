@@ -9,7 +9,7 @@ import no.nav.klage.util.MulighetSource
 import no.nav.klage.util.ValidationUtil
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class AnkeService(
@@ -25,26 +25,30 @@ class AnkeService(
     }
 
     fun createAnke(registrering: Registrering): CreatedBehandlingResponse {
-        val mulighet = registrering.getCurrentMulighet()
-            ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+        val mulighet =
+            registrering.getCurrentMulighet()
+                ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
         val additionalKabalMulighet = registrering.getCurrentAdditionalKabalMulighet()
 
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
-        val journalpostId = dokArkivService.handleJournalpost(
-            registrering = registrering,
-        )
+        val journalpostId =
+            dokArkivService.handleJournalpost(
+                registrering = registrering,
+            )
 
         return if (registrering.mulighetIsBasedOnJournalpost) {
-            val kabalResponse = CreatedBehandlingResponse(
-                behandlingId = kabalApiService.createBehandlingBasedOnJournalpost(
-                    journalpostId = journalpostId,
-                    mulighet = mulighet,
-                    registrering = registrering,
+            val kabalResponse =
+                CreatedBehandlingResponse(
+                    behandlingId =
+                        kabalApiService.createBehandlingBasedOnJournalpost(
+                            journalpostId = journalpostId,
+                            mulighet = mulighet,
+                            registrering = registrering,
+                        ),
                 )
-            )
             try {
-                //Gosys-oppgave is ensured in validation step.
+                // Gosys-oppgave is ensured in validation step.
                 logger.debug("Attempting Gosys-oppgave update")
                 gosysOppgaveService.updateGosysOppgave(
                     gosysOppgaveId = registrering.gosysOppgaveId!!,
@@ -56,20 +60,25 @@ class AnkeService(
             kabalResponse
         } else {
             CreatedBehandlingResponse(
-                behandlingId = when (MulighetSource.of(mulighet.currentFagsystem)) {
-                    MulighetSource.INFOTRYGD -> createAnkeFromInfotrygdSak(
-                        journalpostId = journalpostId,
-                        mulighet = mulighet,
-                        registrering = registrering,
-                        additionalKabalMulighet = additionalKabalMulighet,
-                    )
+                behandlingId =
+                    when (MulighetSource.of(mulighet.currentFagsystem)) {
+                        MulighetSource.INFOTRYGD -> {
+                            createAnkeFromInfotrygdSak(
+                                journalpostId = journalpostId,
+                                mulighet = mulighet,
+                                registrering = registrering,
+                                additionalKabalMulighet = additionalKabalMulighet,
+                            )
+                        }
 
-                    MulighetSource.KABAL -> kabalApiService.createBehandlingFromKabalInput(
-                        journalpostId = journalpostId,
-                        mulighet = mulighet,
-                        registrering = registrering
-                    )
-                }
+                        MulighetSource.KABAL -> {
+                            kabalApiService.createBehandlingFromKabalInput(
+                                journalpostId = journalpostId,
+                                mulighet = mulighet,
+                                registrering = registrering,
+                            )
+                        }
+                    },
             )
         }
     }
@@ -80,17 +89,19 @@ class AnkeService(
         registrering: Registrering,
         additionalKabalMulighet: Mulighet?,
     ): UUID {
-        val frist = when (registrering.behandlingstidUnitType) {
-            TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
-            TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
-        }
-        val behandlingId = kabalApiService.createAnkeFromInfotrygdInput(
-            registrering = registrering,
-            mulighet = mulighet,
-            frist = frist,
-            journalpostId = journalpostId,
-            additionalKabalMulighet = additionalKabalMulighet,
-        )
+        val frist =
+            when (registrering.behandlingstidUnitType) {
+                TimeUnitType.WEEKS -> registrering.mottattKlageinstans!!.plusWeeks(registrering.behandlingstidUnits.toLong())
+                TimeUnitType.MONTHS -> registrering.mottattKlageinstans!!.plusMonths(registrering.behandlingstidUnits.toLong())
+            }
+        val behandlingId =
+            kabalApiService.createAnkeFromInfotrygdInput(
+                registrering = registrering,
+                mulighet = mulighet,
+                frist = frist,
+                journalpostId = journalpostId,
+                additionalKabalMulighet = additionalKabalMulighet,
+            )
 
         try {
             klageFssProxyService.setToHandledInKabal(

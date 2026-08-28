@@ -1,13 +1,31 @@
 package no.nav.klage.domain.entities
 
-import jakarta.persistence.*
-import no.nav.klage.kodeverk.*
+import jakarta.persistence.AttributeConverter
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.AttributeOverrides
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Converter
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.TimeUnitTypeConverter
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.TypeConverter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.kodeverk.ytelse.YtelseConverter
 import org.hibernate.annotations.DynamicUpdate
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "registrering", schema = "klage")
@@ -19,32 +37,32 @@ class Registrering(
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "type", column = Column(name = "saken_gjelder_type")),
-            AttributeOverride(name = "value", column = Column(name = "saken_gjelder_value"))
-        ]
+            AttributeOverride(name = "value", column = Column(name = "saken_gjelder_value")),
+        ],
     )
     var sakenGjelder: PartId?,
     @Embedded
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "type", column = Column(name = "klager_type")),
-            AttributeOverride(name = "value", column = Column(name = "klager_value"))
-        ]
+            AttributeOverride(name = "value", column = Column(name = "klager_value")),
+        ],
     )
     var klager: PartId?,
     @Embedded
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "type", column = Column(name = "fullmektig_type")),
-            AttributeOverride(name = "value", column = Column(name = "fullmektig_value"))
-        ]
+            AttributeOverride(name = "value", column = Column(name = "fullmektig_value")),
+        ],
     )
     var fullmektig: PartId?,
     @Embedded
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "type", column = Column(name = "avsender_type")),
-            AttributeOverride(name = "value", column = Column(name = "avsender_value"))
-        ]
+            AttributeOverride(name = "value", column = Column(name = "avsender_value")),
+        ],
     )
     var avsender: PartId?,
     @Column(name = "journalpost_id")
@@ -132,9 +150,7 @@ class Registrering(
     @Enumerated(EnumType.STRING)
     var source: RegistreringSource = RegistreringSource.JOURNALPOST,
 ) {
-
-    fun getSortedDokumenter(): List<RegistreringDokument> =
-        dokumenter.sortedBy { it.sortIndex }
+    fun getSortedDokumenter(): List<RegistreringDokument> = dokumenter.sortedBy { it.sortIndex }
 
     /**
      * The documents that can actually be journalført, in order. The first one becomes the hoveddokument
@@ -163,60 +179,54 @@ class Registrering(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "Registrering(id=$id, source=$source, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, journalpostDatoOpprettet=$journalpostDatoOpprettet, type=$type, mulighetId=$mulighetId, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, forrigeBehandlendeEnhetId=$forrigeBehandlendeEnhetId, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$gosysOppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost, muligheter=$muligheter, muligheterFetched=$muligheterFetched)"
-    }
+    override fun toString(): String =
+        "Registrering(id=$id, source=$source, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, journalpostDatoOpprettet=$journalpostDatoOpprettet, type=$type, mulighetId=$mulighetId, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, forrigeBehandlendeEnhetId=$forrigeBehandlendeEnhetId, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$gosysOppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost, muligheter=$muligheter, muligheterFetched=$muligheterFetched)"
 
     fun handleSvarbrevReceivers() {
         val existingReceivers = svarbrevReceivers
-        val existingParts = setOf(
-            sakenGjelder?.value,
-            klager?.value,
-            fullmektig?.value
-        ).filterNotNull()
+        val existingParts =
+            setOf(
+                sakenGjelder?.value,
+                klager?.value,
+                fullmektig?.value,
+            ).filterNotNull()
 
         if (existingParts.size == 1 && existingReceivers.isEmpty()) {
             svarbrevReceivers.add(
                 SvarbrevReceiver(
-                    part = PartId(
-                        value = sakenGjelder!!.value,
-                        type = PartIdType.PERSON
-                    ),
+                    part =
+                        PartId(
+                            value = sakenGjelder!!.value,
+                            type = PartIdType.PERSON,
+                        ),
                     overriddenAddress = null,
                     handling = HandlingEnum.AUTO,
-                )
+                ),
             )
         }
     }
 
-    fun getCurrentMulighet(): Mulighet? {
-        return mulighetId?.let { mulighetId ->
+    fun getCurrentMulighet(): Mulighet? =
+        mulighetId?.let { mulighetId ->
             muligheter.find { it.id == mulighetId }
         }
-    }
 
-    fun getCurrentAdditionalKabalMulighet(): Mulighet? {
-        return additionalKabalMulighetId?.let { mulighetId ->
+    fun getCurrentAdditionalKabalMulighet(): Mulighet? =
+        additionalKabalMulighetId?.let { mulighetId ->
             muligheter.find { it.id == mulighetId }
         }
-    }
 
     @Converter
     class StringListConverter : AttributeConverter<List<String>, String> {
-        override fun convertToDatabaseColumn(attribute: List<String>?): String? {
-            return if (attribute.isNullOrEmpty()) {
+        override fun convertToDatabaseColumn(attribute: List<String>?): String? =
+            if (attribute.isNullOrEmpty()) {
                 null
             } else {
                 attribute.joinToString(",")
             }
-        }
 
-        override fun convertToEntityAttribute(dbData: String?): List<String> {
-            return dbData?.split(",") ?: emptyList()
-        }
+        override fun convertToEntityAttribute(dbData: String?): List<String> = dbData?.split(",") ?: emptyList()
     }
 }

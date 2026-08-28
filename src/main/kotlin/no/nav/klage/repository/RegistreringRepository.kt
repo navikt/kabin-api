@@ -8,16 +8,16 @@ import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.jpa.repository.QueryHints
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 
 interface RegistreringRepository : JpaRepository<Registrering, UUID> {
-
     @Query(
         """
             SELECT r FROM Registrering r 
             WHERE r.createdBy = :navIdent
              AND r.finished is null
-        """
+        """,
     )
     fun findUferdigeRegistreringer(navIdent: String): List<Registrering>
 
@@ -27,9 +27,12 @@ interface RegistreringRepository : JpaRepository<Registrering, UUID> {
             WHERE r.createdBy = :navIdent
             AND r.finished is not null
             AND r.finished >= :finishedFrom
-        """
+        """,
     )
-    fun findFerdigeRegistreringer(navIdent: String, finishedFrom: LocalDateTime): List<Registrering>
+    fun findFerdigeRegistreringer(
+        navIdent: String,
+        finishedFrom: LocalDateTime,
+    ): List<Registrering>
 
     fun findByBehandlingId(behandlingId: UUID): Registrering
 
@@ -48,7 +51,7 @@ interface RegistreringRepository : JpaRepository<Registrering, UUID> {
         """
             SELECT r FROM Registrering r 
             WHERE r.id = :id
-        """
+        """,
     )
     fun findByIdWithoutLock(id: UUID): Registrering?
 }

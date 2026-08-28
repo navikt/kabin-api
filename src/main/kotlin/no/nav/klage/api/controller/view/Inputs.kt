@@ -5,14 +5,18 @@ import no.nav.klage.domain.entities.InngaaendeKanal
 import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
-data class IdnummerInput(val idnummer: String)
+data class IdnummerInput(
+    val idnummer: String,
+)
 
-data class InfotrygdSakIdInput(val infotrygdSakId: String)
+data class InfotrygdSakIdInput(
+    val infotrygdSakId: String,
+)
 
 data class SearchPartInput(
-    val identifikator: String
+    val identifikator: String,
 )
 
 data class SearchPartWithUtsendingskanalInput(
@@ -25,7 +29,7 @@ data class CalculateFristInput(
     val fromDate: LocalDate,
     val varsletBehandlingstidUnits: Int,
     val varsletBehandlingstidUnitType: TimeUnitType?,
-    val varsletBehandlingstidUnitTypeId: String?
+    val varsletBehandlingstidUnitTypeId: String?,
 )
 
 data class GetGosysOppgaveListInput(
@@ -42,15 +46,23 @@ data class PartIdInput(
     val identifikator: String,
 )
 
-//////////////////////// new inputs ////////////////////////
+// ////////////////////// new inputs ////////////////////////
 
-data class SakenGjelderValueInput(val sakenGjelderValue: String?)
+data class SakenGjelderValueInput(
+    val sakenGjelderValue: String?,
+)
 
-data class JournalpostIdInput(val journalpostId: String)
+data class JournalpostIdInput(
+    val journalpostId: String,
+)
 
-data class InngaaendeKanalInput(val inngaaendeKanal: InngaaendeKanal?)
+data class InngaaendeKanalInput(
+    val inngaaendeKanal: InngaaendeKanal?,
+)
 
-data class SourceInput(val source: RegistreringSource)
+data class SourceInput(
+    val source: RegistreringSource,
+)
 
 data class DokumentUploadUrlInput(
     val contentType: String,
@@ -65,9 +77,13 @@ data class DokumentSortIndexInput(
     val sortIndex: Double,
 )
 
-data class TypeIdInput(val typeId: String?)
+data class TypeIdInput(
+    val typeId: String?,
+)
 
-data class MulighetIsBasedOnJournalpostInput(val mulighetIsBasedOnJournalpost: Boolean)
+data class MulighetIsBasedOnJournalpostInput(
+    val mulighetIsBasedOnJournalpost: Boolean,
+)
 
 data class MulighetInput(
     val mulighetId: UUID,
@@ -77,44 +93,74 @@ data class MulighetBasedOnJournalpostInput(
     val journalpostId: String,
 )
 
-data class MottattVedtaksinstansInput(val mottattVedtaksinstans: LocalDate)
+data class MottattVedtaksinstansInput(
+    val mottattVedtaksinstans: LocalDate,
+)
 
-data class MottattKlageinstansInput(val mottattKlageinstans: LocalDate)
+data class MottattKlageinstansInput(
+    val mottattKlageinstans: LocalDate,
+)
 
-data class BehandlingstidInput(val units: Int, val unitTypeId: String)
+data class BehandlingstidInput(
+    val units: Int,
+    val unitTypeId: String,
+)
 
-data class HjemmelIdListInput(val hjemmelIdList: List<String>)
+data class HjemmelIdListInput(
+    val hjemmelIdList: List<String>,
+)
 
-data class YtelseIdInput(val ytelseId: String?)
+data class YtelseIdInput(
+    val ytelseId: String?,
+)
 
-data class ForrigeBehandlendeEnhetIdInput(val forrigeBehandlendeEnhetId: String)
+data class ForrigeBehandlendeEnhetIdInput(
+    val forrigeBehandlendeEnhetId: String,
+)
 
-data class SaksbehandlerIdentInput(val saksbehandlerIdent: String?)
+data class SaksbehandlerIdentInput(
+    val saksbehandlerIdent: String?,
+)
 
-data class GosysOppgaveIdInput(val gosysOppgaveId: Long?)
+data class GosysOppgaveIdInput(
+    val gosysOppgaveId: Long?,
+)
 
-data class SendSvarbrevInput(val send: Boolean)
+data class SendSvarbrevInput(
+    val send: Boolean,
+)
 
-data class ReasonNoLetterInput(val reasonNoLetter: String)
+data class ReasonNoLetterInput(
+    val reasonNoLetter: String,
+)
 
-data class SvarbrevFullmektigFritekstInput(val fullmektigFritekst: String?)
+data class SvarbrevFullmektigFritekstInput(
+    val fullmektigFritekst: String?,
+)
 
-data class SvarbrevCustomTextInput(val customText: String)
+data class SvarbrevCustomTextInput(
+    val customText: String,
+)
 
-data class SvarbrevInitialCustomTextInput(val initialCustomText: String)
+data class SvarbrevInitialCustomTextInput(
+    val initialCustomText: String,
+)
 
-data class SvarbrevTitleInput(val title: String)
+data class SvarbrevTitleInput(
+    val title: String,
+)
 
 data class SvarbrevRecipientInput(
     val part: PartIdInput,
     val handling: HandlingEnum,
-    val overriddenAddress: AddressInput?
+    val overriddenAddress: AddressInput?,
 )
 
 data class ModifySvarbrevRecipientInput(
     val handling: HandlingEnum,
-    val overriddenAddress: AddressInput?
+    val overriddenAddress: AddressInput?,
 )
+
 data class AddressInput(
     val adresselinje1: String?,
     val adresselinje2: String?,

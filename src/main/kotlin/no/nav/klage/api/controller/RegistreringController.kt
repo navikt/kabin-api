@@ -1,20 +1,100 @@
 package no.nav.klage.api.controller
 
 import jakarta.servlet.http.HttpServletResponse
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.AdditionalKabalMulighetChangeRegistreringView
+import no.nav.klage.api.controller.view.AvsenderChangeRegistreringView
+import no.nav.klage.api.controller.view.AvsenderInput
+import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView
+import no.nav.klage.api.controller.view.BehandlingstidInput
+import no.nav.klage.api.controller.view.DokumentNameInput
+import no.nav.klage.api.controller.view.DokumentSortIndexChangeRegistreringView
+import no.nav.klage.api.controller.view.DokumentSortIndexInput
+import no.nav.klage.api.controller.view.DokumentStatusEventView
+import no.nav.klage.api.controller.view.DokumentUploadUrlInput
+import no.nav.klage.api.controller.view.DokumentUploadUrlsView
+import no.nav.klage.api.controller.view.DokumenterChangeRegistreringView
+import no.nav.klage.api.controller.view.FerdigstiltRegistreringView
+import no.nav.klage.api.controller.view.FinishedRegistreringView
+import no.nav.klage.api.controller.view.ForrigeBehandlendeEnhetIdChangeRegistreringView
+import no.nav.klage.api.controller.view.ForrigeBehandlendeEnhetIdInput
+import no.nav.klage.api.controller.view.FullRegistreringView
+import no.nav.klage.api.controller.view.FullmektigChangeRegistreringView
+import no.nav.klage.api.controller.view.FullmektigInput
+import no.nav.klage.api.controller.view.GosysOppgaveIdChangeRegistreringView
+import no.nav.klage.api.controller.view.GosysOppgaveIdInput
+import no.nav.klage.api.controller.view.HjemmelIdListChangeRegistreringView
+import no.nav.klage.api.controller.view.HjemmelIdListInput
+import no.nav.klage.api.controller.view.InngaaendeKanalChangeRegistreringView
+import no.nav.klage.api.controller.view.InngaaendeKanalInput
+import no.nav.klage.api.controller.view.JournalpostIdInput
+import no.nav.klage.api.controller.view.KabalmulighetView
+import no.nav.klage.api.controller.view.KlagerChangeRegistreringView
+import no.nav.klage.api.controller.view.KlagerInput
+import no.nav.klage.api.controller.view.ModifySvarbrevRecipientInput
+import no.nav.klage.api.controller.view.MottattKlageinstansChangeRegistreringView
+import no.nav.klage.api.controller.view.MottattKlageinstansInput
+import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView
+import no.nav.klage.api.controller.view.MottattVedtaksinstansInput
+import no.nav.klage.api.controller.view.MulighetBasedOnJournalpostInput
+import no.nav.klage.api.controller.view.MulighetChangeRegistreringView
+import no.nav.klage.api.controller.view.MulighetInput
+import no.nav.klage.api.controller.view.MulighetIsBasedOnJournalpostInput
+import no.nav.klage.api.controller.view.MuligheterView
+import no.nav.klage.api.controller.view.ReasonNoLetterChangeRegistreringView
+import no.nav.klage.api.controller.view.ReasonNoLetterInput
+import no.nav.klage.api.controller.view.ResetDokumentStatusInput
+import no.nav.klage.api.controller.view.ResetDokumentStatusRegistreringView
+import no.nav.klage.api.controller.view.SakenGjelderValueInput
+import no.nav.klage.api.controller.view.SaksbehandlerIdentChangeRegistreringView
+import no.nav.klage.api.controller.view.SaksbehandlerIdentInput
+import no.nav.klage.api.controller.view.SendSvarbrevChangeRegistreringView
+import no.nav.klage.api.controller.view.SendSvarbrevInput
+import no.nav.klage.api.controller.view.SourceInput
+import no.nav.klage.api.controller.view.SvarbrevBehandlingstidChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevCustomTextChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevCustomTextInput
+import no.nav.klage.api.controller.view.SvarbrevFullmektigFritekstChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevFullmektigFritekstInput
+import no.nav.klage.api.controller.view.SvarbrevInitialCustomTextChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevInitialCustomTextInput
+import no.nav.klage.api.controller.view.SvarbrevOverrideBehandlingstidChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevOverrideBehandlingstidInput
+import no.nav.klage.api.controller.view.SvarbrevOverrideCustomTextChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevOverrideCustomTextInput
+import no.nav.klage.api.controller.view.SvarbrevReceiverChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevRecipientInput
+import no.nav.klage.api.controller.view.SvarbrevTitleChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevTitleInput
+import no.nav.klage.api.controller.view.TypeChangeRegistreringView
+import no.nav.klage.api.controller.view.TypeIdInput
+import no.nav.klage.api.controller.view.YtelseChangeRegistreringView
+import no.nav.klage.api.controller.view.YtelseIdInput
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.DokumentConfirmService
 import no.nav.klage.service.RegistreringService
-import no.nav.klage.util.*
+import no.nav.klage.util.AuditLogEvent
+import no.nav.klage.util.AuditLogger
+import no.nav.klage.util.SseWriter
+import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.getLogger
+import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.net.URI
-import java.util.*
+import java.util.UUID
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
@@ -25,7 +105,6 @@ class RegistreringController(
     private val tokenUtil: TokenUtil,
     private val auditLogger: AuditLogger,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -34,21 +113,22 @@ class RegistreringController(
 
     @PostMapping
     fun createRegistrering(
-        @RequestBody input: SakenGjelderValueInput
+        @RequestBody input: SakenGjelderValueInput,
     ): FullRegistreringView {
         logMethodDetails(
             methodName = ::createRegistrering.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
             logger = logger,
         )
-        return registreringService.createRegistrering(input = input)
+        return registreringService
+            .createRegistrering(input = input)
             .also {
                 auditLogger.log(
                     AuditLogEvent(
                         navIdent = tokenUtil.getCurrentIdent(),
                         personFnr = input.sakenGjelderValue,
-                        message = "Opprettet registrering for å opprette klage eller anke i klageinstans."
-                    )
+                        message = "Opprettet registrering for å opprette klage eller anke i klageinstans.",
+                    ),
                 )
             }
     }
@@ -69,8 +149,7 @@ class RegistreringController(
     }
 
     @GetMapping("/uferdige")
-    fun getRegistreringerUferdige(
-    ): List<FullRegistreringView> {
+    fun getRegistreringerUferdige(): List<FullRegistreringView> {
         logMethodDetails(
             methodName = ::getRegistreringerUferdige.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -91,7 +170,7 @@ class RegistreringController(
         )
 
         return registreringService.getRegistrering(
-            registreringId = id
+            registreringId = id,
         )
     }
 
@@ -106,14 +185,14 @@ class RegistreringController(
         )
 
         registreringService.deleteRegistrering(
-            registreringId = id
+            registreringId = id,
         )
     }
 
     @PutMapping("/{id}/saken-gjelder-value")
     fun updateSakenGjelderValue(
         @PathVariable id: UUID,
-        @RequestBody input: SakenGjelderValueInput
+        @RequestBody input: SakenGjelderValueInput,
     ): FullRegistreringView {
         logMethodDetails(
             methodName = ::updateSakenGjelderValue.name,
@@ -126,7 +205,7 @@ class RegistreringController(
     @PutMapping("/{id}/journalpost-id")
     fun updateJournalpostId(
         @PathVariable id: UUID,
-        @RequestBody input: JournalpostIdInput
+        @RequestBody input: JournalpostIdInput,
     ): FullRegistreringView {
         logMethodDetails(
             methodName = ::updateJournalpostId.name,
@@ -190,17 +269,18 @@ class RegistreringController(
             ) { state ->
                 sse.send(
                     event = "status",
-                    data = objectMapper.writeValueAsString(
-                        DokumentStatusEventView(
-                            status = state.status,
-                            size = state.size,
-                            contentType = state.contentType,
-                        )
-                    ),
+                    data =
+                        objectMapper.writeValueAsString(
+                            DokumentStatusEventView(
+                                status = state.status,
+                                size = state.size,
+                                contentType = state.contentType,
+                            ),
+                        ),
                 )
             }
         } catch (e: Exception) {
-            //Nothing has been sent yet, so let the normal error handling produce a proper response.
+            // Nothing has been sent yet, so let the normal error handling produce a proper response.
             if (!sse.hasStarted) {
                 throw e
             }
@@ -291,7 +371,7 @@ class RegistreringController(
     @PutMapping("/{id}/uploaded-documents/inngaaende-kanal")
     fun updateInngaaendeKanal(
         @PathVariable id: UUID,
-        @RequestBody input: InngaaendeKanalInput
+        @RequestBody input: InngaaendeKanalInput,
     ): InngaaendeKanalChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateInngaaendeKanal.name,
@@ -304,7 +384,7 @@ class RegistreringController(
     @PutMapping("/{id}/source")
     fun updateSource(
         @PathVariable id: UUID,
-        @RequestBody input: SourceInput
+        @RequestBody input: SourceInput,
     ): FullRegistreringView {
         logMethodDetails(
             methodName = ::updateSource.name,
@@ -317,7 +397,7 @@ class RegistreringController(
     @PutMapping("/{id}/type-id")
     fun updateTypeId(
         @PathVariable id: UUID,
-        @RequestBody input: TypeIdInput
+        @RequestBody input: TypeIdInput,
     ): TypeChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateTypeId.name,
@@ -330,9 +410,9 @@ class RegistreringController(
     @PutMapping("/{id}/mulighet-is-based-on-journalpost")
     fun updateMulighetIsBasedOnJournalpost(
         @PathVariable id: UUID,
-        @RequestBody input: MulighetIsBasedOnJournalpostInput
-    ): //TODO: Ny responsview?
-            TypeChangeRegistreringView {
+        @RequestBody input: MulighetIsBasedOnJournalpostInput,
+    ): // TODO: Ny responsview?
+        TypeChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateMulighetIsBasedOnJournalpost.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
@@ -344,7 +424,7 @@ class RegistreringController(
     @PutMapping("/{id}/mulighet")
     fun updateMulighet(
         @PathVariable id: UUID,
-        @RequestBody input: MulighetInput
+        @RequestBody input: MulighetInput,
     ): MulighetChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateMulighet.name,
@@ -357,7 +437,7 @@ class RegistreringController(
     @PutMapping("/{id}/additional-kabal-mulighet")
     fun updateAdditionalKabalMulighet(
         @PathVariable id: UUID,
-        @RequestBody input: MulighetInput
+        @RequestBody input: MulighetInput,
     ): AdditionalKabalMulighetChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateAdditionalKabalMulighet.name,
@@ -370,7 +450,7 @@ class RegistreringController(
     @PutMapping("/{id}/mulighet-based-on-journalpost")
     fun updateMulighetBasedOnJournalpost(
         @PathVariable id: UUID,
-        @RequestBody input: MulighetBasedOnJournalpostInput
+        @RequestBody input: MulighetBasedOnJournalpostInput,
     ): MulighetChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateMulighetBasedOnJournalpost.name,
@@ -383,7 +463,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/mottatt-vedtaksinstans")
     fun updateMottattVedtaksinstans(
         @PathVariable id: UUID,
-        @RequestBody input: MottattVedtaksinstansInput
+        @RequestBody input: MottattVedtaksinstansInput,
     ): MottattVedtaksinstansChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateMottattVedtaksinstans.name,
@@ -396,7 +476,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/mottatt-klageinstans")
     fun updateMottattKlageinstans(
         @PathVariable id: UUID,
-        @RequestBody input: MottattKlageinstansInput
+        @RequestBody input: MottattKlageinstansInput,
     ): MottattKlageinstansChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateMottattKlageinstans.name,
@@ -409,7 +489,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/behandlingstid")
     fun updateBehandlingstid(
         @PathVariable id: UUID,
-        @RequestBody input: BehandlingstidInput
+        @RequestBody input: BehandlingstidInput,
     ): BehandlingstidChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateBehandlingstid.name,
@@ -422,7 +502,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/hjemmel-id-list")
     fun updateHjemmelIdList(
         @PathVariable id: UUID,
-        @RequestBody input: HjemmelIdListInput
+        @RequestBody input: HjemmelIdListInput,
     ): HjemmelIdListChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateHjemmelIdList.name,
@@ -435,7 +515,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/ytelse-id")
     fun updateYtelseId(
         @PathVariable id: UUID,
-        @RequestBody input: YtelseIdInput
+        @RequestBody input: YtelseIdInput,
     ): YtelseChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateYtelseId.name,
@@ -448,7 +528,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/forrige-behandlende-enhet-id")
     fun updateForrigeBehandlendeEnhetId(
         @PathVariable id: UUID,
-        @RequestBody input: ForrigeBehandlendeEnhetIdInput
+        @RequestBody input: ForrigeBehandlendeEnhetIdInput,
     ): ForrigeBehandlendeEnhetIdChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateForrigeBehandlendeEnhetId.name,
@@ -461,7 +541,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/fullmektig")
     fun updateFullmektig(
         @PathVariable id: UUID,
-        @RequestBody input: FullmektigInput
+        @RequestBody input: FullmektigInput,
     ): FullmektigChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateFullmektig.name,
@@ -474,7 +554,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/klager")
     fun updateKlager(
         @PathVariable id: UUID,
-        @RequestBody input: KlagerInput
+        @RequestBody input: KlagerInput,
     ): KlagerChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateKlager.name,
@@ -487,7 +567,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/avsender")
     fun updateAvsender(
         @PathVariable id: UUID,
-        @RequestBody input: AvsenderInput
+        @RequestBody input: AvsenderInput,
     ): AvsenderChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateAvsender.name,
@@ -500,7 +580,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/saksbehandler-ident")
     fun updateSaksbehandlerIdent(
         @PathVariable id: UUID,
-        @RequestBody input: SaksbehandlerIdentInput
+        @RequestBody input: SaksbehandlerIdentInput,
     ): SaksbehandlerIdentChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSaksbehandlerIdent.name,
@@ -513,7 +593,7 @@ class RegistreringController(
     @PutMapping("/{id}/overstyringer/gosys-oppgave-id")
     fun updateGosysOppgaveId(
         @PathVariable id: UUID,
-        @RequestBody input: GosysOppgaveIdInput
+        @RequestBody input: GosysOppgaveIdInput,
     ): GosysOppgaveIdChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateGosysOppgaveId.name,
@@ -526,7 +606,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/send")
     fun updateSendSvarbrev(
         @PathVariable id: UUID,
-        @RequestBody input: SendSvarbrevInput
+        @RequestBody input: SendSvarbrevInput,
     ): SendSvarbrevChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSendSvarbrev.name,
@@ -539,7 +619,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/reason-no-letter")
     fun updateReasonNoLetter(
         @PathVariable id: UUID,
-        @RequestBody input: ReasonNoLetterInput
+        @RequestBody input: ReasonNoLetterInput,
     ): ReasonNoLetterChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateReasonNoLetter.name,
@@ -552,7 +632,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/override-custom-text")
     fun updateOverrideSvarbrevCustomText(
         @PathVariable id: UUID,
-        @RequestBody input: SvarbrevOverrideCustomTextInput
+        @RequestBody input: SvarbrevOverrideCustomTextInput,
     ): SvarbrevOverrideCustomTextChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateOverrideSvarbrevCustomText.name,
@@ -565,7 +645,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/override-behandlingstid")
     fun updateOverrideSvarbrevBehandlingstid(
         @PathVariable id: UUID,
-        @RequestBody input: SvarbrevOverrideBehandlingstidInput
+        @RequestBody input: SvarbrevOverrideBehandlingstidInput,
     ): SvarbrevOverrideBehandlingstidChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateOverrideSvarbrevBehandlingstid.name,
@@ -578,7 +658,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/behandlingstid")
     fun updateSvarbrevBehandlingstid(
         @PathVariable id: UUID,
-        @RequestBody input: BehandlingstidInput
+        @RequestBody input: BehandlingstidInput,
     ): SvarbrevBehandlingstidChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevBehandlingstid.name,
@@ -591,7 +671,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/fullmektig-fritekst")
     fun updateSvarbrevFullmektigFritekst(
         @PathVariable id: UUID,
-        @RequestBody input: SvarbrevFullmektigFritekstInput
+        @RequestBody input: SvarbrevFullmektigFritekstInput,
     ): SvarbrevFullmektigFritekstChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevFullmektigFritekst.name,
@@ -604,7 +684,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/custom-text")
     fun updateSvarbrevCustomText(
         @PathVariable id: UUID,
-        @RequestBody input: SvarbrevCustomTextInput
+        @RequestBody input: SvarbrevCustomTextInput,
     ): SvarbrevCustomTextChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevCustomText.name,
@@ -617,7 +697,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/initial-custom-text")
     fun updateSvarbrevInitialCustomText(
         @PathVariable id: UUID,
-        @RequestBody input: SvarbrevInitialCustomTextInput
+        @RequestBody input: SvarbrevInitialCustomTextInput,
     ): SvarbrevInitialCustomTextChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevInitialCustomText.name,
@@ -630,7 +710,7 @@ class RegistreringController(
     @PutMapping("/{id}/svarbrev/title")
     fun updateSvarbrevTitle(
         @PathVariable id: UUID,
-        @RequestBody input: SvarbrevTitleInput
+        @RequestBody input: SvarbrevTitleInput,
     ): SvarbrevTitleChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevTitle.name,
@@ -643,7 +723,7 @@ class RegistreringController(
     @PostMapping("/{id}/svarbrev/receivers")
     fun updateSvarbrevReceivers(
         @PathVariable id: UUID,
-        @RequestBody input: SvarbrevRecipientInput
+        @RequestBody input: SvarbrevRecipientInput,
     ): SvarbrevReceiverChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevReceivers.name,
@@ -657,7 +737,7 @@ class RegistreringController(
     fun updateSvarbrevReceiver(
         @PathVariable id: UUID,
         @PathVariable svarbrevReceiverId: UUID,
-        @RequestBody input: ModifySvarbrevRecipientInput
+        @RequestBody input: ModifySvarbrevRecipientInput,
     ): SvarbrevReceiverChangeRegistreringView {
         logMethodDetails(
             methodName = ::updateSvarbrevReceiver.name,
@@ -667,7 +747,7 @@ class RegistreringController(
         return registreringService.modifySvarbrevReceiver(
             registreringId = id,
             svarbrevReceiverId = svarbrevReceiverId,
-            input = input
+            input = input,
         )
     }
 
@@ -721,5 +801,4 @@ class RegistreringController(
 
         return registreringService.getAdditionalKabalMuligheter(registreringId = id)
     }
-
 }

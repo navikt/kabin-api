@@ -16,81 +16,91 @@ class DokumentMapper {
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    //TODO: Har ikke tatt høyde for skjerming, ref https://confluence.adeo.no/pages/viewpage.action?pageId=320364687
-    fun mapJournalpostToDokumentReferanse(
-        journalpost: Journalpost,
-    ): DokumentReferanse {
+    // TODO: Har ikke tatt høyde for skjerming, ref https://confluence.adeo.no/pages/viewpage.action?pageId=320364687
+    fun mapJournalpostToDokumentReferanse(journalpost: Journalpost): DokumentReferanse {
+        val hoveddokument =
+            journalpost.dokumenter?.firstOrNull()
+                ?: throw RuntimeException("Could not find hoveddokument for journalpost ${journalpost.journalpostId}")
 
-        val hoveddokument = journalpost.dokumenter?.firstOrNull()
-            ?: throw RuntimeException("Could not find hoveddokument for journalpost ${journalpost.journalpostId}")
-
-        val dokumentReferanse = DokumentReferanse(
-            tittel = hoveddokument.tittel,
-            //remove when client no longer uses
-            tema = Tema.fromNavn(journalpost.tema.name).id,
-            temaId = Tema.fromNavn(journalpost.tema.name).id,
-            dokumentInfoId = hoveddokument.dokumentInfoId,
-            journalpostId = journalpost.journalpostId,
-            harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
-            journalposttype = DokumentReferanse.Journalposttype.valueOf(journalpost.journalposttype.name),
-            journalstatus = if (journalpost.journalstatus != null) {
-                DokumentReferanse.Journalstatus.valueOf(journalpost.journalstatus.name)
-            } else null,
-            behandlingstema = journalpost.behandlingstema,
-            behandlingstemanavn = journalpost.behandlingstemanavn,
-            sak = if (journalpost.sak != null) {
-                DokumentReferanse.Sak(
-                    datoOpprettet = journalpost.sak.datoOpprettet,
-                    fagsakId = journalpost.sak.fagsakId,
-                    fagsaksystem = journalpost.sak.fagsaksystem,
-                    fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(journalpost.sak.fagsaksystem).id },
-                )
-            } else null,
-            avsenderMottaker = if (journalpost.avsenderMottaker == null ||
-                (journalpost.avsenderMottaker.id == null && journalpost.avsenderMottaker.navn == null)
-            ) {
-                null
-            } else {
-                DokumentReferanse.AvsenderMottaker(
-                    id = journalpost.avsenderMottaker.id,
-                    type = journalpost.avsenderMottaker.type?.let {
-                        DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
-                            it.name
+        val dokumentReferanse =
+            DokumentReferanse(
+                tittel = hoveddokument.tittel,
+                // remove when client no longer uses
+                tema = Tema.fromNavn(journalpost.tema.name).id,
+                temaId = Tema.fromNavn(journalpost.tema.name).id,
+                dokumentInfoId = hoveddokument.dokumentInfoId,
+                journalpostId = journalpost.journalpostId,
+                harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
+                journalposttype = DokumentReferanse.Journalposttype.valueOf(journalpost.journalposttype.name),
+                journalstatus =
+                    if (journalpost.journalstatus != null) {
+                        DokumentReferanse.Journalstatus.valueOf(journalpost.journalstatus.name)
+                    } else {
+                        null
+                    },
+                behandlingstema = journalpost.behandlingstema,
+                behandlingstemanavn = journalpost.behandlingstemanavn,
+                sak =
+                    if (journalpost.sak != null) {
+                        DokumentReferanse.Sak(
+                            datoOpprettet = journalpost.sak.datoOpprettet,
+                            fagsakId = journalpost.sak.fagsakId,
+                            fagsaksystem = journalpost.sak.fagsaksystem,
+                            fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(journalpost.sak.fagsaksystem).id },
+                        )
+                    } else {
+                        null
+                    },
+                avsenderMottaker =
+                    if (journalpost.avsenderMottaker == null ||
+                        (journalpost.avsenderMottaker.id == null && journalpost.avsenderMottaker.navn == null)
+                    ) {
+                        null
+                    } else {
+                        DokumentReferanse.AvsenderMottaker(
+                            id = journalpost.avsenderMottaker.id,
+                            type =
+                                journalpost.avsenderMottaker.type?.let {
+                                    DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
+                                        it.name,
+                                    )
+                                },
+                            name = journalpost.avsenderMottaker.navn,
                         )
                     },
-                    name = journalpost.avsenderMottaker.navn,
-                )
-            },
-            journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
-            journalfortAvNavn = journalpost.journalfortAvNavn,
-            opprettetAvNavn = journalpost.opprettetAvNavn,
-            logiskeVedlegg = hoveddokument.logiskeVedlegg?.map {
-                DokumentReferanse.LogiskVedlegg(
-                    tittel = it.tittel,
-                    logiskVedleggId = it.logiskVedleggId,
-                )
-            },
-            datoOpprettet = journalpost.datoOpprettet,
-            datoSortering = journalpost.datoSortering,
-            relevanteDatoer = journalpost.relevanteDatoer?.map {
-                DokumentReferanse.RelevantDato(
-                    dato = it.dato,
-                    datotype = DokumentReferanse.RelevantDato.Datotype.valueOf(it.datotype.name)
-                )
-            },
-            antallRetur = journalpost.antallRetur?.toInt(),
-            tilleggsopplysninger = journalpost.tilleggsopplysninger?.map {
-                DokumentReferanse.Tilleggsopplysning(
-                    key = it.nokkel,
-                    value = it.verdi,
-                )
-            },
-            kanal = journalpost.kanal,
-            kanalnavn = journalpost.kanalnavn,
-            utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
-            canChangeAvsender = canChangeAvsenderInJournalpost(journalpost),
-            varianter = hoveddokument.toVarianter(),
-        )
+                journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
+                journalfortAvNavn = journalpost.journalfortAvNavn,
+                opprettetAvNavn = journalpost.opprettetAvNavn,
+                logiskeVedlegg =
+                    hoveddokument.logiskeVedlegg?.map {
+                        DokumentReferanse.LogiskVedlegg(
+                            tittel = it.tittel,
+                            logiskVedleggId = it.logiskVedleggId,
+                        )
+                    },
+                datoOpprettet = journalpost.datoOpprettet,
+                datoSortering = journalpost.datoSortering,
+                relevanteDatoer =
+                    journalpost.relevanteDatoer?.map {
+                        DokumentReferanse.RelevantDato(
+                            dato = it.dato,
+                            datotype = DokumentReferanse.RelevantDato.Datotype.valueOf(it.datotype.name),
+                        )
+                    },
+                antallRetur = journalpost.antallRetur?.toInt(),
+                tilleggsopplysninger =
+                    journalpost.tilleggsopplysninger?.map {
+                        DokumentReferanse.Tilleggsopplysning(
+                            key = it.nokkel,
+                            value = it.verdi,
+                        )
+                    },
+                kanal = journalpost.kanal,
+                kanalnavn = journalpost.kanalnavn,
+                utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
+                canChangeAvsender = canChangeAvsenderInJournalpost(journalpost),
+                varianter = hoveddokument.toVarianter(),
+            )
 
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost))
 
@@ -104,94 +114,110 @@ class DokumentMapper {
 
         return with(utsendingsinfo) {
             DokumentReferanse.Utsendingsinfo(
-                epostVarselSendt = if (epostVarselSendt != null) {
-                    DokumentReferanse.Utsendingsinfo.EpostVarselSendt(
-                        tittel = epostVarselSendt.tittel,
-                        adresse = epostVarselSendt.adresse,
-                        varslingstekst = epostVarselSendt.varslingstekst,
-                    )
-                } else null,
-                smsVarselSendt = if (smsVarselSendt != null) {
-                    DokumentReferanse.Utsendingsinfo.SmsVarselSendt(
-                        adresse = smsVarselSendt.adresse,
-                        varslingstekst = smsVarselSendt.varslingstekst,
-                    )
-                } else null,
-                fysiskpostSendt = if (fysiskpostSendt != null) {
-                    DokumentReferanse.Utsendingsinfo.FysiskpostSendt(
-                        adressetekstKonvolutt = fysiskpostSendt.adressetekstKonvolutt,
-                    )
-                } else null,
-                digitalpostSendt = if (digitalpostSendt != null) {
-                    DokumentReferanse.Utsendingsinfo.DigitalpostSendt(
-                        adresse = digitalpostSendt.adresse,
-                    )
-                } else null,
+                epostVarselSendt =
+                    if (epostVarselSendt != null) {
+                        DokumentReferanse.Utsendingsinfo.EpostVarselSendt(
+                            tittel = epostVarselSendt.tittel,
+                            adresse = epostVarselSendt.adresse,
+                            varslingstekst = epostVarselSendt.varslingstekst,
+                        )
+                    } else {
+                        null
+                    },
+                smsVarselSendt =
+                    if (smsVarselSendt != null) {
+                        DokumentReferanse.Utsendingsinfo.SmsVarselSendt(
+                            adresse = smsVarselSendt.adresse,
+                            varslingstekst = smsVarselSendt.varslingstekst,
+                        )
+                    } else {
+                        null
+                    },
+                fysiskpostSendt =
+                    if (fysiskpostSendt != null) {
+                        DokumentReferanse.Utsendingsinfo.FysiskpostSendt(
+                            adressetekstKonvolutt = fysiskpostSendt.adressetekstKonvolutt,
+                        )
+                    } else {
+                        null
+                    },
+                digitalpostSendt =
+                    if (digitalpostSendt != null) {
+                        DokumentReferanse.Utsendingsinfo.DigitalpostSendt(
+                            adresse = digitalpostSendt.adresse,
+                        )
+                    } else {
+                        null
+                    },
             )
         }
     }
 
-    private fun getVedlegg(
-        journalpost: Journalpost,
-    ): List<DokumentReferanse.VedleggReferanse> {
-        return if ((journalpost.dokumenter?.size ?: 0) > 1) {
-            journalpost.dokumenter?.subList(1, journalpost.dokumenter.size)?.map { vedlegg ->
+    private fun getVedlegg(journalpost: Journalpost): List<DokumentReferanse.VedleggReferanse> =
+        if ((journalpost.dokumenter?.size ?: 0) > 1) {
+            journalpost.dokumenter?.subList(fromIndex = 1, toIndex = journalpost.dokumenter.size)?.map { vedlegg ->
                 DokumentReferanse.VedleggReferanse(
                     tittel = vedlegg.tittel,
                     dokumentInfoId = vedlegg.dokumentInfoId,
                     harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(vedlegg),
-                    logiskeVedlegg = vedlegg.logiskeVedlegg?.map {
-                        DokumentReferanse.LogiskVedlegg(
-                            tittel = it.tittel,
-                            logiskVedleggId = it.logiskVedleggId,
-                        )
-                    },
+                    logiskeVedlegg =
+                        vedlegg.logiskeVedlegg?.map {
+                            DokumentReferanse.LogiskVedlegg(
+                                tittel = it.tittel,
+                                logiskVedleggId = it.logiskVedleggId,
+                            )
+                        },
                     varianter = vedlegg.toVarianter(),
                 )
             } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
         } else {
             emptyList()
         }
-    }
 
-    private fun DokumentInfo.toVarianter(): List<DokumentReferanse.Variant> {
-        return this.dokumentvarianter.filter {
-            it.variantformat in listOf(
-                Variantformat.ARKIV,
-                Variantformat.SLADDET
-            )
-        }.map { variant ->
-            DokumentReferanse.Variant(
-                format = when (variant.variantformat) {
-                    Variantformat.ARKIV -> {
-                        DokumentReferanse.Variant.Format.ARKIV
-                    }
-                    Variantformat.SLADDET -> {
-                        DokumentReferanse.Variant.Format.SLADDET
-                    }
-                    else -> throw RuntimeException("Unknown variantformat: ${variant.variantformat}")
-                },
-                filtype = variant.filtype.toFiltype(),
-                hasAccess = variant.saksbehandlerHarTilgang,
-                skjerming = variant.skjerming?.let {
-                    DokumentReferanse.Variant.SkjermingType.valueOf(it.name)
-                }
-            )
-        }
-    }
+    private fun DokumentInfo.toVarianter(): List<DokumentReferanse.Variant> =
+        this.dokumentvarianter
+            .filter {
+                it.variantformat in
+                    listOf(
+                        Variantformat.ARKIV,
+                        Variantformat.SLADDET,
+                    )
+            }.map { variant ->
+                DokumentReferanse.Variant(
+                    format =
+                        when (variant.variantformat) {
+                            Variantformat.ARKIV -> {
+                                DokumentReferanse.Variant.Format.ARKIV
+                            }
 
-    private fun String?.toFiltype(): DokumentReferanse.Filtype {
-        return if (this != null) {
+                            Variantformat.SLADDET -> {
+                                DokumentReferanse.Variant.Format.SLADDET
+                            }
+
+                            else -> {
+                                throw RuntimeException("Unknown variantformat: ${variant.variantformat}")
+                            }
+                        },
+                    filtype = variant.filtype.toFiltype(),
+                    hasAccess = variant.saksbehandlerHarTilgang,
+                    skjerming =
+                        variant.skjerming?.let {
+                            DokumentReferanse.Variant.SkjermingType.valueOf(it.name)
+                        },
+                )
+            }
+
+    private fun String?.toFiltype(): DokumentReferanse.Filtype =
+        if (this != null) {
             DokumentReferanse.Filtype.valueOf(this)
         } else {
             logger.warn("Filtype was null. Returning PDF as default.")
             DokumentReferanse.Filtype.PDF
         }
-    }
 
     private fun harTilgangTilArkivEllerSladdetVariant(dokumentInfo: DokumentInfo?): Boolean =
         dokumentInfo?.dokumentvarianter?.any { dv ->
             (dv.variantformat == Variantformat.ARKIV && dv.saksbehandlerHarTilgang) ||
-                    (dv.variantformat == Variantformat.SLADDET && dv.saksbehandlerHarTilgang)
+                (dv.variantformat == Variantformat.SLADDET && dv.saksbehandlerHarTilgang)
         } ?: false
 }
