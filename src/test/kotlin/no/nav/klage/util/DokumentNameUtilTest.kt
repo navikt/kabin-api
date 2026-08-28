@@ -6,7 +6,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 
 class DokumentNameUtilTest {
-
     @Test
     fun `renaming takes the name exactly as given`() {
         assertThat(validateDokumentName("nytt")).isEqualTo("nytt")

@@ -21,9 +21,8 @@ import org.springframework.web.reactive.function.client.bodyToMono
 class GosysOppgaveClient(
     private val gosysOppgaveWebClient: WebClient,
     private val tokenUtil: TokenUtil,
-    @Value("\${spring.application.name}") private val applicationName: String,
+    @Value($$"${spring.application.name}") private val applicationName: String,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -31,12 +30,11 @@ class GosysOppgaveClient(
     }
 
     @Retryable
-    fun fetchJournalfoeringsoppgave(
-        journalpostId: String,
-    ): GosysOppgaveRecord? {
+    fun fetchJournalfoeringsoppgave(journalpostId: String): GosysOppgaveRecord? {
         val gosysOppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchJournalfoeringsoppgave.name) {
-                gosysOppgaveWebClient.get()
+                gosysOppgaveWebClient
+                    .get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
@@ -45,12 +43,10 @@ class GosysOppgaveClient(
                         uriBuilder.queryParam("limit", 1)
                         uriBuilder.queryParam("offset", 0)
                         uriBuilder.build()
-                    }
-                    .header(
+                    }.header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
-                    )
-                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}",
+                    ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<GosysOppgaveResponse>()
@@ -58,7 +54,9 @@ class GosysOppgaveClient(
             }
 
         if (gosysOppgaveResponse.oppgaver.size > 1) {
-            throw GosysOppgaveClientException("Forventet ingen eller én journalfoeringsoppgave, men fant ${gosysOppgaveResponse.antallTreffTotalt}.")
+            throw GosysOppgaveClientException(
+                "Forventet ingen eller én journalfoeringsoppgave, men fant ${gosysOppgaveResponse.antallTreffTotalt}.",
+            )
         }
         return gosysOppgaveResponse.oppgaver.firstOrNull()
     }
@@ -66,11 +64,12 @@ class GosysOppgaveClient(
     @Retryable
     fun fetchGosysOppgaverForAktoerIdAndTema(
         aktoerId: String,
-        temaList: List<Tema>?
+        temaList: List<Tema>?,
     ): List<GosysOppgaveRecord> {
         val gosysOppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaverForAktoerIdAndTema.name) {
-                gosysOppgaveWebClient.get()
+                gosysOppgaveWebClient
+                    .get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
@@ -79,12 +78,10 @@ class GosysOppgaveClient(
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)
                         uriBuilder.build()
-                    }
-                    .header(
+                    }.header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
-                    )
-                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}",
+                    ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<GosysOppgaveResponse>()
@@ -95,79 +92,75 @@ class GosysOppgaveClient(
     }
 
     @Retryable
-    fun ferdigstillGosysOppgave(ferdigstillGosysOppgaveRequest: FerdigstillGosysOppgaveRequest): GosysOppgaveRecord {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::ferdigstillGosysOppgave.name) {
-            gosysOppgaveWebClient.patch()
+    fun ferdigstillGosysOppgave(ferdigstillGosysOppgaveRequest: FerdigstillGosysOppgaveRequest): GosysOppgaveRecord =
+        logTimingAndWebClientResponseException(GosysOppgaveClient::ferdigstillGosysOppgave.name) {
+            gosysOppgaveWebClient
+                .patch()
                 .uri { uriBuilder ->
                     uriBuilder.pathSegment("oppgaver", "{id}").build(ferdigstillGosysOppgaveRequest.oppgaveId)
-                }
-                .contentType(MediaType.APPLICATION_JSON)
+                }.contentType(MediaType.APPLICATION_JSON)
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}",
+                ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .bodyValue(ferdigstillGosysOppgaveRequest)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
                 .block() ?: throw RuntimeException("Kunne ikke ferdigstille Gosys-oppgaven.")
         }
-    }
 
     @Retryable
-    fun getGosysOppgave(gosysOppgaveId: Long): GosysOppgaveRecord {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
-            gosysOppgaveWebClient.get()
+    fun getGosysOppgave(gosysOppgaveId: Long): GosysOppgaveRecord =
+        logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
+            gosysOppgaveWebClient
+                .get()
                 .uri { uriBuilder ->
                     uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
-                }
-                .header(
+                }.header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}",
+                ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
                 .block() ?: throw RuntimeException("Gosys-oppgave could not be fetched")
         }
-    }
 
     @Retryable
-    fun updateGosysOppgave(gosysOppgaveId: Long, updateGosysOppgaveInput: UpdateGosysOppgaveInput): GosysOppgaveRecord {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
-            gosysOppgaveWebClient.patch()
+    fun updateGosysOppgave(
+        gosysOppgaveId: Long,
+        updateGosysOppgaveInput: UpdateGosysOppgaveInput,
+    ): GosysOppgaveRecord =
+        logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
+            gosysOppgaveWebClient
+                .patch()
                 .uri { uriBuilder ->
                     uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
-                }
-                .bodyValue(updateGosysOppgaveInput)
+                }.bodyValue(updateGosysOppgaveInput)
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}",
+                ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
                 .block() ?: throw RuntimeException("Gosys-oppgave could not be updated")
         }
-    }
 
     @Cacheable(CacheWithJCacheConfiguration.GJELDER_CACHE)
     fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
         val gjelderResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
-                gosysOppgaveWebClient.get()
+                gosysOppgaveWebClient
+                    .get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("kodeverk", "gjelder", "{tema}")
                         uriBuilder.build(tema.navn)
-                    }
-                    .header(
+                    }.header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
-                    )
-                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}",
+                    ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<Gjelder>>()
@@ -181,16 +174,15 @@ class GosysOppgaveClient(
     fun getGosysOppgavetypeKodeverkForTema(tema: Tema): List<GosysOppgavetypeResponse> {
         val gosysOppgavetypeResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
-                gosysOppgaveWebClient.get()
+                gosysOppgaveWebClient
+                    .get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("kodeverk", "oppgavetype", "{tema}")
                         uriBuilder.build(tema.navn)
-                    }
-                    .header(
+                    }.header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}"
-                    )
-                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()}",
+                    ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<GosysOppgavetypeResponse>>()
@@ -200,7 +192,10 @@ class GosysOppgaveClient(
         return gosysOppgavetypeResponse
     }
 
-    private fun <T> logTimingAndWebClientResponseException(methodName: String, function: () -> T): T {
+    private fun <T> logTimingAndWebClientResponseException(
+        methodName: String,
+        function: () -> T,
+    ): T {
         val start: Long = System.currentTimeMillis()
         try {
             return function.invoke()
@@ -211,12 +206,12 @@ class GosysOppgaveClient(
                 ex.statusCode,
                 ex.request?.method ?: "-",
                 ex.request?.uri ?: "-",
-                ex.responseBodyAsString
+                ex.responseBodyAsString,
             )
-            throw GosysOppgaveClientException("Caught WebClientResponseException", ex)
+            throw GosysOppgaveClientException(message = "Caught WebClientResponseException", cause = ex)
         } catch (rtex: RuntimeException) {
             logger.warn("Caught RuntimeException", rtex)
-            throw GosysOppgaveClientException("Caught runtimeexception", rtex)
+            throw GosysOppgaveClientException(message = "Caught runtimeexception", cause = rtex)
         } finally {
             val end: Long = System.currentTimeMillis()
             logger.info("Method {} took {} millis", methodName, (end - start))

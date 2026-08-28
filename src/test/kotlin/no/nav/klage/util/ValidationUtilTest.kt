@@ -2,7 +2,12 @@ package no.nav.klage.util
 
 import io.mockk.mockk
 import no.nav.klage.clients.kabalapi.KabalApiClient
-import no.nav.klage.domain.entities.*
+import no.nav.klage.domain.entities.DokumentStatus
+import no.nav.klage.domain.entities.InngaaendeKanal
+import no.nav.klage.domain.entities.PartId
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.RegistreringDokument
+import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.TimeUnitType
@@ -17,7 +22,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class ValidationUtilTest {
-
     private lateinit var kabalApiClient: KabalApiClient
     private lateinit var validationUtil: ValidationUtil
 
@@ -46,9 +50,10 @@ class ValidationUtilTest {
 
         @Test
         fun `rejects another avsender`() {
-            val registrering = getAnkeRegistrering().apply {
-                avsender = PartId(type = PartIdType.VIRKSOMHET, value = "987654321")
-            }
+            val registrering =
+                getAnkeRegistrering().apply {
+                    avsender = PartId(type = PartIdType.VIRKSOMHET, value = "987654321")
+                }
 
             assertThat(ankeReasonsFor(registrering))
                 .contains("En anke fra Trygderetten må ha Trygderetten som avsender.")
@@ -114,13 +119,14 @@ class ValidationUtilTest {
 
         @Test
         fun `reports every failure status only once`() {
-            val registrering = getAnkeRegistrering().apply {
-                dokumenter.clear()
-                dokumenter += dokument(status = DokumentStatus.VIRUS_FOUND, sortIndex = 0.0)
-                dokumenter += dokument(status = DokumentStatus.VIRUS_FOUND, sortIndex = 1.0)
-                dokumenter += dokument(status = DokumentStatus.UNSUPPORTED_TYPE, sortIndex = 2.0)
-                dokumenter += dokument(status = DokumentStatus.DONE, sortIndex = 3.0)
-            }
+            val registrering =
+                getAnkeRegistrering().apply {
+                    dokumenter.clear()
+                    dokumenter += dokument(status = DokumentStatus.VIRUS_FOUND, sortIndex = 0.0)
+                    dokumenter += dokument(status = DokumentStatus.VIRUS_FOUND, sortIndex = 1.0)
+                    dokumenter += dokument(status = DokumentStatus.UNSUPPORTED_TYPE, sortIndex = 2.0)
+                    dokumenter += dokument(status = DokumentStatus.DONE, sortIndex = 3.0)
+                }
 
             assertThat(dokumentReasonsFor(registrering)).containsExactly(
                 "Fjern dokumenter der det ble funnet virus.",
@@ -136,12 +142,13 @@ class ValidationUtilTest {
                 .containsExactly("Fjern dokumenter som ikke er ferdig opplastet.")
         }
 
-        private fun Registrering.withDokumentStatus(status: DokumentStatus): Registrering = apply {
-            dokumenter.forEach { it.status = status }
-        }
+        private fun Registrering.withDokumentStatus(status: DokumentStatus): Registrering =
+            apply {
+                dokumenter.forEach { it.status = status }
+            }
 
         private fun dokumentReasonsFor(registrering: Registrering): List<String> =
-            validationReasonsFor(registrering).filter { it.contains("dokument", ignoreCase = true) }
+            validationReasonsFor(registrering).filter { it.contains(other = "dokument", ignoreCase = true) }
     }
 
     /**
@@ -152,16 +159,18 @@ class ValidationUtilTest {
         validationReasonsFor(registrering).filter { it.contains("anke fra Trygderetten") }
 
     /** All validation reasons, across sections. */
-    private fun validationReasonsFor(registrering: Registrering): List<String> {
-        return try {
+    private fun validationReasonsFor(registrering: Registrering): List<String> =
+        try {
             validationUtil.validateRegistrering(registrering = registrering, mulighet = mockk(relaxed = true))
             emptyList()
         } catch (e: SectionedValidationErrorWithDetailsException) {
             e.sections.flatMap { section -> section.properties.map { it.reason } }
         }
-    }
 
-    private fun dokument(status: DokumentStatus, sortIndex: Double): RegistreringDokument =
+    private fun dokument(
+        status: DokumentStatus,
+        sortIndex: Double,
+    ): RegistreringDokument =
         RegistreringDokument(
             mellomlagerId = "mellomlagerId",
             name = "dokument.pdf",
@@ -171,53 +180,55 @@ class ValidationUtilTest {
             sortIndex = sortIndex,
         )
 
-    private fun getAnkeRegistrering(): Registrering = Registrering(
-        sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678901"),
-        klager = PartId(type = PartIdType.PERSON, value = "12345678901"),
-        fullmektig = null,
-        avsender = RegistreringSource.TRYGDERETTEN_AVSENDER,
-        journalpostId = null,
-        journalpostDatoOpprettet = null,
-        type = Type.ANKE,
-        mulighetIsBasedOnJournalpost = false,
-        mulighetId = null,
-        additionalKabalMulighetId = null,
-        mottattVedtaksinstans = null,
-        mottattKlageinstans = LocalDate.now(),
-        behandlingstidUnits = 0,
-        behandlingstidUnitType = TimeUnitType.WEEKS,
-        hjemmelIdList = listOf(Hjemmel.FTRL_8_4.id),
-        ytelse = Ytelse.SYK_SYK,
-        forrigeBehandlendeEnhetId = "4291",
-        saksbehandlerIdent = null,
-        gosysOppgaveId = null,
-        sendSvarbrev = false,
-        svarbrevTitle = "a title",
-        overrideSvarbrevCustomText = false,
-        svarbrevCustomText = null,
-        svarbrevInitialCustomText = null,
-        overrideSvarbrevBehandlingstid = false,
-        svarbrevBehandlingstidUnits = null,
-        svarbrevBehandlingstidUnitType = null,
-        svarbrevFullmektigFritekst = null,
-        svarbrevReceivers = mutableSetOf(),
-        createdBy = "S123456",
-        finished = null,
-        behandlingId = null,
-        willCreateNewJournalpost = false,
-        muligheterFetched = LocalDateTime.now(),
-        reasonNoLetter = "Ikke nødvendig",
-        source = RegistreringSource.ANKE,
-        inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS,
-        dokumenter = mutableSetOf(
-            RegistreringDokument(
-                mellomlagerId = "mellomlagerId",
-                name = "dokument.pdf",
-                size = 1L,
-                contentType = "application/pdf",
-                status = DokumentStatus.DONE,
-                sortIndex = 0.0,
-            )
-        ),
-    )
+    private fun getAnkeRegistrering(): Registrering =
+        Registrering(
+            sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678901"),
+            klager = PartId(type = PartIdType.PERSON, value = "12345678901"),
+            fullmektig = null,
+            avsender = RegistreringSource.TRYGDERETTEN_AVSENDER,
+            journalpostId = null,
+            journalpostDatoOpprettet = null,
+            type = Type.ANKE,
+            mulighetIsBasedOnJournalpost = false,
+            mulighetId = null,
+            additionalKabalMulighetId = null,
+            mottattVedtaksinstans = null,
+            mottattKlageinstans = LocalDate.now(),
+            behandlingstidUnits = 0,
+            behandlingstidUnitType = TimeUnitType.WEEKS,
+            hjemmelIdList = listOf(Hjemmel.FTRL_8_4.id),
+            ytelse = Ytelse.SYK_SYK,
+            forrigeBehandlendeEnhetId = "4291",
+            saksbehandlerIdent = null,
+            gosysOppgaveId = null,
+            sendSvarbrev = false,
+            svarbrevTitle = "a title",
+            overrideSvarbrevCustomText = false,
+            svarbrevCustomText = null,
+            svarbrevInitialCustomText = null,
+            overrideSvarbrevBehandlingstid = false,
+            svarbrevBehandlingstidUnits = null,
+            svarbrevBehandlingstidUnitType = null,
+            svarbrevFullmektigFritekst = null,
+            svarbrevReceivers = mutableSetOf(),
+            createdBy = "S123456",
+            finished = null,
+            behandlingId = null,
+            willCreateNewJournalpost = false,
+            muligheterFetched = LocalDateTime.now(),
+            reasonNoLetter = "Ikke nødvendig",
+            source = RegistreringSource.ANKE,
+            inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS,
+            dokumenter =
+                mutableSetOf(
+                    RegistreringDokument(
+                        mellomlagerId = "mellomlagerId",
+                        name = "dokument.pdf",
+                        size = 1L,
+                        contentType = "application/pdf",
+                        status = DokumentStatus.DONE,
+                        sortIndex = 0.0,
+                    ),
+                ),
+        )
 }

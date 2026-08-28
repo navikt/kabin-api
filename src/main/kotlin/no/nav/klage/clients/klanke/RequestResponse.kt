@@ -20,13 +20,13 @@ data class SakFromKlanke(
 )
 
 data class HandledInKabalInput(
-    val fristAsString: String
+    val fristAsString: String,
 )
 
 data class Access(
-    val access: Boolean
+    val access: Boolean,
 )
 
 data class GetSakAppAccessInput(
-    val saksbehandlerIdent: String
+    val saksbehandlerIdent: String,
 )

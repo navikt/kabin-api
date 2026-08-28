@@ -1,6 +1,14 @@
 package no.nav.klage.api.controller.view
 
-import no.nav.klage.api.controller.view.DokumentReferanse.*
+import no.nav.klage.api.controller.view.DokumentReferanse.AvsenderMottaker
+import no.nav.klage.api.controller.view.DokumentReferanse.Journalposttype
+import no.nav.klage.api.controller.view.DokumentReferanse.Journalstatus
+import no.nav.klage.api.controller.view.DokumentReferanse.LogiskVedlegg
+import no.nav.klage.api.controller.view.DokumentReferanse.RelevantDato
+import no.nav.klage.api.controller.view.DokumentReferanse.Sak
+import no.nav.klage.api.controller.view.DokumentReferanse.Tilleggsopplysning
+import no.nav.klage.api.controller.view.DokumentReferanse.Utsendingsinfo
+import no.nav.klage.api.controller.view.DokumentReferanse.VedleggReferanseForReceipt
 import java.time.LocalDateTime
 
 data class DokumenterResponse(
@@ -38,7 +46,6 @@ data class DokumentReferanse(
     var alreadyUsed: Boolean = false,
     val varianter: List<Variant>,
 ) {
-
     data class Variant(
         val format: Format,
         val filtype: Filtype,
@@ -46,7 +53,8 @@ data class DokumentReferanse(
         val skjerming: SkjermingType?,
     ) {
         enum class Format {
-            ARKIV, SLADDET
+            ARKIV,
+            SLADDET,
         }
 
         enum class SkjermingType {
@@ -56,71 +64,85 @@ data class DokumentReferanse(
     }
 
     enum class Filtype {
-        PDF, JPEG, PNG, TIFF, XLSX, JSON, XML, AXML, DXML, RTF
+        PDF,
+        JPEG,
+        PNG,
+        TIFF,
+        XLSX,
+        JSON,
+        XML,
+        AXML,
+        DXML,
+        RTF,
     }
 
     enum class Journalstatus {
-        //Journalposten er mottatt, men ikke journalført. "Mottatt" er et annet ord for "arkivert" eller "midlertidig journalført"
-        //Statusen vil kun forekomme for inngående dokumenter.
+        // Journalposten er mottatt, men ikke journalført. "Mottatt" er et annet ord for "arkivert" eller "midlertidig journalført"
+        // Statusen vil kun forekomme for inngående dokumenter.
         MOTTATT,
 
-        //Journalposten er ferdigstilt og ansvaret for videre behandling av forsendelsen er overført til fagsystemet. Journalen er i prinsippet låst for videre endringer.
-        //Journalposter med status JOURNALFØRT oppfyller minimumskrav til metadata i arkivet, som for eksempel tema, sak, bruker og avsender.
+        // Journalposten er ferdigstilt og ansvaret for videre behandling av forsendelsen er overført til fagsystemet. Journalen er i prinsippet låst for videre endringer.
+        // Journalposter med status JOURNALFØRT oppfyller minimumskrav til metadata i arkivet, som for eksempel tema, sak, bruker og avsender.
         JOURNALFOERT,
 
-        //Journalposten med tilhørende dokumenter er ferdigstilt, og journalen er i prinsippet låst for videre endringer. FERDIGSTILT tilsvarer statusen JOURNALFØRT for inngående dokumenter.
-        //Tilsvarer begrepet Arkivert
-        //Statusen kan forekomme for utgående dokumenter og notater.
+        // Journalposten med tilhørende dokumenter er ferdigstilt, og journalen er i prinsippet låst for videre endringer. FERDIGSTILT tilsvarer statusen JOURNALFØRT for inngående dokumenter.
+        // Tilsvarer begrepet Arkivert
+        // Statusen kan forekomme for utgående dokumenter og notater.
         FERDIGSTILT,
 
-        //Dokumentet er sendt til bruker. Statusen benyttes også når dokumentet er tilgjengeliggjort for bruker på DittNAV, og bruker er varslet.
-        //Tilsvarer begrepet Sendt
-        //Statusen kan forekomme for utgående dokumenter.
+        // Dokumentet er sendt til bruker. Statusen benyttes også når dokumentet er tilgjengeliggjort for bruker på DittNAV, og bruker er varslet.
+        // Tilsvarer begrepet Sendt
+        // Statusen kan forekomme for utgående dokumenter.
         EKSPEDERT,
 
-        //Journalposten er opprettet i arkivet, men fremdeles under arbeid.
-        //Statusen kan forekomme for utgående dokumenter og notater.
+        // Journalposten er opprettet i arkivet, men fremdeles under arbeid.
+        // Statusen kan forekomme for utgående dokumenter og notater.
         UNDER_ARBEID,
 
-        //Journalposten har blitt arkivavgrenset etter at den feilaktig har blitt knyttet til en sak.
-        //Statusen kan forekomme for alle journalposttyper.
+        // Journalposten har blitt arkivavgrenset etter at den feilaktig har blitt knyttet til en sak.
+        // Statusen kan forekomme for alle journalposttyper.
         FEILREGISTRERT,
 
-        //Journalposten er arkivavgrenset grunnet en feilsituasjon, ofte knyttet til skanning eller journalføring.
-        //Statusen vil kun forekomme for inngående dokumenter.
+        // Journalposten er arkivavgrenset grunnet en feilsituasjon, ofte knyttet til skanning eller journalføring.
+        // Statusen vil kun forekomme for inngående dokumenter.
         UTGAAR,
 
-        //Utgående dokumenter og notater kan avbrytes mens de er under arbeid, og ikke enda er ferdigstilt. Statusen AVBRUTT brukes stort sett ved feilsituasjoner knyttet til dokumentproduksjon.
-        //Statusen kan forekomme for utgående dokumenter og notater.
+        // Utgående dokumenter og notater kan avbrytes mens de er under arbeid, og ikke enda er ferdigstilt. Statusen AVBRUTT brukes stort sett ved feilsituasjoner knyttet til dokumentproduksjon.
+        // Statusen kan forekomme for utgående dokumenter og notater.
         AVBRUTT,
 
-        //Journalposten har ikke noen kjent bruker.
-        //NB: UKJENT_BRUKER er ikke en midlertidig status, men benyttes der det ikke er mulig å journalføre fordi man ikke klarer å identifisere brukeren forsendelsen gjelder.
-        //Statusen kan kun forekomme for inngående dokumenter.
+        // Journalposten har ikke noen kjent bruker.
+        // NB: UKJENT_BRUKER er ikke en midlertidig status, men benyttes der det ikke er mulig å journalføre fordi man ikke klarer å identifisere brukeren forsendelsen gjelder.
+        // Statusen kan kun forekomme for inngående dokumenter.
         UKJENT_BRUKER,
 
-        //Statusen benyttes bl.a. i forbindelse med brevproduksjon for å reservere 'plass' i journalen for dokumenter som skal populeres på et senere tidspunkt.
-        //Dersom en journalpost blir stående i status RESEVERT over tid, tyder dette på at noe har gått feil under dokumentproduksjon eller ved skanning av et utgående dokument.
-        //Statusen kan forekomme for utgående dokumenter og notater.
+        // Statusen benyttes bl.a. i forbindelse med brevproduksjon for å reservere 'plass' i journalen for dokumenter som skal populeres på et senere tidspunkt.
+        // Dersom en journalpost blir stående i status RESEVERT over tid, tyder dette på at noe har gått feil under dokumentproduksjon eller ved skanning av et utgående dokument.
+        // Statusen kan forekomme for utgående dokumenter og notater.
         RESERVERT,
 
-        //Midlertidig status på vei mot MOTTATT.
-        //Dersom en journalpost blir stående i status OPPLASTING_DOKUMENT over tid, tyder dette på at noe har gått feil under opplasting av vedlegg ved arkivering.
-        //Statusen kan kun forekomme for inngående dokumenter.
+        // Midlertidig status på vei mot MOTTATT.
+        // Dersom en journalpost blir stående i status OPPLASTING_DOKUMENT over tid, tyder dette på at noe har gått feil under opplasting av vedlegg ved arkivering.
+        // Statusen kan kun forekomme for inngående dokumenter.
         OPPLASTING_DOKUMENT,
 
-        //Dersom statusfeltet i Joark er tomt, mappes dette til "UKJENT"
-        UKJENT
+        // Dersom statusfeltet i Joark er tomt, mappes dette til "UKJENT"
+        UKJENT,
     }
 
     data class AvsenderMottaker(
         val id: String?,
         val type: AvsenderMottakerIdType?,
         val name: String?,
-        ) {
+    ) {
         enum class AvsenderMottakerIdType {
-            //TODO look into NULL
-            FNR, ORGNR, HPRNR, UTL_ORG, UKJENT, NULL
+            // TODO look into NULL
+            FNR,
+            ORGNR,
+            HPRNR,
+            UTL_ORG,
+            UKJENT,
+            NULL,
         }
     }
 
@@ -140,16 +162,26 @@ data class DokumentReferanse(
     )
 
     enum class Journalposttype {
-        I, //Inngående dokument: Dokumentasjon som NAV har mottatt fra en ekstern part. De fleste inngående dokumenter er søknader, ettersendelser av dokumentasjon til sak, eller innsendinger fra arbeidsgivere. Meldinger brukere har sendt til "Skriv til NAV" arkiveres også som inngående dokumenter.
-        U, //Utgående dokument: Dokumentasjon som NAV har produsert og sendt ut til en ekstern part. De fleste utgående dokumenter er informasjons- eller vedtaksbrev til privatpersoner eller organisasjoner. "Skriv til NAV"-meldinger som saksbehandlere har sendt til brukere arkiveres også som utgående dokumenter.
-        N //Notat: Dokumentasjon som NAV har produsert selv, uten at formålet er å distribuere dette ut av NAV. Eksempler på notater er samtalereferater med veileder på kontaktsenter og interne forvaltningsnotater.
+        // Inngående dokument: Dokumentasjon som NAV har mottatt fra en ekstern part. De fleste inngående dokumenter er søknader,
+        // ettersendelser av dokumentasjon til sak, eller innsendinger fra arbeidsgivere. Meldinger brukere har sendt til "Skriv til NAV"
+        // arkiveres også som inngående dokumenter.
+        I,
+
+        // Utgående dokument: Dokumentasjon som NAV har produsert og sendt ut til en ekstern part. De fleste utgående dokumenter er
+        // informasjons- eller vedtaksbrev til privatpersoner eller organisasjoner. "Skriv til NAV"-meldinger som saksbehandlere har sendt
+        // til brukere arkiveres også som utgående dokumenter.
+        U,
+
+        // Notat: Dokumentasjon som NAV har produsert selv, uten at formålet er å distribuere dette ut av NAV. Eksempler på notater er
+        // samtalereferater med veileder på kontaktsenter og interne forvaltningsnotater.
+        N,
     }
 
     data class Sak(
         val datoOpprettet: LocalDateTime?,
         val fagsakId: String?,
         val fagsaksystem: String?,
-        val fagsystemId: String?
+        val fagsystemId: String?,
     )
 
     data class RelevantDato(
@@ -202,7 +234,6 @@ data class DokumentReferanse(
             val adresse: String,
         )
     }
-
 }
 
 data class DokumentReferanseForReceipt(
@@ -230,12 +261,12 @@ data class DokumentReferanseForReceipt(
     val kanal: String,
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
-    //Deprecated
+    // Deprecated
     var alreadyUsed: Boolean = false,
 )
 
 data class UpdateDocumentTitleView(
-    val tittel: String
+    val tittel: String,
 )
 
 data class LogiskVedleggInput(

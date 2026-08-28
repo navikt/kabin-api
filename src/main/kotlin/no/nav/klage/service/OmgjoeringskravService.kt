@@ -20,24 +20,28 @@ class OmgjoeringskravService(
     }
 
     fun createOmgjoeringskrav(registrering: Registrering): CreatedBehandlingResponse {
-        val mulighet = registrering.getCurrentMulighet() ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
+        val mulighet =
+            registrering.getCurrentMulighet() ?: throw IllegalInputException("Muligheten som registreringen refererer til finnes ikke.")
 
         validationUtil.validateRegistrering(registrering = registrering, mulighet = mulighet)
 
-        val journalpostId = dokArkivService.handleJournalpost(
-            registrering = registrering,
-        )
+        val journalpostId =
+            dokArkivService.handleJournalpost(
+                registrering = registrering,
+            )
 
         if (registrering.mulighetIsBasedOnJournalpost) {
-            val kabalResponse = CreatedBehandlingResponse(
-                behandlingId = kabalApiService.createBehandlingBasedOnJournalpost(
-                    journalpostId = journalpostId,
-                    mulighet = mulighet,
-                    registrering = registrering
+            val kabalResponse =
+                CreatedBehandlingResponse(
+                    behandlingId =
+                        kabalApiService.createBehandlingBasedOnJournalpost(
+                            journalpostId = journalpostId,
+                            mulighet = mulighet,
+                            registrering = registrering,
+                        ),
                 )
-            )
             try {
-                //Gosys-oppgave is ensured in validation step.
+                // Gosys-oppgave is ensured in validation step.
                 logger.debug("Attempting Gosys-oppgave update")
                 gosysOppgaveService.updateGosysOppgave(
                     gosysOppgaveId = registrering.gosysOppgaveId!!,
@@ -49,11 +53,12 @@ class OmgjoeringskravService(
             return kabalResponse
         } else {
             return CreatedBehandlingResponse(
-                behandlingId = kabalApiService.createBehandlingFromKabalInput(
-                    journalpostId = journalpostId,
-                    mulighet = mulighet,
-                    registrering = registrering
-                )
+                behandlingId =
+                    kabalApiService.createBehandlingFromKabalInput(
+                        journalpostId = journalpostId,
+                        mulighet = mulighet,
+                        registrering = registrering,
+                    ),
             )
         }
     }

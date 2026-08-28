@@ -1,28 +1,124 @@
 package no.nav.klage.service
 
 import no.nav.klage.api.controller.mapper.toReceiptView
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.AdditionalKabalMulighetChangeRegistreringView
+import no.nav.klage.api.controller.view.AvsenderChangeRegistreringView
+import no.nav.klage.api.controller.view.AvsenderInput
+import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView
 import no.nav.klage.api.controller.view.BehandlingstidChangeRegistreringView.BehandlingstidChangeRegistreringOverstyringerView
+import no.nav.klage.api.controller.view.BehandlingstidInput
+import no.nav.klage.api.controller.view.BehandlingstidView
+import no.nav.klage.api.controller.view.CreatedBehandlingResponse
+import no.nav.klage.api.controller.view.CreatedBehandlingStatusView
+import no.nav.klage.api.controller.view.DokumentNameInput
+import no.nav.klage.api.controller.view.DokumentReferanse
+import no.nav.klage.api.controller.view.DokumentSortIndexChangeRegistreringView
+import no.nav.klage.api.controller.view.DokumentSortIndexInput
+import no.nav.klage.api.controller.view.DokumentUploadUrlInput
+import no.nav.klage.api.controller.view.DokumentUploadUrlView
+import no.nav.klage.api.controller.view.DokumentUploadUrlsView
+import no.nav.klage.api.controller.view.DokumenterChangeRegistreringView
+import no.nav.klage.api.controller.view.FerdigstiltRegistreringView
+import no.nav.klage.api.controller.view.FinishedRegistreringView
+import no.nav.klage.api.controller.view.ForrigeBehandlendeEnhetIdChangeRegistreringView
+import no.nav.klage.api.controller.view.ForrigeBehandlendeEnhetIdInput
+import no.nav.klage.api.controller.view.FullRegistreringView
+import no.nav.klage.api.controller.view.FullmektigChangeRegistreringView
+import no.nav.klage.api.controller.view.FullmektigInput
+import no.nav.klage.api.controller.view.GosysOppgaveIdChangeRegistreringView
+import no.nav.klage.api.controller.view.GosysOppgaveIdInput
+import no.nav.klage.api.controller.view.HjemmelIdListChangeRegistreringView
+import no.nav.klage.api.controller.view.HjemmelIdListInput
+import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.InfotrygdSakIdInput
+import no.nav.klage.api.controller.view.InngaaendeKanalChangeRegistreringView
+import no.nav.klage.api.controller.view.InngaaendeKanalInput
+import no.nav.klage.api.controller.view.JournalpostIdInput
+import no.nav.klage.api.controller.view.KabalmulighetView
+import no.nav.klage.api.controller.view.KlagerChangeRegistreringView
+import no.nav.klage.api.controller.view.KlagerInput
+import no.nav.klage.api.controller.view.ModifySvarbrevRecipientInput
+import no.nav.klage.api.controller.view.MottattKlageinstansChangeRegistreringView
+import no.nav.klage.api.controller.view.MottattKlageinstansInput
+import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView
 import no.nav.klage.api.controller.view.MottattVedtaksinstansChangeRegistreringView.MottattVedtaksinstansChangeRegistreringOverstyringerView
+import no.nav.klage.api.controller.view.MottattVedtaksinstansInput
+import no.nav.klage.api.controller.view.MulighetBasedOnJournalpostInput
+import no.nav.klage.api.controller.view.MulighetChangeRegistreringView
+import no.nav.klage.api.controller.view.MulighetInput
+import no.nav.klage.api.controller.view.MulighetIsBasedOnJournalpostInput
+import no.nav.klage.api.controller.view.MuligheterView
+import no.nav.klage.api.controller.view.PartIdInput
+import no.nav.klage.api.controller.view.PartType
+import no.nav.klage.api.controller.view.ReasonNoLetterChangeRegistreringView
+import no.nav.klage.api.controller.view.ReasonNoLetterInput
+import no.nav.klage.api.controller.view.ResetDokumentStatusRegistreringView
+import no.nav.klage.api.controller.view.SakenGjelderValueInput
+import no.nav.klage.api.controller.view.SaksbehandlerIdentChangeRegistreringView
+import no.nav.klage.api.controller.view.SaksbehandlerIdentInput
+import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.api.controller.view.SendSvarbrevChangeRegistreringView
+import no.nav.klage.api.controller.view.SendSvarbrevInput
+import no.nav.klage.api.controller.view.SourceInput
+import no.nav.klage.api.controller.view.SvarbrevBehandlingstidChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevCustomTextChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevCustomTextInput
+import no.nav.klage.api.controller.view.SvarbrevFullmektigFritekstChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevFullmektigFritekstInput
+import no.nav.klage.api.controller.view.SvarbrevInitialCustomTextChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevInitialCustomTextInput
+import no.nav.klage.api.controller.view.SvarbrevOverrideBehandlingstidChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevOverrideBehandlingstidInput
+import no.nav.klage.api.controller.view.SvarbrevOverrideCustomTextChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevOverrideCustomTextInput
+import no.nav.klage.api.controller.view.SvarbrevReceiverChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevRecipientInput
+import no.nav.klage.api.controller.view.SvarbrevTitleChangeRegistreringView
+import no.nav.klage.api.controller.view.SvarbrevTitleInput
+import no.nav.klage.api.controller.view.TypeChangeRegistreringView
+import no.nav.klage.api.controller.view.TypeIdInput
+import no.nav.klage.api.controller.view.YtelseChangeRegistreringView
+import no.nav.klage.api.controller.view.YtelseIdInput
 import no.nav.klage.clients.fileapi.FileApiClient
 import no.nav.klage.clients.fileapi.UploadPostPolicyResponse
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.clients.klanke.SakFromKlanke
-import no.nav.klage.domain.entities.*
 import no.nav.klage.domain.entities.Address
-import no.nav.klage.exceptions.*
-import no.nav.klage.kodeverk.*
+import no.nav.klage.domain.entities.DokumentStatus
+import no.nav.klage.domain.entities.InngaaendeKanal
+import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.domain.entities.PartId
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.RegistreringDokument
+import no.nav.klage.domain.entities.RegistreringSource
+import no.nav.klage.domain.entities.SvarbrevReceiver
+import no.nav.klage.exceptions.IllegalInputException
+import no.nav.klage.exceptions.IllegalUpdateException
+import no.nav.klage.exceptions.MissingAccessException
+import no.nav.klage.exceptions.MulighetNotFoundException
+import no.nav.klage.exceptions.ReceiverNotFoundException
+import no.nav.klage.exceptions.RegistreringNotFoundException
+import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
-import no.nav.klage.util.*
+import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.calculateFrist
+import no.nav.klage.util.getLogger
+import no.nav.klage.util.getPartIdFromIdentifikator
+import no.nav.klage.util.validateDokumentName
+import no.nav.klage.util.withPdfExtension
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional
@@ -40,66 +136,68 @@ class RegistreringService(
     private val safService: SafService,
     private val fileApiClient: FileApiClient,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        //Must match ALLOWED_UPLOAD_CONTENT_TYPES in kabal-file-api.
-        private val ALLOWED_UPLOAD_CONTENT_TYPES = setOf(
-            "application/pdf",
-            "image/jpeg",
-            "image/png",
-            "image/tiff",
-        )
+        // Must match ALLOWED_UPLOAD_CONTENT_TYPES in kabal-file-api.
+        private val ALLOWED_UPLOAD_CONTENT_TYPES =
+            setOf(
+                "application/pdf",
+                "image/jpeg",
+                "image/png",
+                "image/tiff",
+            )
     }
 
     fun createRegistrering(input: SakenGjelderValueInput): FullRegistreringView {
-        val registrering = registreringRepository.save(
-            Registrering(
-                createdBy = tokenUtil.getCurrentIdent(),
-                sakenGjelder = input.sakenGjelderValue?.let { sakenGjelderValue ->
-                    PartId(
-                        value = sakenGjelderValue,
-                        type = PartIdType.PERSON
-                    )
-                },
-                //defaults
-                klager = null,
-                fullmektig = null,
-                avsender = null,
-                journalpostId = null,
-                journalpostDatoOpprettet = null,
-                type = null,
-                mulighetIsBasedOnJournalpost = false,
-                mulighetId = null,
-                additionalKabalMulighetId = null,
-                mottattVedtaksinstans = null,
-                mottattKlageinstans = null,
-                behandlingstidUnits = 12,
-                behandlingstidUnitType = TimeUnitType.WEEKS,
-                hjemmelIdList = listOf(),
-                ytelse = null,
-                forrigeBehandlendeEnhetId = null,
-                saksbehandlerIdent = null,
-                gosysOppgaveId = null,
-                sendSvarbrev = null,
-                svarbrevTitle = "Klageinstans orienterer om saksbehandlingen",
-                svarbrevCustomText = null,
-                svarbrevInitialCustomText = null,
-                svarbrevBehandlingstidUnits = null,
-                svarbrevBehandlingstidUnitType = null,
-                svarbrevFullmektigFritekst = null,
-                svarbrevReceivers = mutableSetOf(),
-                overrideSvarbrevCustomText = false,
-                overrideSvarbrevBehandlingstid = false,
-                finished = null,
-                behandlingId = null,
-                willCreateNewJournalpost = false,
-                muligheterFetched = null,
-                reasonNoLetter = null
+        val registrering =
+            registreringRepository.save(
+                Registrering(
+                    createdBy = tokenUtil.getCurrentIdent(),
+                    sakenGjelder =
+                        input.sakenGjelderValue?.let { sakenGjelderValue ->
+                            PartId(
+                                value = sakenGjelderValue,
+                                type = PartIdType.PERSON,
+                            )
+                        },
+                    // defaults
+                    klager = null,
+                    fullmektig = null,
+                    avsender = null,
+                    journalpostId = null,
+                    journalpostDatoOpprettet = null,
+                    type = null,
+                    mulighetIsBasedOnJournalpost = false,
+                    mulighetId = null,
+                    additionalKabalMulighetId = null,
+                    mottattVedtaksinstans = null,
+                    mottattKlageinstans = null,
+                    behandlingstidUnits = 12,
+                    behandlingstidUnitType = TimeUnitType.WEEKS,
+                    hjemmelIdList = listOf(),
+                    ytelse = null,
+                    forrigeBehandlendeEnhetId = null,
+                    saksbehandlerIdent = null,
+                    gosysOppgaveId = null,
+                    sendSvarbrev = null,
+                    svarbrevTitle = "Klageinstans orienterer om saksbehandlingen",
+                    svarbrevCustomText = null,
+                    svarbrevInitialCustomText = null,
+                    svarbrevBehandlingstidUnits = null,
+                    svarbrevBehandlingstidUnitType = null,
+                    svarbrevFullmektigFritekst = null,
+                    svarbrevReceivers = mutableSetOf(),
+                    overrideSvarbrevCustomText = false,
+                    overrideSvarbrevBehandlingstid = false,
+                    finished = null,
+                    behandlingId = null,
+                    willCreateNewJournalpost = false,
+                    muligheterFetched = null,
+                    reasonNoLetter = null,
+                ),
             )
-        )
 
         registrering.reinitializeMuligheter()
         registrering.handleSvarbrevReceivers()
@@ -107,75 +205,81 @@ class RegistreringService(
         return registrering.toRegistreringView(kabalApiService = kabalApiService)
     }
 
-    fun getRegistrering(registreringId: UUID): FullRegistreringView {
-        return registreringRepository.findById(registreringId)
+    fun getRegistrering(registreringId: UUID): FullRegistreringView =
+        registreringRepository
+            .findById(registreringId)
             .orElseThrow { throw RegistreringNotFoundException("Registrering ikke funnet.") }
             .toRegistreringView(kabalApiService = kabalApiService)
-    }
 
-    fun getFerdigeRegistreringer(
-        sidenDager: Int?,
-    ): List<FinishedRegistreringView> {
-        return registreringRepository.findFerdigeRegistreringer(
-            navIdent = tokenUtil.getCurrentIdent(),
-            finishedFrom = LocalDateTime.now().minusDays(sidenDager?.toLong() ?: 31)
-        ).map { it.toFinishedRegistreringView() }.sortedByDescending { it.finished }
-    }
+    fun getFerdigeRegistreringer(sidenDager: Int?): List<FinishedRegistreringView> =
+        registreringRepository
+            .findFerdigeRegistreringer(
+                navIdent = tokenUtil.getCurrentIdent(),
+                finishedFrom = LocalDateTime.now().minusDays(sidenDager?.toLong() ?: 31),
+            ).map { it.toFinishedRegistreringView() }
+            .sortedByDescending { it.finished }
 
-    fun getUferdigeRegistreringer(
-    ): List<FullRegistreringView> {
-        return registreringRepository.findUferdigeRegistreringer(
-            navIdent = tokenUtil.getCurrentIdent(),
-        ).map { it.toRegistreringView(kabalApiService = kabalApiService) }.sortedByDescending { it.created }
-    }
+    fun getUferdigeRegistreringer(): List<FullRegistreringView> =
+        registreringRepository
+            .findUferdigeRegistreringer(
+                navIdent = tokenUtil.getCurrentIdent(),
+            ).map { it.toRegistreringView(kabalApiService = kabalApiService) }
+            .sortedByDescending { it.created }
 
-    fun setSakenGjelderValue(registreringId: UUID, input: SakenGjelderValueInput): FullRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                sakenGjelder = input.sakenGjelderValue?.let { sakenGjelderValue ->
-                    PartId(
-                        value = sakenGjelderValue,
-                        type = PartIdType.PERSON
-                    )
+    fun setSakenGjelderValue(
+        registreringId: UUID,
+        input: SakenGjelderValueInput,
+    ): FullRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    sakenGjelder =
+                        input.sakenGjelderValue?.let { sakenGjelderValue ->
+                            PartId(
+                                value = sakenGjelderValue,
+                                type = PartIdType.PERSON,
+                            )
+                        }
+                    modified = LocalDateTime.now()
+
+                    // empty the properties that no longer make sense if sakenGjelder changes.
+                    mulighetId = null
+                    additionalKabalMulighetId = null
+                    reinitializeMuligheter()
+
+                    journalpostId = null
+                    journalpostDatoOpprettet = null
+                    deleteAllDokumenter(registrering = this)
+                    ytelse = null
+                    forrigeBehandlendeEnhetId = null
+                    type = null
+                    mottattVedtaksinstans = null
+                    mottattKlageinstans = null
+                    hjemmelIdList = listOf()
+                    klager = null
+                    fullmektig = null
+                    avsender = null
+                    saksbehandlerIdent = null
+                    gosysOppgaveId = null
+                    sendSvarbrev = null
+                    overrideSvarbrevBehandlingstid = false
+                    overrideSvarbrevCustomText = false
+                    svarbrevCustomText = null
+                    svarbrevBehandlingstidUnits = null
+                    svarbrevBehandlingstidUnitType = null
+                    svarbrevFullmektigFritekst = null
+                    svarbrevReceivers.clear()
+                    willCreateNewJournalpost = false
+
+                    handleSvarbrevReceivers()
                 }
-                modified = LocalDateTime.now()
-
-                //empty the properties that no longer make sense if sakenGjelder changes.
-                mulighetId = null
-                additionalKabalMulighetId = null
-                reinitializeMuligheter()
-
-                journalpostId = null
-                journalpostDatoOpprettet = null
-                deleteAllDokumenter(registrering = this)
-                ytelse = null
-                forrigeBehandlendeEnhetId = null
-                type = null
-                mottattVedtaksinstans = null
-                mottattKlageinstans = null
-                hjemmelIdList = listOf()
-                klager = null
-                fullmektig = null
-                avsender = null
-                saksbehandlerIdent = null
-                gosysOppgaveId = null
-                sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = false
-                overrideSvarbrevCustomText = false
-                svarbrevCustomText = null
-                svarbrevBehandlingstidUnits = null
-                svarbrevBehandlingstidUnitType = null
-                svarbrevFullmektigFritekst = null
-                svarbrevReceivers.clear()
-                willCreateNewJournalpost = false
-
-                handleSvarbrevReceivers()
-            }
         return registrering.toRegistreringView(kabalApiService = kabalApiService)
     }
 
-    fun setJournalpostId(registreringId: UUID, input: JournalpostIdInput): FullRegistreringView {
-
+    fun setJournalpostId(
+        registreringId: UUID,
+        input: JournalpostIdInput,
+    ): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         requireJournalpostSource(registrering = registrering)
         registrering.additionalKabalMulighetId = null
@@ -185,18 +289,19 @@ class RegistreringService(
                 journalpostId = input.journalpostId
                 modified = LocalDateTime.now()
 
-                val document = documentService.fetchDokument(
-                    journalpostId = input.journalpostId
-                )
+                val document =
+                    documentService.fetchDokument(
+                        journalpostId = input.journalpostId,
+                    )
 
                 journalpostDatoOpprettet = document.datoOpprettet.toLocalDate()
 
-                //empty the properties that no longer make sense if journalpostId changes.
+                // empty the properties that no longer make sense if journalpostId changes.
 
                 fullmektig = null
                 svarbrevFullmektigFritekst = null
 
-                //Slett klager hvis klager ikke kom fra muligheten
+                // Slett klager hvis klager ikke kom fra muligheten
 
                 val mulighet = getCurrentMulighet()
 
@@ -210,7 +315,7 @@ class RegistreringService(
                             mottattKlageinstans = journalpostDatoOpprettet
                         }
 
-                        else -> {} //do nothing
+                        else -> {} // do nothing
                     }
                 }
 
@@ -224,10 +329,12 @@ class RegistreringService(
 //                }
 
                 val avsenderPartId =
-                    if (document.journalposttype == DokumentReferanse.Journalposttype.I && document.avsenderMottaker?.id != null && document.avsenderMottaker.type != null) {
+                    if (document.journalposttype == DokumentReferanse.Journalposttype.I && document.avsenderMottaker?.id != null &&
+                        document.avsenderMottaker.type != null
+                    ) {
                         getPartIdFromIdentifikator(
                             identifikator = document.avsenderMottaker.id,
-                            throwErrorIfInvalid = false
+                            throwErrorIfInvalid = false,
                         )
                     } else {
                         null
@@ -236,11 +343,12 @@ class RegistreringService(
                 avsender = avsenderPartId
 
                 if (mulighet != null) {
-                    willCreateNewJournalpost = dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-                        journalpostId = journalpostId!!,
-                        fagsakId = mulighet.fagsakId,
-                        fagsystemId = mulighet.originalFagsystem.id,
-                    )
+                    willCreateNewJournalpost =
+                        dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                            journalpostId = journalpostId!!,
+                            fagsakId = mulighet.fagsakId,
+                            fagsystemId = mulighet.originalFagsystem.id,
+                        )
                 }
 
                 handleSvarbrevReceivers()
@@ -249,7 +357,10 @@ class RegistreringService(
         return registrering.toRegistreringView(kabalApiService = kabalApiService)
     }
 
-    fun setTypeId(registreringId: UUID, input: TypeIdInput): TypeChangeRegistreringView {
+    fun setTypeId(
+        registreringId: UUID,
+        input: TypeIdInput,
+    ): TypeChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
         requireTypeAndAvsenderNotLocked(registrering = registrering)
@@ -271,16 +382,17 @@ class RegistreringService(
 
         return registrering
             .apply {
-                type = input.typeId?.let { typeId ->
-                    Type.of(typeId)
-                }
-                //TODO: Remove after FE adjusts in prod.
+                type =
+                    input.typeId?.let { typeId ->
+                        Type.of(typeId)
+                    }
+                // TODO: Remove after FE adjusts in prod.
                 mulighetIsBasedOnJournalpost = false
                 modified = LocalDateTime.now()
                 behandlingstidUnits = getDefaultBehandlingstidUnits(this)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
 
-                //empty the properties that no longer make sense if typeId changes.
+                // empty the properties that no longer make sense if typeId changes.
                 mottattKlageinstans = null
                 mottattVedtaksinstans = null
 
@@ -300,13 +412,12 @@ class RegistreringService(
                 gosysOppgaveId = null
 
                 willCreateNewJournalpost = false
-
             }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun setMulighetIsBasedOnJournalpost(
         registreringId: UUID,
-        input: MulighetIsBasedOnJournalpostInput
+        input: MulighetIsBasedOnJournalpostInput,
     ): TypeChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
@@ -319,7 +430,7 @@ class RegistreringService(
         return registrering
             .apply {
                 mulighetIsBasedOnJournalpost = input.mulighetIsBasedOnJournalpost
-                //empty the properties that no longer make sense if typeId changes.
+                // empty the properties that no longer make sense if typeId changes.
                 mottattKlageinstans = null
                 mottattVedtaksinstans = null
 
@@ -344,30 +455,31 @@ class RegistreringService(
             }.toTypeChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
-    private fun getDefaultBehandlingstidUnitType(type: Type?): TimeUnitType {
-        return TimeUnitType.WEEKS
-    }
+    private fun getDefaultBehandlingstidUnitType(type: Type?): TimeUnitType = TimeUnitType.WEEKS
 
-    private fun getDefaultBehandlingstidUnits(registrering: Registrering): Int {
-        return if (registrering.source == RegistreringSource.ANKE) {
+    private fun getDefaultBehandlingstidUnits(registrering: Registrering): Int =
+        if (registrering.source == RegistreringSource.ANKE) {
             4
         } else if (registrering.type == Type.ANKE) {
             0
         } else {
             12
         }
-    }
 
-    fun setMulighet(registreringId: UUID, input: MulighetInput): MulighetChangeRegistreringView {
+    fun setMulighet(
+        registreringId: UUID,
+        input: MulighetInput,
+    ): MulighetChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
         if (registrering.mulighetIsBasedOnJournalpost) {
             throw IllegalInputException("Mulighet kan ikke settes fordi alternativ for journalpost er valgt.")
         }
 
-        val newMulighet = registrering.muligheter.find { it.id == input.mulighetId } ?: throw MulighetNotFoundException(
-            "Mulighet ikke funnet."
-        )
+        val newMulighet =
+            registrering.muligheter.find { it.id == input.mulighetId } ?: throw MulighetNotFoundException(
+                "Mulighet ikke funnet.",
+            )
         registrering.mulighetId = input.mulighetId
         registrering.additionalKabalMulighetId = null
         registrering.reinitializeAdditionalKabalMuligheter()
@@ -377,7 +489,7 @@ class RegistreringService(
                 val previousYtelse = ytelse
                 val currentYtelseCandidates = getYtelseOrNull(newMulighet)
                 if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
-                    //don't change ytelse if it is still valid.
+                    // don't change ytelse if it is still valid.
                 } else if (currentYtelseCandidates.size == 1) {
                     ytelse = currentYtelseCandidates.first()
                 } else {
@@ -385,7 +497,7 @@ class RegistreringService(
                 }
 
                 if (ytelse == null) {
-                    //empty the properties that no longer make sense
+                    // empty the properties that no longer make sense
                     sendSvarbrev = false
                     svarbrevCustomText = null
                     svarbrevBehandlingstidUnits = null
@@ -397,14 +509,15 @@ class RegistreringService(
 
                     saksbehandlerIdent = null
                 } else if (previousYtelse != ytelse) {
-                    //set svarbrev settings (and reset old) for the new ytelse
+                    // set svarbrev settings (and reset old) for the new ytelse
                     setSvarbrevSettings()
 
-                    hjemmelIdList = newMulighet.hjemmelIdList.ifEmpty {
-                        emptyList()
-                    }
+                    hjemmelIdList =
+                        newMulighet.hjemmelIdList.ifEmpty {
+                            emptyList()
+                        }
 
-                    //Could be smarter here.
+                    // Could be smarter here.
                     saksbehandlerIdent = null
                 }
 
@@ -427,25 +540,26 @@ class RegistreringService(
 
                 modified = LocalDateTime.now()
 
-                willCreateNewJournalpost = if (isBasedOnUploadedDocument()) {
-                    false
-                } else {
-                    dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-                        journalpostId = journalpostId!!,
-                        fagsakId = newMulighet.fagsakId,
-                        fagsystemId = newMulighet.originalFagsystem.id,
-                    )
-                }
+                willCreateNewJournalpost =
+                    if (isBasedOnUploadedDocument()) {
+                        false
+                    } else {
+                        dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                            journalpostId = journalpostId!!,
+                            fagsakId = newMulighet.fagsakId,
+                            fagsystemId = newMulighet.originalFagsystem.id,
+                        )
+                    }
 
-                //What about fullmektig?
+                // What about fullmektig?
             }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun setMulighetBasedOnJournalpost(
         registreringId: UUID,
-        input: MulighetBasedOnJournalpostInput
+        input: MulighetBasedOnJournalpostInput,
     ): MulighetChangeRegistreringView {
-        //Lagre ny mulighet
+        // Lagre ny mulighet
         val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId = input.journalpostId)
         val registrering = getRegistreringForUpdate(registreringId)
 
@@ -457,110 +571,118 @@ class RegistreringService(
             registrering.muligheter.removeIf { it.id == registrering.mulighetId }
         }
 
-        val mulighet = journalpost!!.toMulighet(
-            kabalApiService = kabalApiService,
-            registrering = registrering,
-        )
+        val mulighet =
+            journalpost!!.toMulighet(
+                kabalApiService = kabalApiService,
+                registrering = registrering,
+            )
 
         if (registrering.type in listOf(Type.KLAGE, Type.ANKE)) {
             if (mulighet.originalFagsystem != Fagsystem.AO01) {
-                throw IllegalInputException("Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.")
+                throw IllegalInputException(
+                    "Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.",
+                )
             }
         }
 
         registrering.muligheter.add(mulighet)
 
-        return registrering.apply {
-            mulighetId = mulighet.id
+        return registrering
+            .apply {
+                mulighetId = mulighet.id
 
-            val previousYtelse = ytelse
-            val currentYtelseCandidates = getYtelseOrNull(mulighet)
-            if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
-                //don't change ytelse if it is still valid.
-            } else if (currentYtelseCandidates.size == 1) {
-                ytelse = currentYtelseCandidates.first()
-            } else {
-                ytelse = null
-            }
-
-            if (ytelse == null) {
-                //empty the properties that no longer make sense
-                sendSvarbrev = false
-                svarbrevCustomText = null
-                svarbrevBehandlingstidUnits = null
-                svarbrevBehandlingstidUnitType = null
-                overrideSvarbrevBehandlingstid = false
-                overrideSvarbrevCustomText = false
-
-                hjemmelIdList = emptyList()
-
-                saksbehandlerIdent = null
-            } else if (previousYtelse != ytelse) {
-                //set svarbrev settings (and reset old) for the new ytelse
-                setSvarbrevSettings()
-
-                hjemmelIdList = mulighet.hjemmelIdList.ifEmpty {
-                    emptyList()
+                val previousYtelse = ytelse
+                val currentYtelseCandidates = getYtelseOrNull(mulighet)
+                if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
+                    // don't change ytelse if it is still valid.
+                } else if (currentYtelseCandidates.size == 1) {
+                    ytelse = currentYtelseCandidates.first()
+                } else {
+                    ytelse = null
                 }
 
-                //Could be smarter here.
-                saksbehandlerIdent = null
-            }
+                if (ytelse == null) {
+                    // empty the properties that no longer make sense
+                    sendSvarbrev = false
+                    svarbrevCustomText = null
+                    svarbrevBehandlingstidUnits = null
+                    svarbrevBehandlingstidUnitType = null
+                    overrideSvarbrevBehandlingstid = false
+                    overrideSvarbrevCustomText = false
 
-            forrigeBehandlendeEnhetId = if (type in listOf(Type.KLAGE, Type.ANKE)) {
-                null
-            } else {
-                mulighet.klageBehandlendeEnhet
-            }
+                    hjemmelIdList = emptyList()
 
-            if (type == Type.KLAGE) {
-                mottattKlageinstans = mulighet.vedtakDate
-                mottattVedtaksinstans = journalpostDatoOpprettet
-            } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
-                handleReceiversWhenChangingPart(
-                    unchangedRegistrering = this,
-                    partIdInput = mulighet.klager?.part.toPartIdInput(),
-                    partISaken = PartISaken.KLAGER,
-                )
-                klager = mulighet.klager?.part
-                mottattKlageinstans = journalpostDatoOpprettet
-                mottattVedtaksinstans = null
-                handleSvarbrevReceivers()
-            }
+                    saksbehandlerIdent = null
+                } else if (previousYtelse != ytelse) {
+                    // set svarbrev settings (and reset old) for the new ytelse
+                    setSvarbrevSettings()
 
-            modified = LocalDateTime.now()
+                    hjemmelIdList =
+                        mulighet.hjemmelIdList.ifEmpty {
+                            emptyList()
+                        }
 
-            willCreateNewJournalpost = if (isBasedOnUploadedDocument()) {
-                false
-            } else {
-                dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
-                    journalpostId = journalpostId!!,
-                    fagsakId = mulighet.fagsakId,
-                    fagsystemId = mulighet.originalFagsystem.id,
-                )
-            }
-        }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
+                    // Could be smarter here.
+                    saksbehandlerIdent = null
+                }
+
+                forrigeBehandlendeEnhetId =
+                    if (type in listOf(Type.KLAGE, Type.ANKE)) {
+                        null
+                    } else {
+                        mulighet.klageBehandlendeEnhet
+                    }
+
+                if (type == Type.KLAGE) {
+                    mottattKlageinstans = mulighet.vedtakDate
+                    mottattVedtaksinstans = journalpostDatoOpprettet
+                } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+                    handleReceiversWhenChangingPart(
+                        unchangedRegistrering = this,
+                        partIdInput = mulighet.klager?.part.toPartIdInput(),
+                        partISaken = PartISaken.KLAGER,
+                    )
+                    klager = mulighet.klager?.part
+                    mottattKlageinstans = journalpostDatoOpprettet
+                    mottattVedtaksinstans = null
+                    handleSvarbrevReceivers()
+                }
+
+                modified = LocalDateTime.now()
+
+                willCreateNewJournalpost =
+                    if (isBasedOnUploadedDocument()) {
+                        false
+                    } else {
+                        dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                            journalpostId = journalpostId!!,
+                            fagsakId = mulighet.fagsakId,
+                            fagsystemId = mulighet.originalFagsystem.id,
+                        )
+                    }
+            }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
     }
 
     fun setAdditionalKabalMulighet(
         registreringId: UUID,
-        input: MulighetInput
+        input: MulighetInput,
     ): AdditionalKabalMulighetChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        val mulighetToBeSet = registrering.muligheter.find { it.id == input.mulighetId }
-            ?: throw MulighetNotFoundException("Fant ikke mulighet med id ${input.mulighetId}")
+        val mulighetToBeSet =
+            registrering.muligheter.find { it.id == input.mulighetId }
+                ?: throw MulighetNotFoundException("Fant ikke mulighet med id ${input.mulighetId}")
         if (!mulighetToBeSet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
             throw IllegalInputException("Dette feltet kan bare settes for anker basert på Infotrygd-saker.")
         }
 
-        //TODO: Finn sideeffekter
+        // TODO: Finn sideeffekter
         return registrering
             .apply {
                 additionalKabalMulighetId = input.mulighetId
                 val previousYtelse = ytelse
                 val currentYtelseCandidates = getYtelseOrNull(mulighetToBeSet)
                 if (previousYtelse != null && previousYtelse in currentYtelseCandidates) {
-                    //don't change ytelse if it is still valid.
+                    // don't change ytelse if it is still valid.
                 } else if (currentYtelseCandidates.size == 1) {
                     ytelse = currentYtelseCandidates.first()
                 } else {
@@ -568,9 +690,10 @@ class RegistreringService(
                     ytelse = null
                 }
 
-                hjemmelIdList = mulighetToBeSet.hjemmelIdList.ifEmpty {
-                    emptyList()
-                }
+                hjemmelIdList =
+                    mulighetToBeSet.hjemmelIdList.ifEmpty {
+                        emptyList()
+                    }
 
                 modified = LocalDateTime.now()
             }.toKabalMulighetBasedOnInfotrygdSakChangeRegistreringView()
@@ -581,19 +704,21 @@ class RegistreringService(
 
         val tokenWithKlageFSSProxyScope = "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
 
-        val klagemuligheterFromInfotrygdMono = klageFssProxyService.getKlagemuligheterAsMono(
-            input = input,
-            token = tokenWithKlageFSSProxyScope,
-        )
+        val klagemuligheterFromInfotrygdMono =
+            klageFssProxyService.getKlagemuligheterAsMono(
+                input = input,
+                token = tokenWithKlageFSSProxyScope,
+            )
         val klageTilbakebetalingMuligheterFromInfotrygdMono =
             klageFssProxyService.getKlageTilbakebetalingMuligheterAsMono(
                 input = input,
                 token = tokenWithKlageFSSProxyScope,
             )
-        val ankemuligheterFromInfotrygdMono = klageFssProxyService.getAnkemuligheterAsMono(
-            input = input,
-            token = tokenWithKlageFSSProxyScope,
-        )
+        val ankemuligheterFromInfotrygdMono =
+            klageFssProxyService.getAnkemuligheterAsMono(
+                input = input,
+                token = tokenWithKlageFSSProxyScope,
+            )
 
         val saksbehandlerAccessTokenWithKabalApiScope =
             "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
@@ -614,21 +739,21 @@ class RegistreringService(
                 token = saksbehandlerAccessTokenWithKabalApiScope,
             )
 
-
         val muligheterFromInfotrygd = mutableListOf<SakFromKlanke>()
         val muligheterFromKabal = mutableListOf<MulighetFromKabal>()
 
         var start = System.currentTimeMillis()
         var mulighetStart = System.currentTimeMillis()
 
-        Flux.merge(
-            klagemuligheterFromInfotrygdMono,
-            klageTilbakebetalingMuligheterFromInfotrygdMono,
-            ankemuligheterFromInfotrygdMono,
-            ankemuligheterFromKabalMono,
-            omgjoeringskravmuligheterFromKabalMono,
-            gjenopptaksmuligheterFromKabalMono,
-        ).parallel()
+        Flux
+            .merge(
+                klagemuligheterFromInfotrygdMono,
+                klageTilbakebetalingMuligheterFromInfotrygdMono,
+                ankemuligheterFromInfotrygdMono,
+                ankemuligheterFromKabalMono,
+                omgjoeringskravmuligheterFromKabalMono,
+                gjenopptaksmuligheterFromKabalMono,
+            ).parallel()
             .runOn(Schedulers.parallel())
             .doOnNext { mulighetList ->
                 logger.debug("Time to fetch mulighet: " + (System.currentTimeMillis() - mulighetStart))
@@ -640,8 +765,7 @@ class RegistreringService(
                         muligheterFromKabal.add(mulighet)
                     }
                 }
-            }
-            .sequential()
+            }.sequential()
             .blockLast()
 
         logger.debug("Time to merge muligheter: " + (System.currentTimeMillis() - start))
@@ -653,54 +777,65 @@ class RegistreringService(
         val maskinTilMaskinAccessTokenWithKabalApiScope =
             "Bearer ${tokenUtil.getMaskinTilMaskinTokenWithKabalApiScope()}"
 
-        val behandlingIsDuplicateResponses = Flux.fromIterable(muligheterFromInfotrygd)
-            .parallel()
-            .runOn(Schedulers.parallel())
-            .flatMap { mulighetFromInfotrygd ->
-                kabalApiService.checkBehandlingDuplicate(
-                    input = BehandlingIsDuplicateInput(
-                        fagsystemId = Fagsystem.IT01.id,
-                        kildereferanse = mulighetFromInfotrygd.sakId,
-                        typeId = if (mulighetFromInfotrygd.sakstype.startsWith("KLAGE")) Type.KLAGE.id else Type.ANKE.id
-                    ),
-                    token = maskinTilMaskinAccessTokenWithKabalApiScope,
-                ).also {
-                    logger.debug("Time to check duplicate: " + (System.currentTimeMillis() - duplicateCheckStart))
-                    duplicateCheckStart = System.currentTimeMillis()
-                }
-            }
-            .sequential()
-            .toIterable()
+        val behandlingIsDuplicateResponses =
+            Flux
+                .fromIterable(muligheterFromInfotrygd)
+                .parallel()
+                .runOn(Schedulers.parallel())
+                .flatMap { mulighetFromInfotrygd ->
+                    kabalApiService
+                        .checkBehandlingDuplicate(
+                            input =
+                                BehandlingIsDuplicateInput(
+                                    fagsystemId = Fagsystem.IT01.id,
+                                    kildereferanse = mulighetFromInfotrygd.sakId,
+                                    typeId = if (mulighetFromInfotrygd.sakstype.startsWith("KLAGE")) Type.KLAGE.id else Type.ANKE.id,
+                                ),
+                            token = maskinTilMaskinAccessTokenWithKabalApiScope,
+                        ).also {
+                            logger.debug("Time to check duplicate: " + (System.currentTimeMillis() - duplicateCheckStart))
+                            duplicateCheckStart = System.currentTimeMillis()
+                        }
+                }.sequential()
+                .toIterable()
 
         logger.debug("Time to check duplicates: " + (System.currentTimeMillis() - start))
 
         logger.debug("Found ${muligheterFromInfotrygd.size} muligheter from Infotrygd.")
         logger.debug("Found ${muligheterFromKabal.size} muligheter from Kabal.")
 
-        val filteredInfotrygdMuligheter = muligheterFromInfotrygd
-            .filter { mulighetFromInfotrygd ->
-                !behandlingIsDuplicateResponses.first {
-                    //enough?
-                    it.kildereferanse == mulighetFromInfotrygd.sakId
-                }.duplicate
-            }
+        val filteredInfotrygdMuligheter =
+            muligheterFromInfotrygd
+                .filter { mulighetFromInfotrygd ->
+                    !behandlingIsDuplicateResponses
+                        .first {
+                            // enough?
+                            it.kildereferanse == mulighetFromInfotrygd.sakId
+                        }.duplicate
+                }
 
         var muligheterToStoreInDB =
-            filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiService = kabalApiService) } + muligheterFromKabal.map { it.toMulighet() }
+            filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiService = kabalApiService) } +
+                muligheterFromKabal.map { it.toMulighet() }
 
-        //Keep chosen mulighet, if it is still valid, and update accordingly.
+        // Keep chosen mulighet, if it is still valid, and update accordingly.
         if (mulighetId == null) {
             muligheter.clear()
         } else {
             val previouslyChosenMulighet = getCurrentMulighet()
             muligheter.removeIf {
-                !(it.currentFagystemTechnicalId == previouslyChosenMulighet?.currentFagystemTechnicalId
-                        && it.currentFagsystem == previouslyChosenMulighet.currentFagsystem)
+                !(
+                    it.currentFagystemTechnicalId == previouslyChosenMulighet?.currentFagystemTechnicalId &&
+                        it.currentFagsystem == previouslyChosenMulighet.currentFagsystem
+                )
             }
-            muligheterToStoreInDB = muligheterToStoreInDB.filter {
-                !(it.currentFagystemTechnicalId == previouslyChosenMulighet?.currentFagystemTechnicalId
-                        && it.currentFagsystem == previouslyChosenMulighet.currentFagsystem)
-            }
+            muligheterToStoreInDB =
+                muligheterToStoreInDB.filter {
+                    !(
+                        it.currentFagystemTechnicalId == previouslyChosenMulighet?.currentFagystemTechnicalId &&
+                            it.currentFagsystem == previouslyChosenMulighet.currentFagsystem
+                    )
+                }
         }
 
         muligheter.addAll(muligheterToStoreInDB)
@@ -723,37 +858,45 @@ class RegistreringService(
             val saksbehandlerAccessTokenWithKabalApiScope =
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
 
-            val latest = kabalApiService.getKabalMuligheterFromInfotrygdSak(
-                input = InfotrygdSakIdInput(currentMulighet.currentFagystemTechnicalId),
-                token = saksbehandlerAccessTokenWithKabalApiScope
-            ).map { it.toMulighet() }
+            val latest =
+                kabalApiService
+                    .getKabalMuligheterFromInfotrygdSak(
+                        input = InfotrygdSakIdInput(currentMulighet.currentFagystemTechnicalId),
+                        token = saksbehandlerAccessTokenWithKabalApiScope,
+                    ).map { it.toMulighet() }
 
             val latestTechnicalIds = latest.map { it.currentFagystemTechnicalId }.toSet()
 
-            val toRemove = existing
-                .filter { it.currentFagystemTechnicalId !in latestTechnicalIds }
+            val toRemove =
+                existing
+                    .filter { it.currentFagystemTechnicalId !in latestTechnicalIds }
 
-            val existingTechnicalIds = existing
-                .map { it.currentFagystemTechnicalId }
-                .toSet()
+            val existingTechnicalIds =
+                existing
+                    .map { it.currentFagystemTechnicalId }
+                    .toSet()
 
-            val toAdd = latest
-                .filter { it.currentFagystemTechnicalId !in existingTechnicalIds }
+            val toAdd =
+                latest
+                    .filter { it.currentFagystemTechnicalId !in existingTechnicalIds }
 
             muligheter.removeAll(toRemove.toSet())
             muligheter.addAll(toAdd)
 
-            val stillValidSelectedId = additionalKabalMulighetId != null &&
+            val stillValidSelectedId =
+                additionalKabalMulighetId != null &&
                     muligheter.any {
                         it.id == additionalKabalMulighetId &&
-                                it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()
+                            it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()
                     }
 
             if (!stillValidSelectedId) {
                 additionalKabalMulighetId = null
                 hjemmelIdList = emptyList()
             }
-        } else removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
+        } else {
+            removeAllAdditionalKabalAnkeMuligheterBasedOnInfotrygdSak()
+        }
     }
 
     private fun Registrering.setSvarbrevSettings() {
@@ -781,124 +924,155 @@ class RegistreringService(
 
     fun setMottattVedtaksinstans(
         registreringId: UUID,
-        input: MottattVedtaksinstansInput
+        input: MottattVedtaksinstansInput,
     ): MottattVedtaksinstansChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                mottattVedtaksinstans = input.mottattVedtaksinstans
-                modified = LocalDateTime.now()
-            }
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    mottattVedtaksinstans = input.mottattVedtaksinstans
+                    modified = LocalDateTime.now()
+                }
         return MottattVedtaksinstansChangeRegistreringView(
             id = registrering.id,
-            overstyringer = MottattVedtaksinstansChangeRegistreringOverstyringerView(
-                mottattVedtaksinstans = registrering.mottattVedtaksinstans,
-            ),
+            overstyringer =
+                MottattVedtaksinstansChangeRegistreringOverstyringerView(
+                    mottattVedtaksinstans = registrering.mottattVedtaksinstans,
+                ),
             modified = registrering.modified,
         )
     }
 
     fun setMottattKlageinstans(
         registreringId: UUID,
-        input: MottattKlageinstansInput
+        input: MottattKlageinstansInput,
     ): MottattKlageinstansChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                mottattKlageinstans = input.mottattKlageinstans
-                modified = LocalDateTime.now()
-            }
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    mottattKlageinstans = input.mottattKlageinstans
+                    modified = LocalDateTime.now()
+                }
         return MottattKlageinstansChangeRegistreringView(
             id = registrering.id,
-            overstyringer = MottattKlageinstansChangeRegistreringView.MottattKlageinstansChangeRegistreringOverstyringerView(
-                mottattKlageinstans = registrering.mottattKlageinstans,
-                calculatedFrist = if (registrering.mottattKlageinstans != null) {
-                    calculateFrist(
-                        fromDate = registrering.mottattKlageinstans!!,
-                        units = registrering.behandlingstidUnits.toLong(),
-                        unitType = registrering.behandlingstidUnitType,
-                    )
-                } else null
-            ),
+            overstyringer =
+                MottattKlageinstansChangeRegistreringView.MottattKlageinstansChangeRegistreringOverstyringerView(
+                    mottattKlageinstans = registrering.mottattKlageinstans,
+                    calculatedFrist =
+                        if (registrering.mottattKlageinstans != null) {
+                            calculateFrist(
+                                fromDate = registrering.mottattKlageinstans!!,
+                                units = registrering.behandlingstidUnits.toLong(),
+                                unitType = registrering.behandlingstidUnitType,
+                            )
+                        } else {
+                            null
+                        },
+                ),
             modified = registrering.modified,
         )
     }
 
-    fun setBehandlingstid(registreringId: UUID, input: BehandlingstidInput): BehandlingstidChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                behandlingstidUnits = input.units
-                behandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
-                modified = LocalDateTime.now()
-            }
+    fun setBehandlingstid(
+        registreringId: UUID,
+        input: BehandlingstidInput,
+    ): BehandlingstidChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    behandlingstidUnits = input.units
+                    behandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
+                    modified = LocalDateTime.now()
+                }
         return BehandlingstidChangeRegistreringView(
             id = registrering.id,
-            overstyringer = BehandlingstidChangeRegistreringOverstyringerView(
-                behandlingstid = BehandlingstidView(
-                    unitTypeId = registrering.behandlingstidUnitType.id,
-                    units = registrering.behandlingstidUnits
+            overstyringer =
+                BehandlingstidChangeRegistreringOverstyringerView(
+                    behandlingstid =
+                        BehandlingstidView(
+                            unitTypeId = registrering.behandlingstidUnitType.id,
+                            units = registrering.behandlingstidUnits,
+                        ),
+                    calculatedFrist =
+                        if (registrering.mottattKlageinstans != null) {
+                            calculateFrist(
+                                fromDate = registrering.mottattKlageinstans!!,
+                                units = registrering.behandlingstidUnits.toLong(),
+                                unitType = registrering.behandlingstidUnitType,
+                            )
+                        } else {
+                            null
+                        },
                 ),
-                calculatedFrist = if (registrering.mottattKlageinstans != null) {
-                    calculateFrist(
-                        fromDate = registrering.mottattKlageinstans!!,
-                        units = registrering.behandlingstidUnits.toLong(),
-                        unitType = registrering.behandlingstidUnitType
-                    )
-                } else null
-            ),
             modified = registrering.modified,
         )
     }
 
-    fun setHjemmelIdList(registreringId: UUID, input: HjemmelIdListInput): HjemmelIdListChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                hjemmelIdList = input.hjemmelIdList
-                modified = LocalDateTime.now()
-            }
+    fun setHjemmelIdList(
+        registreringId: UUID,
+        input: HjemmelIdListInput,
+    ): HjemmelIdListChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    hjemmelIdList = input.hjemmelIdList
+                    modified = LocalDateTime.now()
+                }
         return HjemmelIdListChangeRegistreringView(
             id = registrering.id,
-            overstyringer = HjemmelIdListChangeRegistreringView.HjemmelIdListChangeRegistreringOverstyringerView(
-                hjemmelIdList = registrering.hjemmelIdList,
-            ),
+            overstyringer =
+                HjemmelIdListChangeRegistreringView.HjemmelIdListChangeRegistreringOverstyringerView(
+                    hjemmelIdList = registrering.hjemmelIdList,
+                ),
             modified = registrering.modified,
         )
     }
 
-    fun setYtelseId(registreringId: UUID, input: YtelseIdInput): YtelseChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                ytelse = input.ytelseId?.let { ytelseId ->
-                    Ytelse.of(ytelseId)
+    fun setYtelseId(
+        registreringId: UUID,
+        input: YtelseIdInput,
+    ): YtelseChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    ytelse =
+                        input.ytelseId?.let { ytelseId ->
+                            Ytelse.of(ytelseId)
+                        }
+                    modified = LocalDateTime.now()
+
+                    setSvarbrevSettings()
+
+                    // For now, just empty them.
+                    hjemmelIdList = listOf()
+                    saksbehandlerIdent = null
                 }
-                modified = LocalDateTime.now()
-
-                setSvarbrevSettings()
-
-                //For now, just empty them.
-                hjemmelIdList = listOf()
-                saksbehandlerIdent = null
-            }
         return YtelseChangeRegistreringView(
             id = registrering.id,
-            overstyringer = YtelseChangeRegistreringView.YtelseChangeRegistreringOverstyringerView(
-                ytelseId = registrering.ytelse?.id,
-                saksbehandlerIdent = registrering.saksbehandlerIdent,
-            ),
-            svarbrev = YtelseChangeRegistreringView.YtelseChangeRegistreringSvarbrevView(
-                send = registrering.sendSvarbrev,
-                behandlingstid = if (registrering.svarbrevBehandlingstidUnits != null) {
-                    BehandlingstidView(
-                        unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
-                        units = registrering.svarbrevBehandlingstidUnits!!
-                    )
-                } else null,
-                fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
-                receivers = registrering.mapToRecipientViews(),
-                overrideCustomText = registrering.overrideSvarbrevCustomText,
-                overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
-                customText = registrering.svarbrevCustomText,
-                initialCustomText = registrering.svarbrevInitialCustomText,
-                reasonNoLetter = registrering.reasonNoLetter,
-            ),
+            overstyringer =
+                YtelseChangeRegistreringView.YtelseChangeRegistreringOverstyringerView(
+                    ytelseId = registrering.ytelse?.id,
+                    saksbehandlerIdent = registrering.saksbehandlerIdent,
+                ),
+            svarbrev =
+                YtelseChangeRegistreringView.YtelseChangeRegistreringSvarbrevView(
+                    send = registrering.sendSvarbrev,
+                    behandlingstid =
+                        if (registrering.svarbrevBehandlingstidUnits != null) {
+                            BehandlingstidView(
+                                unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
+                                units = registrering.svarbrevBehandlingstidUnits!!,
+                            )
+                        } else {
+                            null
+                        },
+                    fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
+                    receivers = registrering.mapToRecipientViews(),
+                    overrideCustomText = registrering.overrideSvarbrevCustomText,
+                    overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
+                    customText = registrering.svarbrevCustomText,
+                    initialCustomText = registrering.svarbrevInitialCustomText,
+                    reasonNoLetter = registrering.reasonNoLetter,
+                ),
             modified = registrering.modified,
         )
     }
@@ -907,88 +1081,99 @@ class RegistreringService(
         registreringId: UUID,
         input: ForrigeBehandlendeEnhetIdInput,
     ): ForrigeBehandlendeEnhetIdChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                if (ytelse == null) {
-                    throw IllegalInputException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
-                }
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    if (ytelse == null) {
+                        throw IllegalInputException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
+                    }
 
-                if (type !in listOf(Type.KLAGE, Type.ANKE)) {
-                    throw IllegalInputException("Forrige behandlende enhet kan bare settes for klager og anker")
-                }
+                    if (type !in listOf(Type.KLAGE, Type.ANKE)) {
+                        throw IllegalInputException("Forrige behandlende enhet kan bare settes for klager og anker")
+                    }
 
-                if (!mulighetIsBasedOnJournalpost) {
-                    throw IllegalInputException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
-                }
+                    if (!mulighetIsBasedOnJournalpost) {
+                        throw IllegalInputException("Forrige behandlende enhet kan bare settes for når muligheten kommer fra journalpost.")
+                    }
 
-                //Enhet.fromNavn() validates the input.
-                forrigeBehandlendeEnhetId = Enhet.fromNavn(input.forrigeBehandlendeEnhetId).navn
-                modified = LocalDateTime.now()
-            }
+                    // Enhet.fromNavn() validates the input.
+                    forrigeBehandlendeEnhetId = Enhet.fromNavn(input.forrigeBehandlendeEnhetId).navn
+                    modified = LocalDateTime.now()
+                }
 
         return ForrigeBehandlendeEnhetIdChangeRegistreringView(
             id = registrering.id,
-            overstyringer = ForrigeBehandlendeEnhetIdChangeRegistreringView.ForrigeBehandlendeEnhetIdChangeRegistreringOverstyringerView(
-                forrigeBehandlendeEnhetId = registrering.forrigeBehandlendeEnhetId!!,
-            ),
+            overstyringer =
+                ForrigeBehandlendeEnhetIdChangeRegistreringView.ForrigeBehandlendeEnhetIdChangeRegistreringOverstyringerView(
+                    forrigeBehandlendeEnhetId = registrering.forrigeBehandlendeEnhetId!!,
+                ),
             modified = registrering.modified,
         )
     }
 
-    fun setFullmektig(registreringId: UUID, input: FullmektigInput): FullmektigChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                //cases
-                //1. fullmektig is set to the same value as before
-                if (fullmektig?.value == input.fullmektig?.identifikator) {
-                    return@apply
-                }
-                //handle receivers for all cases
-                handleReceiversWhenChangingPart(
-                    unchangedRegistrering = this,
-                    partIdInput = input.fullmektig,
-                    partISaken = PartISaken.FULLMEKTIG
-                )
-
-                //2. fullmektig is set to null
-                if (input.fullmektig == null) {
-                    fullmektig = null
-                    svarbrevFullmektigFritekst = null
-                } else {
-                    //3. fullmektig is set to a new value
-                    fullmektig = PartId(
-                        value = input.fullmektig.identifikator,
-                        type = when (input.fullmektig.type) {
-                            PartType.FNR -> {
-                                PartIdType.PERSON
-                            }
-
-                            PartType.ORGNR -> {
-                                PartIdType.VIRKSOMHET
-                            }
-                        }
+    fun setFullmektig(
+        registreringId: UUID,
+        input: FullmektigInput,
+    ): FullmektigChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    // cases
+                    // 1. fullmektig is set to the same value as before
+                    if (fullmektig?.value == input.fullmektig?.identifikator) {
+                        return@apply
+                    }
+                    // handle receivers for all cases
+                    handleReceiversWhenChangingPart(
+                        unchangedRegistrering = this,
+                        partIdInput = input.fullmektig,
+                        partISaken = PartISaken.FULLMEKTIG,
                     )
-                    val part =
-                        kabalApiService.searchPart(SearchPartInput(identifikator = input.fullmektig.identifikator))
-                    svarbrevFullmektigFritekst = part.name
+
+                    // 2. fullmektig is set to null
+                    if (input.fullmektig == null) {
+                        fullmektig = null
+                        svarbrevFullmektigFritekst = null
+                    } else {
+                        // 3. fullmektig is set to a new value
+                        fullmektig =
+                            PartId(
+                                value = input.fullmektig.identifikator,
+                                type =
+                                    when (input.fullmektig.type) {
+                                        PartType.FNR -> {
+                                            PartIdType.PERSON
+                                        }
+
+                                        PartType.ORGNR -> {
+                                            PartIdType.VIRKSOMHET
+                                        }
+                                    },
+                            )
+                        val part =
+                            kabalApiService.searchPart(SearchPartInput(identifikator = input.fullmektig.identifikator))
+                        svarbrevFullmektigFritekst = part.name
+                    }
+                    modified = LocalDateTime.now()
+                    handleSvarbrevReceivers()
                 }
-                modified = LocalDateTime.now()
-                handleSvarbrevReceivers()
-            }
         return FullmektigChangeRegistreringView(
             id = registrering.id,
-            svarbrev = FullmektigChangeRegistreringView.FullmektigChangeSvarbrevView(
-                fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
-                receivers = registrering.mapToRecipientViews()
-            ),
-            overstyringer = FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
-                fullmektig = registrering.fullmektig?.let {
-                    registrering.partViewWithOptionalUtsendingskanal(
-                        identifikator = it.value,
-                        kabalApiService = kabalApiService,
-                    )
-                }
-            ),
+            svarbrev =
+                FullmektigChangeRegistreringView.FullmektigChangeSvarbrevView(
+                    fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
+                    receivers = registrering.mapToRecipientViews(),
+                ),
+            overstyringer =
+                FullmektigChangeRegistreringView.FullmektigChangeRegistreringOverstyringerView(
+                    fullmektig =
+                        registrering.fullmektig?.let {
+                            registrering.partViewWithOptionalUtsendingskanal(
+                                identifikator = it.value,
+                                kabalApiService = kabalApiService,
+                            )
+                        },
+                ),
             modified = registrering.modified,
         )
     }
@@ -996,22 +1181,26 @@ class RegistreringService(
     fun handleReceiversWhenChangingPart(
         unchangedRegistrering: Registrering,
         partIdInput: PartIdInput?,
-        partISaken: PartISaken
+        partISaken: PartISaken,
     ) {
         val svarbrevReceivers = unchangedRegistrering.svarbrevReceivers
 
-        //if there is only one receiver, and it is the same as the sakenGjelder (default set), clear it.
-        if (partIdInput != null && svarbrevReceivers.size == 1 && svarbrevReceivers.first().part.value == unchangedRegistrering.sakenGjelder?.value && partIdInput.identifikator != unchangedRegistrering.sakenGjelder?.value) {
+        // if there is only one receiver, and it is the same as the sakenGjelder (default set), clear it.
+        if (partIdInput != null && svarbrevReceivers.size == 1 &&
+            svarbrevReceivers.first().part.value == unchangedRegistrering.sakenGjelder?.value &&
+            partIdInput.identifikator != unchangedRegistrering.sakenGjelder?.value
+        ) {
             svarbrevReceivers.clear()
         }
 
-        val existingParts = listOf(
-            unchangedRegistrering.sakenGjelder?.value,
-            unchangedRegistrering.klager?.value,
-            unchangedRegistrering.fullmektig?.value
-        )
+        val existingParts =
+            listOf(
+                unchangedRegistrering.sakenGjelder?.value,
+                unchangedRegistrering.klager?.value,
+                unchangedRegistrering.fullmektig?.value,
+            )
 
-        //if the receiver is in the list, we remove it.
+        // if the receiver is in the list, we remove it.
         when {
             partISaken == PartISaken.FULLMEKTIG && existingParts.count { it == unchangedRegistrering.fullmektig?.value } == 1 -> {
                 svarbrevReceivers.removeIf { it.part.value == unchangedRegistrering.fullmektig?.value }
@@ -1029,137 +1218,163 @@ class RegistreringService(
         FULLMEKTIG,
     }
 
-    fun setKlager(registreringId: UUID, input: KlagerInput): KlagerChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                //cases
-                //1. klager is set to the same value as before
-                if (klager?.value == input.klager?.identifikator) {
-                    return@apply
-                }
-                //handle receivers for all cases
-                handleReceiversWhenChangingPart(
-                    unchangedRegistrering = this,
-                    partIdInput = input.klager,
-                    partISaken = PartISaken.KLAGER
-                )
-
-                //2. klager is set to null
-                if (input.klager == null) {
-                    klager = null
-                } else {
-                    //3. klager is set to a new value
-                    klager = PartId(
-                        value = input.klager.identifikator,
-                        type = when (input.klager.type) {
-                            PartType.FNR -> {
-                                PartIdType.PERSON
-                            }
-
-                            PartType.ORGNR -> {
-                                PartIdType.VIRKSOMHET
-                            }
-                        }
+    fun setKlager(
+        registreringId: UUID,
+        input: KlagerInput,
+    ): KlagerChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    // cases
+                    // 1. klager is set to the same value as before
+                    if (klager?.value == input.klager?.identifikator) {
+                        return@apply
+                    }
+                    // handle receivers for all cases
+                    handleReceiversWhenChangingPart(
+                        unchangedRegistrering = this,
+                        partIdInput = input.klager,
+                        partISaken = PartISaken.KLAGER,
                     )
+
+                    // 2. klager is set to null
+                    if (input.klager == null) {
+                        klager = null
+                    } else {
+                        // 3. klager is set to a new value
+                        klager =
+                            PartId(
+                                value = input.klager.identifikator,
+                                type =
+                                    when (input.klager.type) {
+                                        PartType.FNR -> {
+                                            PartIdType.PERSON
+                                        }
+
+                                        PartType.ORGNR -> {
+                                            PartIdType.VIRKSOMHET
+                                        }
+                                    },
+                            )
+                    }
+                    modified = LocalDateTime.now()
+                    handleSvarbrevReceivers()
                 }
-                modified = LocalDateTime.now()
-                handleSvarbrevReceivers()
-            }
         return KlagerChangeRegistreringView(
             id = registrering.id,
-            svarbrev = KlagerChangeRegistreringView.KlagerChangeRegistreringViewSvarbrevView(
-                receivers = registrering.mapToRecipientViews()
-            ),
-            overstyringer = KlagerChangeRegistreringView.KlagerChangeRegistreringViewRegistreringOverstyringerView(
-                klager = registrering.klager?.let {
-                    registrering.partViewWithOptionalUtsendingskanal(
-                        identifikator = it.value,
-                        kabalApiService = kabalApiService
-                    )
-                }
-            ),
+            svarbrev =
+                KlagerChangeRegistreringView.KlagerChangeRegistreringViewSvarbrevView(
+                    receivers = registrering.mapToRecipientViews(),
+                ),
+            overstyringer =
+                KlagerChangeRegistreringView.KlagerChangeRegistreringViewRegistreringOverstyringerView(
+                    klager =
+                        registrering.klager?.let {
+                            registrering.partViewWithOptionalUtsendingskanal(
+                                identifikator = it.value,
+                                kabalApiService = kabalApiService,
+                            )
+                        },
+                ),
             modified = registrering.modified,
         )
     }
 
-    fun setAvsender(registreringId: UUID, input: AvsenderInput): AvsenderChangeRegistreringView {
+    fun setAvsender(
+        registreringId: UUID,
+        input: AvsenderInput,
+    ): AvsenderChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         requireTypeAndAvsenderNotLocked(registrering = registrering)
         registrering
             .apply {
-                //cases
-                //1. avsender is set to the same value as before
+                // cases
+                // 1. avsender is set to the same value as before
                 if (avsender?.value == input.avsender?.identifikator) {
                     return@apply
                 }
 
-                //2. avsender is set to null
-                avsender = if (input.avsender == null) {
-                    null
-                } else {
-                    //3. avsender is set to a new value
-                    getPartIdFromIdentifikator(identifikator = input.avsender.identifikator, throwErrorIfInvalid = true)
-                }
+                // 2. avsender is set to null
+                avsender =
+                    if (input.avsender == null) {
+                        null
+                    } else {
+                        // 3. avsender is set to a new value
+                        getPartIdFromIdentifikator(identifikator = input.avsender.identifikator, throwErrorIfInvalid = true)
+                    }
                 modified = LocalDateTime.now()
             }
         return AvsenderChangeRegistreringView(
             id = registrering.id,
-            svarbrev = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewSvarbrevView(
-                receivers = registrering.mapToRecipientViews()
-            ),
-            overstyringer = AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewRegistreringOverstyringerView(
-                avsender = registrering.avsender?.let {
-                    registrering.partViewWithOptionalUtsendingskanal(
-                        identifikator = it.value,
-                        kabalApiService = kabalApiService
-                    )
-                }
-            ),
+            svarbrev =
+                AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewSvarbrevView(
+                    receivers = registrering.mapToRecipientViews(),
+                ),
+            overstyringer =
+                AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewRegistreringOverstyringerView(
+                    avsender =
+                        registrering.avsender?.let {
+                            registrering.partViewWithOptionalUtsendingskanal(
+                                identifikator = it.value,
+                                kabalApiService = kabalApiService,
+                            )
+                        },
+                ),
             modified = registrering.modified,
         )
-
     }
 
     fun setSaksbehandlerIdent(
         registreringId: UUID,
-        input: SaksbehandlerIdentInput
+        input: SaksbehandlerIdentInput,
     ): SaksbehandlerIdentChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                saksbehandlerIdent = input.saksbehandlerIdent
-                modified = LocalDateTime.now()
-            }
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    saksbehandlerIdent = input.saksbehandlerIdent
+                    modified = LocalDateTime.now()
+                }
         return SaksbehandlerIdentChangeRegistreringView(
             id = registrering.id,
-            overstyringer = SaksbehandlerIdentChangeRegistreringView.SaksbehandlerIdentChangeRegistreringOverstyringerView(
-                saksbehandlerIdent = registrering.saksbehandlerIdent,
-            ),
+            overstyringer =
+                SaksbehandlerIdentChangeRegistreringView.SaksbehandlerIdentChangeRegistreringOverstyringerView(
+                    saksbehandlerIdent = registrering.saksbehandlerIdent,
+                ),
             modified = registrering.modified,
         )
     }
 
-    fun setGosysOppgaveId(registreringId: UUID, input: GosysOppgaveIdInput): GosysOppgaveIdChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                gosysOppgaveId = input.gosysOppgaveId
-                modified = LocalDateTime.now()
-            }
+    fun setGosysOppgaveId(
+        registreringId: UUID,
+        input: GosysOppgaveIdInput,
+    ): GosysOppgaveIdChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    gosysOppgaveId = input.gosysOppgaveId
+                    modified = LocalDateTime.now()
+                }
 
         return GosysOppgaveIdChangeRegistreringView(
             id = registrering.id,
-            overstyringer = GosysOppgaveIdChangeRegistreringView.GosysOppgaveIdChangeRegistreringOverstyringerView(
-                gosysOppgaveId = registrering.gosysOppgaveId,
-            ),
+            overstyringer =
+                GosysOppgaveIdChangeRegistreringView.GosysOppgaveIdChangeRegistreringOverstyringerView(
+                    gosysOppgaveId = registrering.gosysOppgaveId,
+                ),
             modified = registrering.modified,
         )
     }
 
-    fun setSendSvarbrev(registreringId: UUID, input: SendSvarbrevInput): SendSvarbrevChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                sendSvarbrev = input.send
-                modified = LocalDateTime.now()
-            }
+    fun setSendSvarbrev(
+        registreringId: UUID,
+        input: SendSvarbrevInput,
+    ): SendSvarbrevChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    sendSvarbrev = input.send
+                    modified = LocalDateTime.now()
+                }
 
         if (input.send) {
             registrering.apply { reasonNoLetter = null }
@@ -1167,250 +1382,336 @@ class RegistreringService(
 
         return SendSvarbrevChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SendSvarbrevChangeRegistreringView.SendSvarbrevChangeRegistreringSvarbrevView(
-                send = registrering.sendSvarbrev!!,
-                reasonNoLetter = registrering.reasonNoLetter,
-                calculatedFrist = if (registrering.mottattKlageinstans != null && registrering.svarbrevBehandlingstidUnits != null) {
-                    calculateFrist(
-                        fromDate = registrering.mottattKlageinstans!!,
-                        units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
-                        unitType = registrering.svarbrevBehandlingstidUnitType!!
-                    )
-                } else null
-            ),
+            svarbrev =
+                SendSvarbrevChangeRegistreringView.SendSvarbrevChangeRegistreringSvarbrevView(
+                    send = registrering.sendSvarbrev!!,
+                    reasonNoLetter = registrering.reasonNoLetter,
+                    calculatedFrist =
+                        if (registrering.mottattKlageinstans != null && registrering.svarbrevBehandlingstidUnits != null) {
+                            calculateFrist(
+                                fromDate = registrering.mottattKlageinstans!!,
+                                units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
+                                unitType = registrering.svarbrevBehandlingstidUnitType!!,
+                            )
+                        } else {
+                            null
+                        },
+                ),
             modified = registrering.modified,
         )
     }
 
-    fun setReasonNoLetter(registreringId: UUID, input: ReasonNoLetterInput): ReasonNoLetterChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                reasonNoLetter = input.reasonNoLetter
-                modified = LocalDateTime.now()
-            }
+    fun setReasonNoLetter(
+        registreringId: UUID,
+        input: ReasonNoLetterInput,
+    ): ReasonNoLetterChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    reasonNoLetter = input.reasonNoLetter
+                    modified = LocalDateTime.now()
+                }
 
         return ReasonNoLetterChangeRegistreringView(
             id = registrering.id,
-            svarbrev = ReasonNoLetterChangeRegistreringView.ReasonNoLetterChangeRegistreringSvarbrevView(
-                reasonNoLetter = registrering.reasonNoLetter!!,
-            ),
+            svarbrev =
+                ReasonNoLetterChangeRegistreringView.ReasonNoLetterChangeRegistreringSvarbrevView(
+                    reasonNoLetter = registrering.reasonNoLetter!!,
+                ),
             modified = registrering.modified,
         )
     }
 
     fun setSvarbrevOverrideCustomText(
         registreringId: UUID,
-        input: SvarbrevOverrideCustomTextInput
+        input: SvarbrevOverrideCustomTextInput,
     ): SvarbrevOverrideCustomTextChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                overrideSvarbrevCustomText = input.overrideCustomText
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    overrideSvarbrevCustomText = input.overrideCustomText
 
-                val svarbrevSettings = getSvarbrevSettings()
+                    val svarbrevSettings = getSvarbrevSettings()
 
-                if (!input.overrideCustomText) {
-                    svarbrevCustomText = svarbrevSettings.customText
+                    if (!input.overrideCustomText) {
+                        svarbrevCustomText = svarbrevSettings.customText
+                    }
+
+                    modified = LocalDateTime.now()
                 }
-
-                modified = LocalDateTime.now()
-            }
         return SvarbrevOverrideCustomTextChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevOverrideCustomTextChangeRegistreringView.SvarbrevOverrideCustomTextChangeRegistreringSvarbrevView(
-                overrideCustomText = registrering.overrideSvarbrevCustomText,
-                customText = registrering.svarbrevCustomText,
-            ),
+            svarbrev =
+                SvarbrevOverrideCustomTextChangeRegistreringView.SvarbrevOverrideCustomTextChangeRegistreringSvarbrevView(
+                    overrideCustomText = registrering.overrideSvarbrevCustomText,
+                    customText = registrering.svarbrevCustomText,
+                ),
             modified = registrering.modified,
         )
     }
 
     fun setSvarbrevOverrideBehandlingstid(
         registreringId: UUID,
-        input: SvarbrevOverrideBehandlingstidInput
+        input: SvarbrevOverrideBehandlingstidInput,
     ): SvarbrevOverrideBehandlingstidChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    overrideSvarbrevBehandlingstid = input.overrideBehandlingstid
 
-                val svarbrevSettings = getSvarbrevSettings()
+                    val svarbrevSettings = getSvarbrevSettings()
 
-                if (!input.overrideBehandlingstid) {
-                    svarbrevBehandlingstidUnits = svarbrevSettings.behandlingstidUnits
-                    svarbrevBehandlingstidUnitType = TimeUnitType.of(svarbrevSettings.behandlingstidUnitTypeId)
+                    if (!input.overrideBehandlingstid) {
+                        svarbrevBehandlingstidUnits = svarbrevSettings.behandlingstidUnits
+                        svarbrevBehandlingstidUnitType = TimeUnitType.of(svarbrevSettings.behandlingstidUnitTypeId)
+                    }
+
+                    modified = LocalDateTime.now()
                 }
-
-                modified = LocalDateTime.now()
-            }
         return SvarbrevOverrideBehandlingstidChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevOverrideBehandlingstidChangeRegistreringView.SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView(
-                overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
-                behandlingstid = if (registrering.svarbrevBehandlingstidUnits != null) {
-                    BehandlingstidView(
-                        unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
-                        units = registrering.svarbrevBehandlingstidUnits!!
-                    )
-                } else null,
-                calculatedFrist = if (registrering.mottattKlageinstans != null && registrering.svarbrevBehandlingstidUnits != null) {
-                    calculateFrist(
-                        fromDate = registrering.mottattKlageinstans!!,
-                        units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
-                        unitType = registrering.svarbrevBehandlingstidUnitType!!
-                    )
-                } else null
-            ),
+            svarbrev =
+                SvarbrevOverrideBehandlingstidChangeRegistreringView.SvarbrevOverrideBehandlingstidChangeRegistreringSvarbrevView(
+                    overrideBehandlingstid = registrering.overrideSvarbrevBehandlingstid,
+                    behandlingstid =
+                        if (registrering.svarbrevBehandlingstidUnits != null) {
+                            BehandlingstidView(
+                                unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
+                                units = registrering.svarbrevBehandlingstidUnits!!,
+                            )
+                        } else {
+                            null
+                        },
+                    calculatedFrist =
+                        if (registrering.mottattKlageinstans != null && registrering.svarbrevBehandlingstidUnits != null) {
+                            calculateFrist(
+                                fromDate = registrering.mottattKlageinstans!!,
+                                units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
+                                unitType = registrering.svarbrevBehandlingstidUnitType!!,
+                            )
+                        } else {
+                            null
+                        },
+                ),
             modified = registrering.modified,
         )
     }
 
-    private fun Registrering.getSvarbrevSettings() = kabalApiService.getSvarbrevSettings(
-        ytelseId = ytelse!!.id,
-        typeId = type!!.id
-    )
+    private fun Registrering.getSvarbrevSettings() =
+        kabalApiService.getSvarbrevSettings(
+            ytelseId = ytelse!!.id,
+            typeId = type!!.id,
+        )
 
-    fun setSvarbrevTitle(registreringId: UUID, input: SvarbrevTitleInput): SvarbrevTitleChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                svarbrevTitle = input.title
-                modified = LocalDateTime.now()
-            }
+    fun setSvarbrevTitle(
+        registreringId: UUID,
+        input: SvarbrevTitleInput,
+    ): SvarbrevTitleChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    svarbrevTitle = input.title
+                    modified = LocalDateTime.now()
+                }
         return SvarbrevTitleChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevTitleChangeRegistreringView.SvarbrevTitleChangeRegistreringSvarbrevView(
-                title = registrering.svarbrevTitle,
-            ),
+            svarbrev =
+                SvarbrevTitleChangeRegistreringView.SvarbrevTitleChangeRegistreringSvarbrevView(
+                    title = registrering.svarbrevTitle,
+                ),
             modified = registrering.modified,
         )
     }
 
     fun setSvarbrevCustomText(
         registreringId: UUID,
-        input: SvarbrevCustomTextInput
+        input: SvarbrevCustomTextInput,
     ): SvarbrevCustomTextChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                svarbrevCustomText = input.customText
-                modified = LocalDateTime.now()
-            }
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    svarbrevCustomText = input.customText
+                    modified = LocalDateTime.now()
+                }
         return SvarbrevCustomTextChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevCustomTextChangeRegistreringView.SvarbrevCustomTextChangeRegistreringSvarbrevView(
-                customText = registrering.svarbrevCustomText!!,
-            ),
+            svarbrev =
+                SvarbrevCustomTextChangeRegistreringView.SvarbrevCustomTextChangeRegistreringSvarbrevView(
+                    customText = registrering.svarbrevCustomText!!,
+                ),
             modified = registrering.modified,
         )
     }
 
     fun setSvarbrevInitialCustomText(
         registreringId: UUID,
-        input: SvarbrevInitialCustomTextInput
+        input: SvarbrevInitialCustomTextInput,
     ): SvarbrevInitialCustomTextChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                svarbrevInitialCustomText = input.initialCustomText
-                modified = LocalDateTime.now()
-            }
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    svarbrevInitialCustomText = input.initialCustomText
+                    modified = LocalDateTime.now()
+                }
         return SvarbrevInitialCustomTextChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevInitialCustomTextChangeRegistreringView.SvarbrevInitialCustomTextChangeRegistreringSvarbrevView(
-                initialCustomText = registrering.svarbrevInitialCustomText,
-            ),
+            svarbrev =
+                SvarbrevInitialCustomTextChangeRegistreringView.SvarbrevInitialCustomTextChangeRegistreringSvarbrevView(
+                    initialCustomText = registrering.svarbrevInitialCustomText,
+                ),
             modified = registrering.modified,
         )
     }
 
     fun setSvarbrevBehandlingstid(
         registreringId: UUID,
-        input: BehandlingstidInput
+        input: BehandlingstidInput,
     ): SvarbrevBehandlingstidChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                svarbrevBehandlingstidUnits = input.units
-                svarbrevBehandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
-                modified = LocalDateTime.now()
-            }
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    svarbrevBehandlingstidUnits = input.units
+                    svarbrevBehandlingstidUnitType = TimeUnitType.of(input.unitTypeId)
+                    modified = LocalDateTime.now()
+                }
         return SvarbrevBehandlingstidChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevBehandlingstidChangeRegistreringView.SvarbrevBehandlingstidChangeRegistreringSvarbrevView(
-                behandlingstid = BehandlingstidView(
-                    unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
-                    units = registrering.svarbrevBehandlingstidUnits!!
+            svarbrev =
+                SvarbrevBehandlingstidChangeRegistreringView.SvarbrevBehandlingstidChangeRegistreringSvarbrevView(
+                    behandlingstid =
+                        BehandlingstidView(
+                            unitTypeId = registrering.svarbrevBehandlingstidUnitType!!.id,
+                            units = registrering.svarbrevBehandlingstidUnits!!,
+                        ),
+                    calculatedFrist =
+                        if (registrering.mottattKlageinstans != null) {
+                            calculateFrist(
+                                fromDate = registrering.mottattKlageinstans!!,
+                                units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
+                                unitType = registrering.svarbrevBehandlingstidUnitType!!,
+                            )
+                        } else {
+                            null
+                        },
                 ),
-                calculatedFrist = if (registrering.mottattKlageinstans != null) {
-                    calculateFrist(
-                        fromDate = registrering.mottattKlageinstans!!,
-                        units = registrering.svarbrevBehandlingstidUnits!!.toLong(),
-                        unitType = registrering.svarbrevBehandlingstidUnitType!!
-                    )
-                } else null
-            ),
             modified = registrering.modified,
         )
     }
 
     fun setSvarbrevFullmektigFritekst(
         registreringId: UUID,
-        input: SvarbrevFullmektigFritekstInput
+        input: SvarbrevFullmektigFritekstInput,
     ): SvarbrevFullmektigFritekstChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                val fritekst = if (!input.fullmektigFritekst.isNullOrBlank()) {
-                    input.fullmektigFritekst
-                } else {
-                    null
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    val fritekst =
+                        if (!input.fullmektigFritekst.isNullOrBlank()) {
+                            input.fullmektigFritekst
+                        } else {
+                            null
+                        }
+                    svarbrevFullmektigFritekst = fritekst
+                    modified = LocalDateTime.now()
                 }
-                svarbrevFullmektigFritekst = fritekst
-                modified = LocalDateTime.now()
-            }
         return SvarbrevFullmektigFritekstChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevFullmektigFritekstChangeRegistreringView.SvarbrevFullmektigFritekstChangeRegistreringSvarbrevView(
-                fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
-            ),
+            svarbrev =
+                SvarbrevFullmektigFritekstChangeRegistreringView.SvarbrevFullmektigFritekstChangeRegistreringSvarbrevView(
+                    fullmektigFritekst = registrering.svarbrevFullmektigFritekst,
+                ),
             modified = registrering.modified,
         )
     }
 
-    fun deleteSvarbrevReceiver(registreringId: UUID, svarbrevReceiverId: UUID): SvarbrevReceiverChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                svarbrevReceivers.removeIf { it.id == svarbrevReceiverId }
-                modified = LocalDateTime.now()
-            }
+    fun deleteSvarbrevReceiver(
+        registreringId: UUID,
+        svarbrevReceiverId: UUID,
+    ): SvarbrevReceiverChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    svarbrevReceivers.removeIf { it.id == svarbrevReceiverId }
+                    modified = LocalDateTime.now()
+                }
         return SvarbrevReceiverChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
-                receivers = registrering.mapToRecipientViews()
-            ),
+            svarbrev =
+                SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
+                    receivers = registrering.mapToRecipientViews(),
+                ),
             modified = registrering.modified,
         )
     }
 
     fun addSvarbrevReceiver(
         registreringId: UUID,
-        input: SvarbrevRecipientInput
+        input: SvarbrevRecipientInput,
     ): SvarbrevReceiverChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                if (svarbrevReceivers.any { it.part.value == input.part.identifikator }) {
-                    //if the receiver is already in the list, we don't need to do anything.
-                } else {
-                    svarbrevReceivers.add(
-                        SvarbrevReceiver(
-                            part = PartId(
-                                value = input.part.identifikator,
-                                type = when (input.part.type) {
-                                    PartType.FNR -> {
-                                        PartIdType.PERSON
-                                    }
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    if (svarbrevReceivers.any { it.part.value == input.part.identifikator }) {
+                        // if the receiver is already in the list, we don't need to do anything.
+                    } else {
+                        svarbrevReceivers.add(
+                            SvarbrevReceiver(
+                                part =
+                                    PartId(
+                                        value = input.part.identifikator,
+                                        type =
+                                            when (input.part.type) {
+                                                PartType.FNR -> {
+                                                    PartIdType.PERSON
+                                                }
 
-                                    PartType.ORGNR -> {
-                                        PartIdType.VIRKSOMHET
-                                    }
-                                }
+                                                PartType.ORGNR -> {
+                                                    PartIdType.VIRKSOMHET
+                                                }
+                                            },
+                                    ),
+                                handling = input.handling,
+                                overriddenAddress =
+                                    input.overriddenAddress?.let { address ->
+                                        Address(
+                                            adresselinje1 = address.adresselinje1,
+                                            adresselinje2 = address.adresselinje2,
+                                            adresselinje3 = address.adresselinje3,
+                                            landkode = address.landkode,
+                                            postnummer = address.postnummer,
+                                            poststed = address.poststed,
+                                        )
+                                    },
                             ),
-                            handling = input.handling,
-                            overriddenAddress = input.overriddenAddress?.let { address ->
+                        )
+                        modified = LocalDateTime.now()
+                    }
+                }
+        return SvarbrevReceiverChangeRegistreringView(
+            id = registrering.id,
+            svarbrev =
+                SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
+                    receivers = registrering.mapToRecipientViews(),
+                ),
+            modified = registrering.modified,
+        )
+    }
+
+    fun modifySvarbrevReceiver(
+        registreringId: UUID,
+        svarbrevReceiverId: UUID,
+        input: ModifySvarbrevRecipientInput,
+    ): SvarbrevReceiverChangeRegistreringView {
+        val registrering =
+            getRegistreringForUpdate(registreringId)
+                .apply {
+                    val receiver =
+                        svarbrevReceivers.find { it.id == svarbrevReceiverId }
+                            ?: throw ReceiverNotFoundException("Mottaker ikke funnet.")
+                    receiver.apply {
+                        handling = input.handling
+                        overriddenAddress =
+                            input.overriddenAddress?.let { address ->
                                 Address(
                                     adresselinje1 = address.adresselinje1,
                                     adresselinje2 = address.adresselinje2,
@@ -1420,66 +1721,34 @@ class RegistreringService(
                                     poststed = address.poststed,
                                 )
                             }
-                        )
-                    )
+                    }
                     modified = LocalDateTime.now()
                 }
-            }
         return SvarbrevReceiverChangeRegistreringView(
             id = registrering.id,
-            svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
-                receivers = registrering.mapToRecipientViews()
-            ),
-            modified = registrering.modified,
-        )
-    }
-
-    fun modifySvarbrevReceiver(
-        registreringId: UUID,
-        svarbrevReceiverId: UUID,
-        input: ModifySvarbrevRecipientInput
-    ): SvarbrevReceiverChangeRegistreringView {
-        val registrering = getRegistreringForUpdate(registreringId)
-            .apply {
-                val receiver = svarbrevReceivers.find { it.id == svarbrevReceiverId }
-                    ?: throw ReceiverNotFoundException("Mottaker ikke funnet.")
-                receiver.apply {
-                    handling = input.handling
-                    overriddenAddress = input.overriddenAddress?.let { address ->
-                        Address(
-                            adresselinje1 = address.adresselinje1,
-                            adresselinje2 = address.adresselinje2,
-                            adresselinje3 = address.adresselinje3,
-                            landkode = address.landkode,
-                            postnummer = address.postnummer,
-                            poststed = address.poststed,
-                        )
-                    }
-                }
-                modified = LocalDateTime.now()
-            }
-        return SvarbrevReceiverChangeRegistreringView(
-            id = registrering.id,
-            svarbrev = SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
-                receivers = registrering.mapToRecipientViews()
-            ),
+            svarbrev =
+                SvarbrevReceiverChangeRegistreringView.SvarbrevReceiverChangeRegistreringSvarbrevView(
+                    receivers = registrering.mapToRecipientViews(),
+                ),
             modified = registrering.modified,
         )
     }
 
     private fun Registrering.mapToRecipientViews() =
-        svarbrevReceivers.map { receiver ->
-            receiver.toRecipientView(registrering = this, kabalApiService = kabalApiService)
-        }.sortedBy { it.part.name }
+        svarbrevReceivers
+            .map { receiver ->
+                receiver.toRecipientView(registrering = this, kabalApiService = kabalApiService)
+            }.sortedBy { it.part.name }
 
     fun deleteRegistrering(registreringId: UUID) {
-        //check rights
+        // check rights
         getRegistreringForUpdate(registreringId)
         registreringRepository.deleteById(registreringId)
     }
 
-    private fun getRegistreringForUpdate(registreringId: UUID): Registrering {
-        return registreringRepository.findById(registreringId)
+    private fun getRegistreringForUpdate(registreringId: UUID): Registrering =
+        registreringRepository
+            .findById(registreringId)
             .orElseThrow { throw RegistreringNotFoundException("Registrering ikke funnet.") }
             .also {
                 if (it.createdBy != tokenUtil.getCurrentIdent()) {
@@ -1489,47 +1758,47 @@ class RegistreringService(
                     throw IllegalUpdateException("Registreringen er allerede ferdigstilt.")
                 }
             }
-    }
 
     fun finishRegistrering(registreringId: UUID): FerdigstiltRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        val response: CreatedBehandlingResponse = when (registrering.type) {
-            Type.ANKE -> {
-                ankeService.createAnke(
-                    registrering = registrering,
-                )
-            }
+        val response: CreatedBehandlingResponse =
+            when (registrering.type) {
+                Type.ANKE -> {
+                    ankeService.createAnke(
+                        registrering = registrering,
+                    )
+                }
 
-            Type.KLAGE -> {
-                klageService.createKlage(
-                    registrering = registrering,
-                )
-            }
+                Type.KLAGE -> {
+                    klageService.createKlage(
+                        registrering = registrering,
+                    )
+                }
 
-            Type.OMGJOERINGSKRAV -> {
-                omgjoeringskravService.createOmgjoeringskrav(
-                    registrering = registrering
-                )
-            }
+                Type.OMGJOERINGSKRAV -> {
+                    omgjoeringskravService.createOmgjoeringskrav(
+                        registrering = registrering,
+                    )
+                }
 
-            Type.BEGJAERING_OM_GJENOPPTAK -> {
-                gjenopptakService.createGjenopptak(
-                    registrering = registrering
-                )
-            }
+                Type.BEGJAERING_OM_GJENOPPTAK -> {
+                    gjenopptakService.createGjenopptak(
+                        registrering = registrering,
+                    )
+                }
 
-            else -> {
-                throw IllegalInputException("Registreringen er av en type som ikke støttes: ${registrering.type}.")
+                else -> {
+                    throw IllegalInputException("Registreringen er av en type som ikke støttes: ${registrering.type}.")
+                }
             }
-        }
 
         val now = LocalDateTime.now()
         registrering.behandlingId = response.behandlingId
         registrering.finished = now
         registrering.modified = now
 
-        //The uploaded documents were not used, so there is no reason to keep them around.
+        // The uploaded documents were not used, so there is no reason to keep them around.
         if (!registrering.isBasedOnUploadedDocument()) {
             deleteAllDokumenter(registrering = registrering)
         }
@@ -1544,7 +1813,7 @@ class RegistreringService(
 
     fun setInngaaendeKanal(
         registreringId: UUID,
-        input: InngaaendeKanalInput
+        input: InngaaendeKanalInput,
     ): InngaaendeKanalChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         requireUploadedDocumentsSource(registrering = registrering)
@@ -1552,16 +1821,17 @@ class RegistreringService(
         registrering.modified = LocalDateTime.now()
         return InngaaendeKanalChangeRegistreringView(
             id = registrering.id,
-            uploadedDocuments = InngaaendeKanalChangeRegistreringView.InngaaendeKanalChangeUploadedDocumentsView(
-                inngaaendeKanal = registrering.inngaaendeKanal?.name,
-            ),
+            uploadedDocuments =
+                InngaaendeKanalChangeRegistreringView.InngaaendeKanalChangeUploadedDocumentsView(
+                    inngaaendeKanal = registrering.inngaaendeKanal?.name,
+                ),
             modified = registrering.modified,
         )
     }
 
-    //Endpoints that establish source-specific state must not be used against the other source, or
-    //the registrering ends up in a contradictory state. Housekeeping of already uploaded documents
-    //(rename, view, delete) is deliberately left open, since those are kept when switching source.
+    // Endpoints that establish source-specific state must not be used against the other source, or
+    // the registrering ends up in a contradictory state. Housekeeping of already uploaded documents
+    // (rename, view, delete) is deliberately left open, since those are kept when switching source.
     private fun requireJournalpostSource(registrering: Registrering) {
         if (registrering.isBasedOnUploadedDocument()) {
             throw IllegalInputException("Journalpost kan ikke velges når registreringen er basert på opplastede dokumenter.")
@@ -1582,7 +1852,7 @@ class RegistreringService(
 
     fun setSource(
         registreringId: UUID,
-        input: SourceInput
+        input: SourceInput,
     ): FullRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
@@ -1598,11 +1868,11 @@ class RegistreringService(
                 source = input.source
                 modified = LocalDateTime.now()
 
-                //The received document changes when source changes, so empty the properties that
-                //were derived from it. Uploaded dokumenter are deliberately kept, so the user can
-                //switch back without having to upload everything again.
+                // The received document changes when source changes, so empty the properties that
+                // were derived from it. Uploaded dokumenter are deliberately kept, so the user can
+                // switch back without having to upload everything again.
 
-                //TODO: Remove after FE adjusts in prod. //Why?
+                // TODO: Remove after FE adjusts in prod. //Why?
                 mulighetIsBasedOnJournalpost = false
 
                 journalpostId = null
@@ -1653,7 +1923,10 @@ class RegistreringService(
         return registrering.toRegistreringView(kabalApiService = kabalApiService)
     }
 
-    fun createDokumentUploadUrls(registreringId: UUID, input: List<DokumentUploadUrlInput>): DokumentUploadUrlsView {
+    fun createDokumentUploadUrls(
+        registreringId: UUID,
+        input: List<DokumentUploadUrlInput>,
+    ): DokumentUploadUrlsView {
         if (input.isEmpty()) {
             throw IllegalInputException("Må sende med minst ett dokument.")
         }
@@ -1661,8 +1934,8 @@ class RegistreringService(
         val registrering = getRegistreringForUpdate(registreringId)
         requireUploadedDocumentsSource(registrering = registrering)
 
-        //Names are validated before we ask for any policies, so a single invalid name doesn't leave
-        //unused policies behind.
+        // Names are validated before we ask for any policies, so a single invalid name doesn't leave
+        // unused policies behind.
         val validatedNames = input.map { validateDokumentName(it.name) }
 
         val supportedIndices = input.indices.filter { input[it].contentType in ALLOWED_UPLOAD_CONTENT_TYPES }
@@ -1676,59 +1949,64 @@ class RegistreringService(
             }
         }
 
-        //New documents are appended a full gap after the last one, so there is room to move things in
-        //between them later without touching anything else.
+        // New documents are appended a full gap after the last one, so there is room to move things in
+        // between them later without touching anything else.
         var nextSortIndex = nextSortIndexFor(registrering)
 
-        val createdDokumenter = input.indices.map { i ->
-            val name = validatedNames[i]
-            val policy = uploadPoliciesByIndex[i]
+        val createdDokumenter =
+            input.indices.map { i ->
+                val name = validatedNames[i]
+                val policy = uploadPoliciesByIndex[i]
 
-            if (policy == null) {
-                //Unsupported type: persist the document so the client can see and delete it, but
-                //there is no upload URL and the document can never be confirmed.
-                val dokument = RegistreringDokument(
-                    mellomlagerId = null,
-                    name = name,
-                    size = 0,
-                    contentType = input[i].contentType,
-                    status = DokumentStatus.UNSUPPORTED_TYPE,
-                    sortIndex = nextSortIndex,
-                )
-                registrering.dokumenter.add(dokument)
-                nextSortIndex = sortIndexAfter(nextSortIndex)
-                dokument to null
-            } else {
-                //The document row is created up front so the client only ever deals with one id. It starts out
-                //as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
-                val dokument = RegistreringDokument(
-                    mellomlagerId = policy.id,
-                    name = name,
-                    size = 0,
-                    contentType = policy.contentType,
-                    status = DokumentStatus.UPLOADING,
-                    sortIndex = nextSortIndex,
-                )
-                registrering.dokumenter.add(dokument)
-                nextSortIndex = sortIndexAfter(nextSortIndex)
-                dokument to DokumentUploadUrlView.Upload(
-                    uploadUrl = policy.url,
-                    fields = policy.fields,
-                    contentType = policy.contentType,
-                    maxSize = policy.maxSize,
-                )
+                if (policy == null) {
+                    // Unsupported type: persist the document so the client can see and delete it, but
+                    // there is no upload URL and the document can never be confirmed.
+                    val dokument =
+                        RegistreringDokument(
+                            mellomlagerId = null,
+                            name = name,
+                            size = 0,
+                            contentType = input[i].contentType,
+                            status = DokumentStatus.UNSUPPORTED_TYPE,
+                            sortIndex = nextSortIndex,
+                        )
+                    registrering.dokumenter.add(dokument)
+                    nextSortIndex = sortIndexAfter(nextSortIndex)
+                    dokument to null
+                } else {
+                    // The document row is created up front so the client only ever deals with one id. It starts out
+                    // as UPLOADING (and is ignored by validation) until the upload has been verified and processed.
+                    val dokument =
+                        RegistreringDokument(
+                            mellomlagerId = policy.id,
+                            name = name,
+                            size = 0,
+                            contentType = policy.contentType,
+                            status = DokumentStatus.UPLOADING,
+                            sortIndex = nextSortIndex,
+                        )
+                    registrering.dokumenter.add(dokument)
+                    nextSortIndex = sortIndexAfter(nextSortIndex)
+                    dokument to
+                        DokumentUploadUrlView.Upload(
+                            uploadUrl = policy.url,
+                            fields = policy.fields,
+                            contentType = policy.contentType,
+                            maxSize = policy.maxSize,
+                        )
+                }
             }
-        }
 
         registrering.modified = LocalDateTime.now()
 
         return DokumentUploadUrlsView(
-            uploads = createdDokumenter.map { (dokument, upload) ->
-                DokumentUploadUrlView(
-                    upload = upload,
-                    dokument = dokument.toRegistreringDokumentView(),
-                )
-            },
+            uploads =
+                createdDokumenter.map { (dokument, upload) ->
+                    DokumentUploadUrlView(
+                        upload = upload,
+                        dokument = dokument.toRegistreringDokumentView(),
+                    )
+                },
         )
     }
 
@@ -1737,8 +2015,9 @@ class RegistreringService(
      * [RegistreringDokument.FIRST_SORT_INDEX] if there are no documents yet.
      */
     private fun nextSortIndexFor(registrering: Registrering): Double {
-        val last = registrering.dokumenter.maxOfOrNull { it.sortIndex }
-            ?: return RegistreringDokument.FIRST_SORT_INDEX
+        val last =
+            registrering.dokumenter.maxOfOrNull { it.sortIndex }
+                ?: return RegistreringDokument.FIRST_SORT_INDEX
         return sortIndexAfter(last)
     }
 
@@ -1765,12 +2044,13 @@ class RegistreringService(
     fun setDokumentSortIndex(
         registreringId: UUID,
         dokumentId: UUID,
-        input: DokumentSortIndexInput
+        input: DokumentSortIndexInput,
     ): DokumentSortIndexChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         requireUploadedDocumentsSource(registrering = registrering)
-        val dokument = registrering.dokumenter.find { it.id == dokumentId }
-            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+        val dokument =
+            registrering.dokumenter.find { it.id == dokumentId }
+                ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
         val sortIndex = input.sortIndex
         if (!sortIndex.isFinite() ||
@@ -1778,12 +2058,12 @@ class RegistreringService(
             sortIndex > RegistreringDokument.MAX_SORT_INDEX
         ) {
             throw IllegalInputException(
-                "Rekkefølgen må være et tall mellom ${RegistreringDokument.MIN_SORT_INDEX} og ${RegistreringDokument.MAX_SORT_INDEX}."
+                "Rekkefølgen må være et tall mellom ${RegistreringDokument.MIN_SORT_INDEX} og ${RegistreringDokument.MAX_SORT_INDEX}.",
             )
         }
 
-        //Two documents with the same number would leave the order up to chance, and it also means the
-        //client has run out of room between two documents and has to ask for a different number.
+        // Two documents with the same number would leave the order up to chance, and it also means the
+        // client has run out of room between two documents and has to ask for a different number.
         if (registrering.dokumenter.any { it.id != dokument.id && it.sortIndex == sortIndex }) {
             throw IllegalInputException("Et annet dokument har allerede rekkefølgen $sortIndex.")
         }
@@ -1801,47 +2081,57 @@ class RegistreringService(
     fun setDokumentName(
         registreringId: UUID,
         dokumentId: UUID,
-        input: DokumentNameInput
+        input: DokumentNameInput,
     ): DokumenterChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        val dokument = registrering.dokumenter.find { it.id == dokumentId }
-            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+        val dokument =
+            registrering.dokumenter.find { it.id == dokumentId }
+                ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-        //Renaming is allowed regardless of status, and the client decides the whole name, including
-        //any extension.
+        // Renaming is allowed regardless of status, and the client decides the whole name, including
+        // any extension.
         dokument.name = validateDokumentName(input.name)
         registrering.modified = LocalDateTime.now()
 
         return registrering.toDokumenterChangeRegistreringView()
     }
 
-    fun getDokumentViewUrl(registreringId: UUID, dokumentId: UUID): String {
+    fun getDokumentViewUrl(
+        registreringId: UUID,
+        dokumentId: UUID,
+    ): String {
         val registrering = getRegistreringForUpdate(registreringId)
-        val dokument = registrering.dokumenter.find { it.id == dokumentId }
-            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+        val dokument =
+            registrering.dokumenter.find { it.id == dokumentId }
+                ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
         if (!dokument.isDone) {
             throw IllegalInputException("Dokumentet er ikke ferdig opplastet.")
         }
 
-        //Uploaded documents are always stored as PDF when they are done (images are converted at
-        //confirm time), so the stored name (which is whatever the user typed) gets a .pdf extension
-        //when it is served.
+        // Uploaded documents are always stored as PDF when they are done (images are converted at
+        // confirm time), so the stored name (which is whatever the user typed) gets a .pdf extension
+        // when it is served.
         return fileApiClient.getDocumentViewUrl(
             id = dokument.mellomlagerId!!,
-            headers = mapOf(
-                "content-type" to dokument.contentType,
-                "content-disposition" to "inline; filename=\"${withPdfExtension(name = dokument.name)}\"",
-            ),
+            headers =
+                mapOf(
+                    "content-type" to dokument.contentType,
+                    "content-disposition" to "inline; filename=\"${withPdfExtension(name = dokument.name)}\"",
+                ),
         )
     }
 
-    fun deleteDokument(registreringId: UUID, dokumentId: UUID): DokumenterChangeRegistreringView {
+    fun deleteDokument(
+        registreringId: UUID,
+        dokumentId: UUID,
+    ): DokumenterChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
-        val dokument = registrering.dokumenter.find { it.id == dokumentId }
-            ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
+        val dokument =
+            registrering.dokumenter.find { it.id == dokumentId }
+                ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-        //UNSUPPORTED_TYPE documents have no file in the store; skip the file API call.
+        // UNSUPPORTED_TYPE documents have no file in the store; skip the file API call.
         dokument.mellomlagerId?.let { fileApiClient.deleteDocument(it) }
         removeDokument(registrering = registrering, dokument = dokument)
         registrering.modified = LocalDateTime.now()
@@ -1853,7 +2143,10 @@ class RegistreringService(
      * Puts failed documents back into processing so the client can try again. Nothing is scanned or
      * converted here; that happens when the client calls confirm.
      */
-    fun resetDokumentStatus(registreringId: UUID, dokumentIds: List<UUID>): ResetDokumentStatusRegistreringView {
+    fun resetDokumentStatus(
+        registreringId: UUID,
+        dokumentIds: List<UUID>,
+    ): ResetDokumentStatusRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
         requireUploadedDocumentsSource(registrering = registrering)
 
@@ -1861,9 +2154,9 @@ class RegistreringService(
             val dokument = registrering.dokumenter.find { it.id == dokumentId } ?: return@forEach
             val resetTo = dokument.status.resetStatus() ?: return@forEach
             dokument.status = resetTo
-            //A document going back to UPLOADING_DONE is scanned again from scratch, so the generation
-            //it was scanned as no longer means anything. A document going back to VIRUS_SCANNING_DONE
-            //keeps it, since that is the clean scan the conversion is allowed to build on.
+            // A document going back to UPLOADING_DONE is scanned again from scratch, so the generation
+            // it was scanned as no longer means anything. A document going back to VIRUS_SCANNING_DONE
+            // keeps it, since that is the clean scan the conversion is allowed to build on.
             if (resetTo == DokumentStatus.UPLOADING_DONE) {
                 dokument.scannedGeneration = null
             }
@@ -1873,17 +2166,20 @@ class RegistreringService(
         return registrering.toResetDokumentStatusRegistreringView()
     }
 
-    //Removing the first document promotes the next one to hoveddokument, since that is simply the
-    //document with the lowest number. The gap it leaves behind does not matter; only the relative order
-    //of the remaining documents is used.
-    private fun removeDokument(registrering: Registrering, dokument: RegistreringDokument) {
+    // Removing the first document promotes the next one to hoveddokument, since that is simply the
+    // document with the lowest number. The gap it leaves behind does not matter; only the relative order
+    // of the remaining documents is used.
+    private fun removeDokument(
+        registrering: Registrering,
+        dokument: RegistreringDokument,
+    ) {
         registrering.dokumenter.remove(dokument)
     }
 
-    //Best effort
+    // Best effort
     private fun deleteAllDokumenter(registrering: Registrering) {
         registrering.dokumenter.forEach { dokument ->
-            //UNSUPPORTED_TYPE documents have no file in the store; skip the file API call.
+            // UNSUPPORTED_TYPE documents have no file in the store; skip the file API call.
             dokument.mellomlagerId?.let { mellomlagerId ->
                 try {
                     fileApiClient.deleteDocument(mellomlagerId)
@@ -1930,9 +2226,12 @@ class RegistreringService(
             fagsakId = status.fagsakId,
             fagsystemId = status.fagsystemId,
             journalpost = status.journalpost?.toReceiptView(),
-            uploadedDocuments = if (registrering.isBasedOnUploadedDocument()) {
-                registrering.toReceiptUploadedDocumentsView()
-            } else null,
+            uploadedDocuments =
+                if (registrering.isBasedOnUploadedDocument()) {
+                    registrering.toReceiptUploadedDocumentsView()
+                } else {
+                    null
+                },
             tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
             svarbrev = status.svarbrev?.toView(),
             source = registrering.source.name,

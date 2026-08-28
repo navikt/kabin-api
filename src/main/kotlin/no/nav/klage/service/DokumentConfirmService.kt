@@ -5,7 +5,12 @@ import no.nav.klage.config.FileApiClientConfiguration
 import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.RegistreringDokument
-import no.nav.klage.exceptions.*
+import no.nav.klage.exceptions.AttachmentConversionFailedException
+import no.nav.klage.exceptions.AttachmentUnsupportedTypeException
+import no.nav.klage.exceptions.IllegalInputException
+import no.nav.klage.exceptions.IllegalUpdateException
+import no.nav.klage.exceptions.MissingAccessException
+import no.nav.klage.exceptions.RegistreringNotFoundException
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.service.DokumentConfirmService.Companion.FOLLOW_STALL_TIMEOUT_MILLIS
 import no.nav.klage.util.TokenUtil
@@ -15,7 +20,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 /**
  * Drives an uploaded document from [DokumentStatus.UPLOADING] to a terminal status, reporting every
@@ -40,13 +45,12 @@ class DokumentConfirmService(
     private val dokumentStateService: DokumentStateService,
     private val fileApiClient: FileApiClient,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        //Enforced on the FINAL (converted) file, since that is what gets journalført to Joark via
-        //kabal-document. 512 MB.
+        // Enforced on the FINAL (converted) file, since that is what gets journalført to Joark via
+        // kabal-document. 512 MB.
         private const val MAX_SIZE = 536870912L
 
         /**
@@ -87,7 +91,11 @@ class DokumentConfirmService(
      * into a normal error response. Once the first state has been emitted, failures are reported as
      * terminal statuses instead.
      */
-    fun confirmDokument(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
+    fun confirmDokument(
+        registreringId: UUID,
+        dokumentId: UUID,
+        emit: (DokumentState) -> Unit,
+    ) {
         var lastEmitted: EmitKey? = null
 
         val emitOnChange: (DokumentState) -> Unit = { state ->
@@ -109,9 +117,9 @@ class DokumentConfirmService(
             return
         }
 
-        //Someone else is in the middle of a step. Tag along instead of doing the work twice, but fall
-        //through and take over if they stop making progress, which is what happens when the request
-        //that was driving the document died.
+        // Someone else is in the middle of a step. Tag along instead of doing the work twice, but fall
+        // through and take over if they stop making progress, which is what happens when the request
+        // that was driving the document died.
         if (state.status.isInProgress()) {
             if (followProgress(registreringId = registreringId, dokumentId = dokumentId, emit = emitOnChange)) {
                 return
@@ -132,94 +140,106 @@ class DokumentConfirmService(
      * before the calls to kabal-file-api on purpose: carrying on would not only waste a scan or a
      * conversion, it could delete the file belonging to the document the other request just finished.
      */
-    private fun drive(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit) {
+    private fun drive(
+        registreringId: UUID,
+        dokumentId: UUID,
+        emit: (DokumentState) -> Unit,
+    ) {
         var state = dokumentStateService.getState(registreringId = registreringId, dokumentId = dokumentId)
 
-        val mellomlagerId = state.mellomlagerId
-            ?: error("drive() called for document $dokumentId without a mellomlagerId")
+        val mellomlagerId =
+            state.mellomlagerId
+                ?: error("drive() called for document $dokumentId without a mellomlagerId")
 
-        //Nothing has been emitted yet, so a missing upload can still be reported as a normal error.
-        //UPLOADING_DONE is checked as well as UPLOADING, since a document can also enter drive()
-        //already verified: after a reset, or when an earlier request died between the upload check
-        //and the scan. Reporting a missing file here beats letting the scan fail with a vague error.
+        // Nothing has been emitted yet, so a missing upload can still be reported as a normal error.
+        // UPLOADING_DONE is checked as well as UPLOADING, since a document can also enter drive()
+        // already verified: after a reset, or when an earlier request died between the upload check
+        // and the scan. Reporting a missing file here beats letting the scan fail with a vague error.
         if (state.status == DokumentStatus.UPLOADING || state.status == DokumentStatus.UPLOADING_DONE) {
             val metadata = fileApiClient.getDocumentMetadata(mellomlagerId)
             if (!metadata.exists) {
                 throw IllegalInputException("Fant ikke opplastet dokument. Ble opplastingen fullført?")
             }
-            state = dokumentStateService.setStatus(
-                registreringId = registreringId,
-                dokumentId = dokumentId,
-                status = DokumentStatus.UPLOADING_DONE,
-                size = metadata.size,
-                contentType = metadata.contentType,
-            )
+            state =
+                dokumentStateService.setStatus(
+                    registreringId = registreringId,
+                    dokumentId = dokumentId,
+                    status = DokumentStatus.UPLOADING_DONE,
+                    size = metadata.size,
+                    contentType = metadata.contentType,
+                )
             if (state.status != DokumentStatus.UPLOADING_DONE) {
                 emit(state)
                 return
             }
         }
 
-        //Always let the client know where we are before doing any more work, so a resumed stream is
-        //immediately useful.
+        // Always let the client know where we are before doing any more work, so a resumed stream is
+        // immediately useful.
         emit(state)
 
-        //A document waiting to be converted without a scanned generation cannot be converted safely,
-        //so it goes through the scan again.
-        val needsScan = state.status in setOf(DokumentStatus.UPLOADING_DONE, DokumentStatus.VIRUS_SCANNING) ||
-                (state.status in setOf(DokumentStatus.VIRUS_SCANNING_DONE, DokumentStatus.CONVERTING) &&
-                        state.scannedGeneration == null)
+        // A document waiting to be converted without a scanned generation cannot be converted safely,
+        // so it goes through the scan again.
+        val needsScan =
+            state.status in setOf(DokumentStatus.UPLOADING_DONE, DokumentStatus.VIRUS_SCANNING) ||
+                (
+                    state.status in setOf(DokumentStatus.VIRUS_SCANNING_DONE, DokumentStatus.CONVERTING) &&
+                        state.scannedGeneration == null
+                )
 
         if (needsScan) {
-            state = dokumentStateService.setStatus(
-                registreringId = registreringId,
-                dokumentId = dokumentId,
-                status = DokumentStatus.VIRUS_SCANNING,
-            )
+            state =
+                dokumentStateService.setStatus(
+                    registreringId = registreringId,
+                    dokumentId = dokumentId,
+                    status = DokumentStatus.VIRUS_SCANNING,
+                )
             emit(state)
 
-            //Another request finished the document first, so there is nothing left to scan. Bailing
-            //out here also keeps us from deleting a file that the finished document is using.
+            // Another request finished the document first, so there is nothing left to scan. Bailing
+            // out here also keeps us from deleting a file that the finished document is using.
             if (state.status != DokumentStatus.VIRUS_SCANNING) {
                 return
             }
 
-            val scanResult = try {
-                fileApiClient.scanDocument(mellomlagerId)
-            } catch (e: AttachmentUnsupportedTypeException) {
-                emit(fail(registreringId, dokumentId, DokumentStatus.UNSUPPORTED_TYPE))
-                return
-            } catch (e: Exception) {
-                logger.error("Unexpected error while scanning document {}", dokumentId, e)
-                emit(fail(registreringId, dokumentId, DokumentStatus.VIRUS_SCAN_FAILED))
-                return
-            }
+            val scanResult =
+                try {
+                    fileApiClient.scanDocument(mellomlagerId)
+                } catch (e: AttachmentUnsupportedTypeException) {
+                    emit(fail(registreringId = registreringId, dokumentId = dokumentId, status = DokumentStatus.UNSUPPORTED_TYPE))
+                    return
+                } catch (e: Exception) {
+                    logger.error("Unexpected error while scanning document {}", dokumentId, e)
+                    emit(fail(registreringId = registreringId, dokumentId = dokumentId, status = DokumentStatus.VIRUS_SCAN_FAILED))
+                    return
+                }
 
             if (scanResult.hasVirus) {
                 logger.warn("Virus found in uploaded document {}, deleting it.", dokumentId)
                 fileApiClient.deleteDocument(mellomlagerId)
-                emit(fail(registreringId, dokumentId, DokumentStatus.VIRUS_FOUND))
+                emit(fail(registreringId = registreringId, dokumentId = dokumentId, status = DokumentStatus.VIRUS_FOUND))
                 return
             }
 
-            state = dokumentStateService.setScanned(
-                registreringId = registreringId,
-                dokumentId = dokumentId,
-                scannedGeneration = scanResult.generation,
-                size = scanResult.size,
-                contentType = scanResult.contentType,
-            )
+            state =
+                dokumentStateService.setScanned(
+                    registreringId = registreringId,
+                    dokumentId = dokumentId,
+                    scannedGeneration = scanResult.generation,
+                    size = scanResult.size,
+                    contentType = scanResult.contentType,
+                )
             emit(state)
 
             if (state.status != DokumentStatus.VIRUS_SCANNING_DONE) {
                 return
             }
 
-            //Already a PDF, so there is nothing to convert and the scanned file is the final one.
+            // Already a PDF, so there is nothing to convert and the scanned file is the final one.
             if (!scanResult.requiresConversion) {
                 val size = scanResult.size ?: 0L
                 if (isTooLarge(size = size, dokumentId = dokumentId, mellomlagerId = mellomlagerId)) {
-                    emit(fail(registreringId, dokumentId, DokumentStatus.CONVERSION_FAILED))
+                    emit(fail(registreringId = registreringId, dokumentId = dokumentId, status = DokumentStatus.CONVERSION_FAILED))
                     return
                 }
                 emit(
@@ -228,50 +248,53 @@ class DokumentConfirmService(
                         dokumentId = dokumentId,
                         size = size,
                         contentType = scanResult.contentType ?: MediaType.APPLICATION_PDF_VALUE,
-                    )
+                    ),
                 )
                 return
             }
         }
 
         if (state.status in setOf(DokumentStatus.VIRUS_SCANNING_DONE, DokumentStatus.CONVERTING)) {
-            state = dokumentStateService.setStatus(
-                registreringId = registreringId,
-                dokumentId = dokumentId,
-                status = DokumentStatus.CONVERTING,
-            )
+            state =
+                dokumentStateService.setStatus(
+                    registreringId = registreringId,
+                    dokumentId = dokumentId,
+                    status = DokumentStatus.CONVERTING,
+                )
             emit(state)
 
-            //As above: the document is already finished, so converting it again would only risk
-            //deleting the file it ended up with.
+            // As above: the document is already finished, so converting it again would only risk
+            // deleting the file it ended up with.
             if (state.status != DokumentStatus.CONVERTING) {
                 return
             }
 
-            val convertResult = try {
-                fileApiClient.convertDocument(
-                    id = mellomlagerId,
-                    scannedGeneration = state.scannedGeneration!!,
-                )
-            } catch (e: AttachmentUnsupportedTypeException) {
-                emit(fail(registreringId, dokumentId, DokumentStatus.UNSUPPORTED_TYPE))
-                return
-            } catch (e: AttachmentConversionFailedException) {
-                logger.error("Unexpected conversion failure for document {}", dokumentId, e)
-                emit(fail(registreringId, dokumentId, DokumentStatus.UNEXPECTED_ERROR))
-                return
-            } catch (e: Exception) {
-                logger.error("Unexpected error while converting document {}", dokumentId, e)
-                emit(fail(registreringId, dokumentId, DokumentStatus.UNEXPECTED_ERROR))
-                return
-            }
+            val convertResult =
+                try {
+                    fileApiClient.convertDocument(
+                        id = mellomlagerId,
+                        scannedGeneration = state.scannedGeneration!!,
+                    )
+                } catch (e: AttachmentUnsupportedTypeException) {
+                    emit(fail(registreringId = registreringId, dokumentId = dokumentId, status = DokumentStatus.UNSUPPORTED_TYPE))
+                    return
+                } catch (e: AttachmentConversionFailedException) {
+                    logger.error("Unexpected conversion failure for document {}", dokumentId, e)
+                    emit(fail(registreringId = registreringId, dokumentId = dokumentId, status = DokumentStatus.UNEXPECTED_ERROR))
+                    return
+                } catch (e: Exception) {
+                    logger.error("Unexpected error while converting document {}", dokumentId, e)
+                    emit(fail(registreringId = registreringId, dokumentId = dokumentId, status = DokumentStatus.UNEXPECTED_ERROR))
+                    return
+                }
 
-            state = dokumentStateService.setConverted(
-                registreringId = registreringId,
-                dokumentId = dokumentId,
-                size = convertResult.size ?: 0L,
-                contentType = convertResult.contentType ?: MediaType.APPLICATION_PDF_VALUE,
-            )
+            state =
+                dokumentStateService.setConverted(
+                    registreringId = registreringId,
+                    dokumentId = dokumentId,
+                    size = convertResult.size ?: 0L,
+                    contentType = convertResult.contentType ?: MediaType.APPLICATION_PDF_VALUE,
+                )
             emit(state)
 
             if (state.status != DokumentStatus.CONVERTING_DONE) {
@@ -279,10 +302,10 @@ class DokumentConfirmService(
             }
         }
 
-        //The size limit is enforced on the converted file, since that is the one that is journalført.
+        // The size limit is enforced on the converted file, since that is the one that is journalført.
         if (state.status == DokumentStatus.CONVERTING_DONE) {
             if (isTooLarge(size = state.size, dokumentId = dokumentId, mellomlagerId = mellomlagerId)) {
-                emit(fail(registreringId, dokumentId, DokumentStatus.CONVERSION_FAILED))
+                emit(fail(registreringId = registreringId, dokumentId = dokumentId, status = DokumentStatus.CONVERSION_FAILED))
                 return
             }
             emit(
@@ -291,12 +314,16 @@ class DokumentConfirmService(
                     dokumentId = dokumentId,
                     size = state.size,
                     contentType = state.contentType,
-                )
+                ),
             )
         }
     }
 
-    private fun isTooLarge(size: Long, dokumentId: UUID, mellomlagerId: String): Boolean {
+    private fun isTooLarge(
+        size: Long,
+        dokumentId: UUID,
+        mellomlagerId: String,
+    ): Boolean {
         if (size <= MAX_SIZE) {
             return false
         }
@@ -305,7 +332,11 @@ class DokumentConfirmService(
         return true
     }
 
-    private fun fail(registreringId: UUID, dokumentId: UUID, status: DokumentStatus): DokumentState =
+    private fun fail(
+        registreringId: UUID,
+        dokumentId: UUID,
+        status: DokumentStatus,
+    ): DokumentState =
         dokumentStateService.setStatus(
             registreringId = registreringId,
             dokumentId = dokumentId,
@@ -317,15 +348,20 @@ class DokumentConfirmService(
      * status, and false if nothing happened for [FOLLOW_STALL_TIMEOUT_MILLIS], meaning the caller
      * should take over the work.
      */
-    private fun followProgress(registreringId: UUID, dokumentId: UUID, emit: (DokumentState) -> Unit): Boolean {
+    private fun followProgress(
+        registreringId: UUID,
+        dokumentId: UUID,
+        emit: (DokumentState) -> Unit,
+    ): Boolean {
         var lastSeen: EmitKey? = null
         var lastChange = System.currentTimeMillis()
 
         while (System.currentTimeMillis() - lastChange < FOLLOW_STALL_TIMEOUT_MILLIS) {
-            val state = dokumentStateService.getState(
-                registreringId = registreringId,
-                dokumentId = dokumentId,
-            )
+            val state =
+                dokumentStateService.getState(
+                    registreringId = registreringId,
+                    dokumentId = dokumentId,
+                )
             val status = state.status
 
             val current = state.emitKey()
@@ -386,10 +422,11 @@ class DokumentStateService(
     private val registreringRepository: RegistreringRepository,
     private val tokenUtil: TokenUtil,
 ) {
-
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    fun getState(registreringId: UUID, dokumentId: UUID): DokumentState =
-        getRegistrering(registreringId = registreringId, lock = false).findDokument(dokumentId).toState()
+    fun getState(
+        registreringId: UUID,
+        dokumentId: UUID,
+    ): DokumentState = getRegistrering(registreringId = registreringId, lock = false).findDokument(dokumentId).toState()
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun setStatus(
@@ -436,12 +473,12 @@ class DokumentStateService(
 
         dokument.scannedGeneration = scannedGeneration
         dokument.status = DokumentStatus.VIRUS_SCANNING_DONE
-        //The size as scanned. Better than nothing while a conversion is running, and it is replaced
-        //with the size of the PDF once the document has been converted.
+        // The size as scanned. Better than nothing while a conversion is running, and it is replaced
+        // with the size of the PDF once the document has been converted.
         if (size != null) {
             dokument.size = size
         }
-        //Likewise the content type as scanned, replaced with the PDF content type once converted.
+        // Likewise the content type as scanned, replaced with the PDF content type once converted.
         if (contentType != null) {
             dokument.contentType = contentType
         }
@@ -478,7 +515,12 @@ class DokumentStateService(
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun setDone(registreringId: UUID, dokumentId: UUID, size: Long, contentType: String): DokumentState {
+    fun setDone(
+        registreringId: UUID,
+        dokumentId: UUID,
+        size: Long,
+        contentType: String,
+    ): DokumentState {
         val registrering = getRegistrering(registreringId)
         val dokument = registrering.findDokument(dokumentId)
 
@@ -500,12 +542,16 @@ class DokumentStateService(
      */
     private fun RegistreringDokument.isFinishedByAnotherRequest(): Boolean = status.isTerminal()
 
-    private fun getRegistrering(registreringId: UUID, lock: Boolean = true): Registrering {
-        val registrering = if (lock) {
-            registreringRepository.findById(registreringId).orElse(null)
-        } else {
-            registreringRepository.findByIdWithoutLock(registreringId)
-        } ?: throw RegistreringNotFoundException("Registrering ikke funnet.")
+    private fun getRegistrering(
+        registreringId: UUID,
+        lock: Boolean = true,
+    ): Registrering {
+        val registrering =
+            if (lock) {
+                registreringRepository.findById(registreringId).orElse(null)
+            } else {
+                registreringRepository.findByIdWithoutLock(registreringId)
+            } ?: throw RegistreringNotFoundException("Registrering ikke funnet.")
 
         if (registrering.createdBy != tokenUtil.getCurrentIdent()) {
             throw MissingAccessException("Registreringen tilhører ikke deg.")
@@ -521,11 +567,12 @@ class DokumentStateService(
         dokumenter.find { it.id == dokumentId }
             ?: throw RegistreringNotFoundException("Dokument ikke funnet.")
 
-    private fun RegistreringDokument.toState() = DokumentState(
-        status = status,
-        size = size,
-        contentType = contentType,
-        mellomlagerId = mellomlagerId,
-        scannedGeneration = scannedGeneration,
-    )
+    private fun RegistreringDokument.toState() =
+        DokumentState(
+            status = status,
+            size = size,
+            contentType = contentType,
+            mellomlagerId = mellomlagerId,
+            scannedGeneration = scannedGeneration,
+        )
 }

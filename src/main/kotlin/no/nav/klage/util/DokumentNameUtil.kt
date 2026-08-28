@@ -11,7 +11,7 @@ import no.nav.klage.exceptions.IllegalInputException
  */
 fun withPdfExtension(name: String): String {
     val trimmed = name.trim().ifBlank { "dokument" }
-    return if (trimmed.endsWith(".pdf", ignoreCase = true)) {
+    return if (trimmed.endsWith(suffix = ".pdf", ignoreCase = true)) {
         trimmed
     } else {
         "$trimmed.pdf"
@@ -25,7 +25,7 @@ fun validateDokumentName(name: String): String {
     }
     if (trimmed.length > RegistreringDokument.MAX_NAME_LENGTH) {
         throw IllegalInputException(
-            "Dokumentnavnet kan ikke være lenger enn ${RegistreringDokument.MAX_NAME_LENGTH} tegn."
+            "Dokumentnavnet kan ikke være lenger enn ${RegistreringDokument.MAX_NAME_LENGTH} tegn.",
         )
     }
     return trimmed

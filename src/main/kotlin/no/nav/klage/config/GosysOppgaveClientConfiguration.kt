@@ -10,18 +10,18 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient.newConnection
 
 @Configuration
-class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Builder) {
-    @Value("\${GOSYS_OPPGAVE_BASE_URL}")
+class GosysOppgaveClientConfiguration(
+    private val webClientBuilder: WebClient.Builder,
+) {
+    @Value($$"${GOSYS_OPPGAVE_BASE_URL}")
     private lateinit var gosysOppgaveBaseURL: String
 
     @Bean("gosysOppgaveWebClient")
-    fun gosysOppgaveWebClient(): WebClient {
-        return webClientBuilder
+    fun gosysOppgaveWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(gosysOppgaveBaseURL)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .clientConnector(ReactorClientHttpConnector(newConnection()))
             .build()
-    }
-
 }

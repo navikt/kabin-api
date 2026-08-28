@@ -11,7 +11,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
-
 @Component
 class KlageLookupClient(
     private val klageLookupWebClient: WebClient,
@@ -23,20 +22,18 @@ class KlageLookupClient(
     }
 
     @Retryable(
-        excludes = [UserNotFoundException::class]
+        excludes = [UserNotFoundException::class],
     )
-    fun getUserInfo(
-        navIdent: String,
-    ): ExtendedUserResponse {
-        return runWithTimingAndLogging {
+    fun getUserInfo(navIdent: String): ExtendedUserResponse =
+        runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-            klageLookupWebClient.get()
+            klageLookupWebClient
+                .get()
                 .uri("/users/$navIdent")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .exchangeToMono { response ->
+                ).exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
                         logger.debug("User $navIdent not found")
                         Mono.error(UserNotFoundException("User $navIdent not found"))
@@ -50,10 +47,8 @@ class KlageLookupClient(
                     } else {
                         response.bodyToMono<ExtendedUserResponse>()
                     }
-                }
-                .block() ?: throw RuntimeException("Could not get user info for $navIdent")
+                }.block() ?: throw RuntimeException("Could not get user info for $navIdent")
         }
-    }
 
     fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
@@ -65,11 +60,16 @@ class KlageLookupClient(
         }
     }
 
-    private fun getCorrectBearerToken(): String {
-        return when (tokenUtil.getCurrentTokenType()) {
-            TokenUtil.TokenType.OBO -> "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageLookupScope()}"
-            TokenUtil.TokenType.CC, TokenUtil.TokenType.UNAUTHENTICATED -> "Bearer ${tokenUtil.getMaskinTilMaskinTokenWithKlageLookupScope()}"
-        }
-    }
+    private fun getCorrectBearerToken(): String =
+        when (tokenUtil.getCurrentTokenType()) {
+            TokenUtil.TokenType.OBO -> {
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageLookupScope()}"
+            }
 
+            TokenUtil.TokenType.CC,
+            TokenUtil.TokenType.UNAUTHENTICATED,
+            -> {
+                "Bearer ${tokenUtil.getMaskinTilMaskinTokenWithKlageLookupScope()}"
+            }
+        }
 }

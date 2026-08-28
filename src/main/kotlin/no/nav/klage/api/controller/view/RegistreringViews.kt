@@ -5,7 +5,7 @@ import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.RegistreringSource
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class FinishedRegistreringView(
     val id: UUID,
@@ -38,7 +38,6 @@ data class FullRegistreringView(
     val source: RegistreringSource,
     val uploadedDocuments: UploadedDocumentsView,
 ) {
-
     data class FullRegistreringOverstyringerView(
         val mottattVedtaksinstans: LocalDate?,
         val mottattKlageinstans: LocalDate?,
@@ -51,7 +50,7 @@ data class FullRegistreringView(
         val klager: PartViewWithOptionalUtsendingskanal?,
         val avsender: PartViewWithOptionalUtsendingskanal?,
         val saksbehandlerIdent: String?,
-        val gosysOppgaveId: Long?
+        val gosysOppgaveId: Long?,
     )
 
     data class FullRegistreringSvarbrevView(
@@ -82,7 +81,6 @@ data class TypeChangeRegistreringView(
     val muligheter: MuligheterView,
     val additionalKabalMuligheter: List<KabalmulighetView>,
 ) {
-
     data class TypeChangeRegistreringOverstyringerView(
         val mottattVedtaksinstans: LocalDate? = null,
         val mottattKlageinstans: LocalDate? = null,
@@ -95,7 +93,7 @@ data class TypeChangeRegistreringView(
         val klager: PartViewWithUtsendingskanal? = null,
         val avsender: PartViewWithUtsendingskanal? = null,
         val saksbehandlerIdent: String? = null,
-        val gosysOppgaveId: Long? = null
+        val gosysOppgaveId: Long? = null,
     )
 
     data class TypeChangeRegistreringSvarbrevView(
@@ -197,7 +195,7 @@ data class AdditionalKabalMulighetChangeRegistreringView(
     val additionalKabalMulighetId: UUID?,
     val ytelseId: String,
     val hjemmelIdList: List<String>,
-    //Sikkert mer
+    // Sikkert mer
 )
 
 data class MulighetChangeRegistreringView(
@@ -211,7 +209,6 @@ data class MulighetChangeRegistreringView(
     val muligheter: MuligheterView,
     val additionalKabalMuligheter: List<KabalmulighetView>,
 ) {
-
     data class MulighetChangeRegistreringOverstyringerView(
         val mottattVedtaksinstans: LocalDate?,
         val mottattKlageinstans: LocalDate?,
@@ -224,7 +221,7 @@ data class MulighetChangeRegistreringView(
         val klager: PartViewWithOptionalUtsendingskanal?,
         val avsender: PartViewWithOptionalUtsendingskanal?,
         val saksbehandlerIdent: String?,
-        val gosysOppgaveId: Long?
+        val gosysOppgaveId: Long?,
     )
 
     data class MulighetChangeRegistreringSvarbrevView(
@@ -244,14 +241,14 @@ data class RecipientView(
     val id: UUID,
     val part: PartViewWithOptionalUtsendingskanal,
     val handling: HandlingEnum?,
-    val overriddenAddress: AddressView?
+    val overriddenAddress: AddressView?,
 ) {
     data class AddressView(
         val adresselinje1: String?,
         val adresselinje2: String?,
         val adresselinje3: String?,
         val landkode: String?,
-        val postnummer: String?
+        val postnummer: String?,
     )
 }
 

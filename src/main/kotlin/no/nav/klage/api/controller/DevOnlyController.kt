@@ -25,43 +25,30 @@ class DevOnlyController(
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
 ) {
-
     @GetMapping("/klanke/sak/{sakId}")
     fun getSakFromKlankeAppAccess(
-        @PathVariable sakId: String
-    ): SakFromKlanke {
-        return klankeService.getSakAppAccess(sakId = sakId, saksbehandlerIdent = tokenUtil.getCurrentIdent())
-    }
+        @PathVariable sakId: String,
+    ): SakFromKlanke = klankeService.getSakAppAccess(sakId = sakId, saksbehandlerIdent = tokenUtil.getCurrentIdent())
 
     @Unprotected
     @GetMapping("/internal/mytoken")
-    fun getToken(): String {
-        return tokenUtil.getAccessTokenFrontendSent()
-    }
+    fun getToken(): String = tokenUtil.getAccessTokenFrontendSent()
 
     @Unprotected
     @GetMapping("/internal/dokarkivtoken")
-    fun getDokarkivToken(): String {
-        return tokenUtil.getOnBehalfOfTokenWithDokArkivScope()
-    }
+    fun getDokarkivToken(): String = tokenUtil.getOnBehalfOfTokenWithDokArkivScope()
 
     @Unprotected
     @GetMapping("/internal/gosysoppgavetoken")
-    fun getGosysOppgaveToken(): String {
-        return tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()
-    }
+    fun getGosysOppgaveToken(): String = tokenUtil.getOnBehalfOfTokenWithGosysOppgaveScope()
 
     @GetMapping("/gosysoppgaver/{fnr}")
     fun searchGosysOppgaveForFnr(
-        @PathVariable fnr: String
-    ): List<GosysOppgaveView> {
-        return gosysOppgaveService.getGosysOppgaveList(fnr = fnr, tema = null)
-    }
+        @PathVariable fnr: String,
+    ): List<GosysOppgaveView> = gosysOppgaveService.getGosysOppgaveList(fnr = fnr, tema = null)
 
     @GetMapping("/gosysoppgaver/kodeverk/gjelder/{tema}")
     fun searchGjelderKodeverk(
-        @PathVariable tema: String
-    ): List<Gjelder> {
-        return gosysOppgaveService.getGjelderKodeverkForTema(tema = Tema.fromNavn(tema))
-    }
+        @PathVariable tema: String,
+    ): List<Gjelder> = gosysOppgaveService.getGjelderKodeverkForTema(tema = Tema.fromNavn(tema))
 }

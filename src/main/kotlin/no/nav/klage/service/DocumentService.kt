@@ -16,7 +16,7 @@ class DocumentService(
     private val kabalApiService: KabalApiService,
     private val safService: SafService,
     private val dokArkivService: DokArkivService,
-    private val dokArkivClient: DokArkivClient
+    private val dokArkivClient: DokArkivClient,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -36,14 +36,15 @@ class DocumentService(
                     idnummer = idnummer,
                     tema = temaer,
                     pageSize = pageSize,
-                    previousPageRef = previousPageRef
+                    previousPageRef = previousPageRef,
                 )
 
-            val dokumenter = dokumentoversiktBruker.journalposter.map { journalpost ->
-                dokumentMapper.mapJournalpostToDokumentReferanse(journalpost)
-            }
+            val dokumenter =
+                dokumentoversiktBruker.journalposter.map { journalpost ->
+                    dokumentMapper.mapJournalpostToDokumentReferanse(journalpost)
+                }
 
-            //enrich documents with usage info
+            // enrich documents with usage info
             val usedJournalpostIdList = kabalApiService.getUsedJournalpostIdListForPerson(fnr = idnummer)
             dokumenter.forEach { document ->
                 if (document.journalpostId in usedJournalpostIdList) {
@@ -59,9 +60,7 @@ class DocumentService(
         }
     }
 
-    fun fetchDokument(
-        journalpostId: String,
-    ): DokumentReferanse {
+    fun fetchDokument(journalpostId: String): DokumentReferanse {
         val journalpost = safService.getJournalpostAsSaksbehandler(journalpostId)!!
         return dokumentMapper.mapJournalpostToDokumentReferanse(journalpost)
     }
@@ -69,19 +68,18 @@ class DocumentService(
     fun getArkivertDokument(
         journalpostId: String,
         dokumentInfoId: String,
-        variantFormat: DokumentReferanse.Variant.Format
-    ): ArkivertDokument {
-        return safService.getDokument(
+        variantFormat: DokumentReferanse.Variant.Format,
+    ): ArkivertDokument =
+        safService.getDokument(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             variantFormat = variantFormat,
         )
-    }
 
     fun updateDocumentTitle(
         journalpostId: String,
         dokumentInfoId: String,
-        title: String
+        title: String,
     ) {
         dokArkivService.updateDocumentTitle(
             journalpostId = journalpostId,
@@ -90,36 +88,46 @@ class DocumentService(
         )
     }
 
-    fun addLogiskVedlegg(dokumentInfoId: String, title: String): LogiskVedleggResponse {
-        val logiskVedlegg = dokArkivClient.addLogiskVedlegg(
+    fun addLogiskVedlegg(
+        dokumentInfoId: String,
+        title: String,
+    ): LogiskVedleggResponse {
+        val logiskVedlegg =
+            dokArkivClient.addLogiskVedlegg(
+                dokumentInfoId = dokumentInfoId,
+                title = title,
+            )
+
+        return LogiskVedleggResponse(
+            tittel = title,
+            logiskVedleggId = logiskVedlegg.logiskVedleggId,
+        )
+    }
+
+    fun updateLogiskVedlegg(
+        dokumentInfoId: String,
+        logiskVedleggId: String,
+        title: String,
+    ): LogiskVedleggResponse {
+        dokArkivClient.updateLogiskVedlegg(
             dokumentInfoId = dokumentInfoId,
+            logiskVedleggId = logiskVedleggId,
             title = title,
         )
 
         return LogiskVedleggResponse(
             tittel = title,
-            logiskVedleggId = logiskVedlegg.logiskVedleggId
-        )
-    }
-
-    fun updateLogiskVedlegg(dokumentInfoId: String, logiskVedleggId: String, title: String): LogiskVedleggResponse {
-        dokArkivClient.updateLogiskVedlegg(
-            dokumentInfoId = dokumentInfoId,
             logiskVedleggId = logiskVedleggId,
-            title = title
-        )
-
-        return LogiskVedleggResponse(
-            tittel = title,
-            logiskVedleggId = logiskVedleggId
         )
     }
 
-    fun deleteLogiskVedlegg(dokumentInfoId: String, logiskVedleggId: String) {
+    fun deleteLogiskVedlegg(
+        dokumentInfoId: String,
+        logiskVedleggId: String,
+    ) {
         dokArkivClient.deleteLogiskVedlegg(
             dokumentInfoId = dokumentInfoId,
             logiskVedleggId = logiskVedleggId,
         )
     }
 }
-

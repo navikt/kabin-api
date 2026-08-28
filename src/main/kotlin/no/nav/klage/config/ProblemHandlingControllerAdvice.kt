@@ -1,9 +1,26 @@
 package no.nav.klage.config
 
-import no.nav.klage.exceptions.*
+import no.nav.klage.exceptions.AttachmentHasVirusException
+import no.nav.klage.exceptions.AttachmentTooLargeException
+import no.nav.klage.exceptions.AttachmentUnsupportedTypeException
+import no.nav.klage.exceptions.GosysOppgaveClientException
+import no.nav.klage.exceptions.IllegalInputException
+import no.nav.klage.exceptions.IllegalUpdateException
+import no.nav.klage.exceptions.InvalidSourceException
+import no.nav.klage.exceptions.JournalpostNotFoundException
+import no.nav.klage.exceptions.MissingAccessException
+import no.nav.klage.exceptions.MulighetNotFoundException
+import no.nav.klage.exceptions.RegistreringNotFoundException
+import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.exceptions.UserNotFoundException
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getTeamLogger
-import org.springframework.http.*
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
+import org.springframework.http.MediaType
+import org.springframework.http.ProblemDetail
+import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -13,117 +30,80 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val ourLogger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
     }
 
-    /* Override to get better info when client gets 400-error */
+    // Override to get better info when client gets 400-error
     override fun handleHttpMessageNotReadable(
         ex: HttpMessageNotReadableException,
         headers: HttpHeaders,
         status: HttpStatusCode,
-        request: WebRequest
+        request: WebRequest,
     ): ResponseEntity<Any>? {
         val body = create(httpStatus = HttpStatus.valueOf(status.value()), ex = ex)
         return handleExceptionInternal(ex, body, headers, status, request)
     }
 
     @ExceptionHandler
-    fun handleResponseStatusException(ex: WebClientResponseException): ResponseEntity<Any> =
-        createProblemForWebClientResponseException(ex)
+    fun handleResponseStatusException(ex: WebClientResponseException): ResponseEntity<Any> = createProblemForWebClientResponseException(ex)
 
     @ExceptionHandler
-    fun handleJournalpostNotFoundException(
-        ex: JournalpostNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleJournalpostNotFoundException(ex: JournalpostNotFoundException): ProblemDetail =
+        create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleRegistreringNotFoundException(
-        ex: RegistreringNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleRegistreringNotFoundException(ex: RegistreringNotFoundException): ProblemDetail =
+        create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleAttachmentTooLargeException(
-        ex: AttachmentTooLargeException,
-    ): ProblemDetail =
-        create(HttpStatus.CONTENT_TOO_LARGE, ex)
+    fun handleAttachmentTooLargeException(ex: AttachmentTooLargeException): ProblemDetail =
+        create(httpStatus = HttpStatus.CONTENT_TOO_LARGE, ex = ex)
 
     @ExceptionHandler
-    fun handleAttachmentHasVirusException(
-        ex: AttachmentHasVirusException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleAttachmentHasVirusException(ex: AttachmentHasVirusException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleAttachmentUnsupportedTypeException(
-        ex: AttachmentUnsupportedTypeException,
-    ): ProblemDetail =
-        create(HttpStatus.UNPROCESSABLE_CONTENT, ex)
+    fun handleAttachmentUnsupportedTypeException(ex: AttachmentUnsupportedTypeException): ProblemDetail =
+        create(httpStatus = HttpStatus.UNPROCESSABLE_CONTENT, ex = ex)
 
     @ExceptionHandler
-    fun handleMulighetNotFoundException(
-        ex: MulighetNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleMulighetNotFoundException(ex: MulighetNotFoundException): ProblemDetail = create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleGosysOppgaveClientException(
-        ex: GosysOppgaveClientException,
-    ): ProblemDetail =
-        create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
+    fun handleGosysOppgaveClientException(ex: GosysOppgaveClientException): ProblemDetail =
+        create(httpStatus = HttpStatus.INTERNAL_SERVER_ERROR, ex = ex)
 
     @ExceptionHandler
-    fun handleInvalidSourceException(
-        ex: InvalidSourceException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleInvalidSourceException(ex: InvalidSourceException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleMissingAccessException(
-        ex: MissingAccessException,
-    ): ProblemDetail =
-        create(HttpStatus.FORBIDDEN, ex)
+    fun handleMissingAccessException(ex: MissingAccessException): ProblemDetail = create(httpStatus = HttpStatus.FORBIDDEN, ex = ex)
 
     @ExceptionHandler
-    fun handleIllegalUpdateException(
-        ex: IllegalUpdateException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleIllegalUpdateException(ex: IllegalUpdateException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleIllegalInputException(
-        ex: IllegalInputException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleIllegalInputException(ex: IllegalInputException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleRuntimeException(
-        ex: RuntimeException,
-    ): ProblemDetail =
-        create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
+    fun handleRuntimeException(ex: RuntimeException): ProblemDetail = create(httpStatus = HttpStatus.INTERNAL_SERVER_ERROR, ex = ex)
 
     @ExceptionHandler
-    fun handleSectionedValidationErrorWithDetailsException(
-        ex: SectionedValidationErrorWithDetailsException,
-    ): ProblemDetail =
+    fun handleSectionedValidationErrorWithDetailsException(ex: SectionedValidationErrorWithDetailsException): ProblemDetail =
         createSectionedValidationProblem(ex)
 
     @ExceptionHandler
-    fun handleUserNotFoundException(
-        ex: UserNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleUserNotFoundException(ex: UserNotFoundException): ProblemDetail = create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     private fun createProblemForWebClientResponseException(ex: WebClientResponseException): ResponseEntity<Any> {
         logError(
             httpStatus = HttpStatus.valueOf(ex.statusCode.value()),
             errorMessage = ex.statusText,
-            exception = ex
+            exception = ex,
         )
 
         val contentType = ex.headers.contentType
@@ -135,10 +115,11 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         }
 
         // Fallback: wrap into a ProblemDetail
-        val problemDetail = ProblemDetail.forStatus(ex.statusCode).apply {
-            title = ex.statusText
-            detail = ex.responseBodyAsString
-        }
+        val problemDetail =
+            ProblemDetail.forStatus(ex.statusCode).apply {
+                title = ex.statusText
+                detail = ex.responseBodyAsString
+            }
         return ResponseEntity
             .status(ex.statusCode)
             .contentType(MediaType.APPLICATION_PROBLEM_JSON)
@@ -149,7 +130,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         logError(
             httpStatus = HttpStatus.BAD_REQUEST,
             errorMessage = ex.title,
-            exception = ex
+            exception = ex,
         )
 
         return ProblemDetail.forStatus(HttpStatus.BAD_REQUEST).apply {
@@ -158,13 +139,16 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         }
     }
 
-    private fun create(httpStatus: HttpStatus, ex: Exception): ProblemDetail {
+    private fun create(
+        httpStatus: HttpStatus,
+        ex: Exception,
+    ): ProblemDetail {
         val errorMessage = ex.message ?: "No error message available"
 
         logError(
             httpStatus = httpStatus,
             errorMessage = errorMessage,
-            exception = ex
+            exception = ex,
         )
 
         return ProblemDetail.forStatusAndDetail(httpStatus, errorMessage).apply {
@@ -172,7 +156,11 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         }
     }
 
-    private fun logError(httpStatus: HttpStatus, errorMessage: String, exception: Exception) {
+    private fun logError(
+        httpStatus: HttpStatus,
+        errorMessage: String,
+        exception: Exception,
+    ) {
         when {
             httpStatus.is5xxServerError -> {
                 ourLogger.error("Exception thrown to client: ${exception.javaClass.name}. See team-logs for more details.")

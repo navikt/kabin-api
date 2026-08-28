@@ -23,8 +23,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * connection alive and to notice a client that has gone away, even while the caller is busy doing
  * something that takes minutes. Remember to [close] the writer when done.
  */
-class SseWriter(private val response: HttpServletResponse) {
-
+class SseWriter(
+    private val response: HttpServletResponse,
+) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -33,10 +34,11 @@ class SseWriter(private val response: HttpServletResponse) {
 
         private val threadCount = AtomicInteger()
 
-        //Shared by all streams. Each heartbeat is a single small write, so one thread is plenty.
-        private val heartbeatExecutor = Executors.newSingleThreadScheduledExecutor { runnable ->
-            Thread(runnable, "sse-heartbeat-${threadCount.incrementAndGet()}").apply { isDaemon = true }
-        }
+        // Shared by all streams. Each heartbeat is a single small write, so one thread is plenty.
+        private val heartbeatExecutor =
+            Executors.newSingleThreadScheduledExecutor { runnable ->
+                Thread(runnable, "sse-heartbeat-${threadCount.incrementAndGet()}").apply { isDaemon = true }
+            }
     }
 
     private val lock = Any()
@@ -48,7 +50,10 @@ class SseWriter(private val response: HttpServletResponse) {
     val hasStarted: Boolean
         get() = synchronized(lock) { writer != null }
 
-    fun send(event: String, data: String) {
+    fun send(
+        event: String,
+        data: String,
+    ) {
         synchronized(lock) {
             if (closed) return
 
@@ -56,7 +61,7 @@ class SseWriter(private val response: HttpServletResponse) {
             out.write("event: $event\ndata: $data\n\n")
             out.flush()
 
-            //PrintWriter keeps its problems to itself, so we have to ask.
+            // PrintWriter keeps its problems to itself, so we have to ask.
             if (out.checkError()) {
                 logger.debug("Could not send event to client, closing stream for the rest of this request.")
                 stopWriting()
@@ -80,15 +85,16 @@ class SseWriter(private val response: HttpServletResponse) {
         response.contentType = MediaType.TEXT_EVENT_STREAM_VALUE
         response.characterEncoding = Charsets.UTF_8.name()
         response.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().headerValue)
-        //Tell proxies not to buffer, or the client sees nothing until everything is done.
+        // Tell proxies not to buffer, or the client sees nothing until everything is done.
         response.setHeader("X-Accel-Buffering", "no")
 
-        heartbeat = heartbeatExecutor.scheduleWithFixedDelay(
-            ::sendHeartbeat,
-            HEARTBEAT_INTERVAL.toMillis(),
-            HEARTBEAT_INTERVAL.toMillis(),
-            TimeUnit.MILLISECONDS,
-        )
+        heartbeat =
+            heartbeatExecutor.scheduleWithFixedDelay(
+                ::sendHeartbeat,
+                HEARTBEAT_INTERVAL.toMillis(),
+                HEARTBEAT_INTERVAL.toMillis(),
+                TimeUnit.MILLISECONDS,
+            )
 
         return response.writer.also { writer = it }
     }
@@ -99,7 +105,7 @@ class SseWriter(private val response: HttpServletResponse) {
 
             val out = writer ?: return
 
-            //A comment: ignored by the client, but it keeps the connection in use.
+            // A comment: ignored by the client, but it keeps the connection in use.
             out.write(": heartbeat\n\n")
             out.flush()
 

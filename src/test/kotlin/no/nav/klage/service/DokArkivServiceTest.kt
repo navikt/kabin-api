@@ -3,15 +3,24 @@ package no.nav.klage.service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.klage.clients.dokarkiv.*
+import no.nav.klage.clients.dokarkiv.AvsenderMottakerIdType
 import no.nav.klage.clients.dokarkiv.BrukerIdType
+import no.nav.klage.clients.dokarkiv.CreateNewJournalpostBasedOnExistingJournalpostResponse
+import no.nav.klage.clients.dokarkiv.DokArkivClient
+import no.nav.klage.clients.dokarkiv.FagsaksSystem
 import no.nav.klage.clients.dokarkiv.Sak
+import no.nav.klage.clients.dokarkiv.Sakstype
+import no.nav.klage.clients.dokarkiv.UpdateAvsenderMottakerInJournalpostRequest
+import no.nav.klage.clients.dokarkiv.UpdateSakInJournalpostRequest
 import no.nav.klage.clients.kabalapi.PartType
 import no.nav.klage.clients.kabalapi.SearchPartView
 import no.nav.klage.clients.kabalinnstillinger.KabalInnstillingerClient
-import no.nav.klage.clients.saf.graphql.*
 import no.nav.klage.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.clients.saf.graphql.Bruker
+import no.nav.klage.clients.saf.graphql.DokumentInfo
+import no.nav.klage.clients.saf.graphql.Journalpost
+import no.nav.klage.clients.saf.graphql.Journalposttype
+import no.nav.klage.clients.saf.graphql.Journalstatus
 import no.nav.klage.clients.saf.graphql.Tema.OMS
 import no.nav.klage.domain.entities.Mulighet
 import no.nav.klage.domain.entities.PartId
@@ -28,10 +37,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class DokArkivServiceTest {
-
     val dokArkivClient: DokArkivClient = mockk()
 
     val kabalApiService: KabalApiService = mockk()
@@ -46,43 +54,47 @@ class DokArkivServiceTest {
 
     lateinit var dokArkivService: DokArkivService
 
-    private val SAKS_ID = "SAKS_ID"
-    private val FAGSYSTEM = Fagsystem.FS38
-    private val FNR = "28838098519"
-    private val PERSON = SearchPartView(
-        identifikator = FNR,
-        name = "FORNAVN ETTERNAVN",
-        type = PartType.FNR,
-        available = true,
-        statusList = emptyList(),
-        language = null,
-        address = null,
-    )
-    private val PART_WITH_UTSENDINGSKANAL = PartWithUtsendingskanal(
-        part = PartId(
-            value = FNR,
-            type = PartIdType.PERSON,
-        ),
-        name = "FORNAVN ETTERNAVN",
-        available = true,
-        language = null,
-        address = null,
-        utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO,
-    )
-    private val avsenderMottaker = AvsenderMottaker(
-        id = "12345678910",
-        type = AvsenderMottaker.AvsenderMottakerIdType.FNR,
-        navn = null,
-        land = null,
-        erLikBruker = false
-    )
-    private val ENHET = "4295"
+    private val saksId = "saksId"
+    private val fagsystem = Fagsystem.FS38
+    private val fnr = "28838098519"
+    private val person =
+        SearchPartView(
+            identifikator = fnr,
+            name = "FORNAVN ETTERNAVN",
+            type = PartType.FNR,
+            available = true,
+            statusList = emptyList(),
+            language = null,
+            address = null,
+        )
+    private val partWithUtsendingskanal =
+        PartWithUtsendingskanal(
+            part =
+                PartId(
+                    value = fnr,
+                    type = PartIdType.PERSON,
+                ),
+            name = "FORNAVN ETTERNAVN",
+            available = true,
+            language = null,
+            address = null,
+            utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.NAV_NO,
+        )
+    private val avsenderMottaker =
+        AvsenderMottaker(
+            id = "12345678910",
+            type = AvsenderMottaker.AvsenderMottakerIdType.FNR,
+            navn = null,
+            land = null,
+            erLikBruker = false,
+        )
+    private val enhetsnummer = "4295"
 
-    private val JOURNALPOST_ID = "12345"
-    private val JOURNALPOST_ID_2 = "54321"
-    private val TITTEL = "TITTEL"
-    private val IDENT = "IDENT"
-    private val MULIGHET_ID = UUID.randomUUID()
+    private val journalpostId = "12345"
+    private val journalpostId2 = "54321"
+    private val tittel = "tittel"
+    private val ident = "ident"
+    private val mulighetId = UUID.randomUUID()
 
     private val mulighet = mockk<Mulighet>()
 
@@ -90,26 +102,27 @@ class DokArkivServiceTest {
 
     @BeforeEach
     fun setup() {
-        dokArkivService = DokArkivService(
-            dokArkivClient = dokArkivClient,
-            safService = safService,
-            kabalInnstillingerClient = kabalInnstillingerClient,
-            kabalApiService = kabalApiService,
-            gosysOppgaveClient = mockk(relaxed = true),
-            tokenUtil = tokenUtil,
-            saksbehandlerService = saksbehandlerService,
-        )
+        dokArkivService =
+            DokArkivService(
+                dokArkivClient = dokArkivClient,
+                safService = safService,
+                kabalInnstillingerClient = kabalInnstillingerClient,
+                kabalApiService = kabalApiService,
+                gosysOppgaveClient = mockk(relaxed = true),
+                tokenUtil = tokenUtil,
+                saksbehandlerService = saksbehandlerService,
+            )
 
         every { registrering.isBasedOnUploadedDocument() } returns false
         every { registrering.getCurrentMulighet() } returns mulighet
         every { mulighet.tema } returns Tema.OMS
         every { mulighet.currentFagsystem } returns Fagsystem.KABAL
         every { mulighet.originalFagsystem } returns Fagsystem.FS38
-        every { mulighet.fagsakId } returns SAKS_ID
-        every { mulighet.klageBehandlendeEnhet } returns ENHET
-        every { mulighet.sakenGjelder } returns PART_WITH_UTSENDINGSKANAL
+        every { mulighet.fagsakId } returns saksId
+        every { mulighet.klageBehandlendeEnhet } returns enhetsnummer
+        every { mulighet.sakenGjelder } returns partWithUtsendingskanal
         every { tokenUtil.getCurrentIdent() } returns "ident"
-        every { saksbehandlerService.getSaksbehandlerPersonligInfo(any()) } returns mockk { every { enhet.enhetId } returns ENHET }
+        every { saksbehandlerService.getSaksbehandlerPersonligInfo(any()) } returns mockk { every { enhet.enhetId } returns enhetsnummer }
     }
 
     @Nested
@@ -117,34 +130,38 @@ class DokArkivServiceTest {
         @Test
         fun `unfinished journalpost with avsender - No avsender in request - Sak is updated and journalpost is finalized`() {
             every { safService.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpostWithAvsenderMottaker()
-            every { dokArkivClient.updateSakInJournalpost(any(), any()) } returns Unit
-            every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
+            every { dokArkivClient.updateSakInJournalpost(journalpostId = any(), input = any()) } returns Unit
+            every { dokArkivClient.finalizeJournalpost(journalpostId = any(), journalfoerendeEnhet = any()) } returns Unit
 
-            every { registrering.journalpostId } returns JOURNALPOST_ID
+            every { registrering.journalpostId } returns journalpostId
             every { registrering.avsender } returns null
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
-                registrering = registrering
-            )
+            val resultingJournalpost =
+                dokArkivService.handleJournalpost(
+                    registrering = registrering,
+                )
 
             verify(exactly = 1) {
                 dokArkivClient.updateSakInJournalpost(
                     journalpostId = any(),
-                    input = eq(
-                        UpdateSakInJournalpostRequest(
-                            tema = Tema.OMS,
-                            bruker = no.nav.klage.clients.dokarkiv.Bruker(
-                                id = FNR,
-                                idType = BrukerIdType.FNR
+                    input =
+                        eq(
+                            UpdateSakInJournalpostRequest(
+                                tema = Tema.OMS,
+                                bruker =
+                                    no.nav.klage.clients.dokarkiv.Bruker(
+                                        id = fnr,
+                                        idType = BrukerIdType.FNR,
+                                    ),
+                                sak =
+                                    Sak(
+                                        sakstype = Sakstype.FAGSAK,
+                                        fagsaksystem = FagsaksSystem.FS38,
+                                        fagsakid = saksId,
+                                    ),
+                                journalfoerendeEnhet = enhetsnummer,
                             ),
-                            sak = Sak(
-                                sakstype = Sakstype.FAGSAK,
-                                fagsaksystem = FagsaksSystem.FS38,
-                                fagsakid = SAKS_ID,
-                            ),
-                            journalfoerendeEnhet = ENHET,
-                        )
-                    ),
+                        ),
                 )
             }
 
@@ -165,64 +182,71 @@ class DokArkivServiceTest {
             verify(exactly = 0) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
                     journalpostId = any(),
-                    input = any()
+                    input = any(),
                 )
             }
 
-            assertEquals(JOURNALPOST_ID, resultingJournalpost)
+            assertEquals(journalpostId, resultingJournalpost)
         }
 
         @Test
         fun `unfinished journalpost without avsender - Avsender in request - Sak and avsender is updated and journalpost is finalized`() {
-            every { kabalApiService.searchPart(any()) } returns PERSON
+            every { kabalApiService.searchPart(any()) } returns person
             every { safService.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
-            every { dokArkivClient.updateSakInJournalpost(any(), any()) } returns Unit
-            every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
-            every { dokArkivClient.finalizeJournalpost(any(), any()) } returns Unit
+            every { dokArkivClient.updateSakInJournalpost(journalpostId = any(), input = any()) } returns Unit
+            every { dokArkivClient.updateAvsenderMottakerInJournalpost(journalpostId = any(), input = any()) } returns Unit
+            every { dokArkivClient.finalizeJournalpost(journalpostId = any(), journalfoerendeEnhet = any()) } returns Unit
 
-            every { registrering.journalpostId } returns JOURNALPOST_ID
-            every { registrering.avsender } returns PartId(
-                type = PartIdType.PERSON,
-                value = FNR
-            )
+            every { registrering.journalpostId } returns journalpostId
+            every { registrering.avsender } returns
+                PartId(
+                    type = PartIdType.PERSON,
+                    value = fnr,
+                )
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
-                registrering = registrering
-            )
+            val resultingJournalpost =
+                dokArkivService.handleJournalpost(
+                    registrering = registrering,
+                )
 
             verify(exactly = 1) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
                     journalpostId = any(),
-                    input = eq(
-                        UpdateAvsenderMottakerInJournalpostRequest(
-                            avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
-                                id = FNR,
-                                idType = AvsenderMottakerIdType.FNR,
-                                navn = "FORNAVN ETTERNAVN",
+                    input =
+                        eq(
+                            UpdateAvsenderMottakerInJournalpostRequest(
+                                avsenderMottaker =
+                                    no.nav.klage.clients.dokarkiv.AvsenderMottaker(
+                                        id = fnr,
+                                        idType = AvsenderMottakerIdType.FNR,
+                                        navn = "FORNAVN ETTERNAVN",
+                                    ),
                             ),
                         ),
-                    )
                 )
             }
 
             verify(exactly = 1) {
                 dokArkivClient.updateSakInJournalpost(
                     journalpostId = any(),
-                    input = eq(
-                        UpdateSakInJournalpostRequest(
-                            tema = Tema.OMS,
-                            bruker = no.nav.klage.clients.dokarkiv.Bruker(
-                                id = FNR,
-                                idType = BrukerIdType.FNR
+                    input =
+                        eq(
+                            UpdateSakInJournalpostRequest(
+                                tema = Tema.OMS,
+                                bruker =
+                                    no.nav.klage.clients.dokarkiv.Bruker(
+                                        id = fnr,
+                                        idType = BrukerIdType.FNR,
+                                    ),
+                                sak =
+                                    Sak(
+                                        sakstype = Sakstype.FAGSAK,
+                                        fagsaksystem = FagsaksSystem.FS38,
+                                        fagsakid = saksId,
+                                    ),
+                                journalfoerendeEnhet = enhetsnummer,
                             ),
-                            sak = Sak(
-                                sakstype = Sakstype.FAGSAK,
-                                fagsaksystem = FagsaksSystem.FS38,
-                                fagsakid = SAKS_ID,
-                            ),
-                            journalfoerendeEnhet = ENHET,
-                        )
-                    ),
+                        ),
                 )
             }
 
@@ -240,19 +264,19 @@ class DokArkivServiceTest {
                 )
             }
 
-            assertEquals(JOURNALPOST_ID, resultingJournalpost)
+            assertEquals(journalpostId, resultingJournalpost)
         }
 
         @Test
         fun `unfinished journalpost without avsender - No avsender in request - throws validation error`() {
             every { safService.getJournalpostAsSaksbehandler(any()) } returns getMottattIncomingJournalpost()
 
-            every { registrering.journalpostId } returns JOURNALPOST_ID
+            every { registrering.journalpostId } returns journalpostId
             every { registrering.avsender } returns null
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
                 dokArkivService.handleJournalpost(
-                    registrering = registrering
+                    registrering = registrering,
                 )
             }
         }
@@ -261,12 +285,13 @@ class DokArkivServiceTest {
         fun `journalfoert incoming journalpost - No avsender in request, correct fagsak - returned directly`() {
             every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
 
-            every { registrering.journalpostId } returns JOURNALPOST_ID
+            every { registrering.journalpostId } returns journalpostId
             every { registrering.avsender } returns null
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
-                registrering = registrering
-            )
+            val resultingJournalpost =
+                dokArkivService.handleJournalpost(
+                    registrering = registrering,
+                )
 
             verify(exactly = 0) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
@@ -296,37 +321,41 @@ class DokArkivServiceTest {
                 )
             }
 
-            assertEquals(JOURNALPOST_ID, resultingJournalpost)
+            assertEquals(journalpostId, resultingJournalpost)
         }
 
         @Test
         fun `journalfoert incoming journalpost - Avsender in request, correct fagsak - Avsender updated, then returned`() {
-            every { kabalApiService.searchPart(any()) } returns PERSON
+            every { kabalApiService.searchPart(any()) } returns person
             every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpostWithDefinedFagsak()
-            every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
+            every { dokArkivClient.updateAvsenderMottakerInJournalpost(journalpostId = any(), input = any()) } returns Unit
 
-            every { registrering.journalpostId } returns JOURNALPOST_ID
-            every { registrering.avsender } returns PartId(
-                type = PartIdType.PERSON,
-                value = FNR
-            )
+            every { registrering.journalpostId } returns journalpostId
+            every { registrering.avsender } returns
+                PartId(
+                    type = PartIdType.PERSON,
+                    value = fnr,
+                )
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
-                registrering = registrering
-            )
+            val resultingJournalpost =
+                dokArkivService.handleJournalpost(
+                    registrering = registrering,
+                )
 
             verify(exactly = 1) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
                     journalpostId = any(),
-                    input = eq(
-                        UpdateAvsenderMottakerInJournalpostRequest(
-                            avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
-                                id = FNR,
-                                idType = AvsenderMottakerIdType.FNR,
-                                navn = "FORNAVN ETTERNAVN",
+                    input =
+                        eq(
+                            UpdateAvsenderMottakerInJournalpostRequest(
+                                avsenderMottaker =
+                                    no.nav.klage.clients.dokarkiv.AvsenderMottaker(
+                                        id = fnr,
+                                        idType = AvsenderMottakerIdType.FNR,
+                                        navn = "FORNAVN ETTERNAVN",
+                                    ),
                             ),
-                        )
-                    )
+                        ),
                 )
             }
 
@@ -351,7 +380,7 @@ class DokArkivServiceTest {
                 )
             }
 
-            assertEquals(JOURNALPOST_ID, resultingJournalpost)
+            assertEquals(journalpostId, resultingJournalpost)
         }
 
         @Test
@@ -359,17 +388,18 @@ class DokArkivServiceTest {
             every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpost()
             every {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
-                    any(),
-                    any(),
+                    payload = any(),
+                    oldJournalpostId = any(),
                 )
-            } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
+            } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(journalpostId2)
 
-            every { registrering.journalpostId } returns JOURNALPOST_ID
+            every { registrering.journalpostId } returns journalpostId
             every { registrering.avsender } returns null
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
-                registrering = registrering
-            )
+            val resultingJournalpost =
+                dokArkivService.handleJournalpost(
+                    registrering = registrering,
+                )
 
             verify(exactly = 0) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
@@ -392,44 +422,47 @@ class DokArkivServiceTest {
                 )
             }
 
-            assertEquals(JOURNALPOST_ID_2, resultingJournalpost)
+            assertEquals(journalpostId2, resultingJournalpost)
         }
-
 
         @Test
         fun `journalfoert incoming journalpost - Avsender in request, incorrect fagsak - Handled correctly`() {
-            every { kabalApiService.searchPart(any()) } returns PERSON
+            every { kabalApiService.searchPart(any()) } returns person
             every { safService.getJournalpostAsSaksbehandler(any()) } returns getJournalfoertIncomingJournalpost()
             every {
                 dokArkivClient.createNewJournalpostBasedOnExistingJournalpost(
-                    any(),
-                    any(),
+                    payload = any(),
+                    oldJournalpostId = any(),
                 )
-            } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(JOURNALPOST_ID_2)
-            every { dokArkivClient.updateAvsenderMottakerInJournalpost(any(), any()) } returns Unit
+            } returns CreateNewJournalpostBasedOnExistingJournalpostResponse(journalpostId2)
+            every { dokArkivClient.updateAvsenderMottakerInJournalpost(journalpostId = any(), input = any()) } returns Unit
 
-            every { registrering.journalpostId } returns JOURNALPOST_ID
-            every { registrering.avsender } returns PartId(
-                type = PartIdType.PERSON,
-                value = FNR
-            )
+            every { registrering.journalpostId } returns journalpostId
+            every { registrering.avsender } returns
+                PartId(
+                    type = PartIdType.PERSON,
+                    value = fnr,
+                )
 
-            val resultingJournalpost = dokArkivService.handleJournalpost(
-                registrering = registrering
-            )
+            val resultingJournalpost =
+                dokArkivService.handleJournalpost(
+                    registrering = registrering,
+                )
 
             verify(exactly = 1) {
                 dokArkivClient.updateAvsenderMottakerInJournalpost(
                     journalpostId = any(),
-                    input = eq(
-                        UpdateAvsenderMottakerInJournalpostRequest(
-                            avsenderMottaker = no.nav.klage.clients.dokarkiv.AvsenderMottaker(
-                                id = FNR,
-                                idType = AvsenderMottakerIdType.FNR,
-                                navn = "FORNAVN ETTERNAVN",
+                    input =
+                        eq(
+                            UpdateAvsenderMottakerInJournalpostRequest(
+                                avsenderMottaker =
+                                    no.nav.klage.clients.dokarkiv.AvsenderMottaker(
+                                        id = fnr,
+                                        idType = AvsenderMottakerIdType.FNR,
+                                        navn = "FORNAVN ETTERNAVN",
+                                    ),
                             ),
-                        )
-                    )
+                        ),
                 )
             }
 
@@ -447,48 +480,51 @@ class DokArkivServiceTest {
                 )
             }
 
-            assertEquals(JOURNALPOST_ID_2, resultingJournalpost)
+            assertEquals(journalpostId2, resultingJournalpost)
         }
     }
 
-    private fun getMottattIncomingJournalpost(): Journalpost {
-        return Journalpost(
-            journalpostId = JOURNALPOST_ID,
-            tittel = TITTEL,
+    private fun getMottattIncomingJournalpost(): Journalpost =
+        Journalpost(
+            journalpostId = journalpostId,
+            tittel = tittel,
             journalposttype = Journalposttype.I,
             journalstatus = Journalstatus.MOTTATT,
-            bruker = Bruker(
-                id = FNR,
-                type = Bruker.BrukerIdType.FNR
-            ),
+            bruker =
+                Bruker(
+                    id = fnr,
+                    type = Bruker.BrukerIdType.FNR,
+                ),
             tema = OMS,
             temanavn = null,
             behandlingstema = null,
             behandlingstemanavn = null,
             sak = null,
-            avsenderMottaker = AvsenderMottaker(
-                id = null,
-                type = AvsenderMottaker.AvsenderMottakerIdType.NULL,
-                navn = null,
-                land = null,
-                erLikBruker = false
-            ),
-            journalfoerendeEnhet = ENHET,
+            avsenderMottaker =
+                AvsenderMottaker(
+                    id = null,
+                    type = AvsenderMottaker.AvsenderMottakerIdType.NULL,
+                    navn = null,
+                    land = null,
+                    erLikBruker = false,
+                ),
+            journalfoerendeEnhet = enhetsnummer,
             journalfortAvNavn = null,
             opprettetAvNavn = null,
             skjerming = null,
             datoOpprettet = LocalDateTime.now(),
             datoSortering = LocalDateTime.now(),
-            dokumenter = listOf(
-                DokumentInfo(
-                    dokumentInfoId = "",
-                    tittel = null,
-                    brevkode = null,
-                    skjerming = null,
-                    dokumentvarianter = listOf(),
-                    logiskeVedlegg = null,
-                )
-            ),
+            dokumenter =
+                listOf(
+                    DokumentInfo(
+                        dokumentInfoId = "",
+                        tittel = null,
+                        brevkode = null,
+                        skjerming = null,
+                        dokumentvarianter = listOf(),
+                        logiskeVedlegg = null,
+                    ),
+                ),
             relevanteDatoer = listOf(),
             antallRetur = null,
             tilleggsopplysninger = listOf(),
@@ -496,26 +532,23 @@ class DokArkivServiceTest {
             kanalnavn = "",
             utsendingsinfo = null,
         )
-    }
 
-    private fun getMottattIncomingJournalpostWithAvsenderMottaker(): Journalpost {
-        return getMottattIncomingJournalpost().copy(
-            avsenderMottaker = avsenderMottaker
+    private fun getMottattIncomingJournalpostWithAvsenderMottaker(): Journalpost =
+        getMottattIncomingJournalpost().copy(
+            avsenderMottaker = avsenderMottaker,
         )
-    }
 
-    private fun getJournalfoertIncomingJournalpost(): Journalpost {
-        return getMottattIncomingJournalpost().copy(journalstatus = Journalstatus.JOURNALFOERT)
-    }
+    private fun getJournalfoertIncomingJournalpost(): Journalpost =
+        getMottattIncomingJournalpost().copy(journalstatus = Journalstatus.JOURNALFOERT)
 
-    private fun getJournalfoertIncomingJournalpostWithDefinedFagsak(): Journalpost {
-        return getMottattIncomingJournalpost().copy(
+    private fun getJournalfoertIncomingJournalpostWithDefinedFagsak(): Journalpost =
+        getMottattIncomingJournalpost().copy(
             journalstatus = Journalstatus.JOURNALFOERT,
-            sak = no.nav.klage.clients.saf.graphql.Sak(
-                datoOpprettet = null,
-                fagsakId = SAKS_ID,
-                fagsaksystem = FagsaksSystem.FS38.name
-            )
+            sak =
+                no.nav.klage.clients.saf.graphql.Sak(
+                    datoOpprettet = null,
+                    fagsakId = saksId,
+                    fagsaksystem = FagsaksSystem.FS38.name,
+                ),
         )
-    }
 }

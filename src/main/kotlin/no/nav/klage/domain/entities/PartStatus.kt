@@ -28,5 +28,4 @@ class PartStatus(
         RESERVERT_I_KRR,
         DELT_ANSVAR,
     }
-
 }

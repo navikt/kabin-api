@@ -14,9 +14,9 @@ data class GosysOppgaveView(
     val opprettetTidspunkt: LocalDateTime?,
     val beskrivelse: String?,
     val temaId: String,
-    //Må parses via kodeverk
+    // Må parses via kodeverk
     val gjelder: String?,
-    //Må parses via kodeverk
+    // Må parses via kodeverk
     val oppgavetype: String?,
     val fristFerdigstillelse: LocalDate?,
     var alreadyUsed: Boolean,

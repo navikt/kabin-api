@@ -12,9 +12,8 @@ import java.time.Duration
 
 @Configuration
 class FileApiClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -33,9 +32,11 @@ class FileApiClientConfiguration(
 
     @Bean
     fun fileWebClient(): WebClient {
-        val httpClient = HttpClient.create()
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
-            .responseTimeout(RESPONSE_TIMEOUT)
+        val httpClient =
+            HttpClient
+                .create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
+                .responseTimeout(RESPONSE_TIMEOUT)
 
         return webClientBuilder
             .clone()

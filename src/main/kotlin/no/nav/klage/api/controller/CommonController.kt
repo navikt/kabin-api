@@ -13,9 +13,13 @@ import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
@@ -24,7 +28,6 @@ class CommonController(
     private val gosysOppgaveService: GosysOppgaveService,
     private val registreringService: RegistreringService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -40,11 +43,12 @@ class CommonController(
             logger = logger,
         )
 
-        val inputType = if (input.varsletBehandlingstidUnitTypeId != null) {
-            TimeUnitType.of(input.varsletBehandlingstidUnitTypeId)
-        } else {
-            input.varsletBehandlingstidUnitType!!
-        }
+        val inputType =
+            if (input.varsletBehandlingstidUnitTypeId != null) {
+                TimeUnitType.of(input.varsletBehandlingstidUnitTypeId)
+            } else {
+                input.varsletBehandlingstidUnitType!!
+            }
 
         return no.nav.klage.util.calculateFrist(
             fromDate = input.fromDate,
@@ -53,7 +57,7 @@ class CommonController(
         )
     }
 
-    //TODO: Gjør dette søket basert på registreringen, på samme måte som i Kabal
+    // TODO: Gjør dette søket basert på registreringen, på samme måte som i Kabal
     @PostMapping("/searchgosysoppgave")
     fun searchGosysOppgaveList(
         @RequestBody input: GetGosysOppgaveListInput,
@@ -66,7 +70,7 @@ class CommonController(
 
         return gosysOppgaveService.getGosysOppgaveList(
             fnr = input.identifikator,
-            tema = input.temaId?.let { Tema.of(it) }
+            tema = input.temaId?.let { Tema.of(it) },
         )
     }
 

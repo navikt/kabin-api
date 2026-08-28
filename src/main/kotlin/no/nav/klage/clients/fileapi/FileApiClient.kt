@@ -42,8 +42,7 @@ class FileApiClient(
                     logger.error("Error requesting signed upload policies from kabal-file-api: $body")
                     RuntimeException("Error requesting signed upload policies from kabal-file-api")
                 }
-            }
-            .bodyToMono<List<UploadPostPolicyResponse>>()
+            }.bodyToMono<List<UploadPostPolicyResponse>>()
             .block() ?: throw RuntimeException("No response from kabal-file-api on upload policy request")
     }
 
@@ -67,8 +66,7 @@ class FileApiClient(
                     logger.error("Error fetching document metadata from kabal-file-api: $body")
                     RuntimeException("Error fetching document metadata from kabal-file-api")
                 }
-            }
-            .bodyToMono<DocumentMetadataResponse>()
+            }.bodyToMono<DocumentMetadataResponse>()
             .block() ?: throw RuntimeException("No response from kabal-file-api on metadata request")
     }
 
@@ -93,14 +91,12 @@ class FileApiClient(
                     logger.warn("kabal-file-api rejected the document as an unsupported file type: $body")
                     AttachmentUnsupportedTypeException()
                 }
-            }
-            .onStatus(HttpStatusCode::isError) { clientResponse ->
+            }.onStatus(HttpStatusCode::isError) { clientResponse ->
                 clientResponse.bodyToMono<String>().map { body ->
                     logger.error("Error scanning document in kabal-file-api: $body")
                     RuntimeException("Error scanning document in kabal-file-api")
                 }
-            }
-            .bodyToMono<ScanResultResponse>()
+            }.bodyToMono<ScanResultResponse>()
             .block() ?: throw RuntimeException("No response from kabal-file-api on scan request")
     }
 
@@ -110,7 +106,10 @@ class FileApiClient(
         delay = 1000,
         multiplier = 2.0,
     )
-    fun convertDocument(id: String, scannedGeneration: Long): ConvertResultResponse {
+    fun convertDocument(
+        id: String,
+        scannedGeneration: Long,
+    ): ConvertResultResponse {
         logger.debug("Requesting conversion to PDF for document with id {} from kabal-file-api", id)
 
         val token = tokenUtil.getOnBehalfOfTokenWithKabalFileApiScope()
@@ -127,28 +126,25 @@ class FileApiClient(
                     AttachmentUnsupportedTypeException()
                 }
             }
-            //The object was replaced in the bucket after we scanned it, so the generation we asked to
-            //convert no longer exists. Not a problem with the file type: the document has to go
-            //through a fresh scan to get a new generation, which is what UNEXPECTED_ERROR resets to.
+            // The object was replaced in the bucket after we scanned it, so the generation we asked to
+            // convert no longer exists. Not a problem with the file type: the document has to go
+            // through a fresh scan to get a new generation, which is what UNEXPECTED_ERROR resets to.
             .onStatus({ it.value() == 409 }) { clientResponse ->
                 clientResponse.bodyToMono<String>().map { body ->
                     logger.warn("Document was replaced after it was scanned, cannot convert it: $body")
                     AttachmentConversionFailedException()
                 }
-            }
-            .onStatus({ it.value() == 500 }) { clientResponse ->
+            }.onStatus({ it.value() == 500 }) { clientResponse ->
                 clientResponse.bodyToMono<String>().map { body ->
                     logger.error("kabal-file-api reported an unexpected conversion failure: $body")
                     AttachmentConversionFailedException()
                 }
-            }
-            .onStatus(HttpStatusCode::isError) { clientResponse ->
+            }.onStatus(HttpStatusCode::isError) { clientResponse ->
                 clientResponse.bodyToMono<String>().map { body ->
                     logger.error("Error converting document in kabal-file-api: $body")
                     RuntimeException("Error converting document in kabal-file-api")
                 }
-            }
-            .bodyToMono<ConvertResultResponse>()
+            }.bodyToMono<ConvertResultResponse>()
             .block() ?: throw RuntimeException("No response from kabal-file-api on convert request")
     }
 
@@ -157,7 +153,10 @@ class FileApiClient(
         delay = 1000,
         multiplier = 2.0,
     )
-    fun getDocumentViewUrl(id: String, headers: Map<String, String>): String {
+    fun getDocumentViewUrl(
+        id: String,
+        headers: Map<String, String>,
+    ): String {
         logger.debug("Requesting view (signed GET) URL for document with id {} from kabal-file-api", id)
 
         val token = tokenUtil.getOnBehalfOfTokenWithKabalFileApiScope()
@@ -173,8 +172,7 @@ class FileApiClient(
                     logger.error("Error requesting view URL from kabal-file-api: $body")
                     RuntimeException("Error requesting view URL from kabal-file-api")
                 }
-            }
-            .bodyToMono<String>()
+            }.bodyToMono<String>()
             .block() ?: throw RuntimeException("No response from kabal-file-api on view URL request")
     }
 
@@ -199,8 +197,7 @@ class FileApiClient(
                         logger.error("Error deleting document from kabal-file-api: $body")
                         RuntimeException("Error deleting document from kabal-file-api")
                     }
-                }
-                .toBodilessEntity()
+                }.toBodilessEntity()
                 .block()
         } catch (e: Exception) {
             logger.error("Could not delete document ($id) from kabal-file-api", e)

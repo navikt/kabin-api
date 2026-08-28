@@ -8,28 +8,29 @@ import org.springframework.stereotype.Service
 class SaksbehandlerService(
     private val klageLookupClient: KlageLookupClient,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
     fun getSaksbehandlerPersonligInfo(navIdent: String): SaksbehandlerPersonligInfo {
-        val data = try {
-            klageLookupClient.getUserInfo(navIdent = navIdent)
-        } catch (e: Exception) {
-            logger.warn("Failed to call getUserInfo", e)
-            throw e
-        }
+        val data =
+            try {
+                klageLookupClient.getUserInfo(navIdent = navIdent)
+            } catch (e: Exception) {
+                logger.warn("Failed to call getUserInfo", e)
+                throw e
+            }
         return SaksbehandlerPersonligInfo(
             navIdent = data.navIdent,
             fornavn = data.fornavn,
             etternavn = data.etternavn,
             sammensattNavn = data.sammensattNavn,
-            enhet = Enhet(
-                enhetId = data.enhet.enhetNr,
-                navn = data.enhet.enhetNavn
-            )
+            enhet =
+                Enhet(
+                    enhetId = data.enhet.enhetNr,
+                    navn = data.enhet.enhetNavn,
+                ),
         )
     }
 
@@ -41,5 +42,8 @@ class SaksbehandlerService(
         val enhet: Enhet,
     )
 
-    data class Enhet(val enhetId: String, val navn: String)
+    data class Enhet(
+        val enhetId: String,
+        val navn: String,
+    )
 }

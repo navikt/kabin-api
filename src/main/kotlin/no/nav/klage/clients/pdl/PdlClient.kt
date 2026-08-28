@@ -1,6 +1,5 @@
 package no.nav.klage.clients.pdl
 
-
 import no.nav.klage.clients.pdl.grahql.HentIdenterResponse
 import no.nav.klage.clients.pdl.grahql.IdentGruppe
 import no.nav.klage.clients.pdl.grahql.hentIdenterQuery
@@ -18,9 +17,8 @@ import java.lang.System.currentTimeMillis
 @Component
 class PdlClient(
     private val pdlWebClient: WebClient,
-    private val tokenUtil: TokenUtil
+    private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -37,9 +35,13 @@ class PdlClient(
     }
 
     @Retryable
-    fun hentIdent(ident: String, identGruppe: IdentGruppe): String {
-        return runWithTiming {
-            pdlWebClient.post()
+    fun hentIdent(
+        ident: String,
+        identGruppe: IdentGruppe,
+    ): String =
+        runWithTiming {
+            pdlWebClient
+                .post()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getOnBehalfOfTokenWithPdlScope()}")
                 .bodyValue(hentIdenterQuery(ident))
                 .retrieve()
@@ -49,9 +51,12 @@ class PdlClient(
                         functionName = ::hentIdent.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<HentIdenterResponse>()
-                .block()?.data?.hentIdenter?.identer?.find { it.gruppe == identGruppe }?.ident ?: throw RuntimeException("Person not found")
+                }.bodyToMono<HentIdenterResponse>()
+                .block()
+                ?.data
+                ?.hentIdenter
+                ?.identer
+                ?.find { it.gruppe == identGruppe }
+                ?.ident ?: throw RuntimeException("Person not found")
         }
-    }
 }

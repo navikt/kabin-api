@@ -1,10 +1,53 @@
 package no.nav.klage.service
 
-import io.mockk.*
-import no.nav.klage.api.controller.view.*
-import no.nav.klage.domain.entities.*
-import no.nav.klage.exceptions.*
-import no.nav.klage.kodeverk.*
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.verify
+import no.nav.klage.api.controller.view.AvsenderInput
+import no.nav.klage.api.controller.view.BehandlingstidInput
+import no.nav.klage.api.controller.view.ForrigeBehandlendeEnhetIdInput
+import no.nav.klage.api.controller.view.GosysOppgaveIdInput
+import no.nav.klage.api.controller.view.HjemmelIdListInput
+import no.nav.klage.api.controller.view.ModifySvarbrevRecipientInput
+import no.nav.klage.api.controller.view.MottattKlageinstansInput
+import no.nav.klage.api.controller.view.MottattVedtaksinstansInput
+import no.nav.klage.api.controller.view.MulighetInput
+import no.nav.klage.api.controller.view.MulighetIsBasedOnJournalpostInput
+import no.nav.klage.api.controller.view.PartIdInput
+import no.nav.klage.api.controller.view.PartType
+import no.nav.klage.api.controller.view.ReasonNoLetterInput
+import no.nav.klage.api.controller.view.SaksbehandlerIdentInput
+import no.nav.klage.api.controller.view.SearchPartInput
+import no.nav.klage.api.controller.view.SendSvarbrevInput
+import no.nav.klage.api.controller.view.SourceInput
+import no.nav.klage.api.controller.view.SvarbrevCustomTextInput
+import no.nav.klage.api.controller.view.SvarbrevFullmektigFritekstInput
+import no.nav.klage.api.controller.view.SvarbrevInitialCustomTextInput
+import no.nav.klage.api.controller.view.SvarbrevTitleInput
+import no.nav.klage.api.controller.view.TypeIdInput
+import no.nav.klage.domain.entities.DokumentStatus
+import no.nav.klage.domain.entities.HandlingEnum
+import no.nav.klage.domain.entities.InngaaendeKanal
+import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.domain.entities.PartId
+import no.nav.klage.domain.entities.PartWithUtsendingskanal
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.RegistreringDokument
+import no.nav.klage.domain.entities.RegistreringSource
+import no.nav.klage.domain.entities.SvarbrevReceiver
+import no.nav.klage.exceptions.IllegalInputException
+import no.nav.klage.exceptions.IllegalUpdateException
+import no.nav.klage.exceptions.MissingAccessException
+import no.nav.klage.exceptions.MulighetNotFoundException
+import no.nav.klage.exceptions.ReceiverNotFoundException
+import no.nav.klage.exceptions.RegistreringNotFoundException
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
@@ -15,10 +58,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 
 class RegistreringServiceTest {
-
     private lateinit var registreringRepository: RegistreringRepository
     private lateinit var tokenUtil: TokenUtil
     private lateinit var kabalApiService: KabalApiService
@@ -34,20 +77,21 @@ class RegistreringServiceTest {
 
         every { tokenUtil.getCurrentIdent() } returns currentIdent
 
-        registreringService = RegistreringService(
-            registreringRepository = registreringRepository,
-            tokenUtil = tokenUtil,
-            kabalApiService = kabalApiService,
-            klageFssProxyService = mockk(),
-            klageService = mockk(),
-            ankeService = mockk(),
-            omgjoeringskravService = mockk(),
-            gjenopptakService = mockk(),
-            documentService = mockk(),
-            dokArkivService = mockk(),
-            safService = mockk(),
-            fileApiClient = mockk(),
-        )
+        registreringService =
+            RegistreringService(
+                registreringRepository = registreringRepository,
+                tokenUtil = tokenUtil,
+                kabalApiService = kabalApiService,
+                klageFssProxyService = mockk(),
+                klageService = mockk(),
+                ankeService = mockk(),
+                omgjoeringskravService = mockk(),
+                gjenopptakService = mockk(),
+                documentService = mockk(),
+                dokArkivService = mockk(),
+                safService = mockk(),
+                fileApiClient = mockk(),
+            )
     }
 
     // ============ handleReceiversWhenChangingPart ============
@@ -64,11 +108,15 @@ class RegistreringServiceTest {
             registreringService.handleReceiversWhenChangingPart(
                 unchangedRegistrering = registrering,
                 partIdInput = PartIdInput(type = PartType.FNR, identifikator = "123"),
-                partISaken = RegistreringService.PartISaken.FULLMEKTIG
+                partISaken = RegistreringService.PartISaken.FULLMEKTIG,
             )
 
             assertThat(registrering.svarbrevReceivers).hasSize(1)
-            assertThat(registrering.svarbrevReceivers.first().part.value).isEqualTo("123")
+            assertThat(
+                registrering.svarbrevReceivers
+                    .first()
+                    .part.value,
+            ).isEqualTo("123")
         }
 
         @Test
@@ -81,7 +129,11 @@ class RegistreringServiceTest {
             registrering.handleSvarbrevReceivers()
 
             assertThat(registrering.svarbrevReceivers).hasSize(1)
-            assertThat(registrering.svarbrevReceivers.first().part.value).isEqualTo("sakenGjelder")
+            assertThat(
+                registrering.svarbrevReceivers
+                    .first()
+                    .part.value,
+            ).isEqualTo("sakenGjelder")
         }
 
         @Test
@@ -95,7 +147,7 @@ class RegistreringServiceTest {
             registreringService.handleReceiversWhenChangingPart(
                 unchangedRegistrering = registrering,
                 partIdInput = PartIdInput(type = PartType.FNR, identifikator = "fullmektig"),
-                partISaken = RegistreringService.PartISaken.FULLMEKTIG
+                partISaken = RegistreringService.PartISaken.FULLMEKTIG,
             )
             registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "fullmektig")
 
@@ -113,7 +165,7 @@ class RegistreringServiceTest {
             registreringService.handleReceiversWhenChangingPart(
                 unchangedRegistrering = registrering,
                 partIdInput = null,
-                partISaken = RegistreringService.PartISaken.FULLMEKTIG
+                partISaken = RegistreringService.PartISaken.FULLMEKTIG,
             )
 
             assertThat(registrering.svarbrevReceivers).hasSize(1)
@@ -129,7 +181,7 @@ class RegistreringServiceTest {
             registreringService.handleReceiversWhenChangingPart(
                 unchangedRegistrering = registrering,
                 partIdInput = null,
-                partISaken = RegistreringService.PartISaken.FULLMEKTIG
+                partISaken = RegistreringService.PartISaken.FULLMEKTIG,
             )
             registrering.fullmektig = null
 
@@ -146,7 +198,7 @@ class RegistreringServiceTest {
             registreringService.handleReceiversWhenChangingPart(
                 unchangedRegistrering = registrering,
                 partIdInput = PartIdInput(type = PartType.FNR, identifikator = "berit"),
-                partISaken = RegistreringService.PartISaken.FULLMEKTIG
+                partISaken = RegistreringService.PartISaken.FULLMEKTIG,
             )
             registrering.fullmektig = PartId(type = PartIdType.PERSON, value = "berit")
 
@@ -164,7 +216,7 @@ class RegistreringServiceTest {
             registreringService.handleReceiversWhenChangingPart(
                 unchangedRegistrering = registrering,
                 partIdInput = null,
-                partISaken = RegistreringService.PartISaken.FULLMEKTIG
+                partISaken = RegistreringService.PartISaken.FULLMEKTIG,
             )
             registrering.fullmektig = null
 
@@ -220,7 +272,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTypeId(id, TypeIdInput(typeId = Type.KLAGE.id))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.KLAGE.id))
 
             assertThat(registrering.type).isEqualTo(Type.KLAGE)
         }
@@ -231,7 +283,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTypeId(id, TypeIdInput(typeId = Type.ANKE.id))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.ANKE.id))
 
             assertThat(registrering.behandlingstidUnits).isEqualTo(0)
         }
@@ -242,7 +294,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTypeId(id, TypeIdInput(typeId = Type.KLAGE.id))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.KLAGE.id))
 
             assertThat(registrering.behandlingstidUnits).isEqualTo(12)
         }
@@ -257,7 +309,7 @@ class RegistreringServiceTest {
             registrering.sendSvarbrev = true
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTypeId(id, TypeIdInput(typeId = Type.ANKE.id))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.ANKE.id))
 
             assertThat(registrering.mulighetId).isNull()
             assertThat(registrering.ytelse).isNull()
@@ -272,7 +324,7 @@ class RegistreringServiceTest {
             registrering.type = Type.KLAGE
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTypeId(id, TypeIdInput(typeId = null))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = null))
 
             assertThat(registrering.type).isNull()
         }
@@ -304,13 +356,13 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val view = registreringService.setSource(id, SourceInput(source = RegistreringSource.ANKE))
+            val view = registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.ANKE))
 
             assertThat(registrering.source).isEqualTo(RegistreringSource.ANKE)
             assertThat(registrering.type).isEqualTo(Type.ANKE)
             assertThat(registrering.behandlingstidUnits).isEqualTo(4)
             assertThat(registrering.avsender).isEqualTo(
-                PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR)
+                PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR),
             )
             assertThat(registrering.inngaaendeKanal).isEqualTo(InngaaendeKanal.ALTINN_INNBOKS)
 
@@ -330,7 +382,7 @@ class RegistreringServiceTest {
             registrering.inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setSource(id, SourceInput(source = RegistreringSource.UPLOADED_DOCUMENTS))
+            registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.UPLOADED_DOCUMENTS))
 
             assertThat(registrering.source).isEqualTo(RegistreringSource.UPLOADED_DOCUMENTS)
             assertThat(registrering.type).isNull()
@@ -351,11 +403,11 @@ class RegistreringServiceTest {
                     status = DokumentStatus.DONE,
                     sortIndex = 1.0,
                     mellomlagerId = "mellomlagerId",
-                )
+                ),
             )
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setSource(id, SourceInput(source = RegistreringSource.ANKE))
+            registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.ANKE))
 
             assertThat(registrering.dokumenter).hasSize(1)
         }
@@ -368,7 +420,7 @@ class RegistreringServiceTest {
             registrering.type = Type.OMGJOERINGSKRAV
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setSource(id, SourceInput(source = RegistreringSource.ANKE))
+            registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.ANKE))
 
             assertThat(registrering.type).isEqualTo(Type.OMGJOERINGSKRAV)
         }
@@ -382,7 +434,7 @@ class RegistreringServiceTest {
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
             assertThatThrownBy {
-                registreringService.setTypeId(id, TypeIdInput(typeId = Type.OMGJOERINGSKRAV.id))
+                registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.OMGJOERINGSKRAV.id))
             }.isInstanceOf(IllegalInputException::class.java)
 
             assertThat(registrering.type).isEqualTo(Type.ANKE)
@@ -398,8 +450,8 @@ class RegistreringServiceTest {
 
             assertThatThrownBy {
                 registreringService.setAvsender(
-                    id,
-                    AvsenderInput(avsender = PartIdInput(type = PartType.ORGNR, identifikator = "987654321"))
+                    registreringId = id,
+                    input = AvsenderInput(avsender = PartIdInput(type = PartType.ORGNR, identifikator = "987654321")),
                 )
             }.isInstanceOf(IllegalInputException::class.java)
 
@@ -418,7 +470,11 @@ class RegistreringServiceTest {
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
             val date = LocalDate.of(2025, 3, 15)
-            val result = registreringService.setMottattVedtaksinstans(id, MottattVedtaksinstansInput(mottattVedtaksinstans = date))
+            val result =
+                registreringService.setMottattVedtaksinstans(
+                    registreringId = id,
+                    input = MottattVedtaksinstansInput(mottattVedtaksinstans = date),
+                )
 
             assertThat(registrering.mottattVedtaksinstans).isEqualTo(date)
             assertThat(result.overstyringer.mottattVedtaksinstans).isEqualTo(date)
@@ -436,7 +492,11 @@ class RegistreringServiceTest {
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
             val date = LocalDate.of(2025, 6, 1)
-            val result = registreringService.setMottattKlageinstans(id, MottattKlageinstansInput(mottattKlageinstans = date))
+            val result =
+                registreringService.setMottattKlageinstans(
+                    registreringId = id,
+                    input = MottattKlageinstansInput(mottattKlageinstans = date),
+                )
 
             assertThat(registrering.mottattKlageinstans).isEqualTo(date)
             assertThat(result.overstyringer.mottattKlageinstans).isEqualTo(date)
@@ -453,7 +513,11 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setBehandlingstid(id, BehandlingstidInput(units = 6, unitTypeId = TimeUnitType.MONTHS.id))
+            val result =
+                registreringService.setBehandlingstid(
+                    registreringId = id,
+                    input = BehandlingstidInput(units = 6, unitTypeId = TimeUnitType.MONTHS.id),
+                )
 
             assertThat(registrering.behandlingstidUnits).isEqualTo(6)
             assertThat(registrering.behandlingstidUnitType).isEqualTo(TimeUnitType.MONTHS)
@@ -473,7 +537,7 @@ class RegistreringServiceTest {
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
             val hjemler = listOf("hjemmel1", "hjemmel2", "hjemmel3")
-            val result = registreringService.setHjemmelIdList(id, HjemmelIdListInput(hjemmelIdList = hjemler))
+            val result = registreringService.setHjemmelIdList(registreringId = id, input = HjemmelIdListInput(hjemmelIdList = hjemler))
 
             assertThat(registrering.hjemmelIdList).isEqualTo(hjemler)
             assertThat(result.overstyringer.hjemmelIdList).isEqualTo(hjemler)
@@ -486,7 +550,7 @@ class RegistreringServiceTest {
             registrering.hjemmelIdList = listOf("existing")
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setHjemmelIdList(id, HjemmelIdListInput(hjemmelIdList = emptyList()))
+            registreringService.setHjemmelIdList(registreringId = id, input = HjemmelIdListInput(hjemmelIdList = emptyList()))
 
             assertThat(registrering.hjemmelIdList).isEmpty()
         }
@@ -502,7 +566,11 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setSaksbehandlerIdent(id, SaksbehandlerIdentInput(saksbehandlerIdent = "S999999"))
+            val result =
+                registreringService.setSaksbehandlerIdent(
+                    registreringId = id,
+                    input = SaksbehandlerIdentInput(saksbehandlerIdent = "S999999"),
+                )
 
             assertThat(registrering.saksbehandlerIdent).isEqualTo("S999999")
             assertThat(result.overstyringer.saksbehandlerIdent).isEqualTo("S999999")
@@ -515,7 +583,7 @@ class RegistreringServiceTest {
             registrering.saksbehandlerIdent = "S999999"
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setSaksbehandlerIdent(id, SaksbehandlerIdentInput(saksbehandlerIdent = null))
+            registreringService.setSaksbehandlerIdent(registreringId = id, input = SaksbehandlerIdentInput(saksbehandlerIdent = null))
 
             assertThat(registrering.saksbehandlerIdent).isNull()
         }
@@ -531,7 +599,11 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setGosysOppgaveId(id, GosysOppgaveIdInput(gosysOppgaveId = 123456789L))
+            val result =
+                registreringService.setGosysOppgaveId(
+                    registreringId = id,
+                    input = GosysOppgaveIdInput(gosysOppgaveId = 123456789L),
+                )
 
             assertThat(registrering.gosysOppgaveId).isEqualTo(123456789L)
             assertThat(result.overstyringer.gosysOppgaveId).isEqualTo(123456789L)
@@ -544,7 +616,7 @@ class RegistreringServiceTest {
             registrering.gosysOppgaveId = 123456789L
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setGosysOppgaveId(id, GosysOppgaveIdInput(gosysOppgaveId = null))
+            registreringService.setGosysOppgaveId(registreringId = id, input = GosysOppgaveIdInput(gosysOppgaveId = null))
 
             assertThat(registrering.gosysOppgaveId).isNull()
         }
@@ -562,8 +634,8 @@ class RegistreringServiceTest {
 
             assertThatThrownBy {
                 registreringService.setForrigeBehandlendeEnhetId(
-                    id,
-                    ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "4200")
+                    registreringId = id,
+                    input = ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "4200"),
                 )
             }.isInstanceOf(IllegalInputException::class.java)
         }
@@ -580,8 +652,8 @@ class RegistreringServiceTest {
 
             assertThatThrownBy {
                 registreringService.setForrigeBehandlendeEnhetId(
-                    id,
-                    ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "1234")
+                    registreringId = id,
+                    input = ForrigeBehandlendeEnhetIdInput(forrigeBehandlendeEnhetId = "1234"),
                 )
             }.isInstanceOf(IllegalArgumentException::class.java)
         }
@@ -597,7 +669,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setSendSvarbrev(id, SendSvarbrevInput(send = true))
+            val result = registreringService.setSendSvarbrev(registreringId = id, input = SendSvarbrevInput(send = true))
 
             assertThat(registrering.sendSvarbrev).isTrue()
             assertThat(result.svarbrev.send).isTrue()
@@ -610,7 +682,7 @@ class RegistreringServiceTest {
             registrering.reasonNoLetter = "some reason"
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setSendSvarbrev(id, SendSvarbrevInput(send = true))
+            registreringService.setSendSvarbrev(registreringId = id, input = SendSvarbrevInput(send = true))
 
             assertThat(registrering.reasonNoLetter).isNull()
         }
@@ -622,7 +694,7 @@ class RegistreringServiceTest {
             registrering.reasonNoLetter = "some reason"
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setSendSvarbrev(id, SendSvarbrevInput(send = false))
+            registreringService.setSendSvarbrev(registreringId = id, input = SendSvarbrevInput(send = false))
 
             assertThat(registrering.reasonNoLetter).isEqualTo("some reason")
         }
@@ -638,7 +710,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setReasonNoLetter(id, ReasonNoLetterInput(reasonNoLetter = "Grunn"))
+            val result = registreringService.setReasonNoLetter(registreringId = id, input = ReasonNoLetterInput(reasonNoLetter = "Grunn"))
 
             assertThat(registrering.reasonNoLetter).isEqualTo("Grunn")
             assertThat(result.svarbrev.reasonNoLetter).isEqualTo("Grunn")
@@ -655,7 +727,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setSvarbrevTitle(id, SvarbrevTitleInput(title = "Ny tittel"))
+            val result = registreringService.setSvarbrevTitle(registreringId = id, input = SvarbrevTitleInput(title = "Ny tittel"))
 
             assertThat(registrering.svarbrevTitle).isEqualTo("Ny tittel")
             assertThat(result.svarbrev.title).isEqualTo("Ny tittel")
@@ -672,7 +744,11 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setSvarbrevCustomText(id, SvarbrevCustomTextInput(customText = "Ny tekst"))
+            val result =
+                registreringService.setSvarbrevCustomText(
+                    registreringId = id,
+                    input = SvarbrevCustomTextInput(customText = "Ny tekst"),
+                )
 
             assertThat(registrering.svarbrevCustomText).isEqualTo("Ny tekst")
             assertThat(result.svarbrev.customText).isEqualTo("Ny tekst")
@@ -689,7 +765,11 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setSvarbrevInitialCustomText(id, SvarbrevInitialCustomTextInput(initialCustomText = "Initial tekst"))
+            val result =
+                registreringService.setSvarbrevInitialCustomText(
+                    registreringId = id,
+                    input = SvarbrevInitialCustomTextInput(initialCustomText = "Initial tekst"),
+                )
 
             assertThat(registrering.svarbrevInitialCustomText).isEqualTo("Initial tekst")
             assertThat(result.svarbrev.initialCustomText).isEqualTo("Initial tekst")
@@ -706,7 +786,11 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setSvarbrevBehandlingstid(id, BehandlingstidInput(units = 3, unitTypeId = TimeUnitType.MONTHS.id))
+            val result =
+                registreringService.setSvarbrevBehandlingstid(
+                    registreringId = id,
+                    input = BehandlingstidInput(units = 3, unitTypeId = TimeUnitType.MONTHS.id),
+                )
 
             assertThat(registrering.svarbrevBehandlingstidUnits).isEqualTo(3)
             assertThat(registrering.svarbrevBehandlingstidUnitType).isEqualTo(TimeUnitType.MONTHS)
@@ -725,7 +809,11 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setSvarbrevFullmektigFritekst(id, SvarbrevFullmektigFritekstInput(fullmektigFritekst = "Fritekst"))
+            val result =
+                registreringService.setSvarbrevFullmektigFritekst(
+                    registreringId = id,
+                    input = SvarbrevFullmektigFritekstInput(fullmektigFritekst = "Fritekst"),
+                )
 
             assertThat(registrering.svarbrevFullmektigFritekst).isEqualTo("Fritekst")
             assertThat(result.svarbrev.fullmektigFritekst).isEqualTo("Fritekst")
@@ -738,7 +826,10 @@ class RegistreringServiceTest {
             registrering.svarbrevFullmektigFritekst = "existing"
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setSvarbrevFullmektigFritekst(id, SvarbrevFullmektigFritekstInput(fullmektigFritekst = "  "))
+            registreringService.setSvarbrevFullmektigFritekst(
+                registreringId = id,
+                input = SvarbrevFullmektigFritekstInput(fullmektigFritekst = "  "),
+            )
 
             assertThat(registrering.svarbrevFullmektigFritekst).isNull()
         }
@@ -750,7 +841,10 @@ class RegistreringServiceTest {
             registrering.svarbrevFullmektigFritekst = "existing"
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setSvarbrevFullmektigFritekst(id, SvarbrevFullmektigFritekstInput(fullmektigFritekst = null))
+            registreringService.setSvarbrevFullmektigFritekst(
+                registreringId = id,
+                input = SvarbrevFullmektigFritekstInput(fullmektigFritekst = null),
+            )
 
             assertThat(registrering.svarbrevFullmektigFritekst).isNull()
         }
@@ -766,39 +860,57 @@ class RegistreringServiceTest {
 
             assertThat(registrering.svarbrevReceivers).isEmpty()
 
-            registrering.svarbrevReceivers.add(SvarbrevReceiver(
-                part = PartId(PartIdType.PERSON, "12345678901"),
-                handling = HandlingEnum.AUTO,
-                overriddenAddress = null
-            ))
+            registrering.svarbrevReceivers.add(
+                SvarbrevReceiver(
+                    part = PartId(type = PartIdType.PERSON, value = "12345678901"),
+                    handling = HandlingEnum.AUTO,
+                    overriddenAddress = null,
+                ),
+            )
 
             assertThat(registrering.svarbrevReceivers).hasSize(1)
-            assertThat(registrering.svarbrevReceivers.first().part.value).isEqualTo("12345678901")
-            assertThat(registrering.svarbrevReceivers.first().part.type).isEqualTo(PartIdType.PERSON)
+            assertThat(
+                registrering.svarbrevReceivers
+                    .first()
+                    .part.value,
+            ).isEqualTo("12345678901")
+            assertThat(
+                registrering.svarbrevReceivers
+                    .first()
+                    .part.type,
+            ).isEqualTo(PartIdType.PERSON)
         }
 
         @Test
         fun `adds receiver with VIRKSOMHET type`() {
             val registrering = getUnfinishedRegistrering()
 
-            registrering.svarbrevReceivers.add(SvarbrevReceiver(
-                part = PartId(PartIdType.VIRKSOMHET, "987654321"),
-                handling = HandlingEnum.AUTO,
-                overriddenAddress = null
-            ))
+            registrering.svarbrevReceivers.add(
+                SvarbrevReceiver(
+                    part = PartId(type = PartIdType.VIRKSOMHET, value = "987654321"),
+                    handling = HandlingEnum.AUTO,
+                    overriddenAddress = null,
+                ),
+            )
 
             assertThat(registrering.svarbrevReceivers).hasSize(1)
-            assertThat(registrering.svarbrevReceivers.first().part.type).isEqualTo(PartIdType.VIRKSOMHET)
+            assertThat(
+                registrering.svarbrevReceivers
+                    .first()
+                    .part.type,
+            ).isEqualTo(PartIdType.VIRKSOMHET)
         }
 
         @Test
         fun `duplicate check is based on part value`() {
             val registrering = getUnfinishedRegistrering()
-            registrering.svarbrevReceivers.add(SvarbrevReceiver(
-                part = PartId(PartIdType.PERSON, "12345678901"),
-                handling = HandlingEnum.AUTO,
-                overriddenAddress = null
-            ))
+            registrering.svarbrevReceivers.add(
+                SvarbrevReceiver(
+                    part = PartId(type = PartIdType.PERSON, value = "12345678901"),
+                    handling = HandlingEnum.AUTO,
+                    overriddenAddress = null,
+                ),
+            )
 
             // Simulating the logic in addSvarbrevReceiver
             val alreadyExists = registrering.svarbrevReceivers.any { it.part.value == "12345678901" }
@@ -821,10 +933,15 @@ class RegistreringServiceTest {
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
             assertThatThrownBy {
-                registreringService.modifySvarbrevReceiver(id, receiverId, ModifySvarbrevRecipientInput(
-                    handling = HandlingEnum.AUTO,
-                    overriddenAddress = null
-                ))
+                registreringService.modifySvarbrevReceiver(
+                    registreringId = id,
+                    svarbrevReceiverId = receiverId,
+                    input =
+                        ModifySvarbrevRecipientInput(
+                            handling = HandlingEnum.AUTO,
+                            overriddenAddress = null,
+                        ),
+                )
             }.isInstanceOf(ReceiverNotFoundException::class.java)
         }
 
@@ -832,24 +949,26 @@ class RegistreringServiceTest {
         fun `updates overriddenAddress on existing receiver`() {
             val registrering = getUnfinishedRegistrering()
             val receiverId = UUID.randomUUID()
-            val receiver = SvarbrevReceiver(
-                id = receiverId,
-                part = PartId(PartIdType.PERSON, "12345678901"),
-                handling = HandlingEnum.AUTO,
-                overriddenAddress = null
-            )
+            val receiver =
+                SvarbrevReceiver(
+                    id = receiverId,
+                    part = PartId(type = PartIdType.PERSON, value = "12345678901"),
+                    handling = HandlingEnum.AUTO,
+                    overriddenAddress = null,
+                )
             registrering.svarbrevReceivers.add(receiver)
 
             // Simulating the logic in modifySvarbrevReceiver
             val foundReceiver = registrering.svarbrevReceivers.find { it.id == receiverId }!!
-            foundReceiver.overriddenAddress = no.nav.klage.domain.entities.Address(
-                adresselinje1 = "Testveien 1",
-                adresselinje2 = null,
-                adresselinje3 = null,
-                landkode = "NO",
-                postnummer = "0123",
-                poststed = "OSLO"
-            )
+            foundReceiver.overriddenAddress =
+                no.nav.klage.domain.entities.Address(
+                    adresselinje1 = "Testveien 1",
+                    adresselinje2 = null,
+                    adresselinje3 = null,
+                    landkode = "NO",
+                    postnummer = "0123",
+                    poststed = "OSLO",
+                )
 
             assertThat(receiver.overriddenAddress).isNotNull
             assertThat(receiver.overriddenAddress!!.adresselinje1).isEqualTo("Testveien 1")
@@ -865,15 +984,17 @@ class RegistreringServiceTest {
             val id = UUID.randomUUID()
             val receiverId = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
-            registrering.svarbrevReceivers.add(SvarbrevReceiver(
-                id = receiverId,
-                part = PartId(PartIdType.PERSON, "12345678901"),
-                handling = HandlingEnum.AUTO,
-                overriddenAddress = null
-            ))
+            registrering.svarbrevReceivers.add(
+                SvarbrevReceiver(
+                    id = receiverId,
+                    part = PartId(type = PartIdType.PERSON, value = "12345678901"),
+                    handling = HandlingEnum.AUTO,
+                    overriddenAddress = null,
+                ),
+            )
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.deleteSvarbrevReceiver(id, receiverId)
+            registreringService.deleteSvarbrevReceiver(registreringId = id, svarbrevReceiverId = receiverId)
 
             assertThat(registrering.svarbrevReceivers).isEmpty()
         }
@@ -884,7 +1005,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.deleteSvarbrevReceiver(id, UUID.randomUUID())
+            registreringService.deleteSvarbrevReceiver(registreringId = id, svarbrevReceiverId = UUID.randomUUID())
 
             assertThat(registrering.svarbrevReceivers).isEmpty()
         }
@@ -933,20 +1054,21 @@ class RegistreringServiceTest {
             val klageService = mockk<KlageService>()
             every { klageService.createKlage(registrering) } returns mockk(relaxed = true)
 
-            val service = RegistreringService(
-                registreringRepository = registreringRepository,
-                tokenUtil = tokenUtil,
-                kabalApiService = kabalApiService,
-                klageFssProxyService = mockk(),
-                klageService = klageService,
-                ankeService = mockk(),
-                omgjoeringskravService = mockk(),
-                gjenopptakService = mockk(),
-                documentService = mockk(),
-                dokArkivService = mockk(),
-                safService = mockk(),
-                fileApiClient = mockk(),
-            )
+            val service =
+                RegistreringService(
+                    registreringRepository = registreringRepository,
+                    tokenUtil = tokenUtil,
+                    kabalApiService = kabalApiService,
+                    klageFssProxyService = mockk(),
+                    klageService = klageService,
+                    ankeService = mockk(),
+                    omgjoeringskravService = mockk(),
+                    gjenopptakService = mockk(),
+                    documentService = mockk(),
+                    dokArkivService = mockk(),
+                    safService = mockk(),
+                    fileApiClient = mockk(),
+                )
 
             service.finishRegistrering(id)
 
@@ -962,24 +1084,26 @@ class RegistreringServiceTest {
 
             val behandlingId = UUID.randomUUID()
             val klageService = mockk<KlageService>()
-            every { klageService.createKlage(registrering) } returns mockk {
-                every { this@mockk.behandlingId } returns behandlingId
-            }
+            every { klageService.createKlage(registrering) } returns
+                mockk {
+                    every { this@mockk.behandlingId } returns behandlingId
+                }
 
-            val service = RegistreringService(
-                registreringRepository = registreringRepository,
-                tokenUtil = tokenUtil,
-                kabalApiService = kabalApiService,
-                klageFssProxyService = mockk(),
-                klageService = klageService,
-                ankeService = mockk(),
-                omgjoeringskravService = mockk(),
-                gjenopptakService = mockk(),
-                documentService = mockk(),
-                dokArkivService = mockk(),
-                safService = mockk(),
-                fileApiClient = mockk(),
-            )
+            val service =
+                RegistreringService(
+                    registreringRepository = registreringRepository,
+                    tokenUtil = tokenUtil,
+                    kabalApiService = kabalApiService,
+                    klageFssProxyService = mockk(),
+                    klageService = klageService,
+                    ankeService = mockk(),
+                    omgjoeringskravService = mockk(),
+                    gjenopptakService = mockk(),
+                    documentService = mockk(),
+                    dokArkivService = mockk(),
+                    safService = mockk(),
+                    fileApiClient = mockk(),
+                )
 
             val result = service.finishRegistrering(id)
 
@@ -1003,7 +1127,10 @@ class RegistreringServiceTest {
             registrering.sendSvarbrev = true
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setMulighetIsBasedOnJournalpost(id, MulighetIsBasedOnJournalpostInput(mulighetIsBasedOnJournalpost = true))
+            registreringService.setMulighetIsBasedOnJournalpost(
+                registreringId = id,
+                input = MulighetIsBasedOnJournalpostInput(mulighetIsBasedOnJournalpost = true),
+            )
 
             assertThat(registrering.mulighetId).isNull()
             assertThat(registrering.ytelse).isNull()
@@ -1024,22 +1151,24 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             registrering.ytelse = null
 
-            val mulighet = createMulighet(
-                id = additionalMulighetId,
-                originalFagsystem = Fagsystem.IT01,
-                currentFagsystem = Fagsystem.KABAL,
-                type = Type.ANKE,
-                originalType = Type.KLAGE,
-            ).apply {
-                hjemmelIdList = listOf("h1", "h2")
-            }
+            val mulighet =
+                createMulighet(
+                    id = additionalMulighetId,
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.KABAL,
+                    type = Type.ANKE,
+                    originalType = Type.KLAGE,
+                ).apply {
+                    hjemmelIdList = listOf("h1", "h2")
+                }
             registrering.muligheter.add(mulighet)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            val result = registreringService.setAdditionalKabalMulighet(
-                registreringId = id,
-                input = MulighetInput(mulighetId = additionalMulighetId),
-            )
+            val result =
+                registreringService.setAdditionalKabalMulighet(
+                    registreringId = id,
+                    input = MulighetInput(mulighetId = additionalMulighetId),
+                )
 
             assertThat(registrering.additionalKabalMulighetId).isEqualTo(additionalMulighetId)
             assertThat(registrering.ytelse).isEqualTo(mulighet.ytelse)
@@ -1075,7 +1204,7 @@ class RegistreringServiceTest {
                     currentFagsystem = Fagsystem.IT01,
                     type = Type.ANKE,
                     originalType = Type.ANKE,
-                )
+                ),
             )
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
@@ -1099,7 +1228,7 @@ class RegistreringServiceTest {
             registrering.additionalKabalMulighetId = UUID.randomUUID()
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTypeId(id, TypeIdInput(typeId = Type.KLAGE.id))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.KLAGE.id))
 
             assertThat(registrering.additionalKabalMulighetId).isNull()
         }
@@ -1167,72 +1296,78 @@ class RegistreringServiceTest {
     inner class MulighetHelperMethodsTest {
         @Test
         fun `isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak returns true for correct combination`() {
-            val mulighet = createMulighet(
-                originalFagsystem = Fagsystem.IT01,
-                currentFagsystem = Fagsystem.KABAL,
-                type = Type.ANKE,
-                originalType = Type.KLAGE,
-            )
+            val mulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.KABAL,
+                    type = Type.ANKE,
+                    originalType = Type.KLAGE,
+                )
 
             assertThat(mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()).isTrue()
         }
 
         @Test
         fun `isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak returns false for wrong originalFagsystem`() {
-            val mulighet = createMulighet(
-                originalFagsystem = Fagsystem.KABAL,
-                currentFagsystem = Fagsystem.KABAL,
-                type = Type.ANKE,
-                originalType = Type.KLAGE,
-            )
+            val mulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.KABAL,
+                    currentFagsystem = Fagsystem.KABAL,
+                    type = Type.ANKE,
+                    originalType = Type.KLAGE,
+                )
 
             assertThat(mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()).isFalse()
         }
 
         @Test
         fun `isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak returns false when type is KLAGE`() {
-            val mulighet = createMulighet(
-                originalFagsystem = Fagsystem.IT01,
-                currentFagsystem = Fagsystem.KABAL,
-                type = Type.KLAGE,
-                originalType = Type.KLAGE,
-            )
+            val mulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.KABAL,
+                    type = Type.KLAGE,
+                    originalType = Type.KLAGE,
+                )
 
             assertThat(mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()).isFalse()
         }
 
         @Test
         fun `isAnkeMulighetFromInfotrygd returns true for correct combination`() {
-            val mulighet = createMulighet(
-                originalFagsystem = Fagsystem.IT01,
-                currentFagsystem = Fagsystem.IT01,
-                type = Type.ANKE,
-                originalType = Type.ANKE,
-            )
+            val mulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.IT01,
+                    type = Type.ANKE,
+                    originalType = Type.ANKE,
+                )
 
             assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isTrue()
         }
 
         @Test
         fun `isAnkeMulighetFromInfotrygd returns false when currentFagsystem is KABAL`() {
-            val mulighet = createMulighet(
-                originalFagsystem = Fagsystem.IT01,
-                currentFagsystem = Fagsystem.KABAL,
-                type = Type.ANKE,
-                originalType = Type.ANKE,
-            )
+            val mulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.KABAL,
+                    type = Type.ANKE,
+                    originalType = Type.ANKE,
+                )
 
             assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isFalse()
         }
 
         @Test
         fun `isAnkeMulighetFromInfotrygd returns false when type is KLAGE`() {
-            val mulighet = createMulighet(
-                originalFagsystem = Fagsystem.IT01,
-                currentFagsystem = Fagsystem.IT01,
-                type = Type.KLAGE,
-                originalType = Type.ANKE,
-            )
+            val mulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.IT01,
+                    type = Type.KLAGE,
+                    originalType = Type.ANKE,
+                )
 
             assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isFalse()
         }
@@ -1240,16 +1375,15 @@ class RegistreringServiceTest {
 
     // ============ Helpers ============
 
-    private fun getSvarbrevRecipient(value: String): SvarbrevReceiver {
-        return SvarbrevReceiver(
+    private fun getSvarbrevRecipient(value: String): SvarbrevReceiver =
+        SvarbrevReceiver(
             part = PartId(type = PartIdType.PERSON, value = value),
             handling = HandlingEnum.AUTO,
             overriddenAddress = null,
         )
-    }
 
-    private fun getRegistrering(): Registrering {
-        return Registrering(
+    private fun getRegistrering(): Registrering =
+        Registrering(
             sakenGjelder = null,
             klager = null,
             fullmektig = null,
@@ -1286,7 +1420,6 @@ class RegistreringServiceTest {
             muligheterFetched = null,
             reasonNoLetter = null,
         )
-    }
 
     /**
      * Creates a registrering that will pass getRegistreringForUpdate checks:
@@ -1296,8 +1429,8 @@ class RegistreringServiceTest {
     private fun getUnfinishedRegistrering(
         id: UUID = UUID.randomUUID(),
         createdBy: String = currentIdent,
-    ): Registrering {
-        return Registrering(
+    ): Registrering =
+        Registrering(
             id = id,
             sakenGjelder = null,
             klager = null,
@@ -1336,7 +1469,6 @@ class RegistreringServiceTest {
             muligheterFetched = LocalDateTime.now(),
             reasonNoLetter = null,
         )
-    }
 
     private fun createMulighet(
         id: UUID = UUID.randomUUID(),
@@ -1344,17 +1476,18 @@ class RegistreringServiceTest {
         currentFagsystem: Fagsystem = Fagsystem.IT01,
         type: Type = Type.ANKE,
         originalType: Type? = Type.ANKE,
-    ): Mulighet {
-        return Mulighet(
+    ): Mulighet =
+        Mulighet(
             id = id,
-            sakenGjelder = PartWithUtsendingskanal(
-                part = PartId(type = PartIdType.PERSON, value = "12345678901"),
-                address = null,
-                name = "Test Person",
-                available = true,
-                language = null,
-                utsendingskanal = null,
-            ),
+            sakenGjelder =
+                PartWithUtsendingskanal(
+                    part = PartId(type = PartIdType.PERSON, value = "12345678901"),
+                    address = null,
+                    name = "Test Person",
+                    available = true,
+                    language = null,
+                    utsendingskanal = null,
+                ),
             klager = null,
             fullmektig = null,
             currentFagsystem = currentFagsystem,
@@ -1372,5 +1505,4 @@ class RegistreringServiceTest {
             currentFagystemTechnicalId = "tech-id-1",
             requiresGosysOppgave = false,
         )
-    }
 }

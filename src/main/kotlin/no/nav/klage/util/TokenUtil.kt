@@ -18,7 +18,6 @@ class TokenUtil(
     private val oAuth2AccessTokenService: OAuth2AccessTokenService,
     private val tokenValidationContextHolder: TokenValidationContextHolder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -44,11 +43,13 @@ class TokenUtil(
     private fun getAccessToken(registrationName: String): String {
         val clientProperties = clientConfigurationProperties.registration[registrationName]!!
 
-        val span = tracer.spanBuilder(SPAN_NAME)
-            .setAttribute(REGISTRATION, registrationName)
-            .setAttribute(GRANT_TYPE, clientProperties.grantType.value)
-            .setAttribute(SCOPE, clientProperties.scope.joinToString(separator = " "))
-            .startSpan()
+        val span =
+            tracer
+                .spanBuilder(SPAN_NAME)
+                .setAttribute(REGISTRATION, registrationName)
+                .setAttribute(GRANT_TYPE, clientProperties.grantType.value)
+                .setAttribute(SCOPE, clientProperties.scope.joinToString(separator = " "))
+                .startSpan()
 
         return try {
             val accessToken = oAuth2AccessTokenService.getAccessToken(clientProperties).access_token!!
@@ -67,7 +68,10 @@ class TokenUtil(
      * Records how long ago the token was issued, and how much lifetime is left.
      * Purely diagnostic, so any failure to parse is ignored.
      */
-    private fun addTokenAgeAttributes(span: Span, accessToken: String) {
+    private fun addTokenAgeAttributes(
+        span: Span,
+        accessToken: String,
+    ) {
         runCatching {
             val claims = SignedJWT.parse(accessToken).jwtClaimsSet
             val issuedAt = claims.issueTime?.toInstant() ?: return
@@ -112,29 +116,40 @@ class TokenUtil(
         tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)!!.encodedToken
 
     fun getCurrentIdent(): String =
-        tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)
-            ?.jwtTokenClaims?.get("NAVident")?.toString()
+        tokenValidationContextHolder
+            .getTokenValidationContext()
+            .getJwtToken(SecurityConfiguration.ISSUER_AAD)
+            ?.jwtTokenClaims
+            ?.get("NAVident")
+            ?.toString()
             ?: throw RuntimeException("Ident not found in token")
 
     fun getCurrentTokenType(): TokenType {
         val validationContext = runCatching { tokenValidationContextHolder.getTokenValidationContext() }.getOrNull()
-        val tokenType = if (validationContext == null) {
-            TokenType.UNAUTHENTICATED
-        } else {
-            val idtype =
-                runCatching { validationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)?.jwtTokenClaims?.get("idtyp") }.getOrNull()
-            val navIdent =
-                runCatching {
-                    validationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)?.jwtTokenClaims?.get("NAVident")
-                }.getOrNull()
-            if (idtype != null && idtype == "app") {
-                TokenType.CC
-            } else if (navIdent != null) {
-                TokenType.OBO
-            } else {
+        val tokenType =
+            if (validationContext == null) {
                 TokenType.UNAUTHENTICATED
+            } else {
+                val idtype =
+                    runCatching {
+                        validationContext
+                            .getJwtToken(
+                                SecurityConfiguration.ISSUER_AAD,
+                            )?.jwtTokenClaims
+                            ?.get("idtyp")
+                    }.getOrNull()
+                val navIdent =
+                    runCatching {
+                        validationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)?.jwtTokenClaims?.get("NAVident")
+                    }.getOrNull()
+                if (idtype != null && idtype == "app") {
+                    TokenType.CC
+                } else if (navIdent != null) {
+                    TokenType.OBO
+                } else {
+                    TokenType.UNAUTHENTICATED
+                }
             }
-        }
         return tokenType
     }
 

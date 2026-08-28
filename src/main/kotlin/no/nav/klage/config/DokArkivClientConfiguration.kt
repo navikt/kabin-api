@@ -6,24 +6,21 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
 
-
 @Configuration
 class DokArkivClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Value("\${DOK_ARKIV_SERVICE_URL}")
+    @Value($$"${DOK_ARKIV_SERVICE_URL}")
     private lateinit var dokArkivServiceURL: String
 
     @Bean
-    fun dokArkivWebClient(): WebClient {
-        return webClientBuilder
+    fun dokArkivWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(dokArkivServiceURL)
             .build()
-    }
 }

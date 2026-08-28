@@ -1,12 +1,29 @@
 package no.nav.klage.domain.entities
 
-import jakarta.persistence.*
-import no.nav.klage.kodeverk.*
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.AttributeOverrides
+import jakarta.persistence.CascadeType
+import jakarta.persistence.CollectionTable
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.ElementCollection
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.FagsystemConverter
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.TemaConverter
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.TypeConverter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.kodeverk.ytelse.YtelseConverter
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 /**
  * Cache of muligheter for a given registrering
@@ -16,15 +33,15 @@ import java.util.*
     AttributeOverride(name = "sakenGjelder.part.value", column = Column(name = "saken_gjelder_value")),
     AttributeOverride(
         name = "sakenGjelder.address.adresselinje1",
-        column = Column(name = "saken_gjelder_adresselinje1")
+        column = Column(name = "saken_gjelder_adresselinje1"),
     ),
     AttributeOverride(
         name = "sakenGjelder.address.adresselinje2",
-        column = Column(name = "saken_gjelder_adresselinje2")
+        column = Column(name = "saken_gjelder_adresselinje2"),
     ),
     AttributeOverride(
         name = "sakenGjelder.address.adresselinje3",
-        column = Column(name = "saken_gjelder_adresselinje3")
+        column = Column(name = "saken_gjelder_adresselinje3"),
     ),
     AttributeOverride(name = "sakenGjelder.address.postnummer", column = Column(name = "saken_gjelder_postnummer")),
     AttributeOverride(name = "sakenGjelder.address.poststed", column = Column(name = "saken_gjelder_poststed")),
@@ -33,7 +50,6 @@ import java.util.*
     AttributeOverride(name = "sakenGjelder.available", column = Column(name = "saken_gjelder_available")),
     AttributeOverride(name = "sakenGjelder.language", column = Column(name = "saken_gjelder_language")),
     AttributeOverride(name = "sakenGjelder.utsendingskanal", column = Column(name = "saken_gjelder_utsendingskanal")),
-
     AttributeOverride(name = "klager.part.type", column = Column(name = "klager_type")),
     AttributeOverride(name = "klager.part.value", column = Column(name = "klager_value")),
     AttributeOverride(name = "klager.address.adresselinje1", column = Column(name = "klager_adresselinje1")),
@@ -46,7 +62,6 @@ import java.util.*
     AttributeOverride(name = "klager.available", column = Column(name = "klager_available")),
     AttributeOverride(name = "klager.language", column = Column(name = "klager_language")),
     AttributeOverride(name = "klager.utsendingskanal", column = Column(name = "klager_utsendingskanal")),
-
     AttributeOverride(name = "fullmektig.part.type", column = Column(name = "fullmektig_type")),
     AttributeOverride(name = "fullmektig.part.value", column = Column(name = "fullmektig_value")),
     AttributeOverride(name = "fullmektig.address.adresselinje1", column = Column(name = "fullmektig_adresselinje1")),
@@ -65,16 +80,16 @@ import java.util.*
 class Mulighet(
     @Id
     val id: UUID = UUID.randomUUID(),
-    //TODO: Should complete parts be stored in db, or fetched from external service?
+    // TODO: Should complete parts be stored in db, or fetched from external service?
     @Embedded
     val sakenGjelder: PartWithUtsendingskanal,
     @Embedded
     val klager: PartWithUtsendingskanal?,
     @Embedded
     val fullmektig: PartWithUtsendingskanal?,
+    // Denne og originalFagsystem vil være like for nytt omgjøringskrav
     @Convert(converter = FagsystemConverter::class)
     @Column(name = "current_fagsystem_id")
-    //Denne og originalFagsystem vil være like for nytt omgjøringskrav
     val currentFagsystem: Fagsystem,
     @Convert(converter = FagsystemConverter::class)
     @Column(name = "original_fagsystem_id")
@@ -99,51 +114,44 @@ class Mulighet(
     @Convert(converter = TypeConverter::class)
     @Column(name = "type_id")
     val type: Type,
+    // Ikke tilgjenglig for nytt omgjøringskrav. Brukes kun til visning i klient.
     @Convert(converter = TypeConverter::class)
     @Column(name = "original_type_id")
-    //Ikke tilgjenglig for nytt omgjøringskrav. Brukes kun til visning i klient.
     val originalType: Type?,
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
     /** sakId from Infotrygd, behandlingId from Kabal or journalpostId from dokarkiv */
     @Column(name = "current_fagystem_technical_id")
     val currentFagystemTechnicalId: String,
-
     @Column(name = "created")
     val created: LocalDateTime = LocalDateTime.now(),
-
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)
     val existingBehandlingList: MutableSet<ExistingBehandling> = mutableSetOf(),
-
-    //TODO: Maybe move these to embedded class PartStatus
+    // TODO: Maybe move these to embedded class PartStatus
     @ElementCollection
     @CollectionTable(
         name = "mulighet_saken_gjelder_part_status",
         schema = "klage",
-        joinColumns = [JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)]
+        joinColumns = [JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)],
     )
     val sakenGjelderStatusList: MutableSet<PartStatus> = mutableSetOf(),
-
     @ElementCollection
     @CollectionTable(
         name = "mulighet_klager_part_status",
         schema = "klage",
-        joinColumns = [JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)]
+        joinColumns = [JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)],
     )
     val klagerStatusList: MutableSet<PartStatus> = mutableSetOf(),
-
     @ElementCollection
     @CollectionTable(
         name = "mulighet_fullmektig_part_status",
         schema = "klage",
-        joinColumns = [JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)]
+        joinColumns = [JoinColumn(name = "registrering_mulighet_id", referencedColumnName = "id", nullable = false)],
     )
     val fullmektigStatusList: MutableSet<PartStatus> = mutableSetOf(),
-
     @Column(name = "requires_gosys_oppgave")
     val requiresGosysOppgave: Boolean,
-
     @Column(name = "kjennelse_mottatt")
     val kjennelseMottatt: LocalDate? = null,
 ) {
@@ -156,25 +164,20 @@ class Mulighet(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "Mulighet(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, currentFagsystem=$currentFagsystem, originalFagsystem=$originalFagsystem, fagsakId='$fagsakId', tema=$tema, vedtakDate=$vedtakDate, ytelse=$ytelse, hjemmelIdList=$hjemmelIdList, previousSaksbehandlerIdent=$previousSaksbehandlerIdent, previousSaksbehandlerName=$previousSaksbehandlerName, type=$type, originalType=$originalType, klageBehandlendeEnhet='$klageBehandlendeEnhet', currentFagystemTechnicalId='$currentFagystemTechnicalId', created=$created, existingBehandlingList=$existingBehandlingList, sakenGjelderStatusList=$sakenGjelderStatusList, klagerStatusList=$klagerStatusList, fullmektigStatusList=$fullmektigStatusList, requiresGosysOppgave=$requiresGosysOppgave, kjennelseMottatt=$kjennelseMottatt)"
-    }
+    override fun toString(): String =
+        "Mulighet(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, currentFagsystem=$currentFagsystem, originalFagsystem=$originalFagsystem, fagsakId='$fagsakId', tema=$tema, vedtakDate=$vedtakDate, ytelse=$ytelse, hjemmelIdList=$hjemmelIdList, previousSaksbehandlerIdent=$previousSaksbehandlerIdent, previousSaksbehandlerName=$previousSaksbehandlerName, type=$type, originalType=$originalType, klageBehandlendeEnhet='$klageBehandlendeEnhet', currentFagystemTechnicalId='$currentFagystemTechnicalId', created=$created, existingBehandlingList=$existingBehandlingList, sakenGjelderStatusList=$sakenGjelderStatusList, klagerStatusList=$klagerStatusList, fullmektigStatusList=$fullmektigStatusList, requiresGosysOppgave=$requiresGosysOppgave, kjennelseMottatt=$kjennelseMottatt)"
 
-    fun isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak(): Boolean {
-        return originalFagsystem == Fagsystem.IT01 &&
-                currentFagsystem == Fagsystem.KABAL &&
-                type == Type.ANKE &&
-                originalType == Type.KLAGE
-    }
+    fun isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak(): Boolean =
+        originalFagsystem == Fagsystem.IT01 &&
+            currentFagsystem == Fagsystem.KABAL &&
+            type == Type.ANKE &&
+            originalType == Type.KLAGE
 
-    fun isAnkeMulighetFromInfotrygd(): Boolean {
-        return originalFagsystem == Fagsystem.IT01 &&
-                currentFagsystem == Fagsystem.IT01 &&
-                type == Type.ANKE &&
-                originalType == Type.ANKE
-    }
+    fun isAnkeMulighetFromInfotrygd(): Boolean =
+        originalFagsystem == Fagsystem.IT01 &&
+            currentFagsystem == Fagsystem.IT01 &&
+            type == Type.ANKE &&
+            originalType == Type.ANKE
 }

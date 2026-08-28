@@ -11,7 +11,6 @@ data class SvarbrevWithReceiverInput(
     val varsletBehandlingstidUnitTypeId: String?,
     val customText: String?,
 ) {
-
     data class Receiver(
         val id: String,
         val handling: HandlingEnum?,
@@ -28,7 +27,7 @@ data class SvarbrevWithReceiverInput(
         enum class HandlingEnum {
             AUTO,
             LOCAL_PRINT,
-            CENTRAL_PRINT
+            CENTRAL_PRINT,
         }
     }
 }

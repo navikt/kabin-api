@@ -2,7 +2,12 @@ package no.nav.klage.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
-import no.nav.klage.api.controller.view.*
+import no.nav.klage.api.controller.view.DokumentReferanse
+import no.nav.klage.api.controller.view.DokumenterResponse
+import no.nav.klage.api.controller.view.IdnummerInput
+import no.nav.klage.api.controller.view.LogiskVedleggInput
+import no.nav.klage.api.controller.view.LogiskVedleggResponse
+import no.nav.klage.api.controller.view.UpdateDocumentTitleView
 import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
@@ -13,7 +18,16 @@ import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
@@ -27,12 +41,12 @@ class DokumentController(
     }
 
     @Operation(
-        summary = "Hent liste med dokumentreferanser for angitt bruker"
+        summary = "Hent liste med dokumentreferanser for angitt bruker",
     )
     @PostMapping("/arkivertedokumenter", produces = ["application/json"])
     fun fetchDokumenter(
         @RequestBody input: IdnummerInput,
-        @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
+        @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList(),
     ): DokumenterResponse {
         logMethodDetails(
             methodName = ::fetchDokumenter.name,
@@ -47,12 +61,12 @@ class DokumentController(
     }
 
     @Operation(
-        summary = "Hent gitt dokument/journalpost"
+        summary = "Hent gitt dokument/journalpost",
     )
     @GetMapping("/arkivertedokumenter/{journalpostId}", produces = ["application/json"])
     fun fetchDokument(
         @PathVariable journalpostId: String,
-        @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
+        @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList(),
     ): DokumentReferanse {
         logMethodDetails(
             methodName = ::fetchDokument.name,
@@ -67,7 +81,7 @@ class DokumentController(
 
     @Operation(
         summary = "Henter fil fra dokumentarkivet",
-        description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
+        description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang",
     )
     @ResponseBody
     @GetMapping("/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}/pdf")
@@ -76,7 +90,11 @@ class DokumentController(
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
-        @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
+        @RequestParam(
+            value = "format",
+            required = false,
+            defaultValue = "ARKIV",
+        ) variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): ResponseEntity<ByteArray> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
@@ -84,11 +102,12 @@ class DokumentController(
             logger = logger,
         )
 
-        val arkivertDokument = documentService.getArkivertDokument(
-            journalpostId = journalpostId,
-            dokumentInfoId = dokumentInfoId,
-            variantFormat = variantFormat,
-        )
+        val arkivertDokument =
+            documentService.getArkivertDokument(
+                journalpostId = journalpostId,
+                dokumentInfoId = dokumentInfoId,
+                variantFormat = variantFormat,
+            )
 
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = arkivertDokument.contentType
@@ -96,13 +115,13 @@ class DokumentController(
         return ResponseEntity(
             arkivertDokument.bytes,
             responseHeaders,
-            HttpStatus.OK
+            HttpStatus.OK,
         )
     }
 
     @Operation(
         summary = "Oppdaterer filnavn i dokumentarkivet",
-        description = "Oppdaterer filnavn i dokumentarkivet"
+        description = "Oppdaterer filnavn i dokumentarkivet",
     )
     @PutMapping("/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}/tittel")
     fun updateTitle(
@@ -111,7 +130,7 @@ class DokumentController(
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
         @Parameter(description = "Ny tittel til dokumentet")
-        @RequestBody input: UpdateDocumentTitleView
+        @RequestBody input: UpdateDocumentTitleView,
     ): UpdateDocumentTitleView {
         logMethodDetails(
             methodName = ::updateTitle.name,
@@ -122,7 +141,7 @@ class DokumentController(
         documentService.updateDocumentTitle(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
-            title = input.tittel
+            title = input.tittel,
         )
 
         return input
@@ -130,7 +149,7 @@ class DokumentController(
 
     @Operation(
         summary = "Legger logisk vedlegg til dokument",
-        description = "Legger logisk vedlegg til dokument"
+        description = "Legger logisk vedlegg til dokument",
     )
     @PostMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg")
     @ResponseStatus(HttpStatus.CREATED)
@@ -138,7 +157,7 @@ class DokumentController(
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
         @Parameter(description = "Tittel på nytt logisk vedlegg")
-        @RequestBody input: LogiskVedleggInput
+        @RequestBody input: LogiskVedleggInput,
     ): LogiskVedleggResponse {
         logMethodDetails(
             methodName = ::addLogiskVedlegg.name,
@@ -146,15 +165,15 @@ class DokumentController(
             logger = logger,
         )
 
-         return documentService.addLogiskVedlegg(
+        return documentService.addLogiskVedlegg(
             dokumentInfoId = dokumentInfoId,
-            title = input.tittel
+            title = input.tittel,
         )
     }
 
     @Operation(
         summary = "Oppdaterer logisk vedlegg",
-        description = "Oppdaterer logisk vedlegg"
+        description = "Oppdaterer logisk vedlegg",
     )
     @PutMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg/{logiskVedleggId}")
     fun updateLogiskVedlegg(
@@ -163,7 +182,7 @@ class DokumentController(
         @Parameter(description = "Id til logisk vedlegg")
         @PathVariable logiskVedleggId: String,
         @Parameter(description = "Ny tittel på logisk vedlegg")
-        @RequestBody input: LogiskVedleggInput
+        @RequestBody input: LogiskVedleggInput,
     ): LogiskVedleggResponse {
         logMethodDetails(
             methodName = ::updateLogiskVedlegg.name,
@@ -174,13 +193,13 @@ class DokumentController(
         return documentService.updateLogiskVedlegg(
             dokumentInfoId = dokumentInfoId,
             logiskVedleggId = logiskVedleggId,
-            title = input.tittel
+            title = input.tittel,
         )
     }
 
     @Operation(
         summary = "Sletter logisk vedlegg",
-        description = "Sletter logisk vedlegg"
+        description = "Sletter logisk vedlegg",
     )
     @DeleteMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg/{logiskVedleggId}")
     fun deleteLogiskVedlegg(

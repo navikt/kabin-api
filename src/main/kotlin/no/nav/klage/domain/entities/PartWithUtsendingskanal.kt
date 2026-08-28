@@ -19,13 +19,15 @@ class PartWithUtsendingskanal(
     @Column(name = "utsendingskanal")
     val utsendingskanal: Utsendingskanal?,
 ) {
-    enum class Utsendingskanal(val navn: String) {
+    enum class Utsendingskanal(
+        val navn: String,
+    ) {
         SENTRAL_UTSKRIFT("Sentral utskrift"),
         SDP("Digital Postkasse Innbygger"),
         NAV_NO("Nav.no"),
         LOKAL_UTSKRIFT("Lokal utskrift"),
         INGEN_DISTRIBUSJON("Ingen distribusjon"),
         TRYGDERETTEN("Trygderetten"),
-        DPVT("Taushetsbelagt digital post til virksomhet")
+        DPVT("Taushetsbelagt digital post til virksomhet"),
     }
 }

@@ -14,7 +14,6 @@ class SafGraphQlClient(
     private val safWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -25,57 +24,76 @@ class SafGraphQlClient(
         idnummer: String,
         tema: List<Tema>,
         pageSize: Int,
-        previousPageRef: String? = null
+        previousPageRef: String? = null,
     ): DokumentoversiktBruker {
         val start = System.currentTimeMillis()
         return runWithTimingAndLogging {
-            safWebClient.post()
+            safWebClient
+                .post()
                 .uri("graphql")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithSafScope()}"
-                )
-                .bodyValue(hentDokumentoversiktBrukerQuery(idnummer, tema, pageSize, previousPageRef))
+                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithSafScope()}",
+                ).bodyValue(hentDokumentoversiktBrukerQuery(idnummer, tema, pageSize, previousPageRef))
                 .retrieve()
                 .bodyToMono<DokumentoversiktBrukerResponse>()
                 .block()
-                ?.let { logErrorsFromSaf(it, idnummer, pageSize, previousPageRef); it }
-                ?.let { failOnErrors(it); it }
-                ?.data!!.dokumentoversiktBruker.also {
+                ?.let {
+                    logErrorsFromSaf(response = it, fnr = idnummer, pageSize = pageSize, previousPageRef = previousPageRef)
+                    it
+                }?.let {
+                    failOnErrors(it)
+                    it
+                }?.data!!
+                .dokumentoversiktBruker
+                .also {
                     logger.debug(
                         "DokumentoversiktBruker: antall: {}, ms: {}, dato/tid: {}",
                         it.sideInfo.totaltAntall,
                         System.currentTimeMillis() - start,
-                        LocalDateTime.now()
+                        LocalDateTime.now(),
                     )
                 }
         }
     }
 
-    fun getJournalpostAsSaksbehandler(journalpostId: String): Journalpost? {
-        return runWithTimingAndLogging {
+    fun getJournalpostAsSaksbehandler(journalpostId: String): Journalpost? =
+        runWithTimingAndLogging {
             val token = tokenUtil.getOnBehalfOfTokenWithSafScope()
             getJournalpostWithToken(journalpostId, token)
         }
-    }
 
-    private fun getJournalpostWithToken(journalpostId: String, token: String) = safWebClient.post()
+    private fun getJournalpostWithToken(
+        journalpostId: String,
+        token: String,
+    ) = safWebClient
+        .post()
         .uri("graphql")
         .header(
             HttpHeaders.AUTHORIZATION,
-            "Bearer $token"
-        )
-        .bodyValue(hentJournalpostQuery(journalpostId))
+            "Bearer $token",
+        ).bodyValue(hentJournalpostQuery(journalpostId))
         .retrieve()
         .bodyToMono<JournalpostResponse>()
         .block()
-        ?.let { logErrorsFromSaf(it, journalpostId); it }
-        ?.let { failOnErrors(it); it }
-        ?.data?.journalpost
+        ?.let {
+            logErrorsFromSaf(response = it, journalpostId = journalpostId)
+            it
+        }?.let {
+            failOnErrors(it)
+            it
+        }?.data
+        ?.journalpost
 
     private fun failOnErrors(response: JournalpostResponse) {
-        if (response.data == null || response.errors != null && response.errors.map { it.extensions.classification }
-                .contains("ValidationError")) {
+        if (response.data == null ||
+            (
+                response.errors != null &&
+                    response.errors
+                        .map { it.extensions.classification }
+                        .contains("ValidationError")
+            )
+        ) {
             throw RuntimeException("getJournalpost failed")
         }
     }
@@ -90,21 +108,25 @@ class SafGraphQlClient(
         response: DokumentoversiktBrukerResponse,
         fnr: String,
         pageSize: Int,
-        previousPageRef: String?
+        previousPageRef: String?,
     ) {
         if (response.errors != null) {
             logger.error("Error from SAF, see team-logs")
-            teamLogger.error("Error from SAF when making call with following parameters: fnr=$fnr, pagesize=$pageSize, previousPageRef=$previousPageRef. Error is ${response.errors}")
+            teamLogger.error(
+                "Error from SAF when making call with following parameters: fnr=$fnr, pagesize=$pageSize, previousPageRef=$previousPageRef. Error is ${response.errors}",
+            )
         }
     }
 
     private fun logErrorsFromSaf(
         response: JournalpostResponse,
-        journalpostId: String
+        journalpostId: String,
     ) {
         if (response.errors != null) {
             logger.error("Error from SAF when making call with following parameters: journalpostId=$journalpostId. See more in team-logs")
-            teamLogger.error("Error from SAF when making call with following parameters: journalpostId=$journalpostId. Error is ${response.errors}")
+            teamLogger.error(
+                "Error from SAF when making call with following parameters: journalpostId=$journalpostId. Error is ${response.errors}",
+            )
         }
     }
 

@@ -13,10 +13,10 @@ import javax.cache.expiry.Duration
 
 @EnableCaching
 @Configuration
-class CacheWithJCacheConfiguration(private val environment: Environment) : JCacheManagerCustomizer {
-
+class CacheWithJCacheConfiguration(
+    private val environment: Environment,
+) : JCacheManagerCustomizer {
     companion object {
-
         const val GJELDER_CACHE = "gjelder"
         const val OPPGAVETYPE_CACHE = "oppgavetype"
 
@@ -48,5 +48,4 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         } else {
             Duration(TimeUnit.MINUTES, 10L)
         }
-
 }

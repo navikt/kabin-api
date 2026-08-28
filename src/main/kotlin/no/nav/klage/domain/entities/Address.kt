@@ -16,5 +16,5 @@ data class Address(
     @Column(name = "poststed")
     var poststed: String?,
     @Column(name = "landkode")
-    var landkode: String?
+    var landkode: String?,
 )

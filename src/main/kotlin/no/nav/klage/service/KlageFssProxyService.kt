@@ -19,42 +19,59 @@ class KlageFssProxyService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getAnkemuligheterAsMono(input: IdnummerInput, token: String): Mono<List<SakFromKlanke>> {
-        return if (klankeService.checkAccess().access) {
+    fun getAnkemuligheterAsMono(
+        input: IdnummerInput,
+        token: String,
+    ): Mono<List<SakFromKlanke>> =
+        if (klankeService.checkAccess().access) {
             klankeService.searchKlanke(
                 input = KlankeSearchInput(fnr = input.idnummer, sakstype = "ANKE"),
                 token = token,
             )
-        } else Mono.empty()
-    }
+        } else {
+            Mono.empty()
+        }
 
-    fun getKlagemuligheterAsMono(input: IdnummerInput, token: String): Mono<List<SakFromKlanke>> {
-        //Deliberately fail if missing access.
-        val klageSaker = klankeService.searchKlanke(
-            input = KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"),
-            token = token,
-        )
+    fun getKlagemuligheterAsMono(
+        input: IdnummerInput,
+        token: String,
+    ): Mono<List<SakFromKlanke>> {
+        // Deliberately fail if missing access.
+        val klageSaker =
+            klankeService.searchKlanke(
+                input = KlankeSearchInput(fnr = input.idnummer, sakstype = "KLAGE"),
+                token = token,
+            )
         return klageSaker
     }
 
-    fun getKlageTilbakebetalingMuligheterAsMono(input: IdnummerInput, token: String): Mono<List<SakFromKlanke>> {
-        //Deliberately fail if missing access.
-        val klageTilbakebetalingSaker = klankeService.searchKlanke(
-            input = KlankeSearchInput(
-                fnr = input.idnummer,
-                sakstype = "KLAGE_TILBAKEBETALING"
-            ),
-            token = token,
-        )
+    fun getKlageTilbakebetalingMuligheterAsMono(
+        input: IdnummerInput,
+        token: String,
+    ): Mono<List<SakFromKlanke>> {
+        // Deliberately fail if missing access.
+        val klageTilbakebetalingSaker =
+            klankeService.searchKlanke(
+                input =
+                    KlankeSearchInput(
+                        fnr = input.idnummer,
+                        sakstype = "KLAGE_TILBAKEBETALING",
+                    ),
+                token = token,
+            )
         return klageTilbakebetalingSaker
     }
 
-    fun setToHandledInKabal(sakId: String, frist: LocalDate) {
+    fun setToHandledInKabal(
+        sakId: String,
+        frist: LocalDate,
+    ) {
         klankeService.setToHandledInKabal(
             sakId = sakId,
-            input = HandledInKabalInput(
-                fristAsString = frist.format(DateTimeFormatter.BASIC_ISO_DATE)
-            ),
+            input =
+                HandledInKabalInput(
+                    fristAsString = frist.format(DateTimeFormatter.BASIC_ISO_DATE),
+                ),
         )
     }
 }

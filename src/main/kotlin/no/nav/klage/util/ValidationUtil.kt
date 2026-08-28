@@ -4,7 +4,12 @@ import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.kabalapi.GosysOppgaveIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
-import no.nav.klage.domain.entities.*
+import no.nav.klage.domain.entities.DokumentStatus
+import no.nav.klage.domain.entities.HandlingEnum
+import no.nav.klage.domain.entities.InngaaendeKanal
+import no.nav.klage.domain.entities.Mulighet
+import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.exceptions.InvalidProperty
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.exceptions.ValidationSection
@@ -16,265 +21,305 @@ import java.time.LocalDate
 
 @Service
 class ValidationUtil(
-    private val kabalApiClient: KabalApiClient
+    private val kabalApiClient: KabalApiClient,
 ) {
-    fun validateRegistrering(registrering: Registrering, mulighet: Mulighet) {
+    fun validateRegistrering(
+        registrering: Registrering,
+        mulighet: Mulighet,
+    ) {
         val saksdataValidationErrors = mutableListOf<InvalidProperty>()
         val svarbrevValidationErrors = mutableListOf<InvalidProperty>()
 
         if (registrering.ytelse == null) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::ytelse.name,
-                reason = "Velg en ytelse."
-            )
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::ytelse.name,
+                    reason = "Velg en ytelse.",
+                )
         }
 
         if (registrering.forrigeBehandlendeEnhetId.isNullOrBlank()) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::forrigeBehandlendeEnhetId.name,
-                reason = "Sett forrige behandlende enhet."
-            )
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::forrigeBehandlendeEnhetId.name,
+                    reason = "Sett forrige behandlende enhet.",
+                )
         }
 
         if (registrering.type == null) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::type.name,
-                reason = "Velg en type."
-            )
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::type.name,
+                    reason = "Velg en type.",
+                )
         }
 
         if (mulighet.requiresGosysOppgave) {
             if (registrering.gosysOppgaveId == null) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::gosysOppgaveId.name,
-                    reason = "Velg en Gosys-oppgave."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::gosysOppgaveId.name,
+                        reason = "Velg en Gosys-oppgave.",
+                    )
             }
         }
 
         if (registrering.hjemmelIdList.isEmpty()) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::hjemmelIdList.name,
-                reason = "Velg minst én hjemmel."
-            )
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::hjemmelIdList.name,
+                    reason = "Velg minst én hjemmel.",
+                )
         }
 
         if (registrering.hjemmelIdList.isNotEmpty()) {
             try {
                 registrering.hjemmelIdList.forEach { Hjemmel.of(it) }
             } catch (iae: IllegalArgumentException) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::hjemmelIdList.name,
-                    reason = "Ugyldig hjemmel."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::hjemmelIdList.name,
+                        reason = "Ugyldig hjemmel.",
+                    )
             }
         }
 
         if (registrering.mottattKlageinstans == null) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::mottattKlageinstans.name,
-                reason = "Sett en dato."
-            )
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::mottattKlageinstans.name,
+                    reason = "Sett en dato.",
+                )
         } else if (registrering.mottattKlageinstans!!.isAfter(LocalDate.now())) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::mottattKlageinstans.name,
-                reason = "Sett en dato som ikke er i fremtiden."
-            )
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::mottattKlageinstans.name,
+                    reason = "Sett en dato som ikke er i fremtiden.",
+                )
         }
 
         if (registrering.type == Type.KLAGE) {
             if (registrering.mottattVedtaksinstans == null) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::mottattVedtaksinstans.name,
-                    reason = "Sett en dato."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::mottattVedtaksinstans.name,
+                        reason = "Sett en dato.",
+                    )
             } else if (registrering.mottattVedtaksinstans!!.isAfter(LocalDate.now())) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::mottattVedtaksinstans.name,
-                    reason = "Sett en dato som ikke er i fremtiden."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::mottattVedtaksinstans.name,
+                        reason = "Sett en dato som ikke er i fremtiden.",
+                    )
             }
 
-            if (registrering.mottattVedtaksinstans != null && registrering.mottattKlageinstans != null && registrering.mottattVedtaksinstans!!.isAfter(
-                    registrering.mottattKlageinstans
+            if (registrering.mottattVedtaksinstans != null && registrering.mottattKlageinstans != null &&
+                registrering.mottattVedtaksinstans!!.isAfter(
+                    registrering.mottattKlageinstans,
                 )
             ) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::mottattVedtaksinstans.name,
-                    reason = "Sett en dato som er før dato for mottatt Klageinstans."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::mottattVedtaksinstans.name,
+                        reason = "Sett en dato som er før dato for mottatt Klageinstans.",
+                    )
             }
         }
 
         if (registrering.klager == null) {
-            val errorMessage = when (registrering.type) {
-                Type.KLAGE -> "Velg en klager."
-                Type.ANKE -> "Velg en ankende part."
-                Type.OMGJOERINGSKRAV -> "Velg den som krever omgjøring."
-                Type.BEGJAERING_OM_GJENOPPTAK -> "Velg den som begjærer gjenopptak."
-                else -> error("Unsupported type")
-            }
+            val errorMessage =
+                when (registrering.type) {
+                    Type.KLAGE -> "Velg en klager."
+                    Type.ANKE -> "Velg en ankende part."
+                    Type.OMGJOERINGSKRAV -> "Velg den som krever omgjøring."
+                    Type.BEGJAERING_OM_GJENOPPTAK -> "Velg den som begjærer gjenopptak."
+                    else -> error("Unsupported type")
+                }
 
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::klager.name,
-                reason = errorMessage
-            )
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::klager.name,
+                    reason = errorMessage,
+                )
         }
 
-        //The source decides what the behandling is based on. Documents that were uploaded before the
-        //user switched back to journalpost are simply deleted when the registrering is finished.
+        // The source decides what the behandling is based on. Documents that were uploaded before the
+        // user switched back to journalpost are simply deleted when the registrering is finished.
         if (registrering.isBasedOnUploadedDocument()) {
             if (registrering.type == Type.KLAGE) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::type.name,
-                    reason = "Klage kan ikke registreres med opplastede dokumenter. Velg en journalpost."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::type.name,
+                        reason = "Klage kan ikke registreres med opplastede dokumenter. Velg en journalpost.",
+                    )
             }
 
-            //Only documents that reached DONE can be journalført, and we do not silently drop the rest,
-            //so the user has to delete them manually (or reset the resettable ones) before finishing.
+            // Only documents that reached DONE can be journalført, and we do not silently drop the rest,
+            // so the user has to delete them manually (or reset the resettable ones) before finishing.
             registrering.getFailedDokumentStatuses().forEach { status ->
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::dokumenter.name,
-                    reason = failedDokumentReason(status)
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::dokumenter.name,
+                        reason = failedDokumentReason(status),
+                    )
             }
 
             if (registrering.hasUnfinishedDokumenter()) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::dokumenter.name,
-                    reason = "Fjern dokumenter som ikke er ferdig opplastet."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::dokumenter.name,
+                        reason = "Fjern dokumenter som ikke er ferdig opplastet.",
+                    )
             }
 
             if (registrering.dokumenter.isEmpty()) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::dokumenter.name,
-                    reason = "Last opp minst ett dokument."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::dokumenter.name,
+                        reason = "Last opp minst ett dokument.",
+                    )
             }
             if (registrering.inngaaendeKanal == null) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::inngaaendeKanal.name,
-                    reason = "Velg inngående kanal for det opplastede dokumentet."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::inngaaendeKanal.name,
+                        reason = "Velg inngående kanal for det opplastede dokumentet.",
+                    )
             }
             if (registrering.avsender == null) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::avsender.name,
-                    reason = "Velg avsender for det opplastede dokumentet."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::avsender.name,
+                        reason = "Velg avsender for det opplastede dokumentet.",
+                    )
             }
 
-            //Type, avsender and inngående kanal are given by the source itself for an anke from
-            //Trygderetten.
+            // Type, avsender and inngående kanal are given by the source itself for an anke from
+            // Trygderetten.
             if (registrering.source == RegistreringSource.ANKE) {
                 if (registrering.type != Type.ANKE) {
-                    saksdataValidationErrors += InvalidProperty(
-                        field = Registrering::type.name,
-                        reason = "En anke fra Trygderetten må ha type anke."
-                    )
+                    saksdataValidationErrors +=
+                        InvalidProperty(
+                            field = Registrering::type.name,
+                            reason = "En anke fra Trygderetten må ha type anke.",
+                        )
                 }
 
                 if (registrering.avsender != RegistreringSource.TRYGDERETTEN_AVSENDER) {
-                    saksdataValidationErrors += InvalidProperty(
-                        field = Registrering::avsender.name,
-                        reason = "En anke fra Trygderetten må ha Trygderetten som avsender."
-                    )
+                    saksdataValidationErrors +=
+                        InvalidProperty(
+                            field = Registrering::avsender.name,
+                            reason = "En anke fra Trygderetten må ha Trygderetten som avsender.",
+                        )
                 }
 
                 if (registrering.inngaaendeKanal != InngaaendeKanal.ALTINN_INNBOKS) {
-                    saksdataValidationErrors += InvalidProperty(
-                        field = Registrering::inngaaendeKanal.name,
-                        reason = "En anke fra Trygderetten må ha ${InngaaendeKanal.ALTINN_INNBOKS.name} som inngående kanal."
-                    )
+                    saksdataValidationErrors +=
+                        InvalidProperty(
+                            field = Registrering::inngaaendeKanal.name,
+                            reason = "En anke fra Trygderetten må ha ${InngaaendeKanal.ALTINN_INNBOKS.name} som inngående kanal.",
+                        )
                 }
             }
         } else if (registrering.journalpostId == null) {
-            saksdataValidationErrors += InvalidProperty(
-                field = Registrering::journalpostId.name,
-                reason = "Velg en journalpost."
-            )
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::journalpostId.name,
+                    reason = "Velg en journalpost.",
+                )
         }
 
         if (registrering.sendSvarbrev == true) {
-            //Skal ikke inntreffe.
+            // Skal ikke inntreffe.
             if (!registrering.reasonNoLetter.isNullOrEmpty()) {
-                svarbrevValidationErrors += InvalidProperty(
-                    field = Registrering::reasonNoLetter.name,
-                    reason = "Kan ikke oppgi grunn til manglende svarbrev når brev skal sendes."
-                )
+                svarbrevValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::reasonNoLetter.name,
+                        reason = "Kan ikke oppgi grunn til manglende svarbrev når brev skal sendes.",
+                    )
             }
 
             if (registrering.svarbrevReceivers.isEmpty()) {
-                svarbrevValidationErrors += InvalidProperty(
-                    field = Registrering::svarbrevReceivers.name,
-                    reason = "Legg til minst én mottaker."
-                )
+                svarbrevValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::svarbrevReceivers.name,
+                        reason = "Legg til minst én mottaker.",
+                    )
             }
 
-            //TODO: Validering på mottakere
+            // TODO: Validering på mottakere
             registrering.svarbrevReceivers.forEach { mottaker ->
-                val part = kabalApiClient.searchPartWithUtsendingskanal(
-                    searchPartInput = SearchPartWithUtsendingskanalInput(
-                        identifikator = mottaker.part.value,
-                        sakenGjelderId = registrering.sakenGjelder!!.value,
-                        ytelseId = registrering.ytelse!!.id
+                val part =
+                    kabalApiClient.searchPartWithUtsendingskanal(
+                        searchPartInput =
+                            SearchPartWithUtsendingskanalInput(
+                                identifikator = mottaker.part.value,
+                                sakenGjelderId = registrering.sakenGjelder!!.value,
+                                ytelseId = registrering.ytelse!!.id,
+                            ),
                     )
-                )
 
                 if (documentWillGoToCentralPrint(
-                    handling = mottaker.handling,
-                    defaultUtsendingskanal = part.utsendingskanal
+                        handling = mottaker.handling,
+                        defaultUtsendingskanal = part.utsendingskanal,
                     )
                 ) {
                     if (mottaker.overriddenAddress == null && part.address == null) {
-                        svarbrevValidationErrors += InvalidProperty(
-                            field = Registrering::svarbrevReceivers.name,
-                            reason = "Mottaker mangler gyldig addresse."
-                        )
+                        svarbrevValidationErrors +=
+                            InvalidProperty(
+                                field = Registrering::svarbrevReceivers.name,
+                                reason = "Mottaker mangler gyldig addresse.",
+                            )
                     }
                 }
             }
-        }
-        else {
+        } else {
             if (registrering.reasonNoLetter.isNullOrEmpty()) {
-                svarbrevValidationErrors += InvalidProperty(
-                    field = Registrering::reasonNoLetter.name,
-                    reason = "Oppgi hvorfor det ikke skal sendes noe svarbrev."
-                )
+                svarbrevValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::reasonNoLetter.name,
+                        reason = "Oppgi hvorfor det ikke skal sendes noe svarbrev.",
+                    )
             }
         }
 
         if (registrering.gosysOppgaveId != null) {
             if (kabalApiClient.checkGosysOppgaveDuplicate(
-                    input = GosysOppgaveIsDuplicateInput(
-                        gosysOppgaveId = registrering.gosysOppgaveId!!
-                    )
+                    input =
+                        GosysOppgaveIsDuplicateInput(
+                            gosysOppgaveId = registrering.gosysOppgaveId!!,
+                        ),
                 )
             ) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::gosysOppgaveId.name,
-                    reason = "Gosys-oppgaven er allerede i bruk i en åpen behandling i Kabal."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::gosysOppgaveId.name,
+                        reason = "Gosys-oppgaven er allerede i bruk i en åpen behandling i Kabal.",
+                    )
             }
         }
 
         if (registrering.getAdditionalKabalMuligheter().isNotEmpty()) {
             if (registrering.additionalKabalMulighetId == null) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::additionalKabalMulighetId.name,
-                    reason = "Du må velge tidligere behandling i Kabal som anken gjelder. Dersom disse ikke er riktige, så må du gi beskjed til Team Klage på Teams."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::additionalKabalMulighetId.name,
+                        reason =
+                            "Du må velge tidligere behandling i Kabal som anken gjelder. " +
+                                "Dersom disse ikke er riktige, så må du gi beskjed til Team Klage på Teams.",
+                    )
             }
         }
 
         if (registrering.additionalKabalMulighetId != null) {
             if (registrering.additionalKabalMulighetId !in registrering.getAdditionalKabalMuligheter().map { it.id }) {
-                saksdataValidationErrors += InvalidProperty(
-                    field = Registrering::additionalKabalMulighetId.name,
-                    reason = "Du må velge tidligere behandling i Kabal som anken gjelder. Dersom disse ikke er riktige, så må du gi beskjed til Team Klage på Teams."
-                )
+                saksdataValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::additionalKabalMulighetId.name,
+                        reason =
+                            "Du må velge tidligere behandling i Kabal som anken gjelder. " +
+                                "Dersom disse ikke er riktige, så må du gi beskjed til Team Klage på Teams.",
+                    )
             }
         }
 
@@ -284,8 +329,8 @@ class ValidationUtil(
             sectionList.add(
                 ValidationSection(
                     section = "saksdata",
-                    properties = saksdataValidationErrors
-                )
+                    properties = saksdataValidationErrors,
+                ),
             )
         }
 
@@ -293,15 +338,15 @@ class ValidationUtil(
             sectionList.add(
                 ValidationSection(
                     section = "svarbrev",
-                    properties = svarbrevValidationErrors
-                )
+                    properties = svarbrevValidationErrors,
+                ),
             )
         }
 
         if (sectionList.isNotEmpty()) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = sectionList
+                sections = sectionList,
             )
         }
     }
@@ -311,20 +356,20 @@ class ValidationUtil(
      * transient, so those also point to retrying, while a virus and an unsupported file type can only
      * be removed.
      */
-    private fun failedDokumentReason(status: DokumentStatus): String = when (status) {
-        DokumentStatus.VIRUS_FOUND -> "Fjern dokumenter der det ble funnet virus."
-        DokumentStatus.UNSUPPORTED_TYPE -> "Fjern dokumenter med filtype som ikke støttes."
-        DokumentStatus.VIRUS_SCAN_FAILED -> "Prøv virussjekken på nytt, eller fjern dokumentene der den feilet."
-        DokumentStatus.CONVERSION_FAILED -> "Prøv konvertering til PDF på nytt, eller fjern dokumentene som ikke kunne konverteres."
-        DokumentStatus.UNEXPECTED_ERROR -> "Prøv på nytt, eller fjern dokumentene som feilet."
-        else -> error("$status is not a failure status")
-    }
+    private fun failedDokumentReason(status: DokumentStatus): String =
+        when (status) {
+            DokumentStatus.VIRUS_FOUND -> "Fjern dokumenter der det ble funnet virus."
+            DokumentStatus.UNSUPPORTED_TYPE -> "Fjern dokumenter med filtype som ikke støttes."
+            DokumentStatus.VIRUS_SCAN_FAILED -> "Prøv virussjekken på nytt, eller fjern dokumentene der den feilet."
+            DokumentStatus.CONVERSION_FAILED -> "Prøv konvertering til PDF på nytt, eller fjern dokumentene som ikke kunne konverteres."
+            DokumentStatus.UNEXPECTED_ERROR -> "Prøv på nytt, eller fjern dokumentene som feilet."
+            else -> error("$status is not a failure status")
+        }
 
     private fun documentWillGoToCentralPrint(
         handling: HandlingEnum,
         defaultUtsendingskanal: Utsendingskanal,
-    ): Boolean {
-        return handling == HandlingEnum.CENTRAL_PRINT ||
-                (handling == HandlingEnum.AUTO && defaultUtsendingskanal == Utsendingskanal.SENTRAL_UTSKRIFT)
-    }
+    ): Boolean =
+        handling == HandlingEnum.CENTRAL_PRINT ||
+            (handling == HandlingEnum.AUTO && defaultUtsendingskanal == Utsendingskanal.SENTRAL_UTSKRIFT)
 }

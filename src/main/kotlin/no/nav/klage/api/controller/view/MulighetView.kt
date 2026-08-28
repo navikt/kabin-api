@@ -2,7 +2,7 @@ package no.nav.klage.api.controller.view
 
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class KabalmulighetView(
     override val id: UUID,
@@ -22,7 +22,7 @@ data class KabalmulighetView(
     val fullmektig: PartViewWithUtsendingskanal?,
     val previousSaksbehandler: PreviousSaksbehandler?,
     val kjennelseMottatt: LocalDate?,
-): MulighetView
+) : MulighetView
 
 data class ExistingBehandlingView(
     val typeId: String,
@@ -48,7 +48,7 @@ data class KlagemulighetView(
     override val requiresGosysOppgave: Boolean,
     override val mulighetTypeId: String,
     val klageBehandlendeEnhet: String,
-): MulighetView
+) : MulighetView
 
 interface MulighetView {
     val id: UUID

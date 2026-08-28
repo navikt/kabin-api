@@ -1,7 +1,7 @@
 package no.nav.klage.api.controller.view
 
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 data class CreatedBehandlingStatusView(
     val typeId: String,
