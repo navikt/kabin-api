@@ -577,10 +577,18 @@ class RegistreringService(
                 registrering = registrering,
             )
 
-        if (registrering.type in listOf(Type.KLAGE, Type.ANKE)) {
+        if (registrering.type == Type.KLAGE) {
+            if (mulighet.originalFagsystem !in listOf(Fagsystem.AO01, Fagsystem.ARBEIDSOPPFOLGING)) {
+                throw IllegalInputException(
+                    "Opprettelse av klage basert på journalpost er bare tilgjengelig for saker fra Arena.",
+                )
+            }
+        }
+
+        if (registrering.type == Type.ANKE) {
             if (mulighet.originalFagsystem != Fagsystem.AO01) {
                 throw IllegalInputException(
-                    "Opprettelse av klage eller anke basert på journalpost er bare tilgjengelig for saker fra Arena.",
+                    "Opprettelse av anke basert på journalpost er bare tilgjengelig for saker fra Arena.",
                 )
             }
         }
