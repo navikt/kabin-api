@@ -311,7 +311,9 @@ class RegistreringService(
                             mottattVedtaksinstans = journalpostDatoOpprettet
                         }
 
-                        Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK -> {
+                        // TODO: Støtte for anker etter 2027, vurder
+
+                        Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK -> {
                             mottattKlageinstans = journalpostDatoOpprettet
                         }
 
@@ -460,7 +462,7 @@ class RegistreringService(
     private fun getDefaultBehandlingstidUnits(registrering: Registrering): Int =
         if (registrering.source == RegistreringSource.ANKE) {
             4
-        } else if (registrering.type == Type.ANKE) {
+        } else if (registrering.type == Type.ANKE_FOER_2027) {
             0
         } else {
             12
@@ -526,7 +528,7 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = newMulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+                } else if (type in listOf(Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = newMulighet.klager?.part.toPartIdInput(),
@@ -585,7 +587,7 @@ class RegistreringService(
             }
         }
 
-        if (registrering.type == Type.ANKE) {
+        if (registrering.type == Type.ANKE_FOER_2027) {
             if (mulighet.originalFagsystem != Fagsystem.AO01) {
                 throw IllegalInputException(
                     "Opprettelse av anke basert på journalpost er bare tilgjengelig for saker fra Arena.",
@@ -635,7 +637,7 @@ class RegistreringService(
                 }
 
                 forrigeBehandlendeEnhetId =
-                    if (type in listOf(Type.KLAGE, Type.ANKE)) {
+                    if (type in listOf(Type.KLAGE, Type.ANKE_FOER_2027)) {
                         null
                     } else {
                         mulighet.klageBehandlendeEnhet
@@ -644,7 +646,7 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = mulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in listOf(Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+                } else if (type in listOf(Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = mulighet.klager?.part.toPartIdInput(),
@@ -797,7 +799,15 @@ class RegistreringService(
                                 BehandlingIsDuplicateInput(
                                     fagsystemId = Fagsystem.IT01.id,
                                     kildereferanse = mulighetFromInfotrygd.sakId,
-                                    typeId = if (mulighetFromInfotrygd.sakstype.startsWith("KLAGE")) Type.KLAGE.id else Type.ANKE.id,
+                                    typeId =
+                                        if (mulighetFromInfotrygd.sakstype.startsWith(
+                                                "KLAGE",
+                                            )
+                                        ) {
+                                            Type.KLAGE.id
+                                        } else {
+                                            Type.ANKE_FOER_2027.id
+                                        },
                                 ),
                             token = maskinTilMaskinAccessTokenWithKabalApiScope,
                         ).also {
@@ -1096,7 +1106,7 @@ class RegistreringService(
                         throw IllegalInputException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
                     }
 
-                    if (type !in listOf(Type.KLAGE, Type.ANKE)) {
+                    if (type !in listOf(Type.KLAGE, Type.ANKE_FOER_2027)) {
                         throw IllegalInputException("Forrige behandlende enhet kan bare settes for klager og anker")
                     }
 
@@ -1772,7 +1782,7 @@ class RegistreringService(
 
         val response: CreatedBehandlingResponse =
             when (registrering.type) {
-                Type.ANKE -> {
+                Type.ANKE_FOER_2027 -> {
                     ankeService.createAnke(
                         registrering = registrering,
                     )
@@ -1889,7 +1899,7 @@ class RegistreringService(
                 inngaaendeKanal = null
 
                 if (source == RegistreringSource.ANKE) {
-                    type = Type.ANKE
+                    type = Type.ANKE_FOER_2027
                     avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
                     inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
                 } else {

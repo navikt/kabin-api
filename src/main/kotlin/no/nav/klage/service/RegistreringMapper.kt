@@ -407,7 +407,7 @@ fun Registrering.getAdditionalKabalMuligheter(): List<KabalmulighetView> {
     val additionalKabalMuligheter =
         muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toMutableList()
     return getMuligheterSorted(additionalKabalMuligheter)
-        .map { it.toKabalmulighetView(mulighetType = Type.ANKE) }
+        .map { it.toKabalmulighetView(mulighetType = Type.ANKE_FOER_2027) }
 }
 
 fun Registrering.toMuligheterView(): MuligheterView {
@@ -432,7 +432,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
                 klagemuligheter.add(mulighet)
             }
 
-            Type.ANKE -> {
+            // TODO: Utvid med anke etter 2027
+            Type.ANKE_FOER_2027 -> {
                 if (!mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
                     ankemuligheter.add(mulighet)
                 }
@@ -461,7 +462,7 @@ fun Registrering.toMuligheterView(): MuligheterView {
     val ankemuligheterView =
         getMuligheterSorted(ankemuligheter)
             .map { ankemulighet ->
-                ankemulighet.toKabalmulighetView(mulighetType = Type.ANKE)
+                ankemulighet.toKabalmulighetView(mulighetType = Type.ANKE_FOER_2027)
             }
 
     val omgjoeringskravmuligheterView =
@@ -698,7 +699,7 @@ fun MulighetFromKabal.toMulighet(): Mulighet {
 }
 
 fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
-    val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE
+    val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE_FOER_2027
     return Mulighet(
         type = type,
         originalType = type,
