@@ -578,7 +578,7 @@ class RegistreringService(
             )
 
         if (registrering.type == Type.KLAGE) {
-            if (mulighet.originalFagsystem !in listOf(Fagsystem.AO01, Fagsystem.ARBEIDSOPPFOLGING)) {
+            if (mulighet.originalFagsystem !in listOf(Fagsystem.AO01, Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22)) {
                 throw IllegalInputException(
                     "Opprettelse av klage basert på journalpost er bare tilgjengelig for saker fra Arena.",
                 )
