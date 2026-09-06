@@ -283,7 +283,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.ANKE.id))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.ANKE_FOER_2027.id))
 
             assertThat(registrering.behandlingstidUnits).isEqualTo(0)
         }
@@ -309,7 +309,7 @@ class RegistreringServiceTest {
             registrering.sendSvarbrev = true
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.ANKE.id))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.ANKE_FOER_2027.id))
 
             assertThat(registrering.mulighetId).isNull()
             assertThat(registrering.ytelse).isNull()
@@ -359,7 +359,7 @@ class RegistreringServiceTest {
             val view = registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.ANKE))
 
             assertThat(registrering.source).isEqualTo(RegistreringSource.ANKE)
-            assertThat(registrering.type).isEqualTo(Type.ANKE)
+            assertThat(registrering.type).isEqualTo(Type.ANKE_FOER_2027)
             assertThat(registrering.behandlingstidUnits).isEqualTo(4)
             assertThat(registrering.avsender).isEqualTo(
                 PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR),
@@ -367,7 +367,7 @@ class RegistreringServiceTest {
             assertThat(registrering.inngaaendeKanal).isEqualTo(InngaaendeKanal.ALTINN_INNBOKS)
 
             assertThat(view.source).isEqualTo(RegistreringSource.ANKE)
-            assertThat(view.typeId).isEqualTo(Type.ANKE.id)
+            assertThat(view.typeId).isEqualTo(Type.ANKE_FOER_2027.id)
             assertThat(view.uploadedDocuments.inngaaendeKanal).isEqualTo(InngaaendeKanal.ALTINN_INNBOKS.name)
             assertThat(view.overstyringer.avsender).isNotNull()
         }
@@ -377,7 +377,7 @@ class RegistreringServiceTest {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
             registrering.source = RegistreringSource.ANKE
-            registrering.type = Type.ANKE
+            registrering.type = Type.ANKE_FOER_2027
             registrering.avsender = PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR)
             registrering.inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
@@ -430,14 +430,14 @@ class RegistreringServiceTest {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
             registrering.source = RegistreringSource.ANKE
-            registrering.type = Type.ANKE
+            registrering.type = Type.ANKE_FOER_2027
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
             assertThatThrownBy {
                 registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.OMGJOERINGSKRAV.id))
             }.isInstanceOf(IllegalInputException::class.java)
 
-            assertThat(registrering.type).isEqualTo(Type.ANKE)
+            assertThat(registrering.type).isEqualTo(Type.ANKE_FOER_2027)
         }
 
         @Test
@@ -1156,7 +1156,7 @@ class RegistreringServiceTest {
                     id = additionalMulighetId,
                     originalFagsystem = Fagsystem.IT01,
                     currentFagsystem = Fagsystem.KABAL,
-                    type = Type.ANKE,
+                    type = Type.ANKE_FOER_2027,
                     originalType = Type.KLAGE,
                 ).apply {
                     hjemmelIdList = listOf("h1", "h2")
@@ -1202,8 +1202,8 @@ class RegistreringServiceTest {
                     id = mulighetId,
                     originalFagsystem = Fagsystem.IT01,
                     currentFagsystem = Fagsystem.IT01,
-                    type = Type.ANKE,
-                    originalType = Type.ANKE,
+                    type = Type.ANKE_FOER_2027,
+                    originalType = Type.ANKE_FOER_2027,
                 ),
             )
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
@@ -1300,7 +1300,7 @@ class RegistreringServiceTest {
                 createMulighet(
                     originalFagsystem = Fagsystem.IT01,
                     currentFagsystem = Fagsystem.KABAL,
-                    type = Type.ANKE,
+                    type = Type.ANKE_FOER_2027,
                     originalType = Type.KLAGE,
                 )
 
@@ -1313,7 +1313,7 @@ class RegistreringServiceTest {
                 createMulighet(
                     originalFagsystem = Fagsystem.KABAL,
                     currentFagsystem = Fagsystem.KABAL,
-                    type = Type.ANKE,
+                    type = Type.ANKE_FOER_2027,
                     originalType = Type.KLAGE,
                 )
 
@@ -1339,8 +1339,8 @@ class RegistreringServiceTest {
                 createMulighet(
                     originalFagsystem = Fagsystem.IT01,
                     currentFagsystem = Fagsystem.IT01,
-                    type = Type.ANKE,
-                    originalType = Type.ANKE,
+                    type = Type.ANKE_FOER_2027,
+                    originalType = Type.ANKE_FOER_2027,
                 )
 
             assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isTrue()
@@ -1352,8 +1352,8 @@ class RegistreringServiceTest {
                 createMulighet(
                     originalFagsystem = Fagsystem.IT01,
                     currentFagsystem = Fagsystem.KABAL,
-                    type = Type.ANKE,
-                    originalType = Type.ANKE,
+                    type = Type.ANKE_FOER_2027,
+                    originalType = Type.ANKE_FOER_2027,
                 )
 
             assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isFalse()
@@ -1366,7 +1366,7 @@ class RegistreringServiceTest {
                     originalFagsystem = Fagsystem.IT01,
                     currentFagsystem = Fagsystem.IT01,
                     type = Type.KLAGE,
-                    originalType = Type.ANKE,
+                    originalType = Type.ANKE_FOER_2027,
                 )
 
             assertThat(mulighet.isAnkeMulighetFromInfotrygd()).isFalse()
@@ -1474,8 +1474,8 @@ class RegistreringServiceTest {
         id: UUID = UUID.randomUUID(),
         originalFagsystem: Fagsystem = Fagsystem.IT01,
         currentFagsystem: Fagsystem = Fagsystem.IT01,
-        type: Type = Type.ANKE,
-        originalType: Type? = Type.ANKE,
+        type: Type = Type.ANKE_FOER_2027,
+        originalType: Type? = Type.ANKE_FOER_2027,
     ): Mulighet =
         Mulighet(
             id = id,

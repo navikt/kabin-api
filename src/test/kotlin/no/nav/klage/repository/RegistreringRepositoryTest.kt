@@ -112,14 +112,14 @@ class RegistreringRepositoryTest : PostgresIntegrationTestBase() {
                 hjemmelIdList = listOf("123", "456"),
                 previousSaksbehandlerIdent = "S123456",
                 previousSaksbehandlerName = "Sakbehandler Navn",
-                type = Type.ANKE,
-                originalType = Type.ANKE,
+                type = Type.ANKE_FOER_2027,
+                originalType = Type.ANKE_FOER_2027,
                 klageBehandlendeEnhet = "4200",
                 currentFagystemTechnicalId = UUID.randomUUID().toString(),
                 existingBehandlingList =
                     mutableSetOf(
                         ExistingBehandling(
-                            typeId = Type.ANKE.id,
+                            typeId = Type.ANKE_FOER_2027.id,
                             behandlingId = UUID.randomUUID(),
                             created = LocalDateTime.now(),
                             completed = LocalDateTime.now().plusDays(1),

@@ -169,15 +169,16 @@ class Mulighet(
     override fun toString(): String =
         "Mulighet(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, currentFagsystem=$currentFagsystem, originalFagsystem=$originalFagsystem, fagsakId='$fagsakId', tema=$tema, vedtakDate=$vedtakDate, ytelse=$ytelse, hjemmelIdList=$hjemmelIdList, previousSaksbehandlerIdent=$previousSaksbehandlerIdent, previousSaksbehandlerName=$previousSaksbehandlerName, type=$type, originalType=$originalType, klageBehandlendeEnhet='$klageBehandlendeEnhet', currentFagystemTechnicalId='$currentFagystemTechnicalId', created=$created, existingBehandlingList=$existingBehandlingList, sakenGjelderStatusList=$sakenGjelderStatusList, klagerStatusList=$klagerStatusList, fullmektigStatusList=$fullmektigStatusList, requiresGosysOppgave=$requiresGosysOppgave, kjennelseMottatt=$kjennelseMottatt)"
 
+    // TODO: Consider if new types should be included
     fun isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak(): Boolean =
         originalFagsystem == Fagsystem.IT01 &&
             currentFagsystem == Fagsystem.KABAL &&
-            type == Type.ANKE &&
+            type == Type.ANKE_FOER_2027 &&
             originalType == Type.KLAGE
 
     fun isAnkeMulighetFromInfotrygd(): Boolean =
         originalFagsystem == Fagsystem.IT01 &&
             currentFagsystem == Fagsystem.IT01 &&
-            type == Type.ANKE &&
-            originalType == Type.ANKE
+            type == Type.ANKE_FOER_2027 &&
+            originalType == Type.ANKE_FOER_2027
 }

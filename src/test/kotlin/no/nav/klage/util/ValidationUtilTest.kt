@@ -188,7 +188,7 @@ class ValidationUtilTest {
             avsender = RegistreringSource.TRYGDERETTEN_AVSENDER,
             journalpostId = null,
             journalpostDatoOpprettet = null,
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
             mulighetIsBasedOnJournalpost = false,
             mulighetId = null,
             additionalKabalMulighetId = null,

@@ -130,7 +130,7 @@ class ValidationUtil(
             val errorMessage =
                 when (registrering.type) {
                     Type.KLAGE -> "Velg en klager."
-                    Type.ANKE -> "Velg en ankende part."
+                    Type.ANKE_FOER_2027 -> "Velg en ankende part."
                     Type.OMGJOERINGSKRAV -> "Velg den som krever omgjøring."
                     Type.BEGJAERING_OM_GJENOPPTAK -> "Velg den som begjærer gjenopptak."
                     else -> error("Unsupported type")
@@ -197,7 +197,7 @@ class ValidationUtil(
             // Type, avsender and inngående kanal are given by the source itself for an anke from
             // Trygderetten.
             if (registrering.source == RegistreringSource.ANKE) {
-                if (registrering.type != Type.ANKE) {
+                if (registrering.type != Type.ANKE_FOER_2027) {
                     saksdataValidationErrors +=
                         InvalidProperty(
                             field = Registrering::type.name,
