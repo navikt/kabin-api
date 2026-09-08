@@ -21,6 +21,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.TypeConverter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.kodeverk.ytelse.YtelseConverter
+import no.nav.klage.util.isAnke
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -113,7 +114,7 @@ class Mulighet(
     val previousSaksbehandlerName: String?,
     @Convert(converter = TypeConverter::class)
     @Column(name = "type_id")
-    val type: Type,
+    var type: Type,
     // Ikke tilgjenglig for nytt omgjøringskrav. Brukes kun til visning i klient.
     @Convert(converter = TypeConverter::class)
     @Column(name = "original_type_id")
@@ -173,12 +174,12 @@ class Mulighet(
     fun isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak(): Boolean =
         originalFagsystem == Fagsystem.IT01 &&
             currentFagsystem == Fagsystem.KABAL &&
-            type == Type.ANKE_FOER_2027 &&
+            type.isAnke() &&
             originalType == Type.KLAGE
 
     fun isAnkeMulighetFromInfotrygd(): Boolean =
         originalFagsystem == Fagsystem.IT01 &&
             currentFagsystem == Fagsystem.IT01 &&
-            type == Type.ANKE_FOER_2027 &&
-            originalType == Type.ANKE_FOER_2027
+            type.isAnke() &&
+            originalType.isAnke()
 }

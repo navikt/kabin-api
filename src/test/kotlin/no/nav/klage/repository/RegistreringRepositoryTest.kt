@@ -9,6 +9,7 @@ import no.nav.klage.domain.entities.PartId
 import no.nav.klage.domain.entities.PartStatus
 import no.nav.klage.domain.entities.PartWithUtsendingskanal
 import no.nav.klage.domain.entities.Registrering
+import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
@@ -224,6 +225,8 @@ class RegistreringRepositoryTest : PostgresIntegrationTestBase() {
                     muligheterFetched = LocalDateTime.now(),
                     muligheter = mutableSetOf(klagemulighet),
                     reasonNoLetter = null,
+                    source = RegistreringSource.ANKE,
+                    trygderettenSaksnummer = "2027123",
                 ),
             )
 
@@ -267,6 +270,8 @@ class RegistreringRepositoryTest : PostgresIntegrationTestBase() {
             ),
         )
         assertThat(registreringFromDb.createdBy).isEqualTo(registrering.createdBy)
+        assertThat(registreringFromDb.source).isEqualTo(registrering.source)
+        assertThat(registreringFromDb.trygderettenSaksnummer).isEqualTo(registrering.trygderettenSaksnummer)
 
         val firstSvarbrevReceiver =
             registreringFromDb.svarbrevReceivers.find { it.id == registrering.svarbrevReceivers.first().id }!!

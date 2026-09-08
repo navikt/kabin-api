@@ -130,7 +130,7 @@ class ValidationUtil(
             val errorMessage =
                 when (registrering.type) {
                     Type.KLAGE -> "Velg en klager."
-                    Type.ANKE_FOER_2027 -> "Velg en ankende part."
+                    Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> "Velg en ankende part."
                     Type.OMGJOERINGSKRAV -> "Velg den som krever omgjøring."
                     Type.BEGJAERING_OM_GJENOPPTAK -> "Velg den som begjærer gjenopptak."
                     else -> error("Unsupported type")
@@ -197,11 +197,11 @@ class ValidationUtil(
             // Type, avsender and inngående kanal are given by the source itself for an anke from
             // Trygderetten.
             if (registrering.source == RegistreringSource.ANKE) {
-                if (registrering.type != Type.ANKE_FOER_2027) {
+                if (registrering.type != Type.ANKE_ETTER_2027) {
                     saksdataValidationErrors +=
                         InvalidProperty(
                             field = Registrering::type.name,
-                            reason = "En anke fra Trygderetten må ha type anke.",
+                            reason = "Kun anke kan opprettes.",
                         )
                 }
 
@@ -220,6 +220,24 @@ class ValidationUtil(
                             reason = "En anke fra Trygderetten må ha ${InngaaendeKanal.ALTINN_INNBOKS.name} som inngående kanal.",
                         )
                 }
+
+                // The saksnummer follows the anke all the way to the avtalemelding sent back to
+                // Trygderetten, so it has to be correct before the behandling is created.
+                val trygderettenSaksnummer = registrering.trygderettenSaksnummer
+                if (trygderettenSaksnummer.isNullOrBlank()) {
+                    saksdataValidationErrors +=
+                        InvalidProperty(
+                            field = Registrering::trygderettenSaksnummer.name,
+                            reason =
+                                "Oppgi saksnummeret fra Trygderetten. Må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123",
+                        )
+                } else if (!TrygderettenSaksnummer.isValid(value = trygderettenSaksnummer)) {
+                    saksdataValidationErrors +=
+                        InvalidProperty(
+                            field = Registrering::trygderettenSaksnummer.name,
+                            reason = "Saksnummeret fra Trygderetten må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123.",
+                        )
+                }
             }
         } else if (registrering.journalpostId == null) {
             saksdataValidationErrors +=
@@ -229,7 +247,17 @@ class ValidationUtil(
                 )
         }
 
-        if (registrering.sendSvarbrev == true) {
+        if (registrering.isAnkeFromTrygderetten()) {
+            // No svarbrev is sent for an anke received from Trygderetten, so neither receivers nor a
+            // reason for the missing letter is required.
+            if (registrering.sendSvarbrev == true) {
+                svarbrevValidationErrors +=
+                    InvalidProperty(
+                        field = Registrering::sendSvarbrev.name,
+                        reason = "Det sendes ikke svarbrev for en anke fra Trygderetten.",
+                    )
+            }
+        } else if (registrering.sendSvarbrev == true) {
             // Skal ikke inntreffe.
             if (!registrering.reasonNoLetter.isNullOrEmpty()) {
                 svarbrevValidationErrors +=

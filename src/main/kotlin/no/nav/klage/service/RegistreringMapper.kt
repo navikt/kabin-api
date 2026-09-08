@@ -347,6 +347,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) =
         muligheter = toMuligheterView(),
         additionalKabalMuligheter = getAdditionalKabalMuligheter(),
         source = source,
+        trygderettenSaksnummer = trygderettenSaksnummer,
         uploadedDocuments = toUploadedDocumentsView(),
     )
 
@@ -407,7 +408,7 @@ fun Registrering.getAdditionalKabalMuligheter(): List<KabalmulighetView> {
     val additionalKabalMuligheter =
         muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toMutableList()
     return getMuligheterSorted(additionalKabalMuligheter)
-        .map { it.toKabalmulighetView(mulighetType = Type.ANKE_FOER_2027) }
+        .map { it.toKabalmulighetView(mulighetType = it.type) }
 }
 
 fun Registrering.toMuligheterView(): MuligheterView {
@@ -432,8 +433,7 @@ fun Registrering.toMuligheterView(): MuligheterView {
                 klagemuligheter.add(mulighet)
             }
 
-            // TODO: Utvid med anke etter 2027
-            Type.ANKE_FOER_2027 -> {
+            Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> {
                 if (!mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
                     ankemuligheter.add(mulighet)
                 }
@@ -462,7 +462,7 @@ fun Registrering.toMuligheterView(): MuligheterView {
     val ankemuligheterView =
         getMuligheterSorted(ankemuligheter)
             .map { ankemulighet ->
-                ankemulighet.toKabalmulighetView(mulighetType = Type.ANKE_FOER_2027)
+                ankemulighet.toKabalmulighetView(mulighetType = ankemulighet.type)
             }
 
     val omgjoeringskravmuligheterView =
@@ -570,11 +570,11 @@ fun SearchPartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUt
         utsendingskanal = null,
     )
 
-fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): SvarbrevInput =
+fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView?): SvarbrevInput =
     SvarbrevInput(
         title = svarbrevTitle,
         initialCustomText = svarbrevInitialCustomText,
-        customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
+        customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings?.customText,
         receivers =
             if (sendSvarbrev!!) {
                 svarbrevReceivers.map { receiver ->
@@ -601,13 +601,15 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
             if (overrideSvarbrevBehandlingstid) {
                 svarbrevBehandlingstidUnits!!
             } else {
-                svarbrevSettings.behandlingstidUnits
+                // There are no settings when no svarbrev is sent. kabal-api ignores the varslet
+                // behandlingstid in that case, so the behandlingstid of the behandling is used.
+                svarbrevSettings?.behandlingstidUnits ?: behandlingstidUnits
             },
         varsletBehandlingstidUnitTypeId =
             if (overrideSvarbrevBehandlingstid) {
                 svarbrevBehandlingstidUnitType!!.id
             } else {
-                svarbrevSettings.behandlingstidUnitTypeId
+                svarbrevSettings?.behandlingstidUnitTypeId ?: behandlingstidUnitType.id
             },
         doNotSendLetter = !sendSvarbrev!!,
         reasonNoLetter = reasonNoLetter,
@@ -664,11 +666,16 @@ fun PartWithUtsendingskanal?.toPartViewWithUtsendingskanal(partStatusList: Set<P
     }
 }
 
-fun MulighetFromKabal.toMulighet(): Mulighet {
+/**
+ * @param ankeType which anke type the muligheter shall be offered as. Trygderetten's anker become anker
+ * etter 2027, everything else keeps the type kabal-api gave us.
+ */
+fun MulighetFromKabal.toMulighet(ankeType: Type = Type.ANKE_FOER_2027): Mulighet {
     val ytelse = Ytelse.of(ytelseId)
+    val type = Type.of(typeId)
     return Mulighet(
         originalType = Type.of(originalTypeId),
-        type = Type.of(typeId),
+        type = if (type == Type.ANKE_FOER_2027) ankeType else type,
         tema = ytelse.toTema(),
         vedtakDate = vedtakDate.toLocalDate(),
         sakenGjelder = sakenGjelder.toPartWithUtsendingskanal()!!,
@@ -698,8 +705,11 @@ fun MulighetFromKabal.toMulighet(): Mulighet {
     )
 }
 
-fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
-    val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE_FOER_2027
+fun SakFromKlanke.toMulighet(
+    kabalApiService: KabalApiService,
+    ankeType: Type = Type.ANKE_FOER_2027,
+): Mulighet {
+    val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else ankeType
     return Mulighet(
         type = type,
         originalType = type,

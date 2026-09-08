@@ -36,6 +36,7 @@ data class FullRegistreringView(
     val muligheter: MuligheterView,
     val additionalKabalMuligheter: List<KabalmulighetView>,
     val source: RegistreringSource,
+    val trygderettenSaksnummer: String?,
     val uploadedDocuments: UploadedDocumentsView,
 ) {
     data class FullRegistreringOverstyringerView(
@@ -184,6 +185,12 @@ data class InngaaendeKanalChangeRegistreringView(
         val inngaaendeKanal: String?,
     )
 }
+
+data class TrygderettenSaksnummerChangeRegistreringView(
+    val id: UUID,
+    val trygderettenSaksnummer: String?,
+    val modified: LocalDateTime,
+)
 
 data class BehandlingstidView(
     val unitTypeId: String,

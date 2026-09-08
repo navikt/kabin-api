@@ -149,6 +149,12 @@ class Registrering(
     @Column(name = "source")
     @Enumerated(EnumType.STRING)
     var source: RegistreringSource = RegistreringSource.JOURNALPOST,
+    /**
+     * Saksnummeret Trygderetten har gitt anken. Only relevant when the source is
+     * [RegistreringSource.ANKE], and cleared whenever the source changes.
+     */
+    @Column(name = "trygderetten_saksnummer")
+    var trygderettenSaksnummer: String? = null,
 ) {
     fun getSortedDokumenter(): List<RegistreringDokument> = dokumenter.sortedBy { it.sortIndex }
 
@@ -170,6 +176,20 @@ class Registrering(
 
     fun isBasedOnUploadedDocument(): Boolean = source.isBasedOnUploadedDocuments
 
+    /** An anke received from Trygderetten is registered with [RegistreringSource.ANKE]. */
+    fun isAnkeFromTrygderetten(): Boolean = source == RegistreringSource.ANKE
+
+    /**
+     * The anke type this registrering works with. An anke received from Trygderetten becomes an anke
+     * etter 2027, both for the muligheter we look up and for the behandling kabal-api creates.
+     */
+    fun getAnkeType(): Type =
+        if (isAnkeFromTrygderetten()) {
+            Type.ANKE_ETTER_2027
+        } else {
+            Type.ANKE_FOER_2027
+        }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -182,7 +202,7 @@ class Registrering(
     override fun hashCode(): Int = id.hashCode()
 
     override fun toString(): String =
-        "Registrering(id=$id, source=$source, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, journalpostDatoOpprettet=$journalpostDatoOpprettet, type=$type, mulighetId=$mulighetId, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, forrigeBehandlendeEnhetId=$forrigeBehandlendeEnhetId, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$gosysOppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost, muligheter=$muligheter, muligheterFetched=$muligheterFetched)"
+        "Registrering(id=$id, source=$source, trygderettenSaksnummer=$trygderettenSaksnummer, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, avsender=$avsender, journalpostId=$journalpostId, journalpostDatoOpprettet=$journalpostDatoOpprettet, type=$type, mulighetId=$mulighetId, mottattVedtaksinstans=$mottattVedtaksinstans, mottattKlageinstans=$mottattKlageinstans, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, hjemmelIdList=$hjemmelIdList, ytelse=$ytelse, forrigeBehandlendeEnhetId=$forrigeBehandlendeEnhetId, saksbehandlerIdent=$saksbehandlerIdent, oppgaveId=$gosysOppgaveId, sendSvarbrev=$sendSvarbrev, svarbrevTitle='$svarbrevTitle', overrideSvarbrevCustomText=$overrideSvarbrevCustomText, svarbrevCustomText=$svarbrevCustomText, overrideSvarbrevBehandlingstid=$overrideSvarbrevBehandlingstid, svarbrevBehandlingstidUnits=$svarbrevBehandlingstidUnits, svarbrevBehandlingstidUnitType=$svarbrevBehandlingstidUnitType, svarbrevFullmektigFritekst=$svarbrevFullmektigFritekst, svarbrevReceivers=$svarbrevReceivers, created=$created, modified=$modified, createdBy='$createdBy', finished=$finished, behandlingId=$behandlingId, willCreateNewJournalpost=$willCreateNewJournalpost, muligheter=$muligheter, muligheterFetched=$muligheterFetched)"
 
     fun handleSvarbrevReceivers() {
         val existingReceivers = svarbrevReceivers

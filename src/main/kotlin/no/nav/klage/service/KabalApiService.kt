@@ -102,11 +102,7 @@ class KabalApiService(
         journalpostId: String?,
         additionalKabalMulighet: Mulighet?,
     ): UUID {
-        val svarbrevSettings =
-            getSvarbrevSettings(
-                ytelseId = registrering.ytelse!!.id,
-                typeId = registrering.type!!.id,
-            )
+        val svarbrevSettings = getSvarbrevSettingsIfRelevant(registrering)
         return kabalApiClient
             .createAnkeFromInfotrygdInput(
                 CreateAnkeBasedOnKabinInput(
@@ -131,6 +127,8 @@ class KabalApiService(
                     svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
                     gosysOppgaveId = registrering.gosysOppgaveId!!,
                     previousKabalBehandlingId = additionalKabalMulighet?.let { UUID.fromString(it.currentFagystemTechnicalId) },
+                    typeId = registrering.type!!.id,
+                    trygderettenSaksnummer = registrering.trygderettenSaksnummer,
                 ),
             ).behandlingId
     }
@@ -140,11 +138,7 @@ class KabalApiService(
         mulighet: Mulighet,
         journalpostId: String?,
     ): UUID {
-        val svarbrevSettings =
-            getSvarbrevSettings(
-                ytelseId = registrering.ytelse!!.id,
-                typeId = registrering.type!!.id,
-            )
+        val svarbrevSettings = getSvarbrevSettingsIfRelevant(registrering)
         return kabalApiClient
             .createBehandlingBasedOnJournalpost(
                 CreateBehandlingBasedOnJournalpostInput(
@@ -174,6 +168,7 @@ class KabalApiService(
                     svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
                     // Gosys-oppgave is ensured in validation step.
                     gosysOppgaveId = registrering.gosysOppgaveId!!,
+                    trygderettenSaksnummer = registrering.trygderettenSaksnummer,
                 ),
             ).behandlingId
     }
@@ -183,11 +178,7 @@ class KabalApiService(
         mulighet: Mulighet,
         registrering: Registrering,
     ): UUID {
-        val svarbrevSettings =
-            getSvarbrevSettings(
-                ytelseId = registrering.ytelse!!.id,
-                typeId = registrering.type!!.id,
-            )
+        val svarbrevSettings = getSvarbrevSettingsIfRelevant(registrering)
 
         return kabalApiClient
             .createBehandlingBasedOnKabal(
@@ -208,6 +199,7 @@ class KabalApiService(
                     svarbrevInput = registrering.toSvarbrevInput(svarbrevSettings),
                     hjemmelIdList = registrering.hjemmelIdList,
                     gosysOppgaveId = registrering.gosysOppgaveId,
+                    trygderettenSaksnummer = registrering.trygderettenSaksnummer,
                 ),
             ).behandlingId
     }
@@ -218,11 +210,7 @@ class KabalApiService(
         mulighet: Mulighet,
         journalpostId: String,
     ): UUID {
-        val svarbrevSettings =
-            getSvarbrevSettings(
-                ytelseId = registrering.ytelse!!.id,
-                typeId = registrering.type!!.id,
-            )
+        val svarbrevSettings = getSvarbrevSettingsIfRelevant(registrering)
 
         return kabalApiClient
             .createKlage(
@@ -259,6 +247,17 @@ class KabalApiService(
         ytelseId: String,
         typeId: String,
     ): SvarbrevSettingsView = kabalApiClient.getSvarbrevSettings(ytelseId = ytelseId, typeId = typeId)
+
+    /** No svarbrev is sent for an anke received from Trygderetten, so no settings exist for it. */
+    private fun getSvarbrevSettingsIfRelevant(registrering: Registrering): SvarbrevSettingsView? =
+        if (registrering.isAnkeFromTrygderetten()) {
+            null
+        } else {
+            getSvarbrevSettings(
+                ytelseId = registrering.ytelse!!.id,
+                typeId = registrering.type!!.id,
+            )
+        }
 
     private fun Registrering.toUploadedDocumentInput(): UploadedDocumentInput? {
         if (!isBasedOnUploadedDocument()) return null
