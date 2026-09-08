@@ -415,7 +415,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
     if (mulighetIsBasedOnJournalpost) {
         return MuligheterView(
             klagemuligheter = emptyList(),
-            ankemuligheter = emptyList(),
+            ankemuligheterFoer2027 = emptyList(),
+            ankemuligheterEtter2027 = emptyList(),
             omgjoeringskravmuligheter = emptyList(),
             gjenopptaksmuligheter = emptyList(),
             muligheterFetched = muligheterFetched!!,
@@ -423,7 +424,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
     }
 
     val klagemuligheter = mutableListOf<Mulighet>()
-    val ankemuligheter = mutableListOf<Mulighet>()
+    val ankemuligheterFoer2027 = mutableListOf<Mulighet>()
+    val ankemuligheterEtter2027 = mutableListOf<Mulighet>()
     val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
     val gjenopptaksmuligheter = mutableListOf<Mulighet>()
 
@@ -433,10 +435,14 @@ fun Registrering.toMuligheterView(): MuligheterView {
                 klagemuligheter.add(mulighet)
             }
 
-            Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> {
+            Type.ANKE_FOER_2027 -> {
                 if (!mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
-                    ankemuligheter.add(mulighet)
+                    ankemuligheterFoer2027.add(mulighet)
                 }
+            }
+
+            Type.ANKE_ETTER_2027 -> {
+                ankemuligheterEtter2027.add(mulighet)
             }
 
             Type.OMGJOERINGSKRAV -> {
@@ -459,8 +465,14 @@ fun Registrering.toMuligheterView(): MuligheterView {
                 klagemulighet.toKlagemulighetView(mulighetType = Type.KLAGE)
             }
 
-    val ankemuligheterView =
-        getMuligheterSorted(ankemuligheter)
+    val ankemuligheterFoer2027View =
+        getMuligheterSorted(ankemuligheterFoer2027)
+            .map { ankemulighet ->
+                ankemulighet.toKabalmulighetView(mulighetType = ankemulighet.type)
+            }
+
+    val ankemuligheterEtter2027View =
+        getMuligheterSorted(ankemuligheterEtter2027)
             .map { ankemulighet ->
                 ankemulighet.toKabalmulighetView(mulighetType = ankemulighet.type)
             }
@@ -479,7 +491,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
 
     return MuligheterView(
         klagemuligheter = klagemuligheterView,
-        ankemuligheter = ankemuligheterView,
+        ankemuligheterFoer2027 = ankemuligheterFoer2027View,
+        ankemuligheterEtter2027 = ankemuligheterEtter2027View,
         omgjoeringskravmuligheter = omgjoeringskravmuligheterView,
         gjenopptaksmuligheter = gjenopptaksmuligheterView,
         muligheterFetched = muligheterFetched!!,
@@ -666,16 +679,11 @@ fun PartWithUtsendingskanal?.toPartViewWithUtsendingskanal(partStatusList: Set<P
     }
 }
 
-/**
- * @param ankeType which anke type the muligheter shall be offered as. Trygderetten's anker become anker
- * etter 2027, everything else keeps the type kabal-api gave us.
- */
-fun MulighetFromKabal.toMulighet(ankeType: Type = Type.ANKE_FOER_2027): Mulighet {
+fun MulighetFromKabal.toMulighet(): Mulighet {
     val ytelse = Ytelse.of(ytelseId)
-    val type = Type.of(typeId)
     return Mulighet(
         originalType = Type.of(originalTypeId),
-        type = if (type == Type.ANKE_FOER_2027) ankeType else type,
+        type = Type.of(typeId),
         tema = ytelse.toTema(),
         vedtakDate = vedtakDate.toLocalDate(),
         sakenGjelder = sakenGjelder.toPartWithUtsendingskanal()!!,
@@ -705,11 +713,8 @@ fun MulighetFromKabal.toMulighet(ankeType: Type = Type.ANKE_FOER_2027): Mulighet
     )
 }
 
-fun SakFromKlanke.toMulighet(
-    kabalApiService: KabalApiService,
-    ankeType: Type = Type.ANKE_FOER_2027,
-): Mulighet {
-    val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else ankeType
+fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
+    val type = if (sakstype.startsWith("KLAGE")) Type.KLAGE else Type.ANKE_FOER_2027
     return Mulighet(
         type = type,
         originalType = type,

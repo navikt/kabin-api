@@ -448,7 +448,7 @@ class RegistreringService(
     private fun getDefaultBehandlingstidUnitType(type: Type?): TimeUnitType = TimeUnitType.WEEKS
 
     private fun getDefaultBehandlingstidUnits(registrering: Registrering): Int =
-        if (registrering.source == RegistreringSource.ANKE) {
+        if (registrering.isAnkeFromTrygderetten()) {
             4
         } else if (registrering.type.isAnke()) {
             0
@@ -711,8 +711,13 @@ class RegistreringService(
         val saksbehandlerAccessTokenWithKabalApiScope =
             "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
 
-        val ankemuligheterFromKabalMono =
-            kabalApiService.getAnkemuligheterAsMono(
+        val ankemuligheterFoer2027FromKabalMono =
+            kabalApiService.getAnkemuligheterFoer2027AsMono(
+                input = input,
+                token = saksbehandlerAccessTokenWithKabalApiScope,
+            )
+        val ankemuligheterEtter2027FromKabalMono =
+            kabalApiService.getAnkemuligheterEtter2027AsMono(
                 input = input,
                 token = saksbehandlerAccessTokenWithKabalApiScope,
             )
@@ -738,7 +743,8 @@ class RegistreringService(
                 klagemuligheterFromInfotrygdMono,
                 klageTilbakebetalingMuligheterFromInfotrygdMono,
                 ankemuligheterFromInfotrygdMono,
-                ankemuligheterFromKabalMono,
+                ankemuligheterFoer2027FromKabalMono,
+                ankemuligheterEtter2027FromKabalMono,
                 omgjoeringskravmuligheterFromKabalMono,
                 gjenopptaksmuligheterFromKabalMono,
             ).parallel()
@@ -784,7 +790,7 @@ class RegistreringService(
                                         ) {
                                             Type.KLAGE.id
                                         } else {
-                                            getAnkeType().id
+                                            Type.ANKE_FOER_2027.id
                                         },
                                 ),
                             token = maskinTilMaskinAccessTokenWithKabalApiScope,
@@ -811,8 +817,8 @@ class RegistreringService(
                 }
 
         var muligheterToStoreInDB =
-            filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiService = kabalApiService, ankeType = getAnkeType()) } +
-                muligheterFromKabal.map { it.toMulighet(ankeType = getAnkeType()) }
+            filteredInfotrygdMuligheter.map { it.toMulighet(kabalApiService = kabalApiService) } +
+                muligheterFromKabal.map { it.toMulighet() }
 
         // Keep chosen mulighet, if it is still valid, and update accordingly.
         if (mulighetId == null) {
@@ -859,7 +865,7 @@ class RegistreringService(
                     .getKabalMuligheterFromInfotrygdSak(
                         input = InfotrygdSakIdInput(currentMulighet.currentFagystemTechnicalId),
                         token = saksbehandlerAccessTokenWithKabalApiScope,
-                    ).map { it.toMulighet(ankeType = getAnkeType()) }
+                    ).map { it.toMulighet() }
 
             val latestTechnicalIds = latest.map { it.currentFagystemTechnicalId }.toSet()
 
@@ -1867,7 +1873,7 @@ class RegistreringService(
     }
 
     private fun requireTypeAndAvsenderNotLocked(registrering: Registrering) {
-        if (registrering.source == RegistreringSource.ANKE) {
+        if (registrering.isAnkeFromTrygderetten()) {
             throw IllegalInputException("Type og avsender er gitt av kilden og kan ikke endres for en anke fra Trygderetten.")
         }
     }
@@ -1926,7 +1932,7 @@ class RegistreringService(
                 // any other source.
                 trygderettenSaksnummer = null
 
-                if (source == RegistreringSource.ANKE) {
+                if (registrering.isAnkeFromTrygderetten()) {
                     type = Type.ANKE_ETTER_2027
                     avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
                     inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
@@ -1935,11 +1941,6 @@ class RegistreringService(
                     avsender = null
                     inngaaendeKanal = null
                 }
-
-                // The anke type follows the source, so the muligheter that were fetched for the
-                // previous source must be offered as the anke type that is now relevant.
-                muligheter.filter { it.type.isAnke() }.forEach { it.type = getAnkeType() }
-
                 behandlingstidUnits = getDefaultBehandlingstidUnits(this)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
 
@@ -1958,7 +1959,7 @@ class RegistreringService(
 
                 // Svarbrev is never sent for an anke received from Trygderetten, so that choice is
                 // already made. For other sources the user has yet to choose.
-                clearSvarbrevSettings(sendSvarbrev = if (source == RegistreringSource.ANKE) false else null)
+                clearSvarbrevSettings(sendSvarbrev = if (registrering.isAnkeFromTrygderetten()) false else null)
                 reasonNoLetter = null
 
                 gosysOppgaveId = null

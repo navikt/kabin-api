@@ -407,35 +407,6 @@ class RegistreringServiceTest {
         }
 
         @Test
-        fun `ankemuligheter follow the anke type of the new source`() {
-            val id = UUID.randomUUID()
-            val registrering = getUnfinishedRegistrering(id = id)
-            val ankemulighet = renderableMulighet(type = Type.ANKE_FOER_2027)
-            val klagemulighet = renderableMulighet(type = Type.KLAGE)
-            registrering.muligheter.addAll(listOf(ankemulighet, klagemulighet))
-            every { registreringRepository.findById(id) } returns Optional.of(registrering)
-
-            registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.ANKE))
-
-            assertThat(ankemulighet.type).isEqualTo(Type.ANKE_ETTER_2027)
-            assertThat(klagemulighet.type).isEqualTo(Type.KLAGE)
-        }
-
-        @Test
-        fun `ankemuligheter go back to anke foer 2027 when leaving the ANKE source`() {
-            val id = UUID.randomUUID()
-            val registrering = getUnfinishedRegistrering(id = id)
-            registrering.source = RegistreringSource.ANKE
-            val ankemulighet = renderableMulighet(type = Type.ANKE_ETTER_2027)
-            registrering.muligheter.add(ankemulighet)
-            every { registreringRepository.findById(id) } returns Optional.of(registrering)
-
-            registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.UPLOADED_DOCUMENTS))
-
-            assertThat(ankemulighet.type).isEqualTo(Type.ANKE_FOER_2027)
-        }
-
-        @Test
         fun `clears trygderettenSaksnummer when switching to another source`() {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)

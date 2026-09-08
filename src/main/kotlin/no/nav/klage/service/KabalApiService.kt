@@ -59,11 +59,20 @@ class KabalApiService(
 
     fun searchPart(searchPartInput: SearchPartInput): SearchPartView = kabalApiClient.searchPart(searchPartInput = searchPartInput)
 
-    fun getAnkemuligheterAsMono(
+    fun getAnkemuligheterFoer2027AsMono(
         input: IdnummerInput,
         token: String,
     ): Mono<List<MulighetFromKabal>> =
-        kabalApiClient.getAnkemuligheterByIdnummer(
+        kabalApiClient.getAnkemuligheterFoer2027ByIdnummer(
+            idnummerInput = input,
+            token = token,
+        )
+
+    fun getAnkemuligheterEtter2027AsMono(
+        input: IdnummerInput,
+        token: String,
+    ): Mono<List<MulighetFromKabal>> =
+        kabalApiClient.getAnkemuligheterFoer2027ByIdnummer(
             idnummerInput = input,
             token = token,
         )

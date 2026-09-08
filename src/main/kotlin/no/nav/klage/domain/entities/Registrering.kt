@@ -149,10 +149,6 @@ class Registrering(
     @Column(name = "source")
     @Enumerated(EnumType.STRING)
     var source: RegistreringSource = RegistreringSource.JOURNALPOST,
-    /**
-     * Saksnummeret Trygderetten har gitt anken. Only relevant when the source is
-     * [RegistreringSource.ANKE], and cleared whenever the source changes.
-     */
     @Column(name = "trygderetten_saksnummer")
     var trygderettenSaksnummer: String? = null,
 ) {
@@ -178,17 +174,6 @@ class Registrering(
 
     /** An anke received from Trygderetten is registered with [RegistreringSource.ANKE]. */
     fun isAnkeFromTrygderetten(): Boolean = source == RegistreringSource.ANKE
-
-    /**
-     * The anke type this registrering works with. An anke received from Trygderetten becomes an anke
-     * etter 2027, both for the muligheter we look up and for the behandling kabal-api creates.
-     */
-    fun getAnkeType(): Type =
-        if (isAnkeFromTrygderetten()) {
-            Type.ANKE_ETTER_2027
-        } else {
-            Type.ANKE_FOER_2027
-        }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -196,7 +196,7 @@ class ValidationUtil(
 
             // Type, avsender and inngående kanal are given by the source itself for an anke from
             // Trygderetten.
-            if (registrering.source == RegistreringSource.ANKE) {
+            if (registrering.isAnkeFromTrygderetten()) {
                 if (registrering.type != Type.ANKE_ETTER_2027) {
                     saksdataValidationErrors +=
                         InvalidProperty(
