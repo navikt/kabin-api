@@ -1228,7 +1228,7 @@ class RegistreringServiceTest {
 
             registreringService.setYtelseId(registreringId = id, input = YtelseIdInput(ytelseId = Ytelse.OMS_PSB.id))
 
-            verify(exactly = 0) { kabalApiService.getSvarbrevSettings(any(), any()) }
+            verify(exactly = 0) { kabalApiService.getSvarbrevSettings(ytelseId = any(), typeId = any()) }
             assertThat(registrering.sendSvarbrev).isFalse()
             assertThat(registrering.svarbrevCustomText).isNull()
             assertThat(registrering.svarbrevBehandlingstidUnits).isNull()
