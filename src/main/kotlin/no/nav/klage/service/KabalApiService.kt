@@ -72,7 +72,7 @@ class KabalApiService(
         input: IdnummerInput,
         token: String,
     ): Mono<List<MulighetFromKabal>> =
-        kabalApiClient.getAnkemuligheterFoer2027ByIdnummer(
+        kabalApiClient.getAnkemuligheterEtter2027ByIdnummer(
             idnummerInput = input,
             token = token,
         )
