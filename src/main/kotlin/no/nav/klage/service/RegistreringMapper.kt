@@ -347,6 +347,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) =
         muligheter = toMuligheterView(),
         additionalKabalMuligheter = getAdditionalKabalMuligheter(),
         source = source,
+        trygderettenSaksnummer = trygderettenSaksnummer,
         uploadedDocuments = toUploadedDocumentsView(),
     )
 
@@ -407,14 +408,15 @@ fun Registrering.getAdditionalKabalMuligheter(): List<KabalmulighetView> {
     val additionalKabalMuligheter =
         muligheter.filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }.toMutableList()
     return getMuligheterSorted(additionalKabalMuligheter)
-        .map { it.toKabalmulighetView(mulighetType = Type.ANKE_FOER_2027) }
+        .map { it.toKabalmulighetView(mulighetType = it.type) }
 }
 
 fun Registrering.toMuligheterView(): MuligheterView {
     if (mulighetIsBasedOnJournalpost) {
         return MuligheterView(
             klagemuligheter = emptyList(),
-            ankemuligheter = emptyList(),
+            ankemuligheterFoer2027 = emptyList(),
+            ankemuligheterEtter2027 = emptyList(),
             omgjoeringskravmuligheter = emptyList(),
             gjenopptaksmuligheter = emptyList(),
             muligheterFetched = muligheterFetched!!,
@@ -422,7 +424,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
     }
 
     val klagemuligheter = mutableListOf<Mulighet>()
-    val ankemuligheter = mutableListOf<Mulighet>()
+    val ankemuligheterFoer2027 = mutableListOf<Mulighet>()
+    val ankemuligheterEtter2027 = mutableListOf<Mulighet>()
     val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
     val gjenopptaksmuligheter = mutableListOf<Mulighet>()
 
@@ -432,11 +435,14 @@ fun Registrering.toMuligheterView(): MuligheterView {
                 klagemuligheter.add(mulighet)
             }
 
-            // TODO: Utvid med anke etter 2027
             Type.ANKE_FOER_2027 -> {
                 if (!mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()) {
-                    ankemuligheter.add(mulighet)
+                    ankemuligheterFoer2027.add(mulighet)
                 }
+            }
+
+            Type.ANKE_ETTER_2027 -> {
+                ankemuligheterEtter2027.add(mulighet)
             }
 
             Type.OMGJOERINGSKRAV -> {
@@ -459,10 +465,16 @@ fun Registrering.toMuligheterView(): MuligheterView {
                 klagemulighet.toKlagemulighetView(mulighetType = Type.KLAGE)
             }
 
-    val ankemuligheterView =
-        getMuligheterSorted(ankemuligheter)
+    val ankemuligheterFoer2027View =
+        getMuligheterSorted(ankemuligheterFoer2027)
             .map { ankemulighet ->
-                ankemulighet.toKabalmulighetView(mulighetType = Type.ANKE_FOER_2027)
+                ankemulighet.toKabalmulighetView(mulighetType = ankemulighet.type)
+            }
+
+    val ankemuligheterEtter2027View =
+        getMuligheterSorted(ankemuligheterEtter2027)
+            .map { ankemulighet ->
+                ankemulighet.toKabalmulighetView(mulighetType = ankemulighet.type)
             }
 
     val omgjoeringskravmuligheterView =
@@ -479,7 +491,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
 
     return MuligheterView(
         klagemuligheter = klagemuligheterView,
-        ankemuligheter = ankemuligheterView,
+        ankemuligheterFoer2027 = ankemuligheterFoer2027View,
+        ankemuligheterEtter2027 = ankemuligheterEtter2027View,
         omgjoeringskravmuligheter = omgjoeringskravmuligheterView,
         gjenopptaksmuligheter = gjenopptaksmuligheterView,
         muligheterFetched = muligheterFetched!!,
@@ -570,11 +583,11 @@ fun SearchPartView.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUt
         utsendingskanal = null,
     )
 
-fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): SvarbrevInput =
+fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView?): SvarbrevInput =
     SvarbrevInput(
         title = svarbrevTitle,
         initialCustomText = svarbrevInitialCustomText,
-        customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings.customText,
+        customText = if (overrideSvarbrevCustomText) svarbrevCustomText else svarbrevSettings?.customText,
         receivers =
             if (sendSvarbrev!!) {
                 svarbrevReceivers.map { receiver ->
@@ -601,13 +614,15 @@ fun Registrering.toSvarbrevInput(svarbrevSettings: SvarbrevSettingsView): Svarbr
             if (overrideSvarbrevBehandlingstid) {
                 svarbrevBehandlingstidUnits!!
             } else {
-                svarbrevSettings.behandlingstidUnits
+                // There are no settings when no svarbrev is sent. kabal-api ignores the varslet
+                // behandlingstid in that case, so the behandlingstid of the behandling is used.
+                svarbrevSettings?.behandlingstidUnits ?: behandlingstidUnits
             },
         varsletBehandlingstidUnitTypeId =
             if (overrideSvarbrevBehandlingstid) {
                 svarbrevBehandlingstidUnitType!!.id
             } else {
-                svarbrevSettings.behandlingstidUnitTypeId
+                svarbrevSettings?.behandlingstidUnitTypeId ?: behandlingstidUnitType.id
             },
         doNotSendLetter = !sendSvarbrev!!,
         reasonNoLetter = reasonNoLetter,

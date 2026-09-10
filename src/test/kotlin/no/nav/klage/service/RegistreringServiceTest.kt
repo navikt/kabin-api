@@ -26,7 +26,9 @@ import no.nav.klage.api.controller.view.SvarbrevCustomTextInput
 import no.nav.klage.api.controller.view.SvarbrevFullmektigFritekstInput
 import no.nav.klage.api.controller.view.SvarbrevInitialCustomTextInput
 import no.nav.klage.api.controller.view.SvarbrevTitleInput
+import no.nav.klage.api.controller.view.TrygderettenSaksnummerInput
 import no.nav.klage.api.controller.view.TypeIdInput
+import no.nav.klage.api.controller.view.YtelseIdInput
 import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.InngaaendeKanal
@@ -359,7 +361,7 @@ class RegistreringServiceTest {
             val view = registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.ANKE))
 
             assertThat(registrering.source).isEqualTo(RegistreringSource.ANKE)
-            assertThat(registrering.type).isEqualTo(Type.ANKE_FOER_2027)
+            assertThat(registrering.type).isEqualTo(Type.ANKE_ETTER_2027)
             assertThat(registrering.behandlingstidUnits).isEqualTo(4)
             assertThat(registrering.avsender).isEqualTo(
                 PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR),
@@ -367,7 +369,7 @@ class RegistreringServiceTest {
             assertThat(registrering.inngaaendeKanal).isEqualTo(InngaaendeKanal.ALTINN_INNBOKS)
 
             assertThat(view.source).isEqualTo(RegistreringSource.ANKE)
-            assertThat(view.typeId).isEqualTo(Type.ANKE_FOER_2027.id)
+            assertThat(view.typeId).isEqualTo(Type.ANKE_ETTER_2027.id)
             assertThat(view.uploadedDocuments.inngaaendeKanal).isEqualTo(InngaaendeKanal.ALTINN_INNBOKS.name)
             assertThat(view.overstyringer.avsender).isNotNull()
         }
@@ -377,7 +379,7 @@ class RegistreringServiceTest {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
             registrering.source = RegistreringSource.ANKE
-            registrering.type = Type.ANKE_FOER_2027
+            registrering.type = Type.ANKE_ETTER_2027
             registrering.avsender = PartId(type = PartIdType.VIRKSOMHET, value = RegistreringSource.TRYGDERETTEN_ORGNR)
             registrering.inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
@@ -388,6 +390,33 @@ class RegistreringServiceTest {
             assertThat(registrering.type).isNull()
             assertThat(registrering.avsender).isNull()
             assertThat(registrering.inngaaendeKanal).isNull()
+        }
+
+        @Test
+        fun `turns off svarbrev when source is ANKE`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.sendSvarbrev = true
+            registrering.reasonNoLetter = "some reason"
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.ANKE))
+
+            assertThat(registrering.sendSvarbrev).isFalse()
+            assertThat(registrering.reasonNoLetter).isNull()
+        }
+
+        @Test
+        fun `clears trygderettenSaksnummer when switching to another source`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.trygderettenSaksnummer = "2027123"
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            registreringService.setSource(registreringId = id, input = SourceInput(source = RegistreringSource.UPLOADED_DOCUMENTS))
+
+            assertThat(registrering.trygderettenSaksnummer).isNull()
         }
 
         @Test
@@ -430,14 +459,14 @@ class RegistreringServiceTest {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
             registrering.source = RegistreringSource.ANKE
-            registrering.type = Type.ANKE_FOER_2027
+            registrering.type = Type.ANKE_ETTER_2027
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
             assertThatThrownBy {
                 registreringService.setTypeId(registreringId = id, input = TypeIdInput(typeId = Type.OMGJOERINGSKRAV.id))
             }.isInstanceOf(IllegalInputException::class.java)
 
-            assertThat(registrering.type).isEqualTo(Type.ANKE_FOER_2027)
+            assertThat(registrering.type).isEqualTo(Type.ANKE_ETTER_2027)
         }
 
         @Test
@@ -659,6 +688,61 @@ class RegistreringServiceTest {
         }
     }
 
+    // ============ setTrygderettenSaksnummer ============
+
+    @Nested
+    inner class SetTrygderettenSaksnummerTest {
+        @Test
+        fun `sets trygderettenSaksnummer when source is ANKE`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            val view =
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "2027123"),
+                )
+
+            assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
+            assertThat(view.trygderettenSaksnummer).isEqualTo("2027123")
+        }
+
+        @Test
+        fun `stores an empty saksnummer as null`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.trygderettenSaksnummer = "2027123"
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            registreringService.setTrygderettenSaksnummer(
+                registreringId = id,
+                input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "  "),
+            )
+
+            assertThat(registrering.trygderettenSaksnummer).isNull()
+        }
+
+        @Test
+        fun `rejects trygderettenSaksnummer when source is not ANKE`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.UPLOADED_DOCUMENTS
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "2027123"),
+                )
+            }.isInstanceOf(IllegalInputException::class.java)
+
+            assertThat(registrering.trygderettenSaksnummer).isNull()
+        }
+    }
+
     // ============ setSendSvarbrev ============
 
     @Nested
@@ -685,6 +769,20 @@ class RegistreringServiceTest {
             registreringService.setSendSvarbrev(registreringId = id, input = SendSvarbrevInput(send = true))
 
             assertThat(registrering.reasonNoLetter).isNull()
+        }
+
+        @Test
+        fun `svarbrev cannot be turned on when source is ANKE`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setSendSvarbrev(registreringId = id, input = SendSvarbrevInput(send = true))
+            }.isInstanceOf(IllegalInputException::class.java)
+
+            assertThat(registrering.sendSvarbrev).isNotEqualTo(true)
         }
 
         @Test
@@ -1113,6 +1211,31 @@ class RegistreringServiceTest {
         }
     }
 
+    // ============ setYtelseId ============
+
+    @Nested
+    inner class SetYtelseIdTest {
+        @Test
+        fun `does not ask kabal-api for svarbrev settings when source is ANKE`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.type = Type.ANKE_ETTER_2027
+            registrering.svarbrevCustomText = "tekst"
+            registrering.svarbrevBehandlingstidUnits = 5
+            registrering.svarbrevBehandlingstidUnitType = TimeUnitType.WEEKS
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            registreringService.setYtelseId(registreringId = id, input = YtelseIdInput(ytelseId = Ytelse.OMS_PSB.id))
+
+            verify(exactly = 0) { kabalApiService.getSvarbrevSettings(ytelseId = any(), typeId = any()) }
+            assertThat(registrering.sendSvarbrev).isFalse()
+            assertThat(registrering.svarbrevCustomText).isNull()
+            assertThat(registrering.svarbrevBehandlingstidUnits).isNull()
+            assertThat(registrering.svarbrevBehandlingstidUnitType).isNull()
+        }
+    }
+
     // ============ setMulighetIsBasedOnJournalpost ============
 
     @Nested
@@ -1470,12 +1593,23 @@ class RegistreringServiceTest {
             reasonNoLetter = null,
         )
 
+    /** A mulighet with the fields the view mapping requires. */
+    private fun renderableMulighet(type: Type): Mulighet =
+        createMulighet(
+            type = type,
+            originalType = type,
+            utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.SENTRAL_UTSKRIFT,
+            vedtakDate = LocalDate.now(),
+        )
+
     private fun createMulighet(
         id: UUID = UUID.randomUUID(),
         originalFagsystem: Fagsystem = Fagsystem.IT01,
         currentFagsystem: Fagsystem = Fagsystem.IT01,
         type: Type = Type.ANKE_FOER_2027,
         originalType: Type? = Type.ANKE_FOER_2027,
+        utsendingskanal: PartWithUtsendingskanal.Utsendingskanal? = null,
+        vedtakDate: LocalDate? = null,
     ): Mulighet =
         Mulighet(
             id = id,
@@ -1486,7 +1620,7 @@ class RegistreringServiceTest {
                     name = "Test Person",
                     available = true,
                     language = null,
-                    utsendingskanal = null,
+                    utsendingskanal = utsendingskanal,
                 ),
             klager = null,
             fullmektig = null,
@@ -1494,7 +1628,7 @@ class RegistreringServiceTest {
             originalFagsystem = originalFagsystem,
             fagsakId = "123",
             tema = Tema.SYK,
-            vedtakDate = null,
+            vedtakDate = vedtakDate,
             ytelse = Ytelse.OMS_PSB,
             hjemmelIdList = emptyList(),
             previousSaksbehandlerIdent = null,

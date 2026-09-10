@@ -75,6 +75,8 @@ import no.nav.klage.api.controller.view.SvarbrevReceiverChangeRegistreringView
 import no.nav.klage.api.controller.view.SvarbrevRecipientInput
 import no.nav.klage.api.controller.view.SvarbrevTitleChangeRegistreringView
 import no.nav.klage.api.controller.view.SvarbrevTitleInput
+import no.nav.klage.api.controller.view.TrygderettenSaksnummerChangeRegistreringView
+import no.nav.klage.api.controller.view.TrygderettenSaksnummerInput
 import no.nav.klage.api.controller.view.TypeChangeRegistreringView
 import no.nav.klage.api.controller.view.TypeIdInput
 import no.nav.klage.api.controller.view.YtelseChangeRegistreringView
@@ -83,6 +85,7 @@ import no.nav.klage.clients.fileapi.FileApiClient
 import no.nav.klage.clients.fileapi.UploadPostPolicyResponse
 import no.nav.klage.clients.kabalapi.BehandlingIsDuplicateInput
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
+import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
 import no.nav.klage.clients.kabalapi.toView
 import no.nav.klage.clients.klanke.SakFromKlanke
 import no.nav.klage.domain.entities.Address
@@ -108,9 +111,11 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.ankeTypes
 import no.nav.klage.util.calculateFrist
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getPartIdFromIdentifikator
+import no.nav.klage.util.isAnke
 import no.nav.klage.util.validateDokumentName
 import no.nav.klage.util.withPdfExtension
 import org.springframework.stereotype.Service
@@ -261,12 +266,7 @@ class RegistreringService(
                     avsender = null
                     saksbehandlerIdent = null
                     gosysOppgaveId = null
-                    sendSvarbrev = null
-                    overrideSvarbrevBehandlingstid = false
-                    overrideSvarbrevCustomText = false
-                    svarbrevCustomText = null
-                    svarbrevBehandlingstidUnits = null
-                    svarbrevBehandlingstidUnitType = null
+                    clearSvarbrevSettings(sendSvarbrev = null)
                     svarbrevFullmektigFritekst = null
                     svarbrevReceivers.clear()
                     willCreateNewJournalpost = false
@@ -311,9 +311,7 @@ class RegistreringService(
                             mottattVedtaksinstans = journalpostDatoOpprettet
                         }
 
-                        // TODO: Støtte for anker etter 2027, vurder
-
-                        Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK -> {
+                        Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK -> {
                             mottattKlageinstans = journalpostDatoOpprettet
                         }
 
@@ -404,12 +402,7 @@ class RegistreringService(
 
                 saksbehandlerIdent = null
 
-                sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = false
-                overrideSvarbrevCustomText = false
-                svarbrevBehandlingstidUnits = null
-                svarbrevBehandlingstidUnitType = null
-                svarbrevCustomText = null
+                clearSvarbrevSettings(sendSvarbrev = null)
 
                 gosysOppgaveId = null
 
@@ -444,12 +437,7 @@ class RegistreringService(
 
                 saksbehandlerIdent = null
 
-                sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = false
-                overrideSvarbrevCustomText = false
-                svarbrevBehandlingstidUnits = null
-                svarbrevBehandlingstidUnitType = null
-                svarbrevCustomText = null
+                clearSvarbrevSettings(sendSvarbrev = null)
 
                 gosysOppgaveId = null
 
@@ -460,9 +448,9 @@ class RegistreringService(
     private fun getDefaultBehandlingstidUnitType(type: Type?): TimeUnitType = TimeUnitType.WEEKS
 
     private fun getDefaultBehandlingstidUnits(registrering: Registrering): Int =
-        if (registrering.source == RegistreringSource.ANKE) {
+        if (registrering.isAnkeFromTrygderetten()) {
             4
-        } else if (registrering.type == Type.ANKE_FOER_2027) {
+        } else if (registrering.type.isAnke()) {
             0
         } else {
             12
@@ -500,12 +488,7 @@ class RegistreringService(
 
                 if (ytelse == null) {
                     // empty the properties that no longer make sense
-                    sendSvarbrev = false
-                    svarbrevCustomText = null
-                    svarbrevBehandlingstidUnits = null
-                    svarbrevBehandlingstidUnitType = null
-                    overrideSvarbrevBehandlingstid = false
-                    overrideSvarbrevCustomText = false
+                    clearSvarbrevSettings()
 
                     hjemmelIdList = emptyList()
 
@@ -528,7 +511,7 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = newMulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in listOf(Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+                } else if (type in ankeTypes + listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = newMulighet.klager?.part.toPartIdInput(),
@@ -587,7 +570,7 @@ class RegistreringService(
             }
         }
 
-        if (registrering.type == Type.ANKE_FOER_2027) {
+        if (registrering.type.isAnke()) {
             if (mulighet.originalFagsystem != Fagsystem.AO01) {
                 throw IllegalInputException(
                     "Opprettelse av anke basert på journalpost er bare tilgjengelig for saker fra Arena.",
@@ -613,12 +596,7 @@ class RegistreringService(
 
                 if (ytelse == null) {
                     // empty the properties that no longer make sense
-                    sendSvarbrev = false
-                    svarbrevCustomText = null
-                    svarbrevBehandlingstidUnits = null
-                    svarbrevBehandlingstidUnitType = null
-                    overrideSvarbrevBehandlingstid = false
-                    overrideSvarbrevCustomText = false
+                    clearSvarbrevSettings()
 
                     hjemmelIdList = emptyList()
 
@@ -637,7 +615,7 @@ class RegistreringService(
                 }
 
                 forrigeBehandlendeEnhetId =
-                    if (type in listOf(Type.KLAGE, Type.ANKE_FOER_2027)) {
+                    if (type == Type.KLAGE || type.isAnke()) {
                         null
                     } else {
                         mulighet.klageBehandlendeEnhet
@@ -646,7 +624,7 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = mulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in listOf(Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+                } else if (type in ankeTypes + listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = mulighet.klager?.part.toPartIdInput(),
@@ -733,8 +711,13 @@ class RegistreringService(
         val saksbehandlerAccessTokenWithKabalApiScope =
             "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}"
 
-        val ankemuligheterFromKabalMono =
-            kabalApiService.getAnkemuligheterAsMono(
+        val ankemuligheterFoer2027FromKabalMono =
+            kabalApiService.getAnkemuligheterFoer2027AsMono(
+                input = input,
+                token = saksbehandlerAccessTokenWithKabalApiScope,
+            )
+        val ankemuligheterEtter2027FromKabalMono =
+            kabalApiService.getAnkemuligheterEtter2027AsMono(
                 input = input,
                 token = saksbehandlerAccessTokenWithKabalApiScope,
             )
@@ -760,7 +743,8 @@ class RegistreringService(
                 klagemuligheterFromInfotrygdMono,
                 klageTilbakebetalingMuligheterFromInfotrygdMono,
                 ankemuligheterFromInfotrygdMono,
-                ankemuligheterFromKabalMono,
+                ankemuligheterFoer2027FromKabalMono,
+                ankemuligheterEtter2027FromKabalMono,
                 omgjoeringskravmuligheterFromKabalMono,
                 gjenopptaksmuligheterFromKabalMono,
             ).parallel()
@@ -918,11 +902,30 @@ class RegistreringService(
     }
 
     private fun Registrering.setSvarbrevSettings() {
+        // Svarbrev is never sent for an anke received from Trygderetten, so there are no settings to apply.
+        if (isAnkeFromTrygderetten()) {
+            clearSvarbrevSettings()
+            return
+        }
+
         val svarbrevSettings = getSvarbrevSettings()
         sendSvarbrev = svarbrevSettings.shouldSend
         svarbrevCustomText = svarbrevSettings.customText
         svarbrevBehandlingstidUnits = svarbrevSettings.behandlingstidUnits
         svarbrevBehandlingstidUnitType = TimeUnitType.of(svarbrevSettings.behandlingstidUnitTypeId)
+        overrideSvarbrevBehandlingstid = false
+        overrideSvarbrevCustomText = false
+    }
+
+    /**
+     * Empties everything that was derived from the svarbrev settings. [sendSvarbrev] is null when the
+     * user has not made a choice yet, and false when svarbrev is ruled out.
+     */
+    private fun Registrering.clearSvarbrevSettings(sendSvarbrev: Boolean? = false) {
+        this.sendSvarbrev = sendSvarbrev
+        svarbrevCustomText = null
+        svarbrevBehandlingstidUnits = null
+        svarbrevBehandlingstidUnitType = null
         overrideSvarbrevBehandlingstid = false
         overrideSvarbrevCustomText = false
     }
@@ -1106,7 +1109,7 @@ class RegistreringService(
                         throw IllegalInputException("Forrige behandlende enhet kan bare settes etter at ytelse er valgt.")
                     }
 
-                    if (type !in listOf(Type.KLAGE, Type.ANKE_FOER_2027)) {
+                    if (type != Type.KLAGE && !type.isAnke()) {
                         throw IllegalInputException("Forrige behandlende enhet kan bare settes for klager og anker")
                     }
 
@@ -1390,6 +1393,9 @@ class RegistreringService(
         val registrering =
             getRegistreringForUpdate(registreringId)
                 .apply {
+                    if (input.send && isAnkeFromTrygderetten()) {
+                        throw IllegalInputException("Det sendes ikke svarbrev for en anke fra Trygderetten.")
+                    }
                     sendSvarbrev = input.send
                     modified = LocalDateTime.now()
                 }
@@ -1515,11 +1521,15 @@ class RegistreringService(
         )
     }
 
-    private fun Registrering.getSvarbrevSettings() =
-        kabalApiService.getSvarbrevSettings(
+    private fun Registrering.getSvarbrevSettings(): SvarbrevSettingsView {
+        if (isAnkeFromTrygderetten()) {
+            throw IllegalInputException("Det sendes ikke svarbrev for en anke fra Trygderetten.")
+        }
+        return kabalApiService.getSvarbrevSettings(
             ytelseId = ytelse!!.id,
             typeId = type!!.id,
         )
+    }
 
     fun setSvarbrevTitle(
         registreringId: UUID,
@@ -1782,7 +1792,7 @@ class RegistreringService(
 
         val response: CreatedBehandlingResponse =
             when (registrering.type) {
-                Type.ANKE_FOER_2027 -> {
+                Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> {
                     ankeService.createAnke(
                         registrering = registrering,
                     )
@@ -1863,9 +1873,29 @@ class RegistreringService(
     }
 
     private fun requireTypeAndAvsenderNotLocked(registrering: Registrering) {
-        if (registrering.source == RegistreringSource.ANKE) {
+        if (registrering.isAnkeFromTrygderetten()) {
             throw IllegalInputException("Type og avsender er gitt av kilden og kan ikke endres for en anke fra Trygderetten.")
         }
+    }
+
+    fun setTrygderettenSaksnummer(
+        registreringId: UUID,
+        input: TrygderettenSaksnummerInput,
+    ): TrygderettenSaksnummerChangeRegistreringView {
+        val registrering = getRegistreringForUpdate(registreringId)
+
+        if (!registrering.isAnkeFromTrygderetten()) {
+            throw IllegalInputException("Saksnummer fra Trygderetten kan bare settes på en anke fra Trygderetten.")
+        }
+
+        registrering.trygderettenSaksnummer = input.trygderettenSaksnummer?.trim()?.ifEmpty { null }
+        registrering.modified = LocalDateTime.now()
+
+        return TrygderettenSaksnummerChangeRegistreringView(
+            id = registrering.id,
+            trygderettenSaksnummer = registrering.trygderettenSaksnummer,
+            modified = registrering.modified,
+        )
     }
 
     fun setSource(
@@ -1898,8 +1928,12 @@ class RegistreringService(
                 avsender = null
                 inngaaendeKanal = null
 
-                if (source == RegistreringSource.ANKE) {
-                    type = Type.ANKE_FOER_2027
+                // The saksnummer belongs to the anke Trygderetten sent us, so it makes no sense for
+                // any other source.
+                trygderettenSaksnummer = null
+
+                if (registrering.isAnkeFromTrygderetten()) {
+                    type = Type.ANKE_ETTER_2027
                     avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
                     inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
                 } else {
@@ -1907,7 +1941,6 @@ class RegistreringService(
                     avsender = null
                     inngaaendeKanal = null
                 }
-
                 behandlingstidUnits = getDefaultBehandlingstidUnits(this)
                 behandlingstidUnitType = getDefaultBehandlingstidUnitType(type)
 
@@ -1924,12 +1957,10 @@ class RegistreringService(
 
                 saksbehandlerIdent = null
 
-                sendSvarbrev = null
-                overrideSvarbrevBehandlingstid = false
-                overrideSvarbrevCustomText = false
-                svarbrevBehandlingstidUnits = null
-                svarbrevBehandlingstidUnitType = null
-                svarbrevCustomText = null
+                // Svarbrev is never sent for an anke received from Trygderetten, so that choice is
+                // already made. For other sources the user has yet to choose.
+                clearSvarbrevSettings(sendSvarbrev = if (registrering.isAnkeFromTrygderetten()) false else null)
+                reasonNoLetter = null
 
                 gosysOppgaveId = null
 

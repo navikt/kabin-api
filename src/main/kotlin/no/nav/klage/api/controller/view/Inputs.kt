@@ -64,6 +64,10 @@ data class SourceInput(
     val source: RegistreringSource,
 )
 
+data class TrygderettenSaksnummerInput(
+    val trygderettenSaksnummer: String?,
+)
+
 data class DokumentUploadUrlInput(
     val contentType: String,
     val name: String,
