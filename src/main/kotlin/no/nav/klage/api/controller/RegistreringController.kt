@@ -65,6 +65,8 @@ import no.nav.klage.api.controller.view.SvarbrevReceiverChangeRegistreringView
 import no.nav.klage.api.controller.view.SvarbrevRecipientInput
 import no.nav.klage.api.controller.view.SvarbrevTitleChangeRegistreringView
 import no.nav.klage.api.controller.view.SvarbrevTitleInput
+import no.nav.klage.api.controller.view.TrygderettenSaksnummerChangeRegistreringView
+import no.nav.klage.api.controller.view.TrygderettenSaksnummerInput
 import no.nav.klage.api.controller.view.TypeChangeRegistreringView
 import no.nav.klage.api.controller.view.TypeIdInput
 import no.nav.klage.api.controller.view.YtelseChangeRegistreringView
@@ -392,6 +394,19 @@ class RegistreringController(
             logger = logger,
         )
         return registreringService.setSource(registreringId = id, input = input)
+    }
+
+    @PutMapping("/{id}/trygderetten-saksnummer")
+    fun updateTrygderettenSaksnummer(
+        @PathVariable id: UUID,
+        @RequestBody input: TrygderettenSaksnummerInput,
+    ): TrygderettenSaksnummerChangeRegistreringView {
+        logMethodDetails(
+            methodName = ::updateTrygderettenSaksnummer.name,
+            innloggetIdent = tokenUtil.getCurrentIdent(),
+            logger = logger,
+        )
+        return registreringService.setTrygderettenSaksnummer(registreringId = id, input = input)
     }
 
     @PutMapping("/{id}/type-id")

@@ -10,6 +10,7 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.mapper.DokumentMapper
 import no.nav.klage.util.getLogger
 import org.springframework.stereotype.Service
+import kotlin.system.measureTimeMillis
 
 @Service
 class DocumentService(
@@ -31,26 +32,58 @@ class DocumentService(
         previousPageRef: String? = null,
     ): DokumenterResponse {
         if (idnummer.length == 11) {
-            val dokumentoversiktBruker: DokumentoversiktBruker =
-                safService.getDokumentoversiktBruker(
-                    idnummer = idnummer,
-                    tema = temaer,
-                    pageSize = pageSize,
-                    previousPageRef = previousPageRef,
-                )
+            val start = System.currentTimeMillis()
 
-            val dokumenter =
-                dokumentoversiktBruker.journalposter.map { journalpost ->
-                    dokumentMapper.mapJournalpostToDokumentReferanse(journalpost)
+            val dokumentoversiktBruker: DokumentoversiktBruker
+            val safMillis =
+                measureTimeMillis {
+                    dokumentoversiktBruker =
+                        safService.getDokumentoversiktBruker(
+                            idnummer = idnummer,
+                            tema = temaer,
+                            pageSize = pageSize,
+                            previousPageRef = previousPageRef,
+                        )
+                }
+
+            val dokumenter: List<DokumentReferanse>
+            val mappingMillis =
+                measureTimeMillis {
+                    dokumenter =
+                        dokumentoversiktBruker.journalposter.map { journalpost ->
+                            dokumentMapper.mapJournalpostToDokumentReferanse(journalpost)
+                        }
                 }
 
             // enrich documents with usage info
-            val usedJournalpostIdList = kabalApiService.getUsedJournalpostIdListForPerson(fnr = idnummer)
-            dokumenter.forEach { document ->
-                if (document.journalpostId in usedJournalpostIdList) {
-                    document.alreadyUsed = true
+            val usedJournalpostIdList: List<String>
+            val kabalApiMillis =
+                measureTimeMillis {
+                    usedJournalpostIdList = kabalApiService.getUsedJournalpostIdListForPerson(fnr = idnummer)
                 }
-            }
+
+            val enrichmentMillis =
+                measureTimeMillis {
+                    dokumenter.forEach { document ->
+                        if (document.journalpostId in usedJournalpostIdList) {
+                            document.alreadyUsed = true
+                        }
+                    }
+                }
+
+            logger.debug(
+                "fetchDokumentlisteForBruker timings (ms): saf={}, mapping={}, kabalApi={}, enrichment={}, total={}. " +
+                    "Journalposter: {}, brukte journalpostIder: {}, temaer: {}, pageSize: {}",
+                safMillis,
+                mappingMillis,
+                kabalApiMillis,
+                enrichmentMillis,
+                System.currentTimeMillis() - start,
+                dokumentoversiktBruker.journalposter.size,
+                usedJournalpostIdList.size,
+                temaer.size,
+                pageSize,
+            )
 
             return DokumenterResponse(
                 dokumenter = dokumenter,

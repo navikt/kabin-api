@@ -98,13 +98,27 @@ class KabalApiClient(
             .bodyToMono<CreatedBehandlingResponse>()
             .block() ?: throw RuntimeException("No response")
 
-    fun getAnkemuligheterByIdnummer(
+    fun getAnkemuligheterFoer2027ByIdnummer(
         idnummerInput: IdnummerInput,
         token: String,
     ): Mono<List<MulighetFromKabal>> =
         kabalApiWebClient
             .post()
-            .uri { it.path("/api/internal/ankemuligheter").build() }
+            .uri { it.path("/api/internal/ankemuligheter-foer-2027").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                token,
+            ).bodyValue(idnummerInput)
+            .retrieve()
+            .bodyToMono<List<MulighetFromKabal>>()
+
+    fun getAnkemuligheterEtter2027ByIdnummer(
+        idnummerInput: IdnummerInput,
+        token: String,
+    ): Mono<List<MulighetFromKabal>> =
+        kabalApiWebClient
+            .post()
+            .uri { it.path("/api/internal/ankemuligheter-etter-2027").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 token,
