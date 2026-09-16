@@ -1,5 +1,6 @@
 package no.nav.klage.api.controller.view
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -65,8 +66,14 @@ interface MulighetView {
 
 data class MuligheterView(
     val klagemuligheter: List<KlagemulighetView>,
-    val ankemuligheter: List<KabalmulighetView>,
+    val ankemuligheterFoer2027: List<KabalmulighetView>,
+    val ankemuligheterEtter2027: List<KabalmulighetView>,
     val omgjoeringskravmuligheter: List<KabalmulighetView>,
     val gjenopptaksmuligheter: List<KabalmulighetView>,
     val muligheterFetched: LocalDateTime,
-)
+) {
+    @Deprecated("Erstattet av ankemuligheterFoer2027. Beholdt for bakoverkompatibilitet med eldre konsumenter.")
+    @get:JsonProperty("ankemuligheter")
+    val ankemuligheter: List<KabalmulighetView>
+        get() = ankemuligheterFoer2027
+}

@@ -44,8 +44,36 @@ class ValidationUtilTest {
         fun `rejects another type`() {
             val registrering = getAnkeRegistrering().apply { type = Type.OMGJOERINGSKRAV }
 
-            assertThat(ankeReasonsFor(registrering))
-                .contains("En anke fra Trygderetten må ha type anke.")
+            assertThat(validationReasonsFor(registrering))
+                .contains("Kun anke kan opprettes.")
+        }
+
+        @Test
+        fun `rejects a missing saksnummer`() {
+            val registrering = getAnkeRegistrering().apply { trygderettenSaksnummer = null }
+
+            assertThat(validationReasonsFor(registrering))
+                .contains(
+                    "Oppgi saksnummeret fra Trygderetten. Må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123",
+                )
+        }
+
+        @Test
+        fun `rejects a saksnummer with an invalid format`() {
+            val registrering = getAnkeRegistrering().apply { trygderettenSaksnummer = "2027" }
+
+            assertThat(validationReasonsFor(registrering))
+                .contains(
+                    "Saksnummeret fra Trygderetten må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123.",
+                )
+        }
+
+        @Test
+        fun `rejects svarbrev`() {
+            val registrering = getAnkeRegistrering().apply { sendSvarbrev = true }
+
+            assertThat(validationReasonsFor(registrering))
+                .contains("Det sendes ikke svarbrev for en anke fra Trygderetten.")
         }
 
         @Test
@@ -188,7 +216,7 @@ class ValidationUtilTest {
             avsender = RegistreringSource.TRYGDERETTEN_AVSENDER,
             journalpostId = null,
             journalpostDatoOpprettet = null,
-            type = Type.ANKE_FOER_2027,
+            type = Type.ANKE_ETTER_2027,
             mulighetIsBasedOnJournalpost = false,
             mulighetId = null,
             additionalKabalMulighetId = null,
@@ -218,6 +246,7 @@ class ValidationUtilTest {
             muligheterFetched = LocalDateTime.now(),
             reasonNoLetter = "Ikke nødvendig",
             source = RegistreringSource.ANKE,
+            trygderettenSaksnummer = "2027123",
             inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS,
             dokumenter =
                 mutableSetOf(

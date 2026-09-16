@@ -35,6 +35,7 @@ data class CreateBehandlingBasedOnKabalInput(
     val svarbrevInput: SvarbrevInput,
     val hjemmelIdList: List<String>,
     val gosysOppgaveId: Long?,
+    val trygderettenSaksnummer: String?,
 )
 
 data class BehandlingIsDuplicateInput(
@@ -65,6 +66,9 @@ data class CreateAnkeBasedOnKabinInput(
     val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
     val previousKabalBehandlingId: UUID?,
+    /** Null means kabal-api falls back to [no.nav.klage.kodeverk.Type.ANKE_FOER_2027]. */
+    val typeId: String? = null,
+    val trygderettenSaksnummer: String?,
 )
 
 data class CreateBehandlingBasedOnJournalpostInput(
@@ -85,6 +89,7 @@ data class CreateBehandlingBasedOnJournalpostInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
+    val trygderettenSaksnummer: String? = null,
 )
 
 data class CreateKlageBasedOnKabinInput(
