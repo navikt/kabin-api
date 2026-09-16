@@ -24,6 +24,7 @@ data class CreatedBehandlingStatusView(
     val tildeltSaksbehandler: TildeltSaksbehandler?,
     val svarbrev: Svarbrev?,
     val source: String,
+    val trygderettenSaksnummer: String?,
 )
 
 data class ReceiptUploadedDocumentsView(

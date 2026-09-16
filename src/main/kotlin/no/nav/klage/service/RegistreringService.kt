@@ -2284,6 +2284,7 @@ class RegistreringService(
             tildeltSaksbehandler = status.tildeltSaksbehandler?.toView(),
             svarbrev = status.svarbrev?.toView(),
             source = registrering.source.name,
+            trygderettenSaksnummer = registrering.trygderettenSaksnummer,
         )
     }
 }
