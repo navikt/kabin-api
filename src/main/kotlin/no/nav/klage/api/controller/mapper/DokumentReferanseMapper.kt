@@ -65,6 +65,7 @@ fun DokumentReferanse.Sak.toView(): DokumentReferanseView.Sak =
     DokumentReferanseView.Sak(
         datoOpprettet = datoOpprettet,
         fagsakId = fagsakId,
+        saksnummer = saksnummer,
         fagsaksystem = fagsaksystem,
         fagsystemId = fagsystemId,
     )

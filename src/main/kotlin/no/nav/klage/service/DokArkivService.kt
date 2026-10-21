@@ -37,6 +37,7 @@ import no.nav.klage.util.canChangeAvsenderInJournalpost
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getTeamLogger
 import org.springframework.stereotype.Service
+import no.nav.klage.kodeverk.Sakstype as KodeverkSakstype
 
 @Service
 class DokArkivService(
@@ -175,7 +176,6 @@ class DokArkivService(
         val mulighet =
             registrering.getCurrentMulighet() ?: throw MulighetNotFoundException("Muligheten som registreringen refererer til finnes ikke.")
 
-        val fagsaksystem = FagsaksSystem.valueOf(mulighet.originalFagsystem.navn)
         val journalfoerendeEnhet =
             if (mulighet.currentFagsystem == Fagsystem.KABAL) {
                 mulighet.klageBehandlendeEnhet
@@ -202,14 +202,48 @@ class DokArkivService(
                         },
                 ),
             sakInFagsystem =
-                Sak(
-                    sakstype = Sakstype.FAGSAK,
-                    fagsaksystem = fagsaksystem,
-                    fagsakid = mulighet.fagsakId,
+                createSak(
+                    sakstype = mulighet.sakstype,
+                    fagsakId = mulighet.fagsakId,
+                    fagsystem = mulighet.originalFagsystem,
                 ),
             journalfoerendeEnhet = journalfoerendeEnhet,
         )
     }
+
+    private fun createSak(
+        sakstype: KodeverkSakstype,
+        fagsakId: String?,
+        fagsystem: Fagsystem,
+    ): Sak =
+        when (sakstype) {
+            KodeverkSakstype.FAGSAK -> {
+                Sak(
+                    sakstype = Sakstype.FAGSAK,
+                    fagsaksystem = FagsaksSystem.valueOf(fagsystem.navn),
+                    fagsakid = fagsakId ?: throw IllegalInputException("Saken mangler fagsakId."),
+                )
+            }
+
+            KodeverkSakstype.GENERELL_SAK -> {
+                Sak(
+                    sakstype = Sakstype.GENERELL_SAK,
+                    fagsaksystem = null,
+                    fagsakid = null,
+                )
+            }
+
+            KodeverkSakstype.ARKIVSAK -> {
+                throw IllegalInputException("Sakstype ${sakstype.name} støttes ikke.")
+            }
+        }
+
+    private fun Sakstype.toKodeverkSakstype(): KodeverkSakstype =
+        when (this) {
+            Sakstype.FAGSAK -> KodeverkSakstype.FAGSAK
+            Sakstype.GENERELL_SAK -> KodeverkSakstype.GENERELL_SAK
+            Sakstype.ARKIVSAK -> KodeverkSakstype.ARKIVSAK
+        }
 
     private fun handleJournalpost(
         journalpostId: String,
@@ -271,7 +305,10 @@ class DokArkivService(
         if (journalpostInSaf.isFinalized()) {
             return if (journalpostIsConnectedToSakInFagsystem(
                     journalpostInSaf = journalpostInSaf,
-                    sakInFagsystem = sakInFagsystem,
+                    sakstype = sakInFagsystem.sakstype.toKodeverkSakstype(),
+                    fagsakId = sakInFagsystem.fagsakid,
+                    fagsaksystem = sakInFagsystem.fagsaksystem,
+                    tema = tema,
                 )
             ) {
                 logger.debug("journalpostIsConnectedToSakInFagsystem, no changes to journalpost.")
@@ -296,7 +333,10 @@ class DokArkivService(
 
             if (!journalpostIsConnectedToSakInFagsystem(
                     journalpostInSaf = journalpostInSaf,
-                    sakInFagsystem = sakInFagsystem,
+                    sakstype = sakInFagsystem.sakstype.toKodeverkSakstype(),
+                    fagsakId = sakInFagsystem.fagsakid,
+                    fagsaksystem = sakInFagsystem.fagsaksystem,
+                    tema = tema,
                 )
             ) {
                 updateSakInJournalpost(
@@ -342,8 +382,10 @@ class DokArkivService(
 
     fun journalpostIsFinalizedAndConnectedToFagsak(
         journalpostId: String,
-        fagsakId: String,
+        sakstype: KodeverkSakstype,
+        fagsakId: String?,
         fagsystemId: String,
+        tema: Tema,
     ): Boolean {
         val journalpostInSaf =
             safService.getJournalpostAsSaksbehandler(journalpostId)
@@ -353,16 +395,19 @@ class DokArkivService(
             return false
         }
 
-        val fagsystem = Fagsystem.of(fagsystemId)
+        val sak =
+            createSak(
+                sakstype = sakstype,
+                fagsakId = fagsakId,
+                fagsystem = Fagsystem.of(fagsystemId),
+            )
 
         return !journalpostIsConnectedToSakInFagsystem(
             journalpostInSaf = journalpostInSaf,
-            sakInFagsystem =
-                Sak(
-                    sakstype = Sakstype.FAGSAK,
-                    fagsaksystem = FagsaksSystem.valueOf(fagsystem.name),
-                    fagsakid = fagsakId,
-                ),
+            sakstype = sakstype,
+            fagsakId = sak.fagsakid,
+            fagsaksystem = sak.fagsaksystem,
+            tema = tema,
         )
     }
 
@@ -384,7 +429,7 @@ class DokArkivService(
     ): String {
         val requestPayload =
             CreateNewJournalpostBasedOnExistingJournalpostRequest(
-                sakstype = Sakstype.FAGSAK,
+                sakstype = sak.sakstype,
                 fagsakId = sak.fagsakid,
                 fagsaksystem = sak.fagsaksystem,
                 tema = tema,
@@ -401,20 +446,35 @@ class DokArkivService(
 
     private fun journalpostIsConnectedToSakInFagsystem(
         journalpostInSaf: Journalpost,
-        sakInFagsystem: Sak,
+        sakstype: KodeverkSakstype,
+        fagsakId: String?,
+        fagsaksystem: FagsaksSystem?,
+        tema: Tema,
     ): Boolean =
-        if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
-            false
-        } else {
-            logger.debug(
-                "journalpostInSaf.sak.fagsaksystem: {}, sak.fagsaksystem: {}",
-                FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem),
-                sakInFagsystem.fagsaksystem,
-            )
-            (
-                journalpostInSaf.sak.fagsakId == sakInFagsystem.fagsakid &&
-                    FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == sakInFagsystem.fagsaksystem
-            )
+        when (sakstype) {
+            KodeverkSakstype.FAGSAK -> {
+                if (journalpostInSaf.sak?.fagsakId == null || journalpostInSaf.sak.fagsaksystem == null) {
+                    false
+                } else {
+                    logger.debug(
+                        "journalpostInSaf.sak.fagsaksystem: {}, sak.fagsaksystem: {}",
+                        FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem),
+                        fagsaksystem,
+                    )
+                    (
+                        journalpostInSaf.sak.fagsakId == fagsakId &&
+                            FagsaksSystem.valueOf(journalpostInSaf.sak.fagsaksystem) == fagsaksystem
+                    )
+                }
+            }
+
+            KodeverkSakstype.GENERELL_SAK -> {
+                journalpostInSaf.sak?.sakstype == KodeverkSakstype.GENERELL_SAK.navn && journalpostInSaf.tema.name == tema.navn
+            }
+
+            KodeverkSakstype.ARKIVSAK -> {
+                throw IllegalInputException("Sakstype ${sakstype.name} støttes ikke.")
+            }
         }
 
     fun updateDocumentTitle(

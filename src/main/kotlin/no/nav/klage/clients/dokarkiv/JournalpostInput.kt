@@ -1,5 +1,6 @@
 package no.nav.klage.clients.dokarkiv
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.klage.kodeverk.Tema
 
 enum class JournalpostType {
@@ -31,10 +32,11 @@ data class UpdateDocumentTitleDokumentInput(
     val tittel: String,
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class CreateNewJournalpostBasedOnExistingJournalpostRequest(
     val sakstype: Sakstype,
-    val fagsakId: String,
-    val fagsaksystem: FagsaksSystem,
+    val fagsakId: String?,
+    val fagsaksystem: FagsaksSystem?,
     val tema: Tema,
     val bruker: Bruker,
     val journalfoerendeEnhet: String,
@@ -62,10 +64,11 @@ enum class BrukerIdType {
     AKTOERID,
 }
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class Sak(
     val sakstype: Sakstype,
-    val fagsaksystem: FagsaksSystem,
-    val fagsakid: String,
+    val fagsaksystem: FagsaksSystem?,
+    val fagsakid: String?,
 )
 
 enum class Sakstype {
@@ -77,6 +80,8 @@ enum class Sakstype {
 enum class FagsaksSystem {
     FS38,
     FS36,
+    FS39,
+    FS22,
     UFM,
     OEBS,
     OB36,

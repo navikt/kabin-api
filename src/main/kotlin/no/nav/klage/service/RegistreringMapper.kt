@@ -40,8 +40,10 @@ import no.nav.klage.domain.entities.PartWithUtsendingskanal
 import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.RegistreringDokument
 import no.nav.klage.domain.entities.SvarbrevReceiver
+import no.nav.klage.exceptions.IllegalInputException
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -688,6 +690,8 @@ fun MulighetFromKabal.toMulighet(): Mulighet {
         vedtakDate = vedtakDate.toLocalDate(),
         sakenGjelder = sakenGjelder.toPartWithUtsendingskanal()!!,
         fagsakId = fagsakId,
+        sakstype = Sakstype.of(sakstypeId),
+        arkivsaksnummer = arkivsaksnummer,
         originalFagsystem = fagsystem,
         currentFagsystem = Fagsystem.KABAL,
         ytelse = ytelse,
@@ -736,6 +740,8 @@ fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
                     ),
                 ).toPartWithUtsendingskanal()!!,
         fagsakId = fagsakId,
+        sakstype = Sakstype.FAGSAK,
+        arkivsaksnummer = null,
         originalFagsystem = Fagsystem.IT01,
         currentFagsystem = Fagsystem.IT01,
         ytelse = null,
@@ -750,11 +756,58 @@ fun SakFromKlanke.toMulighet(kabalApiService: KabalApiService): Mulighet {
     )
 }
 
+private class SakForMulighet(
+    val sakstype: Sakstype,
+    val fagsakId: String?,
+    val fagsystem: Fagsystem,
+    val arkivsaksnummer: String?,
+)
+
+private fun Journalpost.toSakForMulighet(): SakForMulighet {
+    val sak = sak ?: throw IllegalInputException("Journalposten $journalpostId er ikke knyttet til en sak.")
+
+    val sakstype =
+        sak.sakstype?.let { sakstypeFromSaf ->
+            Sakstype.fromNavn(sakstypeFromSaf)
+        } ?: throw IllegalInputException("Saken til journalposten $journalpostId mangler sakstype.")
+    val fagsaksystem =
+        sak.fagsaksystem
+            ?: throw IllegalInputException("Saken til journalposten $journalpostId mangler fagsaksystem.")
+    val fagsystem = Fagsystem.fromNavn(fagsaksystem)
+
+    return when (sakstype) {
+        Sakstype.FAGSAK -> {
+            SakForMulighet(
+                sakstype = Sakstype.FAGSAK,
+                fagsakId =
+                    sak.fagsakId
+                        ?: throw IllegalInputException("Saken til journalposten $journalpostId mangler fagsakId."),
+                fagsystem = fagsystem,
+                arkivsaksnummer = null,
+            )
+        }
+
+        Sakstype.GENERELL_SAK -> {
+            SakForMulighet(
+                sakstype = Sakstype.GENERELL_SAK,
+                fagsakId = sak.fagsakId,
+                fagsystem = fagsystem,
+                arkivsaksnummer = sak.arkivsaksnummer,
+            )
+        }
+
+        Sakstype.ARKIVSAK -> {
+            throw IllegalInputException("Journalposten $journalpostId har sakstype ${sakstype.name}, som ikke støttes.")
+        }
+    }
+}
+
 fun Journalpost.toMulighet(
     kabalApiService: KabalApiService,
     registrering: Registrering,
-): Mulighet =
-    Mulighet(
+): Mulighet {
+    val sakForMulighet = toSakForMulighet()
+    return Mulighet(
         type = registrering.type!!,
         originalType = null,
         tema = Tema.valueOf(tema.name),
@@ -779,9 +832,11 @@ fun Journalpost.toMulighet(
                             },
                     ),
                 ).toPartWithUtsendingskanal()!!,
-        fagsakId = sak!!.fagsakId!!,
-        originalFagsystem = Fagsystem.valueOf(sak.fagsaksystem!!),
-        currentFagsystem = Fagsystem.valueOf(sak.fagsaksystem),
+        fagsakId = sakForMulighet.fagsakId,
+        sakstype = sakForMulighet.sakstype,
+        arkivsaksnummer = sakForMulighet.arkivsaksnummer,
+        originalFagsystem = sakForMulighet.fagsystem,
+        currentFagsystem = sakForMulighet.fagsystem,
         ytelse = null,
         klager = null,
         fullmektig = null,
@@ -792,6 +847,7 @@ fun Journalpost.toMulighet(
         hjemmelIdList = emptyList(),
         requiresGosysOppgave = true,
     )
+}
 
 fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal?.toPartWithUtsendingskanal(): PartWithUtsendingskanal? =
     this?.let {
@@ -833,6 +889,7 @@ fun Mulighet.toKlagemulighetView(mulighetType: Type) =
         vedtakDate = vedtakDate!!,
         sakenGjelder = sakenGjelder.toPartViewWithUtsendingskanal(sakenGjelderStatusList)!!,
         fagsakId = fagsakId,
+        saksnummer = getSaksnummer(),
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
         typeId = originalType!!.id,
@@ -848,6 +905,7 @@ fun Mulighet.toKabalmulighetView(mulighetType: Type): KabalmulighetView =
         vedtakDate = vedtakDate,
         sakenGjelder = sakenGjelder.toPartViewWithUtsendingskanal(sakenGjelderStatusList)!!,
         fagsakId = fagsakId,
+        saksnummer = getSaksnummer(),
         originalFagsystemId = originalFagsystem.id,
         currentFagsystemId = currentFagsystem.id,
         typeId = originalType!!.id,

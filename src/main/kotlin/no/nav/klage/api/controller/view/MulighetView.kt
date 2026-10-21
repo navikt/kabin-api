@@ -11,7 +11,8 @@ data class KabalmulighetView(
     override val temaId: String,
     override val vedtakDate: LocalDate?,
     override val sakenGjelder: PartViewWithUtsendingskanal,
-    override val fagsakId: String,
+    override val fagsakId: String?,
+    override val saksnummer: String,
     override var originalFagsystemId: String,
     override val typeId: String,
     override val requiresGosysOppgave: Boolean,
@@ -42,7 +43,8 @@ data class KlagemulighetView(
     override val temaId: String,
     override val vedtakDate: LocalDate,
     override val sakenGjelder: PartViewWithUtsendingskanal,
-    override val fagsakId: String,
+    override val fagsakId: String?,
+    override val saksnummer: String,
     override val originalFagsystemId: String,
     override val currentFagsystemId: String,
     override val typeId: String,
@@ -56,7 +58,9 @@ interface MulighetView {
     val temaId: String
     val vedtakDate: LocalDate?
     val sakenGjelder: PartViewWithUtsendingskanal
-    val fagsakId: String
+    val fagsakId: String?
+
+    val saksnummer: String
     val originalFagsystemId: String
     val currentFagsystemId: String
     val typeId: String

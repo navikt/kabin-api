@@ -97,6 +97,7 @@ import no.nav.klage.domain.entities.Registrering
 import no.nav.klage.domain.entities.RegistreringDokument
 import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.domain.entities.SvarbrevReceiver
+import no.nav.klage.domain.entities.getSaksnummer
 import no.nav.klage.exceptions.IllegalInputException
 import no.nav.klage.exceptions.IllegalUpdateException
 import no.nav.klage.exceptions.MissingAccessException
@@ -106,6 +107,7 @@ import no.nav.klage.exceptions.RegistreringNotFoundException
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -346,8 +348,10 @@ class RegistreringService(
                     willCreateNewJournalpost =
                         dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
                             journalpostId = journalpostId!!,
+                            sakstype = mulighet.sakstype,
                             fagsakId = mulighet.fagsakId,
                             fagsystemId = mulighet.originalFagsystem.id,
+                            tema = mulighet.tema,
                         )
                 }
 
@@ -531,8 +535,10 @@ class RegistreringService(
                     } else {
                         dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
                             journalpostId = journalpostId!!,
+                            sakstype = newMulighet.sakstype,
                             fagsakId = newMulighet.fagsakId,
                             fagsystemId = newMulighet.originalFagsystem.id,
+                            tema = newMulighet.tema,
                         )
                     }
 
@@ -644,8 +650,10 @@ class RegistreringService(
                     } else {
                         dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
                             journalpostId = journalpostId!!,
+                            sakstype = mulighet.sakstype,
                             fagsakId = mulighet.fagsakId,
                             fagsystemId = mulighet.originalFagsystem.id,
+                            tema = mulighet.tema,
                         )
                     }
             }.toMulighetChangeRegistreringView(kabalApiService = kabalApiService)
@@ -2273,6 +2281,12 @@ class RegistreringService(
             varsletFristUnits = status.varsletFristUnits,
             varsletFristUnitTypeId = status.varsletFristUnitTypeId,
             fagsakId = status.fagsakId,
+            saksnummer =
+                getSaksnummer(
+                    sakstype = Sakstype.of(status.sakstypeId),
+                    fagsakId = status.fagsakId,
+                    arkivsaksnummer = status.arkivsaksnummer,
+                ),
             fagsystemId = status.fagsystemId,
             journalpost = status.journalpost?.toReceiptView(),
             uploadedDocuments =

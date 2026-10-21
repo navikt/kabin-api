@@ -37,7 +37,7 @@ class DokArkivClient(
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(payload)
                     .retrieve()
-                    .bodyToMono(CreateNewJournalpostBasedOnExistingJournalpostResponse::class.java)
+                    .bodyToMono<CreateNewJournalpostBasedOnExistingJournalpostResponse>()
                     .block()
                     ?: throw RuntimeException("Journalpost could not be created.")
 
