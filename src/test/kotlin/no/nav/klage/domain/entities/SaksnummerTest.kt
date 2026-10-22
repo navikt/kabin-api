@@ -23,8 +23,18 @@ class SaksnummerTest {
         assertThat(safSak(sakstype = "ARKIVSAK", fagsakId = null).getSaksnummer()).isEqualTo("140411735")
     }
 
+    @Test
+    fun `saf fagsak without fagsakId gives arkivsaksnummer`() {
+        assertThat(safSak(sakstype = "FAGSAK", fagsakId = null).getSaksnummer()).isEqualTo("140411735")
+    }
+
+    @Test
+    fun `saf sak without sakstype gives arkivsaksnummer`() {
+        assertThat(safSak(sakstype = null, fagsakId = null).getSaksnummer()).isEqualTo("140411735")
+    }
+
     private fun safSak(
-        sakstype: String,
+        sakstype: String?,
         fagsakId: String?,
     ) = Sak(
         datoOpprettet = null,

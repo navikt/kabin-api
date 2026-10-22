@@ -766,7 +766,9 @@ private class SakForMulighet(
 private fun Journalpost.toSakForMulighet(): SakForMulighet {
     val sak = sak ?: throw IllegalInputException("Journalposten $journalpostId er ikke knyttet til en sak.")
 
-    val sakstype = Sakstype.fromNavn(sak.sakstype)
+    val sakstype =
+        sak.sakstype?.let { Sakstype.fromNavn(it) }
+            ?: throw IllegalInputException("Saken til journalposten $journalpostId mangler sakstype.")
     val fagsaksystem =
         sak.fagsaksystem
             ?: throw IllegalInputException("Saken til journalposten $journalpostId mangler fagsaksystem.")

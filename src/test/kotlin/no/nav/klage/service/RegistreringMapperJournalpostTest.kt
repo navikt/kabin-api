@@ -113,6 +113,21 @@ class RegistreringMapperJournalpostTest {
     }
 
     @Test
+    fun `journalpost without sakstype gives understandable error`() {
+        val journalpost =
+            journalpost(
+                tema = SafTema.PEN,
+                sak = Sak(datoOpprettet = null, fagsakId = null, fagsaksystem = null, sakstype = null, arkivsaksnummer = "22000000"),
+            )
+
+        val exception =
+            assertThrows<IllegalInputException> {
+                journalpost.toMulighet(kabalApiService = kabalApiService, registrering = registrering)
+            }
+        assertThat(exception.message).contains("mangler sakstype")
+    }
+
+    @Test
     fun `journalpost with GENERELL_SAK without fagsaksystem gives understandable error`() {
         val journalpost =
             journalpost(
