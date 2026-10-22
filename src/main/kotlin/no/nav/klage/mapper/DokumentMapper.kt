@@ -45,6 +45,7 @@ class DokumentMapper {
                         DokumentReferanse.Sak(
                             datoOpprettet = journalpost.sak.datoOpprettet,
                             fagsakId = journalpost.sak.fagsakId,
+                            saksnummer = journalpost.sak.getSaksnummer(),
                             fagsaksystem = journalpost.sak.fagsaksystem,
                             fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(journalpost.sak.fagsaksystem).id },
                         )

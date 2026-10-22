@@ -119,6 +119,8 @@ class DokArkivServiceTest {
         every { mulighet.currentFagsystem } returns Fagsystem.KABAL
         every { mulighet.originalFagsystem } returns Fagsystem.FS38
         every { mulighet.fagsakId } returns saksId
+        every { mulighet.sakstype } returns no.nav.klage.kodeverk.Sakstype.FAGSAK
+        every { mulighet.arkivsaksnummer } returns null
         every { mulighet.klageBehandlendeEnhet } returns enhetsnummer
         every { mulighet.sakenGjelder } returns partWithUtsendingskanal
         every { tokenUtil.getCurrentIdent() } returns "ident"
@@ -549,6 +551,8 @@ class DokArkivServiceTest {
                     datoOpprettet = null,
                     fagsakId = saksId,
                     fagsaksystem = FagsaksSystem.FS38.name,
+                    sakstype = "FAGSAK",
+                    arkivsaksnummer = null,
                 ),
         )
 }

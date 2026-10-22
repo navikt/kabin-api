@@ -180,6 +180,7 @@ data class DokumentReferanse(
     data class Sak(
         val datoOpprettet: LocalDateTime?,
         val fagsakId: String?,
+        val saksnummer: String,
         val fagsaksystem: String?,
         val fagsystemId: String?,
     )

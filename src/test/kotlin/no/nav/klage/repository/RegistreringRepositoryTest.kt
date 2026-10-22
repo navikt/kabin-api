@@ -13,6 +13,7 @@ import no.nav.klage.domain.entities.RegistreringSource
 import no.nav.klage.domain.entities.SvarbrevReceiver
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
@@ -107,6 +108,8 @@ class RegistreringRepositoryTest : PostgresIntegrationTestBase() {
                 currentFagsystem = Fagsystem.KABAL,
                 originalFagsystem = Fagsystem.FS36,
                 fagsakId = "ceteros",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 tema = Tema.FOR,
                 vedtakDate = null,
                 ytelse = Ytelse.FOR_FOR,
@@ -516,5 +519,96 @@ class RegistreringRepositoryTest : PostgresIntegrationTestBase() {
         val registreringerFromDb = registreringRepository.findUferdigeRegistreringer(navIdent = "S223456")
 
         assertThat(registreringerFromDb).hasSize(1)
+    }
+
+    @Test
+    fun `mulighet with GENERELL_SAK and no fagsakId is stored and read`() {
+        val mulighet =
+            Mulighet(
+                sakenGjelder =
+                    PartWithUtsendingskanal(
+                        part = PartId(type = PartIdType.PERSON, value = "12345678910"),
+                        address = null,
+                        name = "Test Person",
+                        available = true,
+                        language = null,
+                        utsendingskanal = null,
+                    ),
+                klager = null,
+                fullmektig = null,
+                currentFagsystem = Fagsystem.FS22,
+                originalFagsystem = Fagsystem.FS22,
+                fagsakId = null,
+                sakstype = Sakstype.GENERELL_SAK,
+                arkivsaksnummer = "140411735",
+                tema = Tema.OPP,
+                vedtakDate = null,
+                ytelse = null,
+                hjemmelIdList = emptyList(),
+                previousSaksbehandlerIdent = null,
+                previousSaksbehandlerName = null,
+                type = Type.KLAGE,
+                originalType = null,
+                klageBehandlendeEnhet = "4200",
+                currentFagystemTechnicalId = "123456789",
+                requiresGosysOppgave = true,
+            )
+
+        val registrering =
+            testEntityManager.persistAndFlush(
+                Registrering(
+                    sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678910"),
+                    klager = null,
+                    fullmektig = null,
+                    avsender = null,
+                    journalpostId = "123456789",
+                    journalpostDatoOpprettet = LocalDate.now(),
+                    type = Type.KLAGE,
+                    mulighetIsBasedOnJournalpost = true,
+                    mulighetId = mulighet.id,
+                    additionalKabalMulighetId = null,
+                    mottattVedtaksinstans = null,
+                    mottattKlageinstans = null,
+                    behandlingstidUnits = 12,
+                    behandlingstidUnitType = TimeUnitType.WEEKS,
+                    hjemmelIdList = emptyList(),
+                    ytelse = null,
+                    forrigeBehandlendeEnhetId = null,
+                    saksbehandlerIdent = null,
+                    gosysOppgaveId = null,
+                    sendSvarbrev = null,
+                    overrideSvarbrevBehandlingstid = false,
+                    overrideSvarbrevCustomText = false,
+                    svarbrevTitle = "a title",
+                    svarbrevCustomText = null,
+                    svarbrevInitialCustomText = null,
+                    svarbrevBehandlingstidUnits = null,
+                    svarbrevBehandlingstidUnitType = null,
+                    svarbrevFullmektigFritekst = null,
+                    createdBy = "S223456",
+                    finished = null,
+                    behandlingId = null,
+                    willCreateNewJournalpost = false,
+                    muligheterFetched = LocalDateTime.now(),
+                    muligheter = mutableSetOf(mulighet),
+                    reasonNoLetter = null,
+                ),
+            )
+
+        testEntityManager.clear()
+
+        val mulighetFromDb =
+            registreringRepository
+                .findById(registrering.id)
+                .get()
+                .muligheter
+                .single()
+
+        assertThat(mulighetFromDb.id).isEqualTo(mulighet.id)
+        assertThat(mulighetFromDb.sakstype).isEqualTo(Sakstype.GENERELL_SAK)
+        assertThat(mulighetFromDb.fagsakId).isNull()
+        assertThat(mulighetFromDb.arkivsaksnummer).isEqualTo("140411735")
+        assertThat(mulighetFromDb.originalFagsystem).isEqualTo(Fagsystem.FS22)
+        assertThat(mulighetFromDb.tema).isEqualTo(Tema.OPP)
     }
 }

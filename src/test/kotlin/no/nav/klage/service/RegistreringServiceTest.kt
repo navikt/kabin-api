@@ -1627,6 +1627,8 @@ class RegistreringServiceTest {
             currentFagsystem = currentFagsystem,
             originalFagsystem = originalFagsystem,
             fagsakId = "123",
+            sakstype = no.nav.klage.kodeverk.Sakstype.FAGSAK,
+            arkivsaksnummer = null,
             tema = Tema.SYK,
             vedtakDate = vedtakDate,
             ytelse = Ytelse.OMS_PSB,

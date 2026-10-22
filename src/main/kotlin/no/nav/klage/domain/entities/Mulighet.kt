@@ -15,6 +15,8 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FagsystemConverter
+import no.nav.klage.kodeverk.Sakstype
+import no.nav.klage.kodeverk.SakstypeConverter
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TemaConverter
 import no.nav.klage.kodeverk.Type
@@ -95,7 +97,12 @@ class Mulighet(
     @Column(name = "original_fagsystem_id")
     val originalFagsystem: Fagsystem,
     @Column(name = "fagsak_id")
-    val fagsakId: String,
+    val fagsakId: String?,
+    @Convert(converter = SakstypeConverter::class)
+    @Column(name = "sakstype_id")
+    val sakstype: Sakstype,
+    @Column(name = "arkivsaksnummer")
+    val arkivsaksnummer: String?,
     @Convert(converter = TemaConverter::class)
     @Column(name = "tema_id")
     val tema: Tema,
@@ -167,7 +174,9 @@ class Mulighet(
     override fun hashCode(): Int = id.hashCode()
 
     override fun toString(): String =
-        "Mulighet(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, currentFagsystem=$currentFagsystem, originalFagsystem=$originalFagsystem, fagsakId='$fagsakId', tema=$tema, vedtakDate=$vedtakDate, ytelse=$ytelse, hjemmelIdList=$hjemmelIdList, previousSaksbehandlerIdent=$previousSaksbehandlerIdent, previousSaksbehandlerName=$previousSaksbehandlerName, type=$type, originalType=$originalType, klageBehandlendeEnhet='$klageBehandlendeEnhet', currentFagystemTechnicalId='$currentFagystemTechnicalId', created=$created, existingBehandlingList=$existingBehandlingList, sakenGjelderStatusList=$sakenGjelderStatusList, klagerStatusList=$klagerStatusList, fullmektigStatusList=$fullmektigStatusList, requiresGosysOppgave=$requiresGosysOppgave, kjennelseMottatt=$kjennelseMottatt)"
+        "Mulighet(id=$id, sakenGjelder=$sakenGjelder, klager=$klager, fullmektig=$fullmektig, currentFagsystem=$currentFagsystem, originalFagsystem=$originalFagsystem, fagsakId=$fagsakId, sakstype=$sakstype, arkivsaksnummer=$arkivsaksnummer, tema=$tema, vedtakDate=$vedtakDate, ytelse=$ytelse, hjemmelIdList=$hjemmelIdList, previousSaksbehandlerIdent=$previousSaksbehandlerIdent, previousSaksbehandlerName=$previousSaksbehandlerName, type=$type, originalType=$originalType, klageBehandlendeEnhet='$klageBehandlendeEnhet', currentFagystemTechnicalId='$currentFagystemTechnicalId', created=$created, existingBehandlingList=$existingBehandlingList, sakenGjelderStatusList=$sakenGjelderStatusList, klagerStatusList=$klagerStatusList, fullmektigStatusList=$fullmektigStatusList, requiresGosysOppgave=$requiresGosysOppgave, kjennelseMottatt=$kjennelseMottatt)"
+
+    fun getSaksnummer(): String = getSaksnummer(sakstype = sakstype, fagsakId = fagsakId, arkivsaksnummer = arkivsaksnummer)
 
     // TODO: Consider if new types should be included
     fun isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak(): Boolean =
@@ -182,3 +191,13 @@ class Mulighet(
             type == Type.ANKE_FOER_2027 &&
             originalType == Type.ANKE_FOER_2027
 }
+
+fun getSaksnummer(
+    sakstype: Sakstype,
+    fagsakId: String?,
+    arkivsaksnummer: String?,
+): String =
+    when (sakstype) {
+        Sakstype.FAGSAK -> fagsakId!!
+        Sakstype.GENERELL_SAK, Sakstype.ARKIVSAK -> arkivsaksnummer!!
+    }

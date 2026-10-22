@@ -9,7 +9,7 @@ val logstashVersion = "9.0"
 val springDocVersion = "3.1.1"
 val springMockkVersion = "5.0.1"
 val logbackSyslog4jVersion = "1.0.0"
-val klageKodeverkVersion = "3.3.35"
+val klageKodeverkVersion = "3.4.1"
 val testContainersVersion = "2.0.5"
 val otelVersion = "1.66.0"
 
