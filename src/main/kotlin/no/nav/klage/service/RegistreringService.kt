@@ -313,7 +313,7 @@ class RegistreringService(
                             mottattVedtaksinstans = journalpostDatoOpprettet
                         }
 
-                        Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK -> {
+                        Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
                             mottattKlageinstans = journalpostDatoOpprettet
                         }
 
@@ -515,7 +515,7 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = newMulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in ankeTypes + listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+                } else if (type in ankeTypes + listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = newMulighet.klager?.part.toPartIdInput(),
@@ -630,7 +630,7 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = mulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in ankeTypes + listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+                } else if (type in ankeTypes + listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = mulighet.klager?.part.toPartIdInput(),
@@ -1818,7 +1818,7 @@ class RegistreringService(
                     )
                 }
 
-                Type.BEGJAERING_OM_GJENOPPTAK -> {
+                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
                     gjenopptakService.createGjenopptak(
                         registrering = registrering,
                     )
