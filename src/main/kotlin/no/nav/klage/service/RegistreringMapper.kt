@@ -451,7 +451,7 @@ fun Registrering.toMuligheterView(): MuligheterView {
                 omgjoeringskravmuligheter.add(mulighet)
             }
 
-            Type.BEGJAERING_OM_GJENOPPTAK -> {
+            Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
                 gjenopptaksmuligheter.add(mulighet)
             }
 
@@ -488,7 +488,7 @@ fun Registrering.toMuligheterView(): MuligheterView {
     val gjenopptaksmuligheterView =
         getMuligheterSorted(gjenopptaksmuligheter)
             .map { gjenopptaksmulighet ->
-                gjenopptaksmulighet.toKabalmulighetView(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK)
+                gjenopptaksmulighet.toKabalmulighetView(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)
             }
 
     return MuligheterView(
