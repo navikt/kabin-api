@@ -13,6 +13,7 @@ import no.nav.klage.api.controller.view.HjemmelIdListInput
 import no.nav.klage.api.controller.view.ModifySvarbrevRecipientInput
 import no.nav.klage.api.controller.view.MottattKlageinstansInput
 import no.nav.klage.api.controller.view.MottattVedtaksinstansInput
+import no.nav.klage.api.controller.view.MulighetBasedOnJournalpostInput
 import no.nav.klage.api.controller.view.MulighetInput
 import no.nav.klage.api.controller.view.MulighetIsBasedOnJournalpostInput
 import no.nav.klage.api.controller.view.PartIdInput
@@ -28,7 +29,9 @@ import no.nav.klage.api.controller.view.SvarbrevInitialCustomTextInput
 import no.nav.klage.api.controller.view.SvarbrevTitleInput
 import no.nav.klage.api.controller.view.TrygderettenSaksnummerInput
 import no.nav.klage.api.controller.view.TypeIdInput
+import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.api.controller.view.YtelseIdInput
+import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.InngaaendeKanal
@@ -62,11 +65,17 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
+import no.nav.klage.clients.saf.graphql.Bruker as SafBruker
+import no.nav.klage.clients.saf.graphql.Journalposttype as SafJournalposttype
+import no.nav.klage.clients.saf.graphql.Sak as SafSak
+import no.nav.klage.clients.saf.graphql.Tema as SafTema
 
 class RegistreringServiceTest {
     private lateinit var registreringRepository: RegistreringRepository
     private lateinit var tokenUtil: TokenUtil
     private lateinit var kabalApiService: KabalApiService
+    private lateinit var safService: SafService
+    private lateinit var dokArkivService: DokArkivService
     private lateinit var registreringService: RegistreringService
 
     private val currentIdent = "S123456"
@@ -76,6 +85,8 @@ class RegistreringServiceTest {
         registreringRepository = mockk()
         tokenUtil = mockk()
         kabalApiService = mockk(relaxed = true)
+        safService = mockk()
+        dokArkivService = mockk()
 
         every { tokenUtil.getCurrentIdent() } returns currentIdent
 
@@ -90,8 +101,8 @@ class RegistreringServiceTest {
                 omgjoeringskravService = mockk(),
                 gjenopptakService = mockk(),
                 documentService = mockk(),
-                dokArkivService = mockk(),
-                safService = mockk(),
+                dokArkivService = dokArkivService,
+                safService = safService,
                 fileApiClient = mockk(),
             )
     }
@@ -1260,6 +1271,162 @@ class RegistreringServiceTest {
             assertThat(registrering.saksbehandlerIdent).isNull()
             assertThat(registrering.sendSvarbrev).isNull()
             assertThat(registrering.mulighetIsBasedOnJournalpost).isTrue()
+        }
+    }
+
+    // ============ setMulighetBasedOnJournalpost ============
+
+    @Nested
+    inner class SetMulighetBasedOnJournalpostTest {
+        private fun setupJournalpost(
+            type: Type,
+            fagsaksystem: String,
+            tema: SafTema,
+        ): UUID {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.type = type
+            registrering.mulighetIsBasedOnJournalpost = true
+            registrering.sakenGjelder = PartId(type = PartIdType.PERSON, value = "12345678901")
+            registrering.journalpostId = "jp1"
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+            every { safService.getJournalpostAsSaksbehandler(journalpostId = "jp1") } returns
+                journalpost(fagsaksystem = fagsaksystem, tema = tema)
+            every {
+                dokArkivService.journalpostIsFinalizedAndConnectedToFagsak(
+                    journalpostId = any(),
+                    sakstype = any(),
+                    fagsakId = any(),
+                    fagsystemId = any(),
+                    tema = any(),
+                )
+            } returns false
+            every { kabalApiService.searchPartWithUtsendingskanal(any()) } returns
+                no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal(
+                    identifikator = "12345678901",
+                    type = no.nav.klage.clients.kabalapi.PartType.FNR,
+                    name = "Test Person",
+                    available = true,
+                    statusList = emptyList(),
+                    address = null,
+                    utsendingskanal = Utsendingskanal.SENTRAL_UTSKRIFT,
+                    language = null,
+                )
+            every { kabalApiService.searchPart(any()) } returns
+                no.nav.klage.clients.kabalapi.SearchPartView(
+                    identifikator = "12345678901",
+                    type = no.nav.klage.clients.kabalapi.PartType.FNR,
+                    name = "Test Person",
+                    available = true,
+                    statusList = emptyList(),
+                    address = null,
+                    language = null,
+                )
+            every { kabalApiService.getSvarbrevSettings(ytelseId = any(), typeId = any()) } returns
+                no.nav.klage.clients.kabalapi.SvarbrevSettingsView(
+                    behandlingstidUnits = 12,
+                    behandlingstidUnitTypeId = TimeUnitType.WEEKS.id,
+                    customText = null,
+                    shouldSend = true,
+                )
+            return id
+        }
+
+        private fun journalpost(
+            fagsaksystem: String,
+            tema: SafTema,
+        ): Journalpost =
+            Journalpost(
+                journalpostId = "jp1",
+                tittel = null,
+                journalposttype = SafJournalposttype.I,
+                journalstatus = null,
+                bruker = SafBruker(id = "12345678901", type = SafBruker.BrukerIdType.FNR),
+                tema = tema,
+                temanavn = null,
+                behandlingstema = null,
+                behandlingstemanavn = null,
+                sak =
+                    SafSak(
+                        datoOpprettet = null,
+                        fagsakId = "fagsak1",
+                        fagsaksystem = fagsaksystem,
+                        sakstype = "FAGSAK",
+                        arkivsaksnummer = null,
+                    ),
+                avsenderMottaker = null,
+                journalfoerendeEnhet = "4817",
+                journalfortAvNavn = null,
+                opprettetAvNavn = null,
+                skjerming = null,
+                datoOpprettet = LocalDateTime.now(),
+                datoSortering = LocalDateTime.now(),
+                dokumenter = null,
+                relevanteDatoer = null,
+                antallRetur = null,
+                tilleggsopplysninger = null,
+                kanal = "NAV_NO",
+                kanalnavn = "Nav.no",
+                utsendingsinfo = null,
+            )
+
+        @Test
+        fun `allows klage and anke from Pesys with tema UFO or PEN`() {
+            listOf(Type.KLAGE, Type.ANKE_FOER_2027).forEach { type ->
+                listOf(SafTema.UFO, SafTema.PEN).forEach { tema ->
+                    val id = setupJournalpost(type = type, fagsaksystem = "PP01", tema = tema)
+
+                    registreringService.setMulighetBasedOnJournalpost(
+                        registreringId = id,
+                        input = MulighetBasedOnJournalpostInput(journalpostId = "jp1"),
+                    )
+
+                    val mulighet = registreringRepository.findById(id).get().getCurrentMulighet()!!
+                    assertThat(mulighet.originalFagsystem).isEqualTo(Fagsystem.PP01)
+                    assertThat(mulighet.tema).isEqualTo(Tema.valueOf(tema.name))
+                }
+            }
+        }
+
+        @Test
+        fun `rejects klage and anke from Pesys with other tema`() {
+            listOf(Type.KLAGE, Type.ANKE_FOER_2027).forEach { type ->
+                val id = setupJournalpost(type = type, fagsaksystem = "PP01", tema = SafTema.EYB)
+
+                assertThatThrownBy {
+                    registreringService.setMulighetBasedOnJournalpost(
+                        registreringId = id,
+                        input = MulighetBasedOnJournalpostInput(journalpostId = "jp1"),
+                    )
+                }.isInstanceOf(IllegalInputException::class.java)
+            }
+        }
+
+        @Test
+        fun `rejects tema UFO from other fagsystem than Pesys`() {
+            val id = setupJournalpost(type = Type.KLAGE, fagsaksystem = "IT01", tema = SafTema.UFO)
+
+            assertThatThrownBy {
+                registreringService.setMulighetBasedOnJournalpost(
+                    registreringId = id,
+                    input = MulighetBasedOnJournalpostInput(journalpostId = "jp1"),
+                )
+            }.isInstanceOf(IllegalInputException::class.java)
+        }
+
+        @Test
+        fun `still allows klage and anke from Arena`() {
+            listOf(Type.KLAGE, Type.ANKE_FOER_2027).forEach { type ->
+                val id = setupJournalpost(type = type, fagsaksystem = "AO01", tema = SafTema.AAP)
+
+                registreringService.setMulighetBasedOnJournalpost(
+                    registreringId = id,
+                    input = MulighetBasedOnJournalpostInput(journalpostId = "jp1"),
+                )
+
+                val mulighet = registreringRepository.findById(id).get().getCurrentMulighet()!!
+                assertThat(mulighet.originalFagsystem).isEqualTo(Fagsystem.AO01)
+            }
         }
     }
 

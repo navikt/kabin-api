@@ -108,6 +108,7 @@ import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Sakstype
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -568,18 +569,25 @@ class RegistreringService(
                 registrering = registrering,
             )
 
+        val isPesysWithSupportedTema =
+            mulighet.originalFagsystem == Fagsystem.PP01 && mulighet.tema in listOf(Tema.UFO, Tema.PEN)
+
         if (registrering.type == Type.KLAGE) {
-            if (mulighet.originalFagsystem !in listOf(Fagsystem.AO01, Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22)) {
+            if (mulighet.originalFagsystem !in listOf(Fagsystem.AO01, Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22) &&
+                !isPesysWithSupportedTema
+            ) {
                 throw IllegalInputException(
-                    "Opprettelse av klage basert på journalpost er bare tilgjengelig for saker fra Arena.",
+                    "Opprettelse av klage basert på journalpost er bare tilgjengelig for saker fra Arena, " +
+                        "og for saker fra Pesys med tema uføretrygd eller pensjon.",
                 )
             }
         }
 
         if (registrering.type.isAnke()) {
-            if (mulighet.originalFagsystem != Fagsystem.AO01) {
+            if (mulighet.originalFagsystem != Fagsystem.AO01 && !isPesysWithSupportedTema) {
                 throw IllegalInputException(
-                    "Opprettelse av anke basert på journalpost er bare tilgjengelig for saker fra Arena.",
+                    "Opprettelse av anke basert på journalpost er bare tilgjengelig for saker fra Arena, " +
+                        "og for saker fra Pesys med tema uføretrygd eller pensjon.",
                 )
             }
         }
