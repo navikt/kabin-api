@@ -477,10 +477,15 @@ data class SvarbrevInitialCustomTextChangeRegistreringView(
 data class HjemmelIdListChangeRegistreringView(
     val id: UUID,
     val overstyringer: HjemmelIdListChangeRegistreringOverstyringerView,
+    val svarbrev: HjemmelIdListChangeRegistreringSvarbrevView,
     val modified: LocalDateTime,
 ) {
     data class HjemmelIdListChangeRegistreringOverstyringerView(
         val hjemmelIdList: List<String>,
+    )
+
+    data class HjemmelIdListChangeRegistreringSvarbrevView(
+        val initialCustomText: String?,
     )
 }
 
