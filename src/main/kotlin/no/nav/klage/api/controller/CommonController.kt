@@ -4,7 +4,6 @@ import no.nav.klage.api.controller.view.CalculateFristInput
 import no.nav.klage.api.controller.view.CreatedBehandlingStatusView
 import no.nav.klage.api.controller.view.GetGosysOppgaveListInput
 import no.nav.klage.api.controller.view.GosysOppgaveView
-import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.service.GosysOppgaveService
@@ -12,7 +11,6 @@ import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.logMethodDetails
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -22,7 +20,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 @RestController
-@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class CommonController(
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,

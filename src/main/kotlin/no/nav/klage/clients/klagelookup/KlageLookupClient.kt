@@ -1,5 +1,7 @@
 package no.nav.klage.clients.klagelookup
 
+import no.nav.klage.auth.AzureTokenType
+import no.nav.klage.auth.currentAzureTokenType
 import no.nav.klage.exceptions.UserNotFoundException
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
@@ -61,13 +63,13 @@ class KlageLookupClient(
     }
 
     private fun getCorrectBearerToken(): String =
-        when (tokenUtil.getCurrentTokenType()) {
-            TokenUtil.TokenType.OBO -> {
+        when (currentAzureTokenType()) {
+            AzureTokenType.OBO -> {
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageLookupScope()}"
             }
 
-            TokenUtil.TokenType.CC,
-            TokenUtil.TokenType.UNAUTHENTICATED,
+            AzureTokenType.CC,
+            AzureTokenType.UNAUTHENTICATED,
             -> {
                 "Bearer ${tokenUtil.getMaskinTilMaskinTokenWithKlageLookupScope()}"
             }

@@ -8,13 +8,11 @@ import no.nav.klage.api.controller.view.IdnummerInput
 import no.nav.klage.api.controller.view.LogiskVedleggInput
 import no.nav.klage.api.controller.view.LogiskVedleggResponse
 import no.nav.klage.api.controller.view.UpdateDocumentTitleView
-import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.service.DocumentService
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.logMethodDetails
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -30,7 +28,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class DokumentController(
     private val documentService: DocumentService,
     private val tokenUtil: TokenUtil,
