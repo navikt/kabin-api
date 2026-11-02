@@ -6,6 +6,9 @@ spring:
   web:
     resources:
       add-mappings: false
+    error:
+      include-message: never
+      include-stacktrace: never
   mvc:
     log-request-details: true
   lifecycle:
@@ -40,7 +43,7 @@ management:
       enabled: false
   endpoint:
     health:
-      show-details: always
+      show-details: never
   endpoints.web:
     exposure:
       include: info, health, metrics, prometheus
@@ -55,125 +58,6 @@ management:
       export:
         enabled: true
 
-no.nav.security.jwt:
-  issuer:
-    aad:
-      discoveryurl: ${AZURE_APP_WELL_KNOWN_URL}
-      accepted_audience: ${AZURE_APP_CLIENT_ID}
-  client:
-    registration:
-      kabal-api-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_API_APP_NAME}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      kabal-api-maskintilmaskin:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: client_credentials
-        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_API_APP_NAME}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      kabal-innstillinger-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_INNSTILLINGER_APP_NAME}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      kabal-file-api-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_FILE_API_APP_NAME}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      saf-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${SAF_SCOPE}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      dok-arkiv-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${DOK_ARKIV_SCOPE}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      gosys-oppgave-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${GOSYS_OPPGAVE_SCOPE}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      pdl-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${PDL_SCOPE}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      klage-fss-proxy-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${FSS_CLUSTER}.klage.klage-fss-proxy/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      klage-fss-proxy-maskintilmaskin:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: client_credentials
-        scope: api://${FSS_CLUSTER}.klage.klage-fss-proxy/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      klanke-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${FSS_CLUSTER}.klage.klanke/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      klanke-maskintilmaskin:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: client_credentials
-        scope: api://${FSS_CLUSTER}.klage.klanke/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      klage-lookup-onbehalfof:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KLAGE_LOOKUP_APP_NAME}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
-      klage-lookup-maskintilmaskin:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: client_credentials
-        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KLAGE_LOOKUP_APP_NAME}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
 
 KABAL_API_BASE_URL: http://kabal-api
 KABAL_API_APP_NAME: kabal-api

@@ -71,7 +71,6 @@ import no.nav.klage.api.controller.view.TypeChangeRegistreringView
 import no.nav.klage.api.controller.view.TypeIdInput
 import no.nav.klage.api.controller.view.YtelseChangeRegistreringView
 import no.nav.klage.api.controller.view.YtelseIdInput
-import no.nav.klage.config.SecurityConfiguration
 import no.nav.klage.service.DokumentConfirmService
 import no.nav.klage.service.RegistreringService
 import no.nav.klage.util.AuditLogEvent
@@ -80,7 +79,6 @@ import no.nav.klage.util.SseWriter
 import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.logMethodDetails
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -99,7 +97,6 @@ import java.net.URI
 import java.util.UUID
 
 @RestController
-@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("/registreringer")
 class RegistreringController(
     private val registreringService: RegistreringService,

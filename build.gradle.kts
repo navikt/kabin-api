@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val ktlintVersion = "1.8.0"
-val tokenValidationVersion = "6.0.12"
+val klageAuthVersion = "0.4.0"
 val logstashVersion = "9.0"
 val springDocVersion = "3.1.1"
 val springMockkVersion = "5.0.1"
@@ -38,6 +38,7 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -50,6 +51,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
@@ -64,8 +66,7 @@ dependencies {
 
     implementation("no.nav.klage:klage-kodeverk:$klageKodeverkVersion")
 
-    implementation("no.nav.security:token-validation-spring:$tokenValidationVersion")
-    implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
+    implementation("no.nav.klage:klage-auth:$klageAuthVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
@@ -81,6 +82,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
 
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
+    testImplementation("no.nav.klage:klage-auth-test:$klageAuthVersion")
 }
 
 idea {
