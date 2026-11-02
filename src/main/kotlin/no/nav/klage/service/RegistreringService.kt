@@ -317,7 +317,12 @@ class RegistreringService(
                             mottattVedtaksinstans = journalpostDatoOpprettet
                         }
 
-                        Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
+                        Type.ANKE_FOER_2027,
+                        Type.ANKE_ETTER_2027,
+                        Type.OMGJOERINGSKRAV,
+                        Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                        -> {
                             mottattKlageinstans = journalpostDatoOpprettet
                         }
 
@@ -371,7 +376,14 @@ class RegistreringService(
     ): TypeChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        requireTypeAndAvsenderNotLocked(registrering = registrering)
+        val newType = input.typeId?.let { Type.of(it) }
+        if (registrering.isBehandlingFromTrygderetten()) {
+            if (newType !in listOf(Type.ANKE_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027)) {
+                throw IllegalInputException("Velg anke eller begjæring om gjenopptak fra Trygderetten.")
+            }
+        } else if (newType in listOf(Type.ANKE_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027)) {
+            throw IllegalInputException("Type ${newType?.navn} krever Trygderetten som kilde.")
+        }
 
         if (input.typeId != null && Type.of(input.typeId) == Type.KLAGE &&
             registrering.isBasedOnUploadedDocument()
@@ -410,7 +422,7 @@ class RegistreringService(
 
                 saksbehandlerIdent = null
 
-                clearSvarbrevSettings(sendSvarbrev = null)
+                clearSvarbrevSettings(sendSvarbrev = if (isBehandlingFromTrygderetten()) false else null)
 
                 gosysOppgaveId = null
 
@@ -456,7 +468,7 @@ class RegistreringService(
     private fun getDefaultBehandlingstidUnitType(type: Type?): TimeUnitType = TimeUnitType.WEEKS
 
     private fun getDefaultBehandlingstidUnits(registrering: Registrering): Int =
-        if (registrering.isAnkeFromTrygderetten()) {
+        if (registrering.isBehandlingFromTrygderetten()) {
             4
         } else if (registrering.type.isAnke()) {
             0
@@ -519,7 +531,10 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = newMulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in ankeTypes + listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)) {
+                } else if (type in
+                    ankeTypes +
+                    listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027)
+                ) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = newMulighet.klager?.part.toPartIdInput(),
@@ -641,7 +656,10 @@ class RegistreringService(
                 if (type == Type.KLAGE) {
                     mottattKlageinstans = mulighet.vedtakDate
                     mottattVedtaksinstans = journalpostDatoOpprettet
-                } else if (type in ankeTypes + listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)) {
+                } else if (type in
+                    ankeTypes +
+                    listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027)
+                ) {
                     handleReceiversWhenChangingPart(
                         unchangedRegistrering = this,
                         partIdInput = mulighet.klager?.part.toPartIdInput(),
@@ -745,8 +763,13 @@ class RegistreringService(
                 input = input,
                 token = saksbehandlerAccessTokenWithKabalApiScope,
             )
-        val gjenopptaksmuligheterFromKabalMono =
-            kabalApiService.getGjenopptaksmuligheterAsMono(
+        val gjenopptaksmuligheterFoer2027FromKabalMono =
+            kabalApiService.getGjenopptaksmuligheterFoer2027AsMono(
+                input = input,
+                token = saksbehandlerAccessTokenWithKabalApiScope,
+            )
+        val gjenopptaksmuligheterEtter2027FromKabalMono =
+            kabalApiService.getGjenopptaksmuligheterEtter2027AsMono(
                 input = input,
                 token = saksbehandlerAccessTokenWithKabalApiScope,
             )
@@ -765,7 +788,8 @@ class RegistreringService(
                 ankemuligheterFoer2027FromKabalMono,
                 ankemuligheterEtter2027FromKabalMono,
                 omgjoeringskravmuligheterFromKabalMono,
-                gjenopptaksmuligheterFromKabalMono,
+                gjenopptaksmuligheterFoer2027FromKabalMono,
+                gjenopptaksmuligheterEtter2027FromKabalMono,
             ).parallel()
             .runOn(Schedulers.parallel())
             .doOnNext { mulighetList ->
@@ -921,8 +945,8 @@ class RegistreringService(
     }
 
     private fun Registrering.setSvarbrevSettings() {
-        // Svarbrev is never sent for an anke received from Trygderetten, so there are no settings to apply.
-        if (isAnkeFromTrygderetten()) {
+        // Svarbrev is never sent for a behandling received from Trygderetten, so there are no settings to apply.
+        if (isBehandlingFromTrygderetten()) {
             clearSvarbrevSettings()
             return
         }
@@ -1434,8 +1458,8 @@ class RegistreringService(
         val registrering =
             getRegistreringForUpdate(registreringId)
                 .apply {
-                    if (input.send && isAnkeFromTrygderetten()) {
-                        throw IllegalInputException("Det sendes ikke svarbrev for en anke fra Trygderetten.")
+                    if (input.send && isBehandlingFromTrygderetten()) {
+                        throw IllegalInputException("Det sendes ikke svarbrev for behandling fra Trygderetten.")
                     }
                     sendSvarbrev = input.send
                     modified = LocalDateTime.now()
@@ -1563,8 +1587,8 @@ class RegistreringService(
     }
 
     private fun Registrering.getSvarbrevSettings(): SvarbrevSettingsView {
-        if (isAnkeFromTrygderetten()) {
-            throw IllegalInputException("Det sendes ikke svarbrev for en anke fra Trygderetten.")
+        if (isBehandlingFromTrygderetten()) {
+            throw IllegalInputException("Det sendes ikke svarbrev for behandling fra Trygderetten.")
         }
         return kabalApiService.getSvarbrevSettings(
             ytelseId = ytelse!!.id,
@@ -1851,7 +1875,7 @@ class RegistreringService(
                     )
                 }
 
-                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
+                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
                     gjenopptakService.createGjenopptak(
                         registrering = registrering,
                     )
@@ -1914,8 +1938,8 @@ class RegistreringService(
     }
 
     private fun requireTypeAndAvsenderNotLocked(registrering: Registrering) {
-        if (registrering.isAnkeFromTrygderetten()) {
-            throw IllegalInputException("Type og avsender er gitt av kilden og kan ikke endres for en anke fra Trygderetten.")
+        if (registrering.isBehandlingFromTrygderetten()) {
+            throw IllegalInputException("Type og avsender er gitt av kilden og kan ikke endres for behandling fra Trygderetten.")
         }
     }
 
@@ -1925,8 +1949,8 @@ class RegistreringService(
     ): TrygderettenSaksnummerChangeRegistreringView {
         val registrering = getRegistreringForUpdate(registreringId)
 
-        if (!registrering.isAnkeFromTrygderetten()) {
-            throw IllegalInputException("Saksnummer fra Trygderetten kan bare settes på en anke fra Trygderetten.")
+        if (!registrering.isBehandlingFromTrygderetten()) {
+            throw IllegalInputException("Saksnummer fra Trygderetten kan bare settes på behandling fra Trygderetten.")
         }
 
         registrering.trygderettenSaksnummer = input.trygderettenSaksnummer?.trim()?.ifEmpty { null }
@@ -1973,7 +1997,7 @@ class RegistreringService(
                 // any other source.
                 trygderettenSaksnummer = null
 
-                if (registrering.isAnkeFromTrygderetten()) {
+                if (registrering.isBehandlingFromTrygderetten()) {
                     type = Type.ANKE_ETTER_2027
                     avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
                     inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
@@ -1998,9 +2022,9 @@ class RegistreringService(
 
                 saksbehandlerIdent = null
 
-                // Svarbrev is never sent for an anke received from Trygderetten, so that choice is
+                // Svarbrev is never sent for a behandling received from Trygderetten, so that choice is
                 // already made. For other sources the user has yet to choose.
-                clearSvarbrevSettings(sendSvarbrev = if (registrering.isAnkeFromTrygderetten()) false else null)
+                clearSvarbrevSettings(sendSvarbrev = if (registrering.isBehandlingFromTrygderetten()) false else null)
                 reasonNoLetter = null
 
                 gosysOppgaveId = null

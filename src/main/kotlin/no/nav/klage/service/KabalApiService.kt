@@ -86,11 +86,20 @@ class KabalApiService(
             token = token,
         )
 
-    fun getGjenopptaksmuligheterAsMono(
+    fun getGjenopptaksmuligheterFoer2027AsMono(
         input: IdnummerInput,
         token: String,
     ): Mono<List<MulighetFromKabal>> =
-        kabalApiClient.getGjenopptaksmuligheterByIdnummer(
+        kabalApiClient.getGjenopptaksmuligheterFoer2027ByIdnummer(
+            idnummerInput = input,
+            token = token,
+        )
+
+    fun getGjenopptaksmuligheterEtter2027AsMono(
+        input: IdnummerInput,
+        token: String,
+    ): Mono<List<MulighetFromKabal>> =
+        kabalApiClient.getGjenopptaksmuligheterEtter2027ByIdnummer(
             idnummerInput = input,
             token = token,
         )
@@ -196,7 +205,7 @@ class KabalApiService(
         return kabalApiClient
             .createBehandlingBasedOnKabal(
                 CreateBehandlingBasedOnKabalInput(
-                    typeId = mulighet.type.id,
+                    typeId = registrering.type!!.id,
                     sourceBehandlingId = UUID.fromString(mulighet.currentFagystemTechnicalId),
                     mottattNav = registrering.mottattKlageinstans!!,
                     frist =
@@ -263,9 +272,9 @@ class KabalApiService(
         typeId: String,
     ): SvarbrevSettingsView = kabalApiClient.getSvarbrevSettings(ytelseId = ytelseId, typeId = typeId)
 
-    /** No svarbrev is sent for an anke received from Trygderetten, so no settings exist for it. */
+    /** No svarbrev is sent for a behandling received from Trygderetten, so no settings exist for it. */
     private fun getSvarbrevSettingsIfRelevant(registrering: Registrering): SvarbrevSettingsView? =
-        if (registrering.isAnkeFromTrygderetten()) {
+        if (registrering.isBehandlingFromTrygderetten()) {
             null
         } else {
             getSvarbrevSettings(

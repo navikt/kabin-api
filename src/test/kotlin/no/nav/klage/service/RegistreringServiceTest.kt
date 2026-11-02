@@ -4,6 +4,8 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
+import io.mockk.spyk
 import io.mockk.verify
 import no.nav.klage.api.controller.view.AvsenderInput
 import no.nav.klage.api.controller.view.BehandlingstidInput
@@ -31,6 +33,8 @@ import no.nav.klage.api.controller.view.TrygderettenSaksnummerInput
 import no.nav.klage.api.controller.view.TypeIdInput
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.api.controller.view.YtelseIdInput
+import no.nav.klage.clients.kabalapi.CreateBehandlingBasedOnKabalInput
+import no.nav.klage.clients.kabalapi.KabalApiClient
 import no.nav.klage.clients.saf.graphql.Journalpost
 import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.HandlingEnum
@@ -56,11 +60,15 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.ValidationUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Optional
@@ -478,6 +486,107 @@ class RegistreringServiceTest {
             }.isInstanceOf(IllegalInputException::class.java)
 
             assertThat(registrering.type).isEqualTo(Type.ANKE_ETTER_2027)
+        }
+
+        @Test
+        fun `Trygderetten source allows switching both ways while retaining metadata and no svarbrev`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+            registreringService.setSource(id, SourceInput(RegistreringSource.ANKE))
+            registreringService.setTrygderettenSaksnummer(id, TrygderettenSaksnummerInput("2027123"))
+
+            listOf(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027, Type.ANKE_ETTER_2027).forEach { type ->
+                val view = registreringService.setTypeId(id, TypeIdInput(type.id))
+                assertThat(view.typeId).isEqualTo(type.id)
+                assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
+                assertThat(registrering.avsender).isEqualTo(RegistreringSource.TRYGDERETTEN_AVSENDER)
+                assertThat(registrering.inngaaendeKanal).isEqualTo(InngaaendeKanal.ALTINN_INNBOKS)
+                assertThat(registrering.behandlingstidUnits).isEqualTo(4)
+                assertThat(view.svarbrev.send).isFalse()
+            }
+            registreringService.setTypeId(id, TypeIdInput(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027.id))
+            registreringService.setSource(id, SourceInput(RegistreringSource.JOURNALPOST))
+            assertThat(registrering.type).isNull()
+            assertThat(registrering.trygderettenSaksnummer).isNull()
+        }
+
+        @Test
+        fun `new gjenopptak cannot be selected without Trygderetten source`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+            assertThatThrownBy {
+                registreringService.setTypeId(id, TypeIdInput(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027.id))
+            }.isInstanceOf(IllegalInputException::class.java)
+        }
+
+        @Test
+        fun `gjenopptak JSON retains the old field as an alias for before 2027 only`() {
+            val registrering = getUnfinishedRegistrering()
+            val old = renderableMulighet(Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)
+            val new = renderableMulighet(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027)
+            registrering.muligheter.addAll(listOf(old, new))
+
+            val mapper = jacksonObjectMapper()
+            val json = mapper.readTree(mapper.writeValueAsString(registrering.toMuligheterView()))
+
+            assertThat(json["gjenopptaksmuligheter"]).isEqualTo(json["gjenopptaksmuligheterFoer2027"])
+            assertThat(json["gjenopptaksmuligheterFoer2027"].size()).isEqualTo(1)
+            assertThat(json["gjenopptaksmuligheterFoer2027"][0]["id"].asString()).isEqualTo(old.id.toString())
+            assertThat(json["gjenopptaksmuligheterEtter2027"].size()).isEqualTo(1)
+            assertThat(json["gjenopptaksmuligheterEtter2027"][0]["id"].asString()).isEqualTo(new.id.toString())
+        }
+
+        @ParameterizedTest
+        @EnumSource(RegistreringSource::class)
+        fun `gjenopptak opportunities stay in separate sorted lists regardless of source`(source: RegistreringSource) {
+            val registrering = getUnfinishedRegistrering().apply { this.source = source }
+            val oldEarlier =
+                renderableMulighet(
+                    type = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
+                    vedtakDate = LocalDate.of(2026, 1, 1),
+                )
+            val oldLater =
+                renderableMulighet(
+                    type = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
+                    vedtakDate = LocalDate.of(2026, 2, 1),
+                )
+            val newEarlier =
+                renderableMulighet(
+                    type = Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                    vedtakDate = LocalDate.of(2026, 3, 1),
+                )
+            val newLater =
+                renderableMulighet(
+                    type = Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                    vedtakDate = LocalDate.of(2026, 4, 1),
+                )
+            registrering.muligheter.addAll(listOf(oldEarlier, newEarlier, oldLater, newLater))
+
+            val view = registrering.toMuligheterView()
+
+            assertThat(view.gjenopptaksmuligheterFoer2027.map { it.id }).containsExactly(oldLater.id, oldEarlier.id)
+            assertThat(view.gjenopptaksmuligheterFoer2027.map { it.mulighetTypeId })
+                .containsOnly(Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027.id)
+            assertThat(view.gjenopptaksmuligheterEtter2027.map { it.id }).containsExactly(newLater.id, newEarlier.id)
+            assertThat(view.gjenopptaksmuligheterEtter2027.map { it.mulighetTypeId })
+                .containsOnly(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027.id)
+        }
+
+        @Test
+        fun `both gjenopptak lists are empty when the opportunity is based on a journalpost`() {
+            val registrering =
+                getUnfinishedRegistrering().apply {
+                    mulighetIsBasedOnJournalpost = true
+                    muligheter.add(renderableMulighet(Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027))
+                    muligheter.add(renderableMulighet(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027))
+                }
+
+            val view = registrering.toMuligheterView()
+
+            assertThat(view.gjenopptaksmuligheterFoer2027).isEmpty()
+            assertThat(view.gjenopptaksmuligheterEtter2027).isEmpty()
         }
 
         @Test
@@ -1142,6 +1251,77 @@ class RegistreringServiceTest {
     @Nested
     inner class FinishRegistreringTest {
         @Test
+        fun `new gjenopptak is preserved from registration through creation request to Kabal`() {
+            val registrering =
+                getUnfinishedRegistrering().apply {
+                    source = RegistreringSource.ANKE
+                    type = Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027
+                    avsender = RegistreringSource.TRYGDERETTEN_AVSENDER
+                    inngaaendeKanal = InngaaendeKanal.ALTINN_INNBOKS
+                    trygderettenSaksnummer = "2027123"
+                    mottattKlageinstans = LocalDate.now()
+                    behandlingstidUnits = 4
+                    sendSvarbrev = false
+                    dokumenter.add(
+                        RegistreringDokument(
+                            name = "document.pdf",
+                            size = 1,
+                            contentType = "application/pdf",
+                            status = DokumentStatus.DONE,
+                            sortIndex = 0.0,
+                            mellomlagerId = "file",
+                        ),
+                    )
+                }
+            val sourceId = UUID.randomUUID()
+            val mulighet = spyk(renderableMulighet(registrering.type!!))
+            every { mulighet.currentFagystemTechnicalId } returns sourceId.toString()
+            registrering.muligheter.add(mulighet)
+            registrering.mulighetId = mulighet.id
+            every { registreringRepository.findById(registrering.id) } returns Optional.of(registrering)
+            val client = mockk<KabalApiClient>()
+            val request = slot<CreateBehandlingBasedOnKabalInput>()
+            val behandlingId = UUID.randomUUID()
+            every { client.createBehandlingBasedOnKabal(capture(request)) } returns
+                mockk {
+                    every { this@mockk.behandlingId } returns behandlingId
+                }
+            val validation = mockk<ValidationUtil>()
+            every { validation.validateRegistrering(any(), any()) } returns Unit
+            val dokArkiv = mockk<DokArkivService>()
+            every { dokArkiv.handleJournalpost(registrering) } returns null
+            val service =
+                RegistreringService(
+                    registreringRepository = registreringRepository,
+                    tokenUtil = tokenUtil,
+                    kabalApiService = kabalApiService,
+                    klageFssProxyService = mockk(),
+                    klageService = mockk(),
+                    ankeService = mockk(),
+                    omgjoeringskravService = mockk(),
+                    gjenopptakService = GjenopptakService(validation, dokArkiv, KabalApiService(client), mockk()),
+                    documentService = mockk(),
+                    dokArkivService = dokArkiv,
+                    safService = mockk(),
+                    fileApiClient = mockk(),
+                )
+
+            service.finishRegistrering(registrering.id)
+
+            assertThat(request.captured.typeId).isEqualTo(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027.id)
+            assertThat(request.captured.sourceBehandlingId).isEqualTo(sourceId)
+            assertThat(request.captured.trygderettenSaksnummer).isEqualTo("2027123")
+            assertThat(request.captured.frist).isEqualTo(LocalDate.now().plusWeeks(4))
+            assertThat(request.captured.svarbrevInput.doNotSendLetter).isTrue()
+            assertThat(
+                request.captured.uploadedDocument!!
+                    .avsender.value,
+            ).isEqualTo(RegistreringSource.TRYGDERETTEN_ORGNR)
+            assertThat(registrering.behandlingId).isEqualTo(behandlingId)
+            assertThat(registrering.finished).isNotNull()
+        }
+
+        @Test
         fun `throws IllegalInputException when type is null`() {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
@@ -1761,12 +1941,15 @@ class RegistreringServiceTest {
         )
 
     /** A mulighet with the fields the view mapping requires. */
-    private fun renderableMulighet(type: Type): Mulighet =
+    private fun renderableMulighet(
+        type: Type,
+        vedtakDate: LocalDate = LocalDate.now(),
+    ): Mulighet =
         createMulighet(
             type = type,
             originalType = type,
             utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.SENTRAL_UTSKRIFT,
-            vedtakDate = LocalDate.now(),
+            vedtakDate = vedtakDate,
         )
 
     private fun createMulighet(

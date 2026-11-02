@@ -73,11 +73,17 @@ data class MuligheterView(
     val ankemuligheterFoer2027: List<KabalmulighetView>,
     val ankemuligheterEtter2027: List<KabalmulighetView>,
     val omgjoeringskravmuligheter: List<KabalmulighetView>,
-    val gjenopptaksmuligheter: List<KabalmulighetView>,
+    val gjenopptaksmuligheterFoer2027: List<KabalmulighetView>,
+    val gjenopptaksmuligheterEtter2027: List<KabalmulighetView>,
     val muligheterFetched: LocalDateTime,
 ) {
     @Deprecated("Erstattet av ankemuligheterFoer2027. Beholdt for bakoverkompatibilitet med eldre konsumenter.")
     @get:JsonProperty("ankemuligheter")
     val ankemuligheter: List<KabalmulighetView>
         get() = ankemuligheterFoer2027
+
+    @Deprecated("Erstattet av gjenopptaksmuligheterFoer2027. Beholdt for bakoverkompatibilitet med eldre konsumenter.")
+    @get:JsonProperty("gjenopptaksmuligheter")
+    val gjenopptaksmuligheter: List<KabalmulighetView>
+        get() = gjenopptaksmuligheterFoer2027
 }
