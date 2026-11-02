@@ -493,11 +493,11 @@ class RegistreringServiceTest {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
-            registreringService.setSource(id, SourceInput(RegistreringSource.ANKE))
-            registreringService.setTrygderettenSaksnummer(id, TrygderettenSaksnummerInput("2027123"))
+            registreringService.setSource(registreringId = id, input = SourceInput(RegistreringSource.ANKE))
+            registreringService.setTrygderettenSaksnummer(registreringId = id, input = TrygderettenSaksnummerInput("2027123"))
 
             listOf(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027, Type.ANKE_ETTER_2027).forEach { type ->
-                val view = registreringService.setTypeId(id, TypeIdInput(type.id))
+                val view = registreringService.setTypeId(registreringId = id, input = TypeIdInput(type.id))
                 assertThat(view.typeId).isEqualTo(type.id)
                 assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
                 assertThat(registrering.avsender).isEqualTo(RegistreringSource.TRYGDERETTEN_AVSENDER)
@@ -505,8 +505,8 @@ class RegistreringServiceTest {
                 assertThat(registrering.behandlingstidUnits).isEqualTo(4)
                 assertThat(view.svarbrev.send).isFalse()
             }
-            registreringService.setTypeId(id, TypeIdInput(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027.id))
-            registreringService.setSource(id, SourceInput(RegistreringSource.JOURNALPOST))
+            registreringService.setTypeId(registreringId = id, input = TypeIdInput(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027.id))
+            registreringService.setSource(registreringId = id, input = SourceInput(RegistreringSource.JOURNALPOST))
             assertThat(registrering.type).isNull()
             assertThat(registrering.trygderettenSaksnummer).isNull()
         }
@@ -517,7 +517,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
             assertThatThrownBy {
-                registreringService.setTypeId(id, TypeIdInput(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027.id))
+                registreringService.setTypeId(registreringId = id, input = TypeIdInput(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027.id))
             }.isInstanceOf(IllegalInputException::class.java)
         }
 
@@ -1287,7 +1287,7 @@ class RegistreringServiceTest {
                     every { this@mockk.behandlingId } returns behandlingId
                 }
             val validation = mockk<ValidationUtil>()
-            every { validation.validateRegistrering(any(), any()) } returns Unit
+            every { validation.validateRegistrering(registrering = any(), mulighet = any()) } returns Unit
             val dokArkiv = mockk<DokArkivService>()
             every { dokArkiv.handleJournalpost(registrering) } returns null
             val service =
@@ -1299,7 +1299,13 @@ class RegistreringServiceTest {
                     klageService = mockk(),
                     ankeService = mockk(),
                     omgjoeringskravService = mockk(),
-                    gjenopptakService = GjenopptakService(validation, dokArkiv, KabalApiService(client), mockk()),
+                    gjenopptakService =
+                        GjenopptakService(
+                            validationUtil = validation,
+                            dokArkivService = dokArkiv,
+                            kabalApiService = KabalApiService(client),
+                            gosysOppgaveService = mockk(),
+                        ),
                     documentService = mockk(),
                     dokArkivService = dokArkiv,
                     safService = mockk(),
