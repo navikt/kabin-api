@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val ktlintVersion = "1.8.0"
-val klageAuthVersion = "0.3.0"
+val klageAuthVersion = "0.4.0"
 val logstashVersion = "9.0"
 val springDocVersion = "3.1.1"
 val springMockkVersion = "5.0.1"
