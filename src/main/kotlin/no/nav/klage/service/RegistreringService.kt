@@ -115,6 +115,7 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.repository.RegistreringRepository
 import no.nav.klage.util.TokenUtil
+import no.nav.klage.util.TrygderettenSaksnummer
 import no.nav.klage.util.ankeTypes
 import no.nav.klage.util.calculateFrist
 import no.nav.klage.util.getLogger
@@ -1953,7 +1954,22 @@ class RegistreringService(
             throw IllegalInputException("Saksnummer fra Trygderetten kan bare settes på behandling fra Trygderetten.")
         }
 
-        registrering.trygderettenSaksnummer = input.trygderettenSaksnummer?.trim()?.ifEmpty { null }
+        val trygderettenSaksnummer = input.trygderettenSaksnummer?.trim()
+        if (trygderettenSaksnummer.isNullOrEmpty()) {
+            throw IllegalInputException("Oppgi saksnummeret fra Trygderetten.")
+        }
+        if (!TrygderettenSaksnummer.isValid(value = trygderettenSaksnummer)) {
+            throw IllegalInputException(
+                "Saksnummeret fra Trygderetten må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123.",
+            )
+        }
+        if (kabalApiService.trygderettenSaksnummerIsDuplicate(trygderettenSaksnummer = trygderettenSaksnummer)) {
+            throw IllegalInputException(
+                "Saksnummeret fra Trygderetten er allerede registrert på en annen behandling. Kontroller at du har skrevet riktig saksnummer.",
+            )
+        }
+
+        registrering.trygderettenSaksnummer = trygderettenSaksnummer
         registrering.modified = LocalDateTime.now()
 
         return TrygderettenSaksnummerChangeRegistreringView(

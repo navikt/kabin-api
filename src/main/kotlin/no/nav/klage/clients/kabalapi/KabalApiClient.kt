@@ -50,6 +50,18 @@ class KabalApiClient(
             .bodyToMono<Boolean>()
             .block() ?: throw RuntimeException("No response")
 
+    fun checkTrygderettenSaksnummerDuplicate(input: TrygderettenSaksnummerIsDuplicateInput): Boolean =
+        kabalApiWebClient
+            .post()
+            .uri { it.path("/api/internal/trygderettensaksnummerisduplicate").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}",
+            ).bodyValue(input)
+            .retrieve()
+            .bodyToMono<Boolean>()
+            .block() ?: throw RuntimeException("No response")
+
     fun createBehandlingBasedOnKabal(input: CreateBehandlingBasedOnKabalInput): CreatedBehandlingResponse =
         kabalApiWebClient
             .post()

@@ -68,6 +68,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.NullAndEmptySource
+import org.junit.jupiter.params.provider.ValueSource
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -818,6 +820,7 @@ class RegistreringServiceTest {
             val registrering = getUnfinishedRegistrering(id = id)
             registrering.source = RegistreringSource.ANKE
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
+            every { kabalApiService.trygderettenSaksnummerIsDuplicate("2027123") } returns false
 
             val view =
                 registreringService.setTrygderettenSaksnummer(
@@ -827,22 +830,156 @@ class RegistreringServiceTest {
 
             assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
             assertThat(view.trygderettenSaksnummer).isEqualTo("2027123")
+            verify(exactly = 1) { kabalApiService.trygderettenSaksnummerIsDuplicate("2027123") }
         }
 
         @Test
-        fun `stores an empty saksnummer as null`() {
+        fun `trims valid saksnummer before duplicate check and storage`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+            every { kabalApiService.trygderettenSaksnummerIsDuplicate("2027123") } returns false
+
+            val view =
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = " 2027123 "),
+                )
+
+            assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
+            assertThat(view.trygderettenSaksnummer).isEqualTo("2027123")
+            verify(exactly = 1) { kabalApiService.trygderettenSaksnummerIsDuplicate("2027123") }
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = ["  ", "\t\n"])
+        fun `rejects missing saksnummer without changing registration or calling Kabal`(saksnummer: String?) {
             val id = UUID.randomUUID()
             val registrering = getUnfinishedRegistrering(id = id)
             registrering.source = RegistreringSource.ANKE
             registrering.trygderettenSaksnummer = "2027123"
+            val modified = registrering.modified
             every { registreringRepository.findById(id) } returns Optional.of(registrering)
 
-            registreringService.setTrygderettenSaksnummer(
-                registreringId = id,
-                input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "  "),
-            )
+            assertThatThrownBy {
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = saksnummer),
+                )
+            }.isInstanceOf(IllegalInputException::class.java)
+                .hasMessage("Oppgi saksnummeret fra Trygderetten.")
 
-            assertThat(registrering.trygderettenSaksnummer).isNull()
+            assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
+            assertThat(registrering.modified).isEqualTo(modified)
+            verify(exactly = 0) { kabalApiService.trygderettenSaksnummerIsDuplicate(any()) }
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = ["2027", "2027-123", "1969123", "2027000", "202712345678", "abcd123"])
+        fun `rejects invalid saksnummer without changing registration or calling Kabal`(saksnummer: String) {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.trygderettenSaksnummer = "2027123"
+            val modified = registrering.modified
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = saksnummer),
+                )
+            }.isInstanceOf(IllegalInputException::class.java)
+                .hasMessage(
+                    "Saksnummeret fra Trygderetten må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123.",
+                )
+
+            assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
+            assertThat(registrering.modified).isEqualTo(modified)
+            verify(exactly = 0) { kabalApiService.trygderettenSaksnummerIsDuplicate(any()) }
+        }
+
+        @Test
+        fun `rejects duplicate saksnummer without changing registration`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.trygderettenSaksnummer = "2027123"
+            val modified = registrering.modified
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+            every { kabalApiService.trygderettenSaksnummerIsDuplicate("2027456") } returns true
+
+            assertThatThrownBy {
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "2027456"),
+                )
+            }.isInstanceOf(IllegalInputException::class.java)
+                .hasMessage(
+                    "Saksnummeret fra Trygderetten er allerede registrert på en annen behandling. Kontroller at du har skrevet riktig saksnummer.",
+                )
+
+            assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
+            assertThat(registrering.modified).isEqualTo(modified)
+        }
+
+        @Test
+        fun `propagates Kabal failure without changing registration`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.trygderettenSaksnummer = "2027123"
+            val modified = registrering.modified
+            val failure = RuntimeException("Kabal unavailable")
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+            every { kabalApiService.trygderettenSaksnummerIsDuplicate("2027456") } throws failure
+
+            assertThatThrownBy {
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "2027456"),
+                )
+            }.isSameAs(failure)
+
+            assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
+            assertThat(registrering.modified).isEqualTo(modified)
+        }
+
+        @Test
+        fun `rejects another owner's registration without calling Kabal`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id, createdBy = "OTHER")
+            registrering.source = RegistreringSource.ANKE
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "2027123"),
+                )
+            }.isInstanceOf(MissingAccessException::class.java)
+
+            verify(exactly = 0) { kabalApiService.trygderettenSaksnummerIsDuplicate(any()) }
+        }
+
+        @Test
+        fun `rejects finished registration without calling Kabal`() {
+            val id = UUID.randomUUID()
+            val registrering = getUnfinishedRegistrering(id = id)
+            registrering.source = RegistreringSource.ANKE
+            registrering.finished = LocalDateTime.now()
+            every { registreringRepository.findById(id) } returns Optional.of(registrering)
+
+            assertThatThrownBy {
+                registreringService.setTrygderettenSaksnummer(
+                    registreringId = id,
+                    input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "2027123"),
+                )
+            }.isInstanceOf(IllegalUpdateException::class.java)
+
+            verify(exactly = 0) { kabalApiService.trygderettenSaksnummerIsDuplicate(any()) }
         }
 
         @Test
@@ -860,6 +997,7 @@ class RegistreringServiceTest {
             }.isInstanceOf(IllegalInputException::class.java)
 
             assertThat(registrering.trygderettenSaksnummer).isNull()
+            verify(exactly = 0) { kabalApiService.trygderettenSaksnummerIsDuplicate(any()) }
         }
     }
 

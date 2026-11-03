@@ -20,6 +20,7 @@ import no.nav.klage.clients.kabalapi.OversendtPartIdType
 import no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal
 import no.nav.klage.clients.kabalapi.SearchPartView
 import no.nav.klage.clients.kabalapi.SvarbrevSettingsView
+import no.nav.klage.clients.kabalapi.TrygderettenSaksnummerIsDuplicateInput
 import no.nav.klage.clients.kabalapi.UploadedDocumentInput
 import no.nav.klage.clients.kabalapi.toOversendtPartId
 import no.nav.klage.domain.entities.Mulighet
@@ -55,6 +56,11 @@ class KabalApiService(
     fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean =
         kabalApiClient.checkGosysOppgaveDuplicate(
             input = GosysOppgaveIsDuplicateInput(gosysOppgaveId = gosysOppgaveId),
+        )
+
+    fun trygderettenSaksnummerIsDuplicate(trygderettenSaksnummer: String): Boolean =
+        kabalApiClient.checkTrygderettenSaksnummerDuplicate(
+            input = TrygderettenSaksnummerIsDuplicateInput(trygderettenSaksnummer = trygderettenSaksnummer),
         )
 
     fun searchPart(searchPartInput: SearchPartInput): SearchPartView = kabalApiClient.searchPart(searchPartInput = searchPartInput)
