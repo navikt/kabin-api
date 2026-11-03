@@ -34,6 +34,8 @@ class SecurityConfiguration {
         http
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            // Allow the frontend (same origin via proxy) to show PDFs inline in iframe/embed.
+            .headers { headers -> headers.frameOptions { it.sameOrigin() } }
             .authorizeHttpRequests {
                 it
                     .requestMatchers(*UNAUTHENTICATED_PATHS.toTypedArray())
