@@ -104,6 +104,7 @@ import no.nav.klage.exceptions.MissingAccessException
 import no.nav.klage.exceptions.MulighetNotFoundException
 import no.nav.klage.exceptions.ReceiverNotFoundException
 import no.nav.klage.exceptions.RegistreringNotFoundException
+import no.nav.klage.exceptions.TrygderettenSaksnummerException
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
@@ -1956,15 +1957,15 @@ class RegistreringService(
 
         val trygderettenSaksnummer = input.trygderettenSaksnummer?.trim()
         if (trygderettenSaksnummer.isNullOrEmpty()) {
-            throw IllegalInputException("Oppgi saksnummeret fra Trygderetten.")
+            throw TrygderettenSaksnummerException("Oppgi saksnummeret fra Trygderetten.")
         }
         if (!TrygderettenSaksnummer.isValid(value = trygderettenSaksnummer)) {
-            throw IllegalInputException(
+            throw TrygderettenSaksnummerException(
                 "Saksnummeret fra Trygderetten må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123.",
             )
         }
         if (kabalApiService.trygderettenSaksnummerIsDuplicate(trygderettenSaksnummer = trygderettenSaksnummer)) {
-            throw IllegalInputException(
+            throw TrygderettenSaksnummerException(
                 "Saksnummeret fra Trygderetten er allerede registrert på en annen behandling. Kontroller at du har skrevet riktig saksnummer.",
             )
         }

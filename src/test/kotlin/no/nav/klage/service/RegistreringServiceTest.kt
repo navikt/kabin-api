@@ -52,6 +52,7 @@ import no.nav.klage.exceptions.MissingAccessException
 import no.nav.klage.exceptions.MulighetNotFoundException
 import no.nav.klage.exceptions.ReceiverNotFoundException
 import no.nav.klage.exceptions.RegistreringNotFoundException
+import no.nav.klage.exceptions.TrygderettenSaksnummerException
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
@@ -868,7 +869,7 @@ class RegistreringServiceTest {
                     registreringId = id,
                     input = TrygderettenSaksnummerInput(trygderettenSaksnummer = saksnummer),
                 )
-            }.isInstanceOf(IllegalInputException::class.java)
+            }.isInstanceOf(TrygderettenSaksnummerException::class.java)
                 .hasMessage("Oppgi saksnummeret fra Trygderetten.")
 
             assertThat(registrering.trygderettenSaksnummer).isEqualTo("2027123")
@@ -891,7 +892,7 @@ class RegistreringServiceTest {
                     registreringId = id,
                     input = TrygderettenSaksnummerInput(trygderettenSaksnummer = saksnummer),
                 )
-            }.isInstanceOf(IllegalInputException::class.java)
+            }.isInstanceOf(TrygderettenSaksnummerException::class.java)
                 .hasMessage(
                     "Saksnummeret fra Trygderetten må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123.",
                 )
@@ -916,7 +917,7 @@ class RegistreringServiceTest {
                     registreringId = id,
                     input = TrygderettenSaksnummerInput(trygderettenSaksnummer = "2027456"),
                 )
-            }.isInstanceOf(IllegalInputException::class.java)
+            }.isInstanceOf(TrygderettenSaksnummerException::class.java)
                 .hasMessage(
                     "Saksnummeret fra Trygderetten er allerede registrert på en annen behandling. Kontroller at du har skrevet riktig saksnummer.",
                 )
