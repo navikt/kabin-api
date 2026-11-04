@@ -4,6 +4,7 @@ import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.kabalapi.GosysOppgaveIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.clients.kabalapi.TrygderettenSaksnummerIsDuplicateInput
 import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.InngaaendeKanal
@@ -246,6 +247,16 @@ class ValidationUtil(
                         InvalidProperty(
                             field = Registrering::trygderettenSaksnummer.name,
                             reason = "Saksnummeret fra Trygderetten må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123.",
+                        )
+                } else if (kabalApiClient.checkTrygderettenSaksnummerDuplicate(
+                        TrygderettenSaksnummerIsDuplicateInput(trygderettenSaksnummer),
+                    )
+                ) {
+                    saksdataValidationErrors +=
+                        InvalidProperty(
+                            field = Registrering::trygderettenSaksnummer.name,
+                            reason =
+                                "Saksnummeret fra Trygderetten er allerede registrert på en annen behandling. Kontroller at du har skrevet riktig saksnummer.",
                         )
                 }
             }
