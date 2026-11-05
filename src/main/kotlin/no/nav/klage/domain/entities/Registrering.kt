@@ -172,8 +172,8 @@ class Registrering(
 
     fun isBasedOnUploadedDocument(): Boolean = source.isBasedOnUploadedDocuments
 
-    /** An anke received from Trygderetten is registered with [RegistreringSource.ANKE]. */
-    fun isAnkeFromTrygderetten(): Boolean = source == RegistreringSource.ANKE
+    /** Anke and gjenopptak received from Trygderetten use [RegistreringSource.ANKE]. */
+    fun isBehandlingFromTrygderetten(): Boolean = source == RegistreringSource.ANKE
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

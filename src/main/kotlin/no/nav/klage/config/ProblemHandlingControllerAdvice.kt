@@ -12,6 +12,7 @@ import no.nav.klage.exceptions.MissingAccessException
 import no.nav.klage.exceptions.MulighetNotFoundException
 import no.nav.klage.exceptions.RegistreringNotFoundException
 import no.nav.klage.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.exceptions.TrygderettenSaksnummerException
 import no.nav.klage.exceptions.UserNotFoundException
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getTeamLogger
@@ -64,6 +65,10 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler
     fun handleAttachmentHasVirusException(ex: AttachmentHasVirusException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
+
+    @ExceptionHandler
+    fun handleTrygderettenSaksnummerException(ex: TrygderettenSaksnummerException): ProblemDetail =
         create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler

@@ -48,6 +48,10 @@ data class GosysOppgaveIsDuplicateInput(
     val gosysOppgaveId: Long,
 )
 
+data class TrygderettenSaksnummerIsDuplicateInput(
+    val trygderettenSaksnummer: String,
+)
+
 data class CreateAnkeBasedOnKabinInput(
     val sakenGjelder: OversendtPartId,
     val klager: OversendtPartId?,

@@ -420,7 +420,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
             ankemuligheterFoer2027 = emptyList(),
             ankemuligheterEtter2027 = emptyList(),
             omgjoeringskravmuligheter = emptyList(),
-            gjenopptaksmuligheter = emptyList(),
+            gjenopptaksmuligheterFoer2027 = emptyList(),
+            gjenopptaksmuligheterEtter2027 = emptyList(),
             muligheterFetched = muligheterFetched!!,
         )
     }
@@ -429,7 +430,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
     val ankemuligheterFoer2027 = mutableListOf<Mulighet>()
     val ankemuligheterEtter2027 = mutableListOf<Mulighet>()
     val omgjoeringskravmuligheter = mutableListOf<Mulighet>()
-    val gjenopptaksmuligheter = mutableListOf<Mulighet>()
+    val gjenopptaksmuligheterFoer2027 = mutableListOf<Mulighet>()
+    val gjenopptaksmuligheterEtter2027 = mutableListOf<Mulighet>()
 
     muligheter.forEach { mulighet ->
         when (mulighet.type) {
@@ -452,7 +454,11 @@ fun Registrering.toMuligheterView(): MuligheterView {
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
-                gjenopptaksmuligheter.add(mulighet)
+                gjenopptaksmuligheterFoer2027.add(mulighet)
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
+                gjenopptaksmuligheterEtter2027.add(mulighet)
             }
 
             else -> {
@@ -485,10 +491,16 @@ fun Registrering.toMuligheterView(): MuligheterView {
                 omgjoeringskravmulighet.toKabalmulighetView(mulighetType = Type.OMGJOERINGSKRAV)
             }
 
-    val gjenopptaksmuligheterView =
-        getMuligheterSorted(gjenopptaksmuligheter)
+    val gjenopptaksmuligheterFoer2027View =
+        getMuligheterSorted(gjenopptaksmuligheterFoer2027)
             .map { gjenopptaksmulighet ->
-                gjenopptaksmulighet.toKabalmulighetView(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)
+                gjenopptaksmulighet.toKabalmulighetView(mulighetType = gjenopptaksmulighet.type)
+            }
+
+    val gjenopptaksmuligheterEtter2027View =
+        getMuligheterSorted(gjenopptaksmuligheterEtter2027)
+            .map { gjenopptaksmulighet ->
+                gjenopptaksmulighet.toKabalmulighetView(mulighetType = gjenopptaksmulighet.type)
             }
 
     return MuligheterView(
@@ -496,7 +508,8 @@ fun Registrering.toMuligheterView(): MuligheterView {
         ankemuligheterFoer2027 = ankemuligheterFoer2027View,
         ankemuligheterEtter2027 = ankemuligheterEtter2027View,
         omgjoeringskravmuligheter = omgjoeringskravmuligheterView,
-        gjenopptaksmuligheter = gjenopptaksmuligheterView,
+        gjenopptaksmuligheterFoer2027 = gjenopptaksmuligheterFoer2027View,
+        gjenopptaksmuligheterEtter2027 = gjenopptaksmuligheterEtter2027View,
         muligheterFetched = muligheterFetched!!,
     )
 }

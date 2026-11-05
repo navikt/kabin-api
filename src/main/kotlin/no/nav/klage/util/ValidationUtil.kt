@@ -4,6 +4,7 @@ import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.kabalapi.GosysOppgaveIsDuplicateInput
 import no.nav.klage.clients.kabalapi.KabalApiClient
+import no.nav.klage.clients.kabalapi.TrygderettenSaksnummerIsDuplicateInput
 import no.nav.klage.domain.entities.DokumentStatus
 import no.nav.klage.domain.entities.HandlingEnum
 import no.nav.klage.domain.entities.InngaaendeKanal
@@ -132,7 +133,7 @@ class ValidationUtil(
                     Type.KLAGE -> "Velg en klager."
                     Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> "Velg en ankende part."
                     Type.OMGJOERINGSKRAV -> "Velg den som krever omgjøring."
-                    Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> "Velg den som begjærer gjenopptak."
+                    Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> "Velg den som begjærer gjenopptak."
                     else -> error("Unsupported type")
                 }
 
@@ -140,6 +141,16 @@ class ValidationUtil(
                 InvalidProperty(
                     field = Registrering::klager.name,
                     reason = errorMessage,
+                )
+        }
+
+        if (registrering.type in listOf(Type.ANKE_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027) &&
+            !registrering.isBehandlingFromTrygderetten()
+        ) {
+            saksdataValidationErrors +=
+                InvalidProperty(
+                    field = Registrering::source.name,
+                    reason = "Type ${registrering.type?.navn} krever Trygderetten som kilde.",
                 )
         }
 
@@ -194,14 +205,14 @@ class ValidationUtil(
                     )
             }
 
-            // Type, avsender and inngående kanal are given by the source itself for an anke from
+            // Avsender and inngående kanal are given by the source itself for a behandling from
             // Trygderetten.
-            if (registrering.isAnkeFromTrygderetten()) {
-                if (registrering.type != Type.ANKE_ETTER_2027) {
+            if (registrering.isBehandlingFromTrygderetten()) {
+                if (registrering.type !in listOf(Type.ANKE_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027)) {
                     saksdataValidationErrors +=
                         InvalidProperty(
                             field = Registrering::type.name,
-                            reason = "Kun anke kan opprettes.",
+                            reason = "Kun anke og gjenopptaksbegjæring kan opprettes.",
                         )
                 }
 
@@ -209,7 +220,7 @@ class ValidationUtil(
                     saksdataValidationErrors +=
                         InvalidProperty(
                             field = Registrering::avsender.name,
-                            reason = "En anke fra Trygderetten må ha Trygderetten som avsender.",
+                            reason = "En behandling fra Trygderetten må ha Trygderetten som avsender.",
                         )
                 }
 
@@ -217,7 +228,7 @@ class ValidationUtil(
                     saksdataValidationErrors +=
                         InvalidProperty(
                             field = Registrering::inngaaendeKanal.name,
-                            reason = "En anke fra Trygderetten må ha ${InngaaendeKanal.ALTINN_INNBOKS.name} som inngående kanal.",
+                            reason = "En behandling fra Trygderetten må ha ${InngaaendeKanal.ALTINN_INNBOKS.name} som inngående kanal.",
                         )
                 }
 
@@ -237,6 +248,16 @@ class ValidationUtil(
                             field = Registrering::trygderettenSaksnummer.name,
                             reason = "Saksnummeret fra Trygderetten må bestå av årstall etterfulgt av et løpenummer, for eksempel 2026123.",
                         )
+                } else if (kabalApiClient.checkTrygderettenSaksnummerDuplicate(
+                        TrygderettenSaksnummerIsDuplicateInput(trygderettenSaksnummer),
+                    )
+                ) {
+                    saksdataValidationErrors +=
+                        InvalidProperty(
+                            field = Registrering::trygderettenSaksnummer.name,
+                            reason =
+                                "Saksnummeret fra Trygderetten er allerede registrert på en annen behandling. Kontroller at du har skrevet riktig saksnummer.",
+                        )
                 }
             }
         } else if (registrering.journalpostId == null) {
@@ -247,8 +268,8 @@ class ValidationUtil(
                 )
         }
 
-        if (registrering.isAnkeFromTrygderetten()) {
-            // No svarbrev is sent for an anke received from Trygderetten, so neither receivers nor a
+        if (registrering.isBehandlingFromTrygderetten()) {
+            // No svarbrev is sent for a behandling received from Trygderetten, so neither receivers nor a
             // reason for the missing letter is required.
             if (registrering.sendSvarbrev == true) {
                 svarbrevValidationErrors +=

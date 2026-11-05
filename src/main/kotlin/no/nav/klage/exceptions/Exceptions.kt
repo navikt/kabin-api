@@ -31,6 +31,10 @@ class ReceiverNotFoundException(
     override val message: String,
 ) : RuntimeException(message)
 
+class TrygderettenSaksnummerException(
+    override val message: String,
+) : RuntimeException(message)
+
 class IllegalInputException(
     override val message: String,
 ) : RuntimeException(message)

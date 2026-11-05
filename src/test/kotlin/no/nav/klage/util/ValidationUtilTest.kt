@@ -34,6 +34,19 @@ class ValidationUtilTest {
     @Nested
     inner class AnkeFromTrygderetten {
         @Test
+        fun `new gjenopptak uses the same metadata requirements as anke`() {
+            val registrering = getAnkeRegistrering().apply { type = Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 }
+            assertThat(ankeReasonsFor(registrering)).isEmpty()
+            registrering.trygderettenSaksnummer = null
+            assertThat(validationReasonsFor(registrering)).anyMatch { it.startsWith("Oppgi saksnummeret fra Trygderetten.") }
+            registrering.trygderettenSaksnummer = "2027"
+            assertThat(validationReasonsFor(registrering)).anyMatch { it.startsWith("Saksnummeret fra Trygderetten må") }
+            registrering.trygderettenSaksnummer = "2027123"
+            registrering.sendSvarbrev = true
+            assertThat(validationReasonsFor(registrering)).contains("Det sendes ikke svarbrev for en anke fra Trygderetten.")
+        }
+
+        @Test
         fun `accepts the values that are given by the source`() {
             val registrering = getAnkeRegistrering()
 
@@ -45,7 +58,7 @@ class ValidationUtilTest {
             val registrering = getAnkeRegistrering().apply { type = Type.OMGJOERINGSKRAV }
 
             assertThat(validationReasonsFor(registrering))
-                .contains("Kun anke kan opprettes.")
+                .contains("Kun anke og gjenopptaksbegjæring kan opprettes.")
         }
 
         @Test
@@ -84,7 +97,7 @@ class ValidationUtilTest {
                 }
 
             assertThat(ankeReasonsFor(registrering))
-                .contains("En anke fra Trygderetten må ha Trygderetten som avsender.")
+                .contains("En behandling fra Trygderetten må ha Trygderetten som avsender.")
         }
 
         @Test
@@ -92,7 +105,7 @@ class ValidationUtilTest {
             val registrering = getAnkeRegistrering().apply { inngaaendeKanal = InngaaendeKanal.E_POST }
 
             assertThat(ankeReasonsFor(registrering))
-                .contains("En anke fra Trygderetten må ha ALTINN_INNBOKS som inngående kanal.")
+                .contains("En behandling fra Trygderetten må ha ALTINN_INNBOKS som inngående kanal.")
         }
     }
 
@@ -181,10 +194,10 @@ class ValidationUtilTest {
 
     /**
      * The registrering is deliberately not complete, so only the errors that this test cares about are
-     * asserted on. Returns the reasons that are specific to an anke from Trygderetten.
+     * asserted on. Returns the reasons that are specific to a behandling from Trygderetten.
      */
     private fun ankeReasonsFor(registrering: Registrering): List<String> =
-        validationReasonsFor(registrering).filter { it.contains("anke fra Trygderetten") }
+        validationReasonsFor(registrering).filter { it.contains("behandling fra Trygderetten") }
 
     /** All validation reasons, across sections. */
     private fun validationReasonsFor(registrering: Registrering): List<String> =

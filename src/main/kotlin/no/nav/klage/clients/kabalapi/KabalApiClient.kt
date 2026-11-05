@@ -50,6 +50,18 @@ class KabalApiClient(
             .bodyToMono<Boolean>()
             .block() ?: throw RuntimeException("No response")
 
+    fun checkTrygderettenSaksnummerDuplicate(input: TrygderettenSaksnummerIsDuplicateInput): Boolean =
+        kabalApiWebClient
+            .post()
+            .uri { it.path("/api/internal/trygderettensaksnummerisduplicate").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKabalApiScope()}",
+            ).bodyValue(input)
+            .retrieve()
+            .bodyToMono<Boolean>()
+            .block() ?: throw RuntimeException("No response")
+
     fun createBehandlingBasedOnKabal(input: CreateBehandlingBasedOnKabalInput): CreatedBehandlingResponse =
         kabalApiWebClient
             .post()
@@ -155,13 +167,27 @@ class KabalApiClient(
             .bodyToMono<List<MulighetFromKabal>>()
             .block() ?: throw RuntimeException("No response")
 
-    fun getGjenopptaksmuligheterByIdnummer(
+    fun getGjenopptaksmuligheterFoer2027ByIdnummer(
         idnummerInput: IdnummerInput,
         token: String,
     ): Mono<List<MulighetFromKabal>> =
         kabalApiWebClient
             .post()
-            .uri { it.path("/api/internal/gjenopptaksmuligheter").build() }
+            .uri { it.path("/api/internal/gjenopptaksmuligheter-foer-2027").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                token,
+            ).bodyValue(idnummerInput)
+            .retrieve()
+            .bodyToMono<List<MulighetFromKabal>>()
+
+    fun getGjenopptaksmuligheterEtter2027ByIdnummer(
+        idnummerInput: IdnummerInput,
+        token: String,
+    ): Mono<List<MulighetFromKabal>> =
+        kabalApiWebClient
+            .post()
+            .uri { it.path("/api/internal/gjenopptaksmuligheter-etter-2027").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 token,
