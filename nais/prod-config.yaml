@@ -35,8 +35,8 @@ adRoles:
     value: 90805436-8a2b-430a-a699-73b29205f25d
 
 envs:
-  - name: JAVA_OPTS
-    value: "-Xms512m -Xmx4096m"
+  - name: JAVA_TOOL_OPTIONS
+    value: "-Xms512m -Xmx4096m --enable-native-access=ALL-UNNAMED"
 
 db_tier: db-custom-1-3840
 db_size: 10

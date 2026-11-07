@@ -37,9 +37,7 @@ adRoles:
 
 envs:
   - name: JAVA_TOOL_OPTIONS
-    value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-  - name: JAVA_OPTS
-    value: "-Xms512m -Xmx4096m"
+    value: "-Xms512m -Xmx4096m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 --enable-native-access=ALL-UNNAMED"
 
 db_tier: db-f1-micro
 db_size: 10
