@@ -542,23 +542,13 @@ fun Registrering.partViewWithoutUtsendingskanal(
     identifikator: String,
     kabalApiService: KabalApiService,
 ): PartViewWithOptionalUtsendingskanal =
-    if (ytelse != null) {
-        kabalApiService
-            .searchPart(
-                searchPartInput =
-                    SearchPartInput(
-                        identifikator = identifikator,
-                    ),
-            ).partViewWithOptionalUtsendingskanal()
-    } else {
-        kabalApiService
-            .searchPart(
-                searchPartInput =
-                    SearchPartInput(
-                        identifikator = identifikator,
-                    ),
-            ).partViewWithOptionalUtsendingskanal()
-    }
+    kabalApiService
+        .searchPart(
+            searchPartInput =
+                SearchPartInput(
+                    identifikator = identifikator,
+                ),
+        ).partViewWithOptionalUtsendingskanal()
 
 fun no.nav.klage.clients.kabalapi.PartViewWithUtsendingskanal.partViewWithOptionalUtsendingskanal(): PartViewWithOptionalUtsendingskanal =
     PartViewWithOptionalUtsendingskanal(
