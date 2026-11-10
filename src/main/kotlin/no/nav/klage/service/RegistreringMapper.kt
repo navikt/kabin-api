@@ -538,7 +538,7 @@ fun Registrering.partViewWithOptionalUtsendingskanal(
             ).partViewWithOptionalUtsendingskanal()
     }
 
-fun Registrering.partViewWithoutUtsendingskanal(
+fun partViewWithoutUtsendingskanal(
     identifikator: String,
     kabalApiService: KabalApiService,
 ): PartViewWithOptionalUtsendingskanal =
