@@ -1402,7 +1402,7 @@ class RegistreringService(
                 AvsenderChangeRegistreringView.AvsenderChangeRegistreringViewRegistreringOverstyringerView(
                     avsender =
                         registrering.avsender?.let {
-                            registrering.partViewWithOptionalUtsendingskanal(
+                            registrering.partViewWithoutUtsendingskanal(
                                 identifikator = it.value,
                                 kabalApiService = kabalApiService,
                             )

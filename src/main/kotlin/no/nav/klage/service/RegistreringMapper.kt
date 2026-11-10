@@ -184,7 +184,7 @@ fun Registrering.toMulighetChangeRegistreringView(kabalApiService: KabalApiServi
                     },
                 avsender =
                     avsender?.let {
-                        partViewWithOptionalUtsendingskanal(
+                        partViewWithoutUtsendingskanal(
                             identifikator = it.value,
                             kabalApiService = kabalApiService,
                         )
@@ -301,7 +301,7 @@ fun Registrering.toRegistreringView(kabalApiService: KabalApiService) =
                     },
                 avsender =
                     avsender?.let {
-                        partViewWithOptionalUtsendingskanal(
+                        partViewWithoutUtsendingskanal(
                             identifikator = it.value,
                             kabalApiService = kabalApiService,
                         )
@@ -526,6 +526,28 @@ fun Registrering.partViewWithOptionalUtsendingskanal(
                         identifikator = identifikator,
                         sakenGjelderId = sakenGjelder!!.value,
                         ytelseId = ytelse!!.id,
+                    ),
+            ).partViewWithOptionalUtsendingskanal()
+    } else {
+        kabalApiService
+            .searchPart(
+                searchPartInput =
+                    SearchPartInput(
+                        identifikator = identifikator,
+                    ),
+            ).partViewWithOptionalUtsendingskanal()
+    }
+
+fun Registrering.partViewWithoutUtsendingskanal(
+    identifikator: String,
+    kabalApiService: KabalApiService,
+): PartViewWithOptionalUtsendingskanal =
+    if (ytelse != null) {
+        kabalApiService
+            .searchPart(
+                searchPartInput =
+                    SearchPartInput(
+                        identifikator = identifikator,
                     ),
             ).partViewWithOptionalUtsendingskanal()
     } else {
