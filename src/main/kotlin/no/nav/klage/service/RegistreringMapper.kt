@@ -24,6 +24,7 @@ import no.nav.klage.api.controller.view.ResetDokumentStatusRegistreringView
 import no.nav.klage.api.controller.view.SearchPartInput
 import no.nav.klage.api.controller.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.api.controller.view.TypeChangeRegistreringView
+import no.nav.klage.api.controller.view.UnfinishedRegistreringView
 import no.nav.klage.api.controller.view.UploadedDocumentsView
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.clients.kabalapi.MulighetFromKabal
@@ -235,6 +236,16 @@ fun Registrering.toFinishedRegistreringView(): FinishedRegistreringView =
         finished = finished!!,
         created = created,
         behandlingId = behandlingId!!,
+    )
+
+fun Registrering.toUnfinishedRegistreringView(): UnfinishedRegistreringView =
+    UnfinishedRegistreringView(
+        id = id,
+        sakenGjelderValue = sakenGjelder?.value,
+        typeId = type?.id,
+        ytelseId = ytelse?.id,
+        modified = modified,
+        created = created,
     )
 
 fun Registrering.toRegistreringView(kabalApiService: KabalApiService) =

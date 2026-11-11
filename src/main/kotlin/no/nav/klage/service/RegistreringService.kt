@@ -79,6 +79,7 @@ import no.nav.klage.api.controller.view.TrygderettenSaksnummerChangeRegistrering
 import no.nav.klage.api.controller.view.TrygderettenSaksnummerInput
 import no.nav.klage.api.controller.view.TypeChangeRegistreringView
 import no.nav.klage.api.controller.view.TypeIdInput
+import no.nav.klage.api.controller.view.UnfinishedRegistreringView
 import no.nav.klage.api.controller.view.YtelseChangeRegistreringView
 import no.nav.klage.api.controller.view.YtelseIdInput
 import no.nav.klage.clients.fileapi.FileApiClient
@@ -233,11 +234,11 @@ class RegistreringService(
             ).map { it.toFinishedRegistreringView() }
             .sortedByDescending { it.finished }
 
-    fun getUferdigeRegistreringer(): List<FullRegistreringView> =
+    fun getUferdigeRegistreringer(): List<UnfinishedRegistreringView> =
         registreringRepository
             .findUferdigeRegistreringer(
                 navIdent = tokenUtil.getCurrentIdent(),
-            ).map { it.toRegistreringView(kabalApiService = kabalApiService) }
+            ).map { it.toUnfinishedRegistreringView() }
             .sortedByDescending { it.created }
 
     fun setSakenGjelderValue(

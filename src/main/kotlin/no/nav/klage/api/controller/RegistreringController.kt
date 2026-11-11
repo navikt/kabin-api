@@ -69,6 +69,7 @@ import no.nav.klage.api.controller.view.TrygderettenSaksnummerChangeRegistrering
 import no.nav.klage.api.controller.view.TrygderettenSaksnummerInput
 import no.nav.klage.api.controller.view.TypeChangeRegistreringView
 import no.nav.klage.api.controller.view.TypeIdInput
+import no.nav.klage.api.controller.view.UnfinishedRegistreringView
 import no.nav.klage.api.controller.view.YtelseChangeRegistreringView
 import no.nav.klage.api.controller.view.YtelseIdInput
 import no.nav.klage.service.DokumentConfirmService
@@ -148,7 +149,7 @@ class RegistreringController(
     }
 
     @GetMapping("/uferdige")
-    fun getRegistreringerUferdige(): List<FullRegistreringView> {
+    fun getRegistreringerUferdige(): List<UnfinishedRegistreringView> {
         logMethodDetails(
             methodName = ::getRegistreringerUferdige.name,
             innloggetIdent = tokenUtil.getCurrentIdent(),
