@@ -119,6 +119,7 @@ import no.nav.klage.util.TokenUtil
 import no.nav.klage.util.TrygderettenSaksnummer
 import no.nav.klage.util.ankeTypes
 import no.nav.klage.util.calculateFrist
+import no.nav.klage.util.contentDispositionHeaderValue
 import no.nav.klage.util.getLogger
 import no.nav.klage.util.getPartIdFromIdentifikator
 import no.nav.klage.util.isAnke
@@ -2248,7 +2249,11 @@ class RegistreringService(
             headers =
                 mapOf(
                     "content-type" to dokument.contentType,
-                    "content-disposition" to "inline; filename=\"${withPdfExtension(name = dokument.name)}\"",
+                    "content-disposition" to
+                        contentDispositionHeaderValue(
+                            filename = withPdfExtension(name = dokument.name),
+                            type = "inline",
+                        ),
                 ),
         )
     }
