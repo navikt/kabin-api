@@ -1,5 +1,6 @@
 package no.nav.klage.service
 
+import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -31,6 +32,7 @@ import no.nav.klage.api.controller.view.SvarbrevInitialCustomTextInput
 import no.nav.klage.api.controller.view.SvarbrevTitleInput
 import no.nav.klage.api.controller.view.TrygderettenSaksnummerInput
 import no.nav.klage.api.controller.view.TypeIdInput
+import no.nav.klage.api.controller.view.UnfinishedRegistreringView
 import no.nav.klage.api.controller.view.Utsendingskanal
 import no.nav.klage.api.controller.view.YtelseIdInput
 import no.nav.klage.clients.kabalapi.CreateBehandlingBasedOnKabalInput
@@ -116,6 +118,69 @@ class RegistreringServiceTest {
                 safService = safService,
                 fileApiClient = mockk(),
             )
+    }
+
+    @Test
+    fun `getUferdigeRegistreringer maps minimal view and sorts by created descending`() {
+        val olderCreated =
+            getUnfinishedRegistrering(
+                created = LocalDateTime.parse("2026-01-01T10:00:00"),
+                modified = LocalDateTime.parse("2026-03-01T10:00:00"),
+            )
+        val newerCreated =
+            getUnfinishedRegistrering(
+                created = LocalDateTime.parse("2026-02-01T10:00:00"),
+                modified = LocalDateTime.parse("2026-01-01T10:00:00"),
+            ).apply {
+                sakenGjelder = PartId(type = PartIdType.PERSON, value = "case-value")
+                type = Type.KLAGE
+                ytelse = Ytelse.OMS_PSB
+            }
+        every {
+            registreringRepository.findUferdigeRegistreringer(navIdent = currentIdent)
+        } returns listOf(olderCreated, newerCreated)
+
+        val result = registreringService.getUferdigeRegistreringer()
+
+        assertThat(result.map { it.id }).containsExactly(newerCreated.id, olderCreated.id)
+        assertThat(result[0])
+            .usingRecursiveComparison()
+            .isEqualTo(
+                UnfinishedRegistreringView(
+                    id = newerCreated.id,
+                    sakenGjelderValue = "case-value",
+                    typeId = Type.KLAGE.id,
+                    ytelseId = Ytelse.OMS_PSB.id,
+                    modified = newerCreated.modified,
+                    created = newerCreated.created,
+                ),
+            )
+        assertThat(result[1].sakenGjelderValue).isNull()
+        assertThat(result[1].typeId).isNull()
+        assertThat(result[1].ytelseId).isNull()
+        assertThat(result.map { it.modified }).containsExactly(
+            LocalDateTime.parse("2026-01-01T10:00:00"),
+            LocalDateTime.parse("2026-03-01T10:00:00"),
+        )
+        assertThat(result.map { it.created }).containsExactly(
+            LocalDateTime.parse("2026-02-01T10:00:00"),
+            LocalDateTime.parse("2026-01-01T10:00:00"),
+        )
+
+        val objectMapper = jacksonObjectMapper()
+        val json = objectMapper.readTree(objectMapper.writeValueAsString(result[1]))
+        assertThat(json.properties().map { it.key }).containsExactlyInAnyOrder(
+            "id",
+            "sakenGjelderValue",
+            "typeId",
+            "ytelseId",
+            "modified",
+            "created",
+        )
+        assertThat(json["sakenGjelderValue"].isNull).isTrue()
+        assertThat(json["typeId"].isNull).isTrue()
+        assertThat(json["ytelseId"].isNull).isTrue()
+        confirmVerified(kabalApiService)
     }
 
     // ============ handleReceiversWhenChangingPart ============
@@ -2044,6 +2109,8 @@ class RegistreringServiceTest {
     private fun getUnfinishedRegistrering(
         id: UUID = UUID.randomUUID(),
         createdBy: String = currentIdent,
+        created: LocalDateTime = LocalDateTime.now(),
+        modified: LocalDateTime = created,
     ): Registrering =
         Registrering(
             id = id,
@@ -2076,6 +2143,8 @@ class RegistreringServiceTest {
             svarbrevBehandlingstidUnitType = null,
             svarbrevFullmektigFritekst = null,
             svarbrevReceivers = mutableSetOf(),
+            created = created,
+            modified = modified,
             createdBy = createdBy,
             finished = null,
             behandlingId = null,

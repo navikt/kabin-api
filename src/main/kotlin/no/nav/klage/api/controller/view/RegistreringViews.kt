@@ -17,6 +17,15 @@ data class FinishedRegistreringView(
     val behandlingId: UUID,
 )
 
+data class UnfinishedRegistreringView(
+    val id: UUID,
+    val sakenGjelderValue: String?,
+    val typeId: String?,
+    val ytelseId: String?,
+    val modified: LocalDateTime,
+    val created: LocalDateTime,
+)
+
 data class FullRegistreringView(
     val id: UUID,
     val sakenGjelderValue: String?,
