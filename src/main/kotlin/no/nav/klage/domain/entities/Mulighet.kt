@@ -28,6 +28,12 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 /**
+ * Anker for disse ytelsene behandles ikke lenger i Infotrygd. Tidligere klagebehandlinger i Kabal
+ * med opprinnelse i Infotrygd er derfor vanlige ankemuligheter fra Kabal, ikke tilleggsmuligheter til en Infotrygd-sak.
+ */
+val ytelserNoLongerInInfotrygd: List<Ytelse> = listOf(Ytelse.BAR_BAR)
+
+/**
  * Cache of muligheter for a given registrering
  */
 @AttributeOverrides(
@@ -183,7 +189,8 @@ class Mulighet(
         originalFagsystem == Fagsystem.IT01 &&
             currentFagsystem == Fagsystem.KABAL &&
             type == Type.ANKE_FOER_2027 &&
-            originalType == Type.KLAGE
+            originalType == Type.KLAGE &&
+            ytelse !in ytelserNoLongerInInfotrygd
 
     fun isAnkeMulighetFromInfotrygd(): Boolean =
         originalFagsystem == Fagsystem.IT01 &&
