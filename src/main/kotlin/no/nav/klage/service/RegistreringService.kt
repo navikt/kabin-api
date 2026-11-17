@@ -913,6 +913,7 @@ class RegistreringService(
                         input = InfotrygdSakIdInput(currentMulighet.currentFagystemTechnicalId),
                         token = saksbehandlerAccessTokenWithKabalApiScope,
                     ).map { it.toMulighet() }
+                    .filter { it.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak() }
 
             val latestTechnicalIds = latest.map { it.currentFagystemTechnicalId }.toSet()
 

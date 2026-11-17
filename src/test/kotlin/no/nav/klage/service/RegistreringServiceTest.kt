@@ -2014,6 +2014,47 @@ class RegistreringServiceTest {
         }
 
         @Test
+        fun `isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak returns false for ytelse no longer in Infotrygd`() {
+            val mulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.KABAL,
+                    type = Type.ANKE_FOER_2027,
+                    originalType = Type.KLAGE,
+                    ytelse = Ytelse.BAR_BAR,
+                )
+
+            assertThat(mulighet.isAdditionalKabalAnkeMulighetBasedOnInfotrygdSak()).isFalse()
+        }
+
+        @Test
+        fun `Kabal ankemulighet from Infotrygd with ytelse no longer in Infotrygd is listed as regular ankemulighet`() {
+            val registrering = getUnfinishedRegistrering()
+            registrering.muligheterFetched = LocalDateTime.now()
+            val barnetrygdMulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.KABAL,
+                    type = Type.ANKE_FOER_2027,
+                    originalType = Type.KLAGE,
+                    ytelse = Ytelse.BAR_BAR,
+                    utsendingskanal = PartWithUtsendingskanal.Utsendingskanal.SENTRAL_UTSKRIFT,
+                )
+            val additionalMulighet =
+                createMulighet(
+                    originalFagsystem = Fagsystem.IT01,
+                    currentFagsystem = Fagsystem.KABAL,
+                    type = Type.ANKE_FOER_2027,
+                    originalType = Type.KLAGE,
+                )
+            registrering.muligheter.addAll(listOf(barnetrygdMulighet, additionalMulighet))
+
+            val view = registrering.toMuligheterView()
+
+            assertThat(view.ankemuligheterFoer2027.map { it.id }).containsExactly(barnetrygdMulighet.id)
+        }
+
+        @Test
         fun `isAnkeMulighetFromInfotrygd returns true for correct combination`() {
             val mulighet =
                 createMulighet(
@@ -2174,6 +2215,7 @@ class RegistreringServiceTest {
         originalType: Type? = Type.ANKE_FOER_2027,
         utsendingskanal: PartWithUtsendingskanal.Utsendingskanal? = null,
         vedtakDate: LocalDate? = null,
+        ytelse: Ytelse = Ytelse.OMS_PSB,
     ): Mulighet =
         Mulighet(
             id = id,
@@ -2195,7 +2237,7 @@ class RegistreringServiceTest {
             arkivsaksnummer = null,
             tema = Tema.SYK,
             vedtakDate = vedtakDate,
-            ytelse = Ytelse.OMS_PSB,
+            ytelse = ytelse,
             hjemmelIdList = emptyList(),
             previousSaksbehandlerIdent = null,
             previousSaksbehandlerName = null,
