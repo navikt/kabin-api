@@ -27,5 +27,6 @@ class PartStatus(
         FULLMAKT,
         RESERVERT_I_KRR,
         DELT_ANSVAR,
+        FALSK_ID,
     }
 }
