@@ -6,7 +6,7 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 val ktlintVersion = "1.8.0"
 val klageAuthVersion = "0.4.0"
 val logstashVersion = "9.0"
-val springDocVersion = "3.2.0"
+val springDocVersion = "3.2.1"
 val springMockkVersion = "5.0.1"
 val logbackSyslog4jVersion = "1.0.0"
 val klageKodeverkVersion = "3.4.7"
@@ -15,7 +15,7 @@ val otelVersion = "1.68.0"
 
 plugins {
     val kotlinVersion = "2.4.21"
-    id("org.springframework.boot") version "4.1.2"
+    id("org.springframework.boot") version "4.2.0"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
